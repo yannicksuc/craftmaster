@@ -1,0 +1,112 @@
+package fr.lordfinn.craftmaster.entity;
+
+import fr.lordfinn.craftmaster.block.ChairBlock;
+import fr.lordfinn.craftmaster.registry.ModContent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+
+/**
+ * Invisible entity the player rides while sitting on a chair. Never saved: it disappears when the player gets up,
+ * when the chair is broken, or when the world closes.
+ */
+public class SeatEntity extends Entity {
+
+    /** Where the rider's attachment point sits above the block: players hang 0.6 below it, which puts the hips on the seat. */
+    private static final double RIDE_HEIGHT = ChairBlock.SEAT_TOP - 0.15;
+
+    /** How far the seated player can turn away from the chair's direction (degrees). */
+    private static final float MAX_TURN = 100f;
+
+    public SeatEntity(EntityType<? extends SeatEntity> type, Level level) {
+        super(type, level);
+        noPhysics = true;
+        setNoGravity(true);
+    }
+
+    public static boolean occupied(ServerLevel level, BlockPos pos) {
+        return !level.getEntitiesOfClass(SeatEntity.class, new AABB(pos), Entity::isVehicle).isEmpty();
+    }
+
+    public static void sit(ServerLevel level, BlockPos pos, Direction facing, Player player) {
+        SeatEntity seat = ModContent.SEAT.create(level, EntitySpawnReason.TRIGGERED);
+        if (seat == null) return;
+        seat.snapTo(pos.getX() + 0.5, pos.getY() + RIDE_HEIGHT, pos.getZ() + 0.5, facing.toYRot(), 0);
+        level.addFreshEntity(seat);
+        if (!player.startRiding(seat)) seat.discard();
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (level() instanceof ServerLevel && (!isVehicle() || !(level().getBlockState(blockPosition()).getBlock() instanceof ChairBlock)))
+            discard();
+    }
+
+    @Override
+    protected Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dims, float scale) {
+        return Vec3.ZERO;
+    }
+
+    /** Getting up: in front of the chair if there is room, else standing on it. */
+    @Override
+    public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
+        BlockPos pos = blockPosition();
+        Direction facing = Direction.fromYRot(getYRot());
+        Vec3 front = Vec3.atBottomCenterOf(pos.relative(facing));
+        if (level().noCollision(passenger, passenger.getDimensions(Pose.STANDING).makeBoundingBox(front))
+                && !level().getBlockState(pos.relative(facing).below()).isAir())
+            return front;
+        return new Vec3(pos.getX() + 0.5, pos.getY() + ChairBlock.SEAT_TOP, pos.getZ() + 0.5);
+    }
+
+    // Same idea as boats: the body follows the chair, the head can look around within MAX_TURN
+    @Override
+    protected void positionRider(Entity passenger, MoveFunction move) {
+        super.positionRider(passenger, move);
+        clampRotation(passenger);
+    }
+
+    @Override
+    public void onPassengerTurned(Entity passenger) {
+        clampRotation(passenger);
+    }
+
+    private void clampRotation(Entity passenger) {
+        passenger.setYBodyRot(getYRot());
+        float delta = Mth.wrapDegrees(passenger.getYRot() - getYRot());
+        float clamped = Mth.clamp(delta, -MAX_TURN, MAX_TURN);
+        passenger.yRotO += clamped - delta;
+        passenger.setYRot(passenger.getYRot() + clamped - delta);
+        passenger.setYHeadRot(passenger.getYRot());
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {}
+
+    @Override
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+        return false;
+    }
+
+    @Override
+    protected void readAdditionalSaveData(ValueInput in) {}
+
+    @Override
+    protected void addAdditionalSaveData(ValueOutput out) {}
+}

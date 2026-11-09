@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "craftmaster:block/crimson_chair"
+    },
+    "facing=east": {
+      "model": "craftmaster:block/crimson_chair",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "craftmaster:block/crimson_chair",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "craftmaster:block/crimson_chair",
+      "y": 270
+    }
+  }
+}

@@ -1,70 +1,61 @@
-# CraftMaster Plugin Documentation
+# CraftMaster (mod Fabric)
 
-## Description
+Mod de l'event CraftMaster : saisons de tâches, scores, classement, busts, chaises et rideaux de scène.
+Fabric, Minecraft 26.3, à installer **sur le serveur et chez les joueurs** (avec Fabric API).
 
-CraftMaster est un plugin Minecraft Bukkit/Spigot conçu pour gérer des systèmes de classement et de tâches dans le jeu. Il permet aux administrateurs de créer des saisons de défis, d'attribuer des scores aux joueurs, et de gérer des affichages visuels représentant le classement des joueurs.
+Anciennement un plugin Paper : mêmes commandes, mêmes données.
 
-## Fonctionnalités principales
+## Données
 
-### 1. Gestion des tâches
-- **Ajout de tâches** : `/craftMasterAddTask <SEASON> <TASK_NAME>`
-- **Suppression de tâches** : `/craftMasterRemoveTask <SEASON> <TASK_NAME>`
-- **Renommage de tâches** : `/craftMasterRenameTask <SEASON> <OLD_TASK_NAME> <NEW_TASK_NAME>`
+`config/craftmaster/config.yml`, même format que le `config.yml` du plugin :
 
-### 2. Gestion des scores
-- **Attribution de scores** : `/craftMasterSetScore <SEASON> <TASK_NAME> <PSEUDO> <SCORE>`
-- **Rechargement des scores** : `/craftMasterReloadScores`
+```yaml
+seasons: { '3': { tasks: [Pont, Défi] } }
+scores:  { '3': { LordFinn: { Pont: 4, Défi: 3 } } }
+busts:   { '3': { '1': { world: minecraft:overworld, x: 0, y: -60, z: 5 } } }
+```
 
-### 3. Gestion des busts (affichages visuels de classement)
-- **Ajout de busts** : `/craftMasterAddBust <SEASON> <RANK>` - En pointant une tête de joueur (Player Head)
-- Les busts sont des éléments visuels qui représentent le classement d'un joueur dans une saison spécifique
+Au premier démarrage, s'il trouve `plugins/CraftMaster/config.yml` dans le dossier du serveur, le mod l'importe tel quel.
+Les anciens noms de monde Bukkit (`world`, `world_nether`, `world_the_end`) sont compris ; les nouveaux busts
+enregistrent l'identifiant de la dimension (`minecraft:overworld`).
 
-### 4. Intégration d'images
-- **Création d'images** : `/image <URL>` - Utilise ImageFrame pour afficher des images dans le jeu
+## Commandes
 
-## Commandes disponibles
+Admin = permission `craftmaster:admin` (LuckPerms…) ou opérateur niveau 2. Chaque commande marche aussi en
+minuscules (`/craftmasteraddtask`) et avec son alias. Les noms avec accents passent sans guillemets ; un nom avec
+espaces se met entre guillemets (`"Le Pont"`).
 
-| Commande | Description | Permissions |
-|----------|-------------|-------------|
-| `/craftMasterAddTask <SEASON> <TASK_NAME>` | Ajoute une nouvelle tâche à une saison | Opérateur |
-| `/craftMasterRemoveTask <SEASON> <TASK_NAME>` | Supprime une tâche d'une saison | Opérateur |
-| `/craftMasterRenameTask <SEASON> <OLD_TASK_NAME> <NEW_TASK_NAME>` | Renomme une tâche existante | Opérateur |
-| `/craftMasterSetScore <SEASON> <TASK_NAME> <PSEUDO> <SCORE>` | Définit le score d'un joueur pour une tâche | Opérateur |
-| `/craftMasterReloadScores` | Recharge la configuration et met à jour les affichages | Opérateur |
-| `/craftMasterAddBust <SEASON> <RANK>` | Enregistre une tête de joueur comme affichage de classement pour un rang | Opérateur |
-| `/image <URL>` | Crée un cadre d'image à partir d'une URL | Joueur |
+| Commande | Alias | Rôle |
+|---|---|---|
+| `/craftMasterAddTask <saison> <tâche>` | cfat | Ajoute une tâche |
+| `/craftMasterRemoveTask <saison> <tâche>` | cfrt | Retire une tâche (ses scores restent comptés) |
+| `/craftMasterRenameTask <saison> <ancien> <nouveau>` | cfrn | Renomme une tâche, les scores suivent |
+| `/craftMasterSetScore <saison> <tâche> <pseudo> <score>` | cfss | Donne un score, met à jour busts et écrans |
+| `/craftMasterReloadScores` | cfrs | Relit le fichier et met tout à jour |
+| `/craftMasterAddBust <saison> <rang>` | cfab | Enregistre la tête de joueur visée (8 blocs) |
+| `/craftMasterRemoveBust <saison> <rang>` | cfdb | Oublie un bust (la tête reste) |
+| `/craftMasterRanking [saison]` | cfrk | Ouvre l'écran de classement (tout le monde) |
+| `/craftMasterRanking chat <saison>` | | Classement dans le chat |
+| `/craftMasterCurtain <open\|close\|toggle> <x y z>` | cfcu | Ouvre / ferme un rideau |
 
-## Structure du plugin
+`/image` (plugin ImageFrame) n'existe plus : ImageFrame n'existe pas sur Fabric.
+Les placeholders PlaceholderAPI (`%cfscore_…%`) ne sont pas repris.
 
-### Gestionnaires principaux
-- [TaskManager](file://C:\Users\User\Documents\GitHub\CraftMaster\src\main\java\fr\lordfinn\craftMaster\data\TaskManager.java#L11-L77) : Gère les tâches par saison
-- [ScoreManager](file://C:\Users\User\Documents\GitHub\CraftMaster\src\main\java\fr\lordfinn\craftMaster\data\ScoreManager.java#L9-L73) : Gère les scores des joueurs
-- [BustManager](file://C:\Users\User\Documents\GitHub\CraftMaster\src\main\java\fr\lordfinn\craftMaster\data\BustManager.java#L14-L121) : Gère les affichages visuels de classement (busts)
+## En jeu
 
-### Système de commandes
-Le plugin utilise un système de commandes avec autocomplétion :
-- Chaque commande a son propre `CommandExecutor`
-- Les `TabCompleter` associés fournissent l'autocomplétion contextuelle
+- **Classement** : touche **K** (réglable). Podium or/argent/bronze, tête de chaque joueur, barre de points,
+  détail par tâche au survol, ◀ ▶ pour changer de saison. L'écran se met à jour en direct quand un score change.
+- **Busts** : la tête prend le skin du joueur classé au rang, avec une étiquette flottante « #1 Pseudo / 13 pts ».
+- **Chaises** (12 bois) : clic droit pour s'asseoir, accroupi pour se lever.
+- **Rideaux** (16 couleurs) : les blocs de rideau qui se touchent et regardent dans le même sens forment un seul
+  rideau. Il s'ouvre du milieu vers les côtés et se ferme des côtés vers le milieu. Un rideau ouvert est invisible
+  (on le revoit en tenant un rideau ou la télécommande, pour le casser ou le lier).
+  Pour l'ouvrir / le fermer : un signal redstone sur n'importe quel bloc du rideau, la **télécommande de rideaux**
+  (clic droit sur un rideau pour la lier, puis clic droit n'importe où), un clic droit en créatif, ou la commande.
+- Onglet créatif « CraftMaster » avec tous les objets (pas de recettes de craft).
 
-## Utilisation
+## Développement
 
-### Configuration initiale
-1. Configurez les saisons dans le fichier de configuration
-2. Ajoutez des tâches à chaque saison avec `/craftMasterAddTask`
-3. Définissez les scores des joueurs avec `/craftMasterSetScore`
-
-### Gestion des busts
-1. Placez des têtes de joueur (Player Head) dans le monde
-2. Utilisez `/craftMasterAddBust` en pointant la tête pour l'enregistrer comme affichage de classement
-3. Le bust représentera visuellement un rang spécifique dans une saison
-
-### Mise à jour des données
-Utilisez `/craftMasterReloadScores` pour recharger la configuration et mettre à jour tous les affichages
-
-## Permissions
-
-Seuls les opérateurs (ou joueurs avec permissions appropriées) peuvent utiliser les commandes d'administration du plugin. La commande `/image` est accessible à tous les joueurs.
-
-## Dépendances
-
-Le plugin nécessite l'API Bukkit/Spigot et utilise le plugin ImageFrame pour la fonctionnalité d'affichage d'images.
+- Build : `.\gradlew.bat build` (Java 25) → `build/libs/craftmaster-<version>.jar`.
+- Client de dev : `.\gradlew.bat runClient` ; serveur : `.\gradlew.bat runServer` (dossier `run-server/`).
+- Modèles, textures, traductions et loot tables sont générés par `python3 scripts/gen_assets.py`.

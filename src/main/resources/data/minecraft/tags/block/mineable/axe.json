@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    "craftmaster:oak_chair",
+    "craftmaster:spruce_chair",
+    "craftmaster:birch_chair",
+    "craftmaster:jungle_chair",
+    "craftmaster:acacia_chair",
+    "craftmaster:dark_oak_chair",
+    "craftmaster:mangrove_chair",
+    "craftmaster:cherry_chair",
+    "craftmaster:pale_oak_chair",
+    "craftmaster:bamboo_chair",
+    "craftmaster:crimson_chair",
+    "craftmaster:warped_chair"
+  ]
+}

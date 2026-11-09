@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "fr.lordfinn.craftmaster.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["DisplayAccessor", "TextDisplayAccessor"],
+  "injectors": { "defaultRequire": 1 }
+}

@@ -1,0 +1,280 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "#fabric"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        6
+      ],
+      "to": [
+        4,
+        16,
+        8
+      ],
+      "faces": {
+        "north": {
+          "texture": "#fabric",
+          "uv": [
+            0,
+            0,
+            4,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#fabric",
+          "uv": [
+            12,
+            0,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#fabric",
+          "uv": [
+            2,
+            0,
+            4,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#fabric",
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#fabric",
+          "uv": [
+            0,
+            0,
+            4,
+            2
+          ]
+        },
+        "down": {
+          "texture": "#fabric",
+          "uv": [
+            0,
+            14,
+            4,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        0,
+        8
+      ],
+      "to": [
+        8,
+        16,
+        10
+      ],
+      "faces": {
+        "north": {
+          "texture": "#fabric",
+          "uv": [
+            4,
+            0,
+            8,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#fabric",
+          "uv": [
+            8,
+            0,
+            12,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#fabric",
+          "uv": [
+            6,
+            0,
+            8,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#fabric",
+          "uv": [
+            4,
+            0,
+            6,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#fabric",
+          "uv": [
+            4,
+            0,
+            8,
+            2
+          ]
+        },
+        "down": {
+          "texture": "#fabric",
+          "uv": [
+            4,
+            14,
+            8,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        8,
+        0,
+        6
+      ],
+      "to": [
+        12,
+        16,
+        8
+      ],
+      "faces": {
+        "north": {
+          "texture": "#fabric",
+          "uv": [
+            8,
+            0,
+            12,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#fabric",
+          "uv": [
+            4,
+            0,
+            8,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#fabric",
+          "uv": [
+            10,
+            0,
+            12,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#fabric",
+          "uv": [
+            8,
+            0,
+            10,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#fabric",
+          "uv": [
+            8,
+            0,
+            12,
+            2
+          ]
+        },
+        "down": {
+          "texture": "#fabric",
+          "uv": [
+            8,
+            14,
+            12,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        12,
+        0,
+        8
+      ],
+      "to": [
+        16,
+        16,
+        10
+      ],
+      "faces": {
+        "north": {
+          "texture": "#fabric",
+          "uv": [
+            12,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#fabric",
+          "uv": [
+            0,
+            0,
+            4,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#fabric",
+          "uv": [
+            14,
+            0,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#fabric",
+          "uv": [
+            12,
+            0,
+            14,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#fabric",
+          "uv": [
+            12,
+            0,
+            16,
+            2
+          ]
+        },
+        "down": {
+          "texture": "#fabric",
+          "uv": [
+            12,
+            14,
+            16,
+            16
+          ]
+        }
+      }
+    }
+  ]
+}
