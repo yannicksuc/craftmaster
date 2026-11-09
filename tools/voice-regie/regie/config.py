@@ -16,6 +16,8 @@ class Settings:
     whisper_model: str = "auto"
     whisper_device: str = "auto"
     whisper_compute: str = "auto"
+    # "claude" (default) or "offline" (fixed patterns, regie/offline.py)
+    understanding: str = "claude"
     # Claude
     model: str = "claude-opus-5-5"
     effort: str = "low"
@@ -34,6 +36,7 @@ class Settings:
             whisper_model=_env("REGIE_WHISPER_MODEL", "auto"),
             whisper_device=_env("REGIE_WHISPER_DEVICE", "auto"),
             whisper_compute=_env("REGIE_WHISPER_COMPUTE", "auto"),
+            understanding=_env("REGIE_UNDERSTANDING", "claude"),
             model=_env("REGIE_CLAUDE_MODEL", "claude-opus-5-5"),
             effort=_env("REGIE_CLAUDE_EFFORT", "low"),
             fast_mode=_env("REGIE_CLAUDE_FAST", "0") == "1",

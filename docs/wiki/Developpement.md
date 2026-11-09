@@ -14,6 +14,8 @@
 | `powershell -File scripts\dev-client.ps1 [-Second]` | Client en arrière-plan, sans son, connecté au serveur de dev |
 | `python3 scripts/gen_assets.py` | Régénère modèles, états de blocs, textures, recettes, loot tables, traductions |
 | `python3 scripts/server_smoke_test.py <ip>` | Test de bout en bout sur le serveur de dev ([Tests](Tests.md)) |
+| `.\gradlew.bat runClient -PregieTrigger` | Client dont la régie vocale joue les WAV déposés dans `run/regie-trigger/` |
+| `powershell -File tools\voice-regie\start.ps1` | Service local de la régie vocale ([RegieVocale](RegieVocale.md)) |
 
 ## Structure du code
 ```
@@ -28,14 +30,20 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
   entity/SeatEntity       l'entité invisible sur laquelle on s'assoit
   item/CurtainRemoteItem  la télécommande
   network/Network         paquets du classement (demande client → réponse serveur, mises à jour)
+  regie/                  régie vocale, côté serveur et commun : RegiePayloads (paquets), RegieServer (contrôle
+                          admin, contexte, exécution), RegieJson, Wav (WAV 16 kHz), RegieService (client HTTP)
+  show/                   ShowContext (contexte de la partie) et ActionExecutor (exécution du schéma d'actions)
   registry/ModContent     blocs, objets, entité, onglet créatif
   mixin/                  accès aux setters privés des text_display
 src/client/java/…/client/                   client uniquement (jamais chargé par un serveur dédié)
   CraftMasterClient       touche K, rendu (vide) du siège, réception du classement
   RankingScreen           l'écran de classement
+  regie/VoiceRegie        touche N, enregistrement, envoi au service puis au serveur ; Recorder (micro / WAV) ;
+  regie/RegieHud          le panneau « ● Régie à l'écoute » / résultat (HudElementRegistry)
 src/main/resources/                         fabric.mod.json, mixins, assets et data (générés)
 src/test/java/                              tests unitaires JUnit 5
 scripts/                                    générateur de ressources, test serveur, lanceur de client
+tools/voice-regie/                          service local de la régie vocale (Python : Whisper + Claude)
 ```
 
 ## Choix techniques
@@ -53,6 +61,14 @@ scripts/                                    générateur de ressources, test ser
 - **Chaises** : l'entité siège doit être sauvegardable (le serveur refuse de faire monter sur une entité qui ne
   l'est pas) ; elle se supprime dès qu'elle est vide ou que la chaise disparaît.
 - **Permissions** : Fabric Permission API (`craftmaster:admin`), repli sur le niveau d'opérateur 2.
+- **Régie vocale** : la compréhension tourne sur le PC de celui qui parle (service local `tools/voice-regie`),
+  jamais sur le serveur. Le client demande le contexte au serveur dès l'appui (il arrive pendant qu'on parle),
+  envoie WAV + contexte au service au relâchement (fil à part), puis les actions au serveur qui revérifie le
+  droit admin à chaque paquet. Le JSON voyage en tableaux d'octets UTF-8 (pas de limite de 32 767 caractères).
+  Les actions `say` ne vont pas au serveur (le client affiche la réponse du service). Claude : un outil strict
+  par action, prompt et outils fixes mis en cache, contexte dans le message ; voir tools/voice-regie/README.md.
+  Propriétés JVM de dev : `craftmaster.regie.url`, `craftmaster.regie.wav` (WAV à la place du micro),
+  `craftmaster.regie.triggerDir` (dossier déclencheur, posé par `-PregieTrigger`).
 
 ## Ressources
 Tout ce qui est dans `src/main/resources/assets` et `data` vient de `scripts/gen_assets.py` (Python sans

@@ -32,7 +32,13 @@ class Regie:
     def __init__(self, settings: Settings, transcriber=None, understander=None):
         self.settings = settings
         self.transcriber = transcriber or Transcriber(settings.whisper_model, settings.whisper_device, settings.whisper_compute)
-        self.understander = understander or Understander(settings)
+        if understander is None:
+            if settings.understanding == "offline":
+                from .offline import OfflineUnderstander
+                understander = OfflineUnderstander()
+            else:
+                understander = Understander(settings)
+        self.understander = understander
         self.ready = threading.Event()
         self.load_error: str | None = None
 
@@ -50,7 +56,8 @@ class Regie:
     def health(self) -> dict:
         return {"ok": self.load_error is None, "whisper": getattr(self.transcriber, "description", "?"),
                 "whisperReady": self.ready.is_set(), "whisperError": self.load_error,
-                "apiKey": api_key_present(), "model": self.settings.model}
+                "apiKey": api_key_present(), "model": self.settings.model,
+                "understanding": self.settings.understanding}
 
     def command(self, body: dict) -> dict:
         t0 = time.perf_counter()
@@ -141,7 +148,9 @@ def main() -> None:
     if settings.host not in ("127.0.0.1", "localhost", "::1"):
         log.warning("Listening on %s: the service has no authentication, keep it on the local machine", settings.host)
     regie = Regie(settings)
-    if not api_key_present():
+    if settings.understanding == "offline":
+        log.warning("OFFLINE understanding (REGIE_UNDERSTANDING=offline): fixed patterns only, no Claude")
+    elif not api_key_present():
         log.warning("ANTHROPIC_API_KEY is not set: transcription works, understanding will answer an error")
     regie.load_async()
     server = ThreadingHTTPServer((settings.host, settings.port), make_handler(regie))

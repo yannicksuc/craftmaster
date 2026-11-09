@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The voice control panel, on the left of the screen: "● Régie à l'écoute" with a level meter while the key is
+ * The voice control panel, top-left of the screen: "● Régie à l'écoute" with a level meter while the key is
  * held, "⏳ …" while the order is understood / run, then for a few seconds what was heard, what was done and how
  * to undo it. Only the admin who speaks sees it (it is drawn by their own game).
  */
@@ -51,7 +51,8 @@ final class RegieHud implements HudElement {
                 add(lines, font, Component.translatable("hud.craftmaster.regie.executing", dots), GOLD, maxWidth);
             }
             case SHOWING -> {
-                border = v.ok() ? BORDER_OK : BORDER_KO;
+                // Green: actions ran fine · red: failure · gold: only an answer, nothing was changed
+                border = !v.ok() ? BORDER_KO : v.undoHint() ? BORDER_OK : GOLD;
                 heard(lines, font, v, maxWidth);
                 if (!v.reply().isBlank()) add(lines, font, Component.literal(v.reply()), v.ok() ? WHITE : RED, maxWidth);
                 for (String l : v.lines()) add(lines, font, Component.literal("• " + l), l.startsWith("✗") ? RED : v.ok() ? GREEN : YELLOW, maxWidth);
@@ -65,7 +66,8 @@ final class RegieHud implements HudElement {
         for (Line l : lines) w = Math.max(w, font.width(l.text()));
         if (v.phase() == VoiceRegie.Phase.LISTENING) w = Math.max(w, 80);
         int h = lines.size() * (font.lineHeight + 1) + (v.phase() == VoiceRegie.Phase.LISTENING ? 6 : 0);
-        int x = 6, y = Math.max(30, g.guiHeight() / 3 - h / 2);
+        // Top-left corner: free in vanilla, away from the titles of the show (centre) and the chat (bottom)
+        int x = 8, y = 8;
         g.fill(x - 4, y - 4, x + w + 4, y + h + 3, BG);
         if (border != 0) g.fill(x - 4, y - 4, x - 2, y + h + 3, border);
         int ly = y;

@@ -126,6 +126,39 @@ say {text}                               (réponse orale/écrite seulement, aucu
 Exécution côté serveur : `fr.lordfinn.craftmaster.show.ActionExecutor#execute(ServerPlayer admin, List<Map<String,Object>> actions)`
 → `Result(List<String> lignes, boolean ok)`. Toute la liste est annulable d'un coup.
 
+Précisions (chantier C, implémenté) :
+- Valeurs reçues : nombres en `Integer` (ou `Long` si trop grand), booléens, `String`, `List<String>`.
+  `season` / `partie` : `Integer` si dit en chiffres, sinon `String` (nom). `player` est déjà le pseudo exact,
+  `manche` un id existant. Le service fige `next` en id réel quand il le peut et fait suivre, dans une même liste,
+  les notes après un `manche.start` vers la manche lancée ; `current` / `next` peuvent quand même arriver
+  (contexte sans manches) et se résolvent au moment de l'exécution, dans l'ordre de la liste.
+- `say` n'est jamais envoyé au serveur par la régie (le client affiche la réponse du service) ; l'exécuteur doit
+  quand même l'accepter (ligne de texte).
+- Une ligne de `Result` par action, en français, courte (affichée dans le panneau) ; préfixe `✗ ` pour un échec.
+- `undo {count}` : `count` = nombre de **listes** (commandes vocales) à défaire, 1 à 50.
+
+### Contexte (JSON) — contrat entre A (`ShowContext.build(MinecraftServer, ServerPlayer)` → `Map<String,Object>`) et C
+
+Tout est facultatif pour le service (il tolère clés absentes ou mal formées), mais plus il en a, mieux il comprend :
+```
+version 1 · now (ms epoch) · idleMinutes (seuil d'inactivité, défaut 4)
+activeSeason (id) · activePartie (id)
+seasons[ {id, name, hidden, archived, players[]?, parties[ {id, name, status, archived,
+          manches[ {id, name, aliases[], order, onStage, scene, timer, archived} ]} ]} ]
+players[ {pseudo, aliases[], online, archived} ]          joueurs de la saison active
+currentManche (id ou null) · currentMancheStartedAt (ms) · lastScoreAt (ms) · lastScoreManche (id)
+scores {live {idManche: {pseudo: n}}, published {…}}       saison + partie actives
+totals {live {pseudo: n}, published {…}}
+curtains [noms] · scenes [noms] · recentActions [textes courts, 10 derniers]
+```
+Règle d'inactivité appliquée par le service : `now - lastScoreAt ≥ idleMinutes` **et** la dernière note est dans la
+manche en cours (`lastScoreManche == currentManche`, ou à défaut la manche en cours a des notes) — une manche lancée
+mais pas encore notée reste la manche en cours.
+
+Paquets (`fr.lordfinn.craftmaster.regie.RegiePayloads`) : `regie_status` (S→C, admin oui/non, à la connexion et à
+chaque changement), `regie_context_request` / `regie_context`, `regie_actions` / `regie_result` ; contrôle admin à
+chaque paquet côté serveur (`RegieServer`).
+
 ## 5. Qualité (tous les chantiers)
 
 - Code commenté (anglais dans le code comme l'existant), propre, cohérent avec l'existant (Mojang names, 26.3).

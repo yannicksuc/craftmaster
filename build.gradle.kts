@@ -56,6 +56,9 @@ loom {
             // -PbackgroundClient: the window opens without taking the focus (Minecraft 26.x windows are SDL3,
             // which reads this hint from the environment), see scripts/dev-client.ps1
             if (hasProperty("backgroundClient")) environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
+            // -PregieTrigger: the voice control plays the .wav files dropped in run/regie-trigger as if the key
+            // were held while they are spoken (tests without keyboard or microphone, docs/wiki/RegieVocale.md)
+            if (hasProperty("regieTrigger")) vmArg("-Dcraftmaster.regie.triggerDir=" + file("run/regie-trigger").absolutePath)
             runDir = "run"
         }
         // Second player without admin rights, to see what participants see: .\gradlew.bat runClient2

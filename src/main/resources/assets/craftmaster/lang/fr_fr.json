@@ -26,7 +26,7 @@
   "hud.craftmaster.regie.listening": "● Régie à l'écoute",
   "hud.craftmaster.regie.thinking": "⏳ Compréhension%s",
   "hud.craftmaster.regie.executing": "⏳ Exécution%s",
-  "hud.craftmaster.regie.heard": "« %s »",
+  "hud.craftmaster.regie.heard": "« %s »",
   "hud.craftmaster.regie.undo_hint": "Dis « annule » pour annuler",
   "hud.craftmaster.regie.nothing_done": "Rien n'a été fait",
   "message.craftmaster.regie.not_admin": "La régie vocale est réservée aux organisateurs",
