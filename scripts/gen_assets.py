@@ -73,6 +73,22 @@ def cube(frm, to, tex):
     return {"from": frm, "to": to, "faces": faces(tex)}
 
 
+def tall_cube(frm, to, tex):
+    """A cube reaching above the block (y > 16): Minecraft's automatic UVs would leave the texture there, so each
+    face gets explicit UVs taken from the bottom of the texture, height for height."""
+    (x1, y1, z1), (x2, y2, z2) = frm, to
+    h = y2 - y1
+    v1, v2 = 16 - h, 16
+    return {"from": frm, "to": to, "faces": {
+        "north": {"texture": tex, "uv": [16 - x2, v1, 16 - x1, v2]},
+        "south": {"texture": tex, "uv": [x1, v1, x2, v2]},
+        "east": {"texture": tex, "uv": [16 - z2, v1, 16 - z1, v2]},
+        "west": {"texture": tex, "uv": [z1, v1, z2, v2]},
+        "up": {"texture": tex, "uv": [x1, z1, x2, z2]},
+        "down": {"texture": tex, "uv": [x1, z1, x2, z2]},
+    }}
+
+
 def self_drop(block):
     """Loot table of a block that drops itself (26.x format: one "condition" with a "type")."""
     return {"type": "minecraft:block",
@@ -90,9 +106,9 @@ chair_template = {
         cube([2, 0, 2], [4, 7, 4], "#log"), cube([12, 0, 2], [14, 7, 4], "#log"),
         cube([2, 0, 12], [4, 7, 14], "#log"), cube([12, 0, 12], [14, 7, 14], "#log"),
         cube([2, 7, 2], [14, 9, 14], "#planks"),                       # seat
-        cube([2, 9, 12], [4, 21, 14], "#log"), cube([12, 9, 12], [14, 21, 14], "#log"),  # back posts
-        cube([4, 12, 12.5], [12, 20, 13.5], "#planks"),                # backrest
-        cube([4, 20, 12], [12, 21, 14], "#log"),                       # top rail
+        tall_cube([2, 9, 12], [4, 21, 14], "#log"), tall_cube([12, 9, 12], [14, 21, 14], "#log"),  # back posts
+        tall_cube([4, 12, 12.5], [12, 20, 13.5], "#planks"),           # backrest
+        tall_cube([4, 20, 12], [12, 21, 14], "#log"),                  # top rail
     ],
 }
 write_json(os.path.join(A, "models/block/chair_template.json"), chair_template)
@@ -126,36 +142,44 @@ write_json(os.path.join(A, "models/block/curtain_template.json"),
            {"parent": "minecraft:block/block", "textures": {"particle": "#fabric"}, "elements": pleats})
 for color, (rgb, _, _) in COLORS.items():
     name = f"{color}_curtain"
+    # Two looks: with the darker hem (lowest block of a column, and the item) and plain (blocks above another one)
     write_json(os.path.join(A, f"models/block/{name}.json"),
                {"parent": "craftmaster:block/curtain_template", "textures": {"fabric": f"craftmaster:block/{name}"}})
+    write_json(os.path.join(A, f"models/block/{name}_plain.json"),
+               {"parent": "craftmaster:block/curtain_template", "textures": {"fabric": f"craftmaster:block/{name}_plain"}})
     # Open: nothing drawn (the particles still use the fabric when it is broken)
     write_json(os.path.join(A, f"models/block/{name}_open.json"), {"textures": {"particle": f"craftmaster:block/{name}"}})
     variants = {}
     for f, y in FACING_Y.items():
         for is_open in ("false", "true"):
-            m = f"craftmaster:block/{name}" + ("_open" if is_open == "true" else "")
-            v = {"model": m}
-            if y:
-                v["y"] = y
-            variants[f"facing={f},open={is_open}"] = v
+            for bottom in ("false", "true"):
+                if is_open == "true":
+                    m = f"craftmaster:block/{name}_open"
+                else:
+                    m = f"craftmaster:block/{name}" + ("" if bottom == "true" else "_plain")
+                v = {"model": m}
+                if y:
+                    v["y"] = y
+                variants[f"bottom={bottom},facing={f},open={is_open}"] = v
     write_json(os.path.join(A, f"blockstates/{name}.json"), {"variants": variants})
     write_json(os.path.join(A, f"items/{name}.json"), {"model": {"type": "minecraft:model", "model": f"craftmaster:block/{name}"}})
     write_json(os.path.join(D, f"craftmaster/loot_table/blocks/{name}.json"), self_drop(name))
 
-    # Velvet texture: vertical folds (light in the middle of each pleat), a darker hem at the bottom
+    # Velvet texture: vertical folds (light in the middle of each pleat); the hem version adds a darker bottom band
     r0, g0, b0 = (rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255
-    rnd = random.Random(color)
-    rows = []
-    for y in range(16):
-        row = []
-        for x in range(16):
-            fold = 0.78 + 0.30 * math.sin((x % 4 + 0.5) / 4 * math.pi)
-            shade = fold * (0.97 + rnd.random() * 0.06)
-            if y >= 14:
-                shade *= 0.78
-            row.append((min(255, int(r0 * shade)), min(255, int(g0 * shade)), min(255, int(b0 * shade)), 255))
-        rows.append(row)
-    write_png(os.path.join(A, f"textures/block/{name}.png"), 16, 16, rows)
+    for suffix, hem in (("", True), ("_plain", False)):
+        rnd = random.Random(color)  # same velvet grain on both, so stacked blocks match
+        rows = []
+        for y in range(16):
+            row = []
+            for x in range(16):
+                fold = 0.78 + 0.30 * math.sin((x % 4 + 0.5) / 4 * math.pi)
+                shade = fold * (0.97 + rnd.random() * 0.06)
+                if hem and y >= 14:
+                    shade *= 0.78
+                row.append((min(255, int(r0 * shade)), min(255, int(g0 * shade)), min(255, int(b0 * shade)), 255))
+            rows.append(row)
+        write_png(os.path.join(A, f"textures/block/{name}{suffix}.png"), 16, 16, rows)
 
 # ------------------------------------------------------------------ remote
 write_json(os.path.join(A, "models/item/curtain_remote.json"),

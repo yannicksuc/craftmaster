@@ -9,7 +9,10 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
@@ -37,29 +40,47 @@ public class CurtainBlock extends Block {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+    /** Lowest block of its column: only it shows the darker hem, so a tall curtain has one hem at the bottom. */
+    public static final BooleanProperty BOTTOM = BooleanProperty.create("bottom");
 
     // Pleats: z 6..10 px when facing north (block/curtain_template.json)
     private static final Map<Direction, VoxelShape> SHAPES = Shapes4.of(new double[]{0, 0, 6, 16, 16, 10});
 
     public CurtainBlock(Properties props) {
         super(props);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(OPEN, false).setValue(POWERED, false));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(OPEN, false).setValue(POWERED, false)
+                .setValue(BOTTOM, true));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> b) {
-        b.add(FACING, OPEN, POWERED);
+        b.add(FACING, OPEN, POWERED, BOTTOM);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        BlockState state = defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getOpposite());
         // Continuing a curtain: same direction and same open/closed state as the curtain next to it
         for (Direction d : Direction.values()) {
             BlockState n = ctx.getLevel().getBlockState(ctx.getClickedPos().relative(d));
-            if (n.getBlock() instanceof CurtainBlock)
-                return defaultBlockState().setValue(FACING, n.getValue(FACING)).setValue(OPEN, n.getValue(OPEN));
+            if (n.getBlock() instanceof CurtainBlock) {
+                state = state.setValue(FACING, n.getValue(FACING)).setValue(OPEN, n.getValue(OPEN));
+                break;
+            }
         }
-        return defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getOpposite());
+        return withBottom(state, ctx.getLevel().getBlockState(ctx.getClickedPos().below()));
+    }
+
+    /** The hem shows unless a curtain hanging the same way continues below. */
+    private static BlockState withBottom(BlockState state, BlockState below) {
+        boolean continues = below.getBlock() instanceof CurtainBlock && below.getValue(FACING) == state.getValue(FACING);
+        return state.setValue(BOTTOM, !continues);
+    }
+
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+                                     Direction direction, BlockPos neighbourPos, BlockState neighbour, RandomSource random) {
+        return direction == Direction.DOWN ? withBottom(state, neighbour) : state;
     }
 
     @Override

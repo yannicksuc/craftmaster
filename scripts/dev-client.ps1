@@ -51,7 +51,7 @@ if ($Foreground) { return }
 $deadline = (Get-Date).AddMinutes(5)
 while ((Get-Date) -lt $deadline) {
     $client = Get-CimInstance Win32_Process -Filter "Name='java.exe'" |
-        Where-Object { $_.CommandLine -match 'fabric\.dli\.env=client' -and $_.CommandLine -match [regex]::Escape($root) } |
+        Where-Object { $_.CommandLine -match 'fabric\.dli\.env=client' -and $_.CommandLine -match [regex]::Escape((Join-Path $root ".gradle\loom-cache")) } |
         Where-Object { (Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue).StartTime -gt $started }
     foreach ($p in @($client)) {
         $handle = (Get-Process -Id $p.ProcessId -ErrorAction SilentlyContinue).MainWindowHandle

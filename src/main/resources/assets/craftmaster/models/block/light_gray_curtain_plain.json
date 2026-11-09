@@ -1,0 +1,6 @@
+{
+  "parent": "craftmaster:block/curtain_template",
+  "textures": {
+    "fabric": "craftmaster:block/light_gray_curtain_plain"
+  }
+}

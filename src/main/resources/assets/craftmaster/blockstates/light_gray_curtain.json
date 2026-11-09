@@ -1,32 +1,62 @@
 {
   "variants": {
-    "facing=north,open=false": {
+    "bottom=false,facing=north,open=false": {
+      "model": "craftmaster:block/light_gray_curtain_plain"
+    },
+    "bottom=true,facing=north,open=false": {
       "model": "craftmaster:block/light_gray_curtain"
     },
-    "facing=north,open=true": {
+    "bottom=false,facing=north,open=true": {
       "model": "craftmaster:block/light_gray_curtain_open"
     },
-    "facing=east,open=false": {
+    "bottom=true,facing=north,open=true": {
+      "model": "craftmaster:block/light_gray_curtain_open"
+    },
+    "bottom=false,facing=east,open=false": {
+      "model": "craftmaster:block/light_gray_curtain_plain",
+      "y": 90
+    },
+    "bottom=true,facing=east,open=false": {
       "model": "craftmaster:block/light_gray_curtain",
       "y": 90
     },
-    "facing=east,open=true": {
+    "bottom=false,facing=east,open=true": {
       "model": "craftmaster:block/light_gray_curtain_open",
       "y": 90
     },
-    "facing=south,open=false": {
+    "bottom=true,facing=east,open=true": {
+      "model": "craftmaster:block/light_gray_curtain_open",
+      "y": 90
+    },
+    "bottom=false,facing=south,open=false": {
+      "model": "craftmaster:block/light_gray_curtain_plain",
+      "y": 180
+    },
+    "bottom=true,facing=south,open=false": {
       "model": "craftmaster:block/light_gray_curtain",
       "y": 180
     },
-    "facing=south,open=true": {
+    "bottom=false,facing=south,open=true": {
       "model": "craftmaster:block/light_gray_curtain_open",
       "y": 180
     },
-    "facing=west,open=false": {
+    "bottom=true,facing=south,open=true": {
+      "model": "craftmaster:block/light_gray_curtain_open",
+      "y": 180
+    },
+    "bottom=false,facing=west,open=false": {
+      "model": "craftmaster:block/light_gray_curtain_plain",
+      "y": 270
+    },
+    "bottom=true,facing=west,open=false": {
       "model": "craftmaster:block/light_gray_curtain",
       "y": 270
     },
-    "facing=west,open=true": {
+    "bottom=false,facing=west,open=true": {
+      "model": "craftmaster:block/light_gray_curtain_open",
+      "y": 270
+    },
+    "bottom=true,facing=west,open=true": {
       "model": "craftmaster:block/light_gray_curtain_open",
       "y": 270
     }
