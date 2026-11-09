@@ -23,6 +23,10 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
   data/CraftMasterData    le fichier config.yml : tâches, scores, classement, busts, saisons cachées
   command/                les commandes (Brigadier) et WordArgument (noms avec accents)
   bust/Busts              têtes et étiquettes flottantes
+  portrait/               tableaux suspendus : PortraitEntity, Portraits (galeries, publication, illumination),
+                          PortraitRanking (seule source des scores), GalleryPlanner (colonnes, plans, sans croisement),
+                          PortraitGeometry (proportions bébé, centre de gravité, nœud), PortraitAnimation, Pose,
+                          PoseLibrary (poses.json), PortraitNetwork, PortraitCommands (/cfpt), PortraitItem
   curtain/Curtains        animation d'ouverture / fermeture (file d'attente par tick)
   block/                  ChairBlock, CurtainBlock, Shapes4 (formes tournées dans les 4 sens)
   entity/SeatEntity       l'entité invisible sur laquelle on s'assoit
@@ -33,6 +37,8 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
 src/client/java/…/client/                   client uniquement (jamais chargé par un serveur dédié)
   CraftMasterClient       touche K, rendu (vide) du siège, réception du classement
   RankingScreen           l'écran de classement
+  portrait/               PortraitRenderer, PortraitClipper (coupe par la toile, fenêtre Antichamber), PortraitSkins
+                          (skin du joueur ou image téléchargée), PortraitScreen (réglages), PoseEditorScreen
 src/main/resources/                         fabric.mod.json, mixins, assets et data (générés)
 src/test/java/                              tests unitaires JUnit 5
 scripts/                                    générateur de ressources, test serveur, lanceur de client
@@ -52,6 +58,13 @@ scripts/                                    générateur de ressources, test ser
   redstone du rideau.
 - **Chaises** : l'entité siège doit être sauvegardable (le serveur refuse de faire monter sur une entité qui ne
   l'est pas) ; elle se supprime dès qu'elle est vide ou que la chaise disparaît.
+- **Tableaux** : l'entité est le crochet sous le plafond ; tout le reste (cadre, personnage, ficelle, balancement,
+  réarrangement) est dessiné par le client à partir des données synchronisées. Le personnage est le modèle joueur
+  passé par `HumanoidModel.BABY_TRANSFORMER` (proportions bébé zombie), chaque partie placée par
+  `PortraitGeometry` (mêmes matrices pour le dessin et pour le centre de gravité). Sans stencil en 26.3, la coupe par
+  la toile et l'effet fenêtre sont faits sur la géométrie (`PortraitClipper` : découpe de polygones, et projection le
+  long du regard sur le plan de la toile). Le réarrangement n'envoie qu'un état (colonnes de départ et d'arrivée,
+  plan, heure de début) que chaque client anime.
 - **Permissions** : Fabric Permission API (`craftmaster:admin`), repli sur le niveau d'opérateur 2.
 
 ## Ressources

@@ -6,6 +6,14 @@
   ajout / retrait / renommage de tâches (les scores suivent, fusion), scores (fixer, ajouter, retirer), classement
   et égalités, saisons cachées, busts, format du fichier écrit, fichier illisible mis de côté.
 - `WordArgumentTest` : accents sans guillemets, noms avec espaces, aller-retour des suggestions.
+- `GalleryPlannerTest` : colonnes par rang, un tableau emporte son joueur, plans avant / arrière, jamais deux
+  tableaux d'un même plan qui se croisent (500 ordres aléatoires), joueurs fixes, nouveaux venus, tableaux vides.
+- `PortraitGeometryTest` : proportions bébé de vanilla, centre de gravité pondéré par les volumes, nœud de la
+  ficelle à la verticale du centre de gravité (cadre incliné, bras tendu, cadre porté), coupe par la toile, effet
+  fenêtre sans boîte.
+- `PoseLibraryTest` : poses fournies, aller-retour JSON, lecture tolérante, fichier créé puis conservé, fichier
+  illisible mis de côté.
+- `PortraitAnimationTest` : les trois phases du réarrangement, progression monotone, durée bornée.
 
 ## 2. Test de bout en bout sur serveur (script)
 Serveur de dev (`run-server/server.properties`) : `online-mode=false`, `enable-rcon=true`, `rcon.port=25692`,
@@ -45,3 +53,18 @@ le format 26.3 des loot tables et des recettes, les accents refusés sans guille
 Pas automatisable avec les outils actuels (aucun outil MCP pour les touches ni les clics dans un écran) : la
 touche K, les boutons ◀ ▶, la molette et Échap dans l'écran de classement, le survol de l'infobulle de la
 télécommande. À vérifier à la main.
+
+### Tableaux suspendus (vérifié en jeu, client de dev piloté par MCP Fabric)
+| Fonction | Résultat |
+|---|---|
+| Cadre doré, fond velours rouge, personnage aux proportions bébé avec le skin du joueur ; étiquettes « #1 Notch / 16 pts » | ✔ |
+| Poses fournies (face, trois quarts) ; jambes « dans la peinture » cachées par la coupe ; sortie par le dos vue de derrière | ✔ |
+| Dos des tableaux : toile blanche, aucun membre qui dépasse ; de côté : cadre mince | ✔ |
+| Ficelle droite et verticale, hauteurs automatiques différentes, balancement | ✔ |
+| Effet Antichamber : personnage et rideau vus par l'ouverture, parallaxe en trois quarts, rien hors du cadre, dos blanc | ✔ |
+| Réarrangement à un changement de score (captures image par image) : avancer / reculer, glisser, revenir, ordre final | ✔ |
+| Écran de réglages et éditeur de poses ouverts par commande (affichage) | ✔ |
+
+Non vérifiable avec les outils actuels (pas de clic dans un écran) : modifier un réglage ou une pose à la souris,
+enregistrer / écraser / supprimer depuis l'éditeur, le clic droit et le coup qui casse le tableau, le skin par
+adresse (pas de serveur d'images de test). À vérifier à la main.

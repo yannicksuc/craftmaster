@@ -90,8 +90,8 @@ public class PortraitScreen extends Screen {
     @Override
     protected void init() {
         left = 10;
-        top = Math.max(4, height / 2 - 124);
-        int x = left + 92, w = 130, y = top + 26, step = 24;
+        top = Math.max(2, height / 2 - 116);
+        int x = left + 92, w = 130, y = top + 22, step = 22;
 
         season = box(x, y, 40, seasonV, "season");
         y += step;
@@ -211,11 +211,11 @@ public class PortraitScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
-        int w = 232, h = 248;
+        int w = 232, h = 232;
         g.fill(left, top, left + w, top + h, PANEL);
         g.outline(left, top, w, h, BORDER);
         g.text(font, Component.translatable("screen.craftmaster.portrait").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), left + 8, top + 8, 0xFFFFFFFF);
-        int y = top + 32, step = 24;
+        int y = top + 28, step = 22;
         g.text(font, Component.translatable("screen.craftmaster.portrait.season"), left + 8, y, LABEL);
         y += step * 2;
         g.text(font, Component.translatable("screen.craftmaster.portrait.name"), left + 8, y, LABEL);

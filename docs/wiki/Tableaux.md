@@ -30,7 +30,7 @@ s'y voient en direct.
 | Skin (adresse) | Adresse http(s) d'une image de skin 64×64 (ou ancien format 64×32). Vide = skin du joueur. Une image invalide ou injoignable donne le skin par défaut |
 | Pose | Une pose de la bibliothèque ; « Éditer… » ouvre l'éditeur de poses |
 | Ficelle (blocs) | Longueur de la ficelle, de 0 à 16 blocs : on peut pendre aussi bas qu'on veut. `auto` = longueur légèrement différente pour chaque tableau (0,55 à 1,05 bloc) |
-| Effet Antichamber | Voir plus bas (désactivé par défaut) |
+| Antichamber (Fenêtre) | Voir plus bas (désactivé par défaut) |
 
 Mêmes réglages en commande, sur le tableau regardé ou sur des entités visées :
 `/cfpt set [cibles] season|rank|player|name|skin|pose|window|height <valeur>` (`name -` et `skin -` remettent le
@@ -66,7 +66,8 @@ pleine lumière, contour lumineux).
 Bibliothèque partagée par tous les tableaux : `config/craftmaster/poses.json` sur le serveur (envoyée à chaque
 joueur). Poses fournies, inspirées de l'affiche : **classique** (buste), **sort du cadre**, **assis dans le
 cadre**, **porte le cadre**, **se penche dehors**, **salut**, **bras croisés**, **trône**, et **sort par
-derrière** (le haut du corps sort du dos plat du tableau, vu de derrière). `/cfpt poses` les liste.
+derrière** (le haut du corps sort du dos plat du tableau, vu de derrière). Les poses jouent avec le cadre : mains
+sur les montants, jambe passée par-dessus la barre du bas, assis sur la barre, penché hors de la peinture… `/cfpt poses` les liste.
 
 **Éditeur de poses** (« Éditer… » dans l'écran du tableau, ou `/cfpt poseEditor`) : choisir une partie
 (Ensemble, Tête, Corps, Bras D/G, Jambe D/G, Cadre), régler ses rotations (et pour l'ensemble : taille et
@@ -76,20 +77,24 @@ décalage ; pour le cadre : bascule et inclinaison) ; le tableau montre le résu
 - « Partir de » charge une pose existante ;
 - « Utiliser la pose » l'enregistre et la donne au tableau.
 
-Un décalage Z négatif place le personnage **derrière** la toile : il sort alors du dos du tableau. Dans tous les
-cas le personnage reste de son côté de la toile : une pose de face ne dépasse jamais par derrière, une pose de dos
-ne traverse jamais la peinture (il est décalé automatiquement s'il le faudrait).
+**La toile est une vraie coupe** : ce qui est derrière la surface peinte est « dans le tableau » et ne se voit
+pas. Un personnage qui se penche dehors garde les jambes dans la peinture ; un pied passé par-dessus la barre du
+bas sort du cadre. Un personnage tourné vers l'arrière (Ensemble, rotation Y à 180°) sort au contraire par le dos
+plat du tableau, et ce qui reste devant la toile est caché. La coupe ne vaut que dans le contour du cadre (un
+personnage qui porte le cadre au-dessus de sa tête n'est pas coupé).
 
 Supprimer une pose utilisée : les tableaux concernés prennent « classique ». Un fichier illisible est mis de côté
 (`poses.json.broken`) et remplacé par les poses fournies.
 
 ## Effet Antichamber (option par tableau)
-Le cadre devient une **fenêtre** sur une petite pièce derrière lui : le personnage n'est visible qu'à travers
-l'ouverture (aucun membre ne dépasse, il est poussé derrière l'ouverture), le fond rouge remplit toute
-l'ouverture autour de lui et reste fixe par rapport au tableau quand on se déplace (on voit la profondeur de la
-pièce). Vu de dos ou de côté, on ne voit que l'arrière blanc de la pièce.
+Le cadre devient une **fenêtre magique** : à travers l'ouverture on voit le personnage dans un espace profond,
+devant un rideau de velours rouge lointain qui reste fixe par rapport au tableau (il glisse avec la perspective
+quand on se déplace). Aucun membre ne dépasse : le personnage est entièrement « derrière la vitre ». De côté, le
+tableau reste un cadre mince ; de dos, on ne voit qu'une toile blanche. Réglage : bouton « Fenêtre » de l'écran,
+ou `/cfpt set window true`.
 
-Limite technique : Minecraft 26.3 ne donne pas accès au stencil. L'effet utilise un « mur » invisible
-(profondeur seule) autour du cadre, dessiné après les entités et avant l'intérieur du tableau. Ce mur peut
-masquer, dans une zone d'environ un bloc autour du cadre, ce qui est dessiné après les entités et se trouve
-derrière lui (eau, verre teinté, particules). Les blocs opaques et les autres entités ne sont pas touchés.
+Technique : Minecraft 26.3 ne donne pas accès au stencil. L'intérieur est donc une illusion d'optique : chaque
+point du personnage et du rideau est ramené, le long du regard du joueur, sur le plan de la toile (il reste
+exactement là où l'œil le voit), puis découpé au bord de l'ouverture. Rien n'existe hors du cadre, donc rien ne
+peut dépasser ni masquer le reste du monde. Limite : sous un angle très rasant, les textures des faces du
+personnage peuvent se déformer très légèrement.

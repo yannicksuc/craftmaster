@@ -534,7 +534,7 @@ fr.update({
     "screen.craftmaster.portrait.hang": "Ficelle (blocs)",
     "screen.craftmaster.portrait.hang_hint": "auto = varie",
     "screen.craftmaster.portrait.window": "Fenêtre",
-    "screen.craftmaster.portrait.window_label": "Effet Antichamber",
+    "screen.craftmaster.portrait.window_label": "Antichamber",
     "screen.craftmaster.portrait.save": "Enregistrer",
     "screen.craftmaster.portrait.hint": "Nom / skin vides = ceux du joueur",
     "screen.craftmaster.portrait.bad_season": "La saison doit être un nombre",

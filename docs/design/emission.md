@@ -95,10 +95,10 @@ organisateurs : `docs/wiki/Tableaux.md`.
 - Ajouts demandés par LordFinn en cours de route : personnage aux **proportions bébé zombie** (transformateur
   vanilla `HumanoidModel.BABY_TRANSFORMER`, repris tel quel dans `PortraitGeometry` et vérifié au chargement du
   rendu), cadre 18 × 24 px adapté, **ficelle toujours verticale** (nœud au-dessus du centre de gravité en x et z),
-  longueur de ficelle libre de 0 à 16 blocs, **effet Antichamber** optionnel par tableau (fenêtre sur une pièce
-  derrière le cadre ; pas de stencil en 26.3 : masque de profondeur + ordres de rendu, limite décrite dans le wiki),
-  poses qui **sortent par le dos** du tableau (décalage Z négatif) et personnage toujours gardé de son côté de la
-  toile.
+  longueur de ficelle libre de 0 à 16 blocs, **toile = vraie coupe** (ce qui est derrière la peinture est caché :
+  jambes « dans le tableau », poses qui jouent avec le cadre), poses qui **sortent par le dos** (personnage tourné
+  vers l'arrière), **effet Antichamber** optionnel par tableau (fenêtre magique ; pas de stencil en 26.3 : la
+  géométrie est découpée et projetée le long du regard sur le plan de la toile, rien n'existe hors du cadre).
 - Colonnes d'une galerie = emplacements actuels de ses tableaux (blocs de plafond), de gauche à droite vu du public ;
   rang 1 à gauche. Un tableau « rang N » emporte son joueur vers sa nouvelle colonne et prend son nouveau rang.
 

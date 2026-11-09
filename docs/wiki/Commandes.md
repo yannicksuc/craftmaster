@@ -41,3 +41,15 @@ Chaque changement met à jour les busts et les écrans de classement ouverts.
 | `/craftMasterCurtain <open\|close\|toggle> <x y z>` | cfcu | Ouvre / ferme le rideau qui contient ce bloc |
 
 Pratique dans un bloc de commande ou un `/schedule` pour un spectacle minuté.
+
+## Tableaux suspendus (admin)
+`/craftMasterPortrait` (alias `cfpt`) — détail dans [Tableaux](Tableaux.md). Sans cible, agit sur le tableau regardé.
+| Commande | Effet |
+|---|---|
+| `/cfpt place <saison> <rang> [<bloc du plafond> <north\|south\|east\|west>]` | Accroche un tableau |
+| `/cfpt set [cibles] season\|rank\|player\|name\|skin\|pose\|window\|height <valeur>` | Change un réglage |
+| `/cfpt edit [cibles]` / `/cfpt poseEditor [cibles]` | Ouvre l'écran de réglages / l'éditeur de poses |
+| `/cfpt remove [cibles]` | Retire le tableau |
+| `/cfpt poses` | Liste les poses |
+| `/cfpt publish <saison>` | Réarrange les galeries de la saison selon le classement |
+| `/cfpt highlight <saison> <rang>` | Illumine le tableau de ce rang (5 s) |
