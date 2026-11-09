@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * All CraftMaster data, in one YAML file with the exact layout of the old Paper plugin's config.yml:
  * <pre>
- * seasons: { "1": { tasks: [taskA, taskB] } }
+ * seasons: { "1": { tasks: [taskA, taskB], hidden: true } }
  * scores:  { "1": { LordFinn: { taskA: 3, taskB: 5 } } }
  * busts:   { "1": { "1": { world: minecraft:overworld, x: 10, y: 64, z: -3 } } }
  * </pre>
@@ -65,7 +65,14 @@ public final class CraftMasterData {
                 root = new LinkedHashMap<>();
             }
         } catch (IOException | RuntimeException e) {
-            log.error("[CraftMaster] Impossible de lire {} : {}", file, e.toString());
+            // Keep the broken file aside: the next save would otherwise overwrite it with an empty state
+            Path backup = file.resolveSibling(file.getFileName() + ".broken");
+            try {
+                Files.copy(file, backup, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException ignored) {
+                // nothing more we can do, the error below says what happened
+            }
+            log.error("[CraftMaster] Impossible de lire {} : {} (copie gardée dans {})", file, e.toString(), backup);
             root = new LinkedHashMap<>();
         }
         for (String k : List.of("seasons", "scores", "busts")) root.computeIfAbsent(k, x -> new LinkedHashMap<>());
@@ -161,11 +168,44 @@ public final class CraftMasterData {
         return true;
     }
 
+    /** A hidden season's ranking is only shown to admins, and its busts stay anonymous until it is revealed. */
+    public boolean isHidden(int season) {
+        return Boolean.TRUE.equals(section(section(root, "seasons", false), String.valueOf(season), false).get("hidden"));
+    }
+
+    public void setHidden(int season, boolean hidden) {
+        Map<String, Object> s = section(section(root, "seasons", true), String.valueOf(season), true);
+        if (hidden) s.put("hidden", true);
+        else s.remove("hidden");
+        save();
+    }
+
     // ---------------------------------------------------------------- scores
 
     public void setScore(int season, String task, String player, int score) {
         section(section(section(root, "scores", true), String.valueOf(season), true), player, true).put(task, score);
         save();
+    }
+
+    /** Adds (or with a negative value, takes away) points to the player's score for the task. @return the new score */
+    public int addScore(int season, String task, String player, int points) {
+        int score = score(season, task, player) + points;
+        setScore(season, task, player, score);
+        return score;
+    }
+
+    /**
+     * Forgets the player's score for the task; a player left without any score leaves the season's ranking.
+     * @return false if there was no such score
+     */
+    public boolean removeScore(int season, String task, String player) {
+        Map<String, Object> perSeason = section(section(root, "scores", false), String.valueOf(season), false);
+        Map<String, Object> perPlayer = section(perSeason, player, false);
+        if (!perPlayer.containsKey(task)) return false;
+        perPlayer.remove(task);
+        if (perPlayer.isEmpty()) perSeason.remove(player);
+        save();
+        return true;
     }
 
     public int score(int season, String task, String player) {

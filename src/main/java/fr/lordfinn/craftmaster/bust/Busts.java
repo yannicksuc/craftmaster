@@ -83,7 +83,9 @@ public final class Busts {
             return;
         }
         BlockPos pos = new BlockPos(bp.x(), bp.y(), bp.z());
-        String player = data.playerAtRank(season, rank);
+        // A hidden season keeps its busts anonymous until the reveal
+        boolean hidden = data.isHidden(season);
+        String player = hidden ? null : data.playerAtRank(season, rank);
 
         BlockState state = level.getBlockState(pos);
         if (isHead(state) && level.getBlockEntity(pos) instanceof SkullBlockEntity skull) {
@@ -91,7 +93,7 @@ public final class Busts {
         } else {
             CraftMaster.LOG.info("[Busts] Pas de tête en {} pour saison {} rang {}", pos.toShortString(), season, rank);
         }
-        updateLabel(level, pos, state, season, rank, player, player == null ? 0 : data.total(season, player));
+        updateLabel(level, pos, state, season, rank, hidden, player, player == null ? 0 : data.total(season, player));
     }
 
     /** The skin is looked up by the players' own game from the name, like a head given with /give. */
@@ -120,20 +122,26 @@ public final class Busts {
         return pos.getY() + (state.is(Blocks.PLAYER_WALL_HEAD) ? 1.0 : 0.75);
     }
 
-    public static Component labelText(int rank, String player, int total) {
-        ChatFormatting color = switch (rank) {
+    /** Podium colours, shared by the labels and the chat ranking. */
+    public static ChatFormatting rankColor(int rank) {
+        return switch (rank) {
             case 1 -> ChatFormatting.GOLD;
             case 2 -> ChatFormatting.GRAY;
             case 3 -> ChatFormatting.RED;
             default -> ChatFormatting.WHITE;
         };
-        MutableComponent c = Component.literal("#" + rank + " ").withStyle(color, ChatFormatting.BOLD);
+    }
+
+    /** "#1 LordFinn / 13 pts", "#1 ?" while the season is hidden, "#1 —" when nobody holds that rank. */
+    public static Component labelText(int rank, boolean hidden, String player, int total) {
+        MutableComponent c = Component.literal("#" + rank + " ").withStyle(rankColor(rank), ChatFormatting.BOLD);
+        if (hidden) return c.append(Component.literal("?").withStyle(ChatFormatting.LIGHT_PURPLE));
         if (player == null) return c.append(Component.literal("—").withStyle(ChatFormatting.DARK_GRAY));
         return c.append(Component.literal(player).withStyle(ChatFormatting.WHITE))
                 .append(Component.literal("\n" + total + " pts").withStyle(ChatFormatting.YELLOW));
     }
 
-    private static void updateLabel(ServerLevel level, BlockPos pos, BlockState state, int season, int rank, String player, int total) {
+    private static void updateLabel(ServerLevel level, BlockPos pos, BlockState state, int season, int rank, boolean hidden, String player, int total) {
         // Entities load after blocks: when they are not there yet, onEntityLoad refreshes the label instead
         if (!level.areEntitiesLoaded(ChunkPos.pack(pos))) return;
         String tag = tag(season, rank);
@@ -151,7 +159,7 @@ public final class Busts {
             label.snapTo(pos.getX() + 0.5, labelY(pos, state), pos.getZ() + 0.5);
             level.addFreshEntity(label);
         }
-        ((TextDisplayAccessor) label).craftmaster$setText(labelText(rank, player, total));
+        ((TextDisplayAccessor) label).craftmaster$setText(labelText(rank, hidden, player, total));
     }
 
     /** Removes the label of a bust that is no longer registered. */
@@ -182,8 +190,9 @@ public final class Busts {
                     level.getServer().execute(label::discard);
                     return;
                 }
-                String player = data.playerAtRank(season, rank);
-                ((TextDisplayAccessor) label).craftmaster$setText(labelText(rank, player, player == null ? 0 : data.total(season, player)));
+                boolean hidden = data.isHidden(season);
+                String player = hidden ? null : data.playerAtRank(season, rank);
+                ((TextDisplayAccessor) label).craftmaster$setText(labelText(rank, hidden, player, player == null ? 0 : data.total(season, player)));
             } catch (NumberFormatException ignored) {}
             return;
         }

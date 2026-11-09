@@ -22,8 +22,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Invisible entity the player rides while sitting on a chair. Never saved: it disappears when the player gets up,
- * when the chair is broken, or when the world closes.
+ * Invisible entity the player rides while sitting on a chair. It removes itself as soon as nobody sits on it or the
+ * chair is broken. A player who logs out seated comes back seated (the seat is saved with them).
  */
 public class SeatEntity extends Entity {
 

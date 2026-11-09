@@ -74,8 +74,11 @@ def cube(frm, to, tex):
 
 
 def self_drop(block):
-    return {"type": "minecraft:block", "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": f"craftmaster:{block}"}],
-                                                  "conditions": [{"condition": "minecraft:survives_explosion"}]}]}
+    """Loot table of a block that drops itself (26.x format: one "condition" with a "type")."""
+    return {"type": "minecraft:block",
+            "pools": [{"condition": {"type": "minecraft:survives_explosion"}, "rolls": 1,
+                       "entries": [{"type": "minecraft:item", "name": f"craftmaster:{block}"}]}],
+            "random_sequence": f"craftmaster:blocks/{block}"}
 
 
 # ------------------------------------------------------------------ chairs
@@ -213,6 +216,24 @@ for y in range(S):
 big = [[icon[y // 4][x // 4] for x in range(128)] for y in range(128)]
 write_png(os.path.join(A, "icon.png"), 128, 128, big)
 
+# ------------------------------------------------------------------ recipes
+def shaped(name, pattern, key, result, count=1, category="misc"):
+    """category: building, redstone, equipment or misc (the crafting book tabs)."""
+    write_json(os.path.join(D, f"craftmaster/recipe/{name}.json"), {
+        "type": "minecraft:crafting_shaped", "category": category, "pattern": pattern, "key": key,
+        "result": {"id": f"craftmaster:{result}", "count": count}})
+
+
+for wood in WOODS:
+    # Planks for the seat and backrest, sticks for the legs: 2 chairs
+    shaped(f"{wood}_chair", ["P  ", "PPP", "S S"], {"P": f"minecraft:{wood}_planks", "S": "minecraft:stick"},
+           f"{wood}_chair", 2, "building")
+for color in COLORS:
+    # A string to hang it, two wool of the colour: 2 curtains
+    shaped(f"{color}_curtain", ["T", "W", "W"], {"T": "minecraft:string", "W": f"minecraft:{color}_wool"},
+           f"{color}_curtain", 2, "building")
+shaped("curtain_remote", ["R", "I", "I"], {"R": "minecraft:redstone", "I": "minecraft:iron_ingot"}, "curtain_remote", 1, "redstone")
+
 # ------------------------------------------------------------------ translations
 en = {
     "itemGroup.craftmaster": "CraftMaster",
@@ -234,6 +255,10 @@ en = {
     "screen.craftmaster.points": "Points",
     "screen.craftmaster.empty": "No scores yet for this season",
     "screen.craftmaster.hint": "◀ ▶ season · hover a player for the detail · K to close",
+    "screen.craftmaster.hidden": " · hidden from players",
+    "screen.craftmaster.other_tasks": "Other tasks",
+    "screen.craftmaster.hidden_season": "Ranking hidden until the reveal",
+    "message.craftmaster.ranking_unavailable": "No ranking to show yet",
 }
 fr = {
     "itemGroup.craftmaster": "CraftMaster",
@@ -255,6 +280,10 @@ fr = {
     "screen.craftmaster.points": "Points",
     "screen.craftmaster.empty": "Aucun score pour cette saison",
     "screen.craftmaster.hint": "◀ ▶ saison · survole un joueur pour le détail · K pour fermer",
+    "screen.craftmaster.hidden": " · cachée aux joueurs",
+    "screen.craftmaster.other_tasks": "Autres tâches",
+    "screen.craftmaster.hidden_season": "Classement caché jusqu'à la révélation",
+    "message.craftmaster.ranking_unavailable": "Aucun classement à afficher pour l'instant",
 }
 for wood, (_, en_name, fr_name) in WOODS.items():
     en[f"block.craftmaster.{wood}_chair"] = f"{en_name} Chair"

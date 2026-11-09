@@ -64,9 +64,10 @@ public final class ModContent {
         CURTAIN_REMOTE = item("curtain_remote", CurtainRemoteItem::new, new Item.Properties().stacksTo(1));
 
         ResourceKey<EntityType<?>> seatKey = ResourceKey.create(Registries.ENTITY_TYPE, CraftMaster.id("seat"));
+        // Saved like any entity: the server refuses riding an entity type that cannot be saved
         SEAT = Registry.register(BuiltInRegistries.ENTITY_TYPE, seatKey,
                 EntityType.Builder.<SeatEntity>of(SeatEntity::new, MobCategory.MISC)
-                        .sized(0.25f, 0.25f).noSummon().noSave().clientTrackingRange(10).build(seatKey));
+                        .sized(0.25f, 0.25f).noSummon().clientTrackingRange(10).build(seatKey));
 
         ResourceKey<CreativeModeTab> tabKey = ResourceKey.create(Registries.CREATIVE_MODE_TAB, CraftMaster.id("craftmaster"));
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, tabKey, FabricCreativeModeTab.builder()

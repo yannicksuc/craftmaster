@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "T",
+    "W",
+    "W"
+  ],
+  "key": {
+    "T": "minecraft:string",
+    "W": "minecraft:cyan_wool"
+  },
+  "result": {
+    "id": "craftmaster:cyan_curtain",
+    "count": 2
+  }
+}

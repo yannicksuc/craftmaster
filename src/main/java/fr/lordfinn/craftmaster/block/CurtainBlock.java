@@ -86,10 +86,13 @@ public class CurtainBlock extends Block {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
-    /** Creative players (the organisers building the stage) can open/close a curtain by hand. */
+    /**
+     * Creative players (the organisers building the stage) can open/close a curtain with an empty hand. With an item
+     * in hand the click goes to the item (the remote links itself, a curtain block is placed).
+     */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!player.isCreative()) return InteractionResult.PASS;
+        if (!player.isCreative() || !player.getMainHandItem().isEmpty()) return InteractionResult.PASS;
         if (level instanceof ServerLevel server) Curtains.animate(server, pos, null);
         return InteractionResult.SUCCESS;
     }

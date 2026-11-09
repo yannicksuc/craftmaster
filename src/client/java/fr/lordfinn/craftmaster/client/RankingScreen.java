@@ -77,7 +77,7 @@ public class RankingScreen extends Screen {
         if (target == data.season()) return;
         scroll = 0;
         // Shown right away (empty) while the server answers
-        data = new Network.Ranking(false, target, seasons, List.of(), List.of());
+        data = new Network.Ranking(false, target, false, seasons, List.of(), List.of());
         updateButtons();
         CraftMasterClient.openRanking(minecraft, target);
     }
@@ -122,7 +122,10 @@ public class RankingScreen extends Screen {
         g.fill(left, top, left + panelW, top + panelH, PANEL);
         g.outline(left, top, panelW, panelH, BORDER);
         g.centeredText(font, Component.literal("CraftMaster").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), width / 2, top + 8, 0xFFFFFFFF);
-        g.centeredText(font, Component.translatable("screen.craftmaster.season", data.season()), width / 2, top + 20, 0xFFE0E0E0);
+        Component season = Component.translatable("screen.craftmaster.season", data.season());
+        // Only admins receive a hidden season: remind them the players cannot see it yet
+        if (data.hidden()) season = season.copy().append(Component.translatable("screen.craftmaster.hidden").withStyle(ChatFormatting.LIGHT_PURPLE));
+        g.centeredText(font, season, width / 2, top + 20, 0xFFE0E0E0);
         g.text(font, Component.translatable("screen.craftmaster.player"), left + 38, top + 34, 0xFF9A9AA8);
         Component pts = Component.translatable("screen.craftmaster.points");
         g.text(font, pts, left + panelW - 12 - font.width(pts), top + 34, 0xFF9A9AA8);
@@ -130,7 +133,8 @@ public class RankingScreen extends Screen {
 
         List<Network.Row> rows = data.rows();
         if (rows.isEmpty()) {
-            g.centeredText(font, Component.translatable("screen.craftmaster.empty"), width / 2, listTop + listH / 2 - 4, 0xFF9A9AA8);
+            Component empty = Component.translatable(data.hidden() ? "screen.craftmaster.hidden_season" : "screen.craftmaster.empty");
+            g.centeredText(font, empty, width / 2, listTop + listH / 2 - 4, 0xFF9A9AA8);
         }
 
         int best = rows.isEmpty() ? 1 : Math.max(1, rows.getFirst().total());
@@ -178,12 +182,20 @@ public class RankingScreen extends Screen {
 
         super.extractRenderState(g, mouseX, mouseY, partial);
 
-        if (hovered != null && !data.tasks().isEmpty()) {
+        if (hovered != null) {
             List<Component> lines = new ArrayList<>();
             lines.add(Component.literal(hovered.player()).withStyle(ChatFormatting.GOLD));
-            for (int t = 0; t < data.tasks().size(); t++)
+            int listed = 0;
+            for (int t = 0; t < data.tasks().size(); t++) {
+                listed += hovered.perTask().get(t);
                 lines.add(Component.literal(data.tasks().get(t) + " : ").withStyle(ChatFormatting.GRAY)
                         .append(Component.literal(String.valueOf(hovered.perTask().get(t))).withStyle(ChatFormatting.WHITE)));
+            }
+            // Points of removed or renamed-away tasks still count in the total: show them so the sum adds up
+            int other = hovered.total() - listed;
+            if (other != 0)
+                lines.add(Component.translatable("screen.craftmaster.other_tasks").withStyle(ChatFormatting.DARK_GRAY)
+                        .append(Component.literal(" : " + other).withStyle(ChatFormatting.WHITE)));
             g.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
         }
     }

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "T",
+    "W",
+    "W"
+  ],
+  "key": {
+    "T": "minecraft:string",
+    "W": "minecraft:green_wool"
+  },
+  "result": {
+    "id": "craftmaster:green_curtain",
+    "count": 2
+  }
+}

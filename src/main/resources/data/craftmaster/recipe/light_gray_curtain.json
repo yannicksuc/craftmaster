@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "T",
+    "W",
+    "W"
+  ],
+  "key": {
+    "T": "minecraft:string",
+    "W": "minecraft:light_gray_wool"
+  },
+  "result": {
+    "id": "craftmaster:light_gray_curtain",
+    "count": 2
+  }
+}

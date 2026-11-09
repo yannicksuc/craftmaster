@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "T",
+    "W",
+    "W"
+  ],
+  "key": {
+    "T": "minecraft:string",
+    "W": "minecraft:magenta_wool"
+  },
+  "result": {
+    "id": "craftmaster:magenta_curtain",
+    "count": 2
+  }
+}

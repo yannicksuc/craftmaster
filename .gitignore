@@ -120,3 +120,7 @@ runs/
 
 # Dev server of runServer
 run-server/
+
+# Dev clients (LordFinn, Joueur2) and their logs
+run2/
+logs/

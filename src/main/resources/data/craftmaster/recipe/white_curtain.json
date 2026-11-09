@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "T",
+    "W",
+    "W"
+  ],
+  "key": {
+    "T": "minecraft:string",
+    "W": "minecraft:white_wool"
+  },
+  "result": {
+    "id": "craftmaster:white_curtain",
+    "count": 2
+  }
+}
