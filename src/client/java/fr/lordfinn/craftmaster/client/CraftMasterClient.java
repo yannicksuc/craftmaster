@@ -2,6 +2,7 @@ package fr.lordfinn.craftmaster.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import fr.lordfinn.craftmaster.CraftMaster;
+import fr.lordfinn.craftmaster.client.regie.VoiceRegie;
 import fr.lordfinn.craftmaster.network.Network;
 import fr.lordfinn.craftmaster.registry.ModContent;
 import net.fabricmc.api.ClientModInitializer;
@@ -25,6 +26,7 @@ public final class CraftMasterClient implements ClientModInitializer {
     public void onInitializeClient() {
         EntityRendererRegistry.register(ModContent.SEAT, NoopRenderer::new);
         KeyMappingHelper.registerKeyMapping(RANKING_KEY);
+        VoiceRegie.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (RANKING_KEY.consumeClick()) openRanking(mc, -1);
