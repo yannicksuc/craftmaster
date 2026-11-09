@@ -10,6 +10,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Commandes et permissions](Commandes.md)
 - [Classement (écran K, saisons cachées)](Classement.md)
 - [Busts](Busts.md)
+- [Tableaux suspendus (galeries, poses, éditeur)](Tableaux.md)
 - [Rideaux de scène](Rideaux.md)
 - [Chaises](Chaises.md)
 - [Régie vocale (piloter à la voix)](RegieVocale.md)

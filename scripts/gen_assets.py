@@ -240,6 +240,174 @@ for y in range(S):
 big = [[icon[y // 4][x // 4] for x in range(128)] for y in range(128)]
 write_png(os.path.join(A, "icon.png"), 128, 128, big)
 
+# ------------------------------------------------------------------ portraits (hanging golden frames)
+# portrait_frame.png (128 x 64): box UVs of the frame pieces built by PortraitRenderer from
+# PortraitGeometry.FRAME_BOXES (top, bottom, left, right mouldings, canvas), plus the brass hook, the string and
+# the highlight glow. Box UV layout of a (w, h, d) cube at (u, v): up (u+d, v), down (u+d+w, v), side (u, v+d),
+# front (u+d, v+d), other side (u+d+w, v+d), back (u+2d+w, v+d). The "front" is the side the audience sees.
+FW, FH, FB, FD = 18, 24, 2, 3   # PortraitGeometry.FRAME_W, FRAME_H, BORDER, DEPTH (sized for the baby figure)
+TEX = [[(0, 0, 0, 0)] * 128 for _ in range(64)]
+GOLD_HI, GOLD, GOLD_MID, GOLD_LO, GOLD_DARK = (255, 236, 140), (240, 196, 64), (214, 160, 44), (170, 116, 30), (120, 78, 22)
+BACK_WOOD = (92, 62, 38)
+rnd = random.Random(7)
+
+
+def put(x, y, c, a=255):
+    TEX[y][x] = (c[0], c[1], c[2], a)
+
+
+def jitter(c, amount=10):
+    d = rnd.randint(-amount, amount)
+    return tuple(max(0, min(255, v + d)) for v in c)
+
+
+def face(u, v, w, h, painter):
+    for y in range(h):
+        for x in range(w):
+            put(u + x, v + y, painter(x, y, w, h))
+
+
+def moulding_front(kind):
+    """Front of a 2 px moulding: bright outer edge, darker inner edge, a bead every 4 px on the outer edge."""
+    def p(x, y, w, h):
+        along, across = (x, y) if kind in ("top", "bottom") else (y, x)
+        outer = {"top": y == 0, "bottom": y == h - 1, "left": x == 0, "right": x == w - 1}[kind]
+        if outer:
+            return GOLD_HI if along % 4 == 1 else jitter(GOLD, 6)
+        return GOLD_LO if along % 4 == 3 else jitter(GOLD_MID, 6)
+    return p
+
+
+def gold_side(x, y, w, h):
+    return jitter(GOLD_MID if (x + y) % 3 else GOLD, 8)
+
+
+def gold_top(x, y, w, h):
+    return jitter(GOLD, 8)
+
+
+def wood_back(x, y, w, h):
+    return jitter(BACK_WOOD, 8)
+
+
+def box_uv(u, v, w, h, d, front, top=gold_top, side=gold_side, back=wood_back):
+    face(u + d, v, w, d, top)
+    face(u + d + w, v, w, d, top)
+    face(u, v + d, d, h, side)
+    face(u + d, v + d, w, h, front)
+    face(u + d + w, v + d, d, h, side)
+    face(u + 2 * d + w, v + d, w, h, back)
+
+
+box_uv(0, 0, FW, FB, FD, moulding_front("top"))
+box_uv(0, 5, FW, FB, FD, moulding_front("bottom"))
+box_uv(0, 10, FB, FH - 2 * FB, FD, moulding_front("left"))
+box_uv(10, 10, FB, FH - 2 * FB, FD, moulding_front("right"))
+
+
+def velvet(x, y, w, h, folds):
+    """Theatre red velvet: vertical folds catching the light, a warm spotlight glow, darker toward the edges."""
+    fold = 0.78 + 0.22 * math.sin((x + 0.5) / w * folds * 2 * math.pi) ** 2
+    cx, cy = (w - 1) / 2, h * 0.35
+    r = math.hypot((x - cx) / w, (y - cy) / h) * 2.0
+    glow = max(0.45, 1.15 - r * 0.6)
+    f = fold * glow
+    c = (int(min(255, 196 * f)), int(min(255, 28 * f + 6 * (f > 1))), int(min(255, 40 * f)))
+    if (x * 5 + y * 3) % 13 == 0:   # velvet pile
+        c = tuple(max(0, v - 12) for v in c)
+    return c
+
+
+def poster_red(x, y, w, h, fillet=True):
+    """The poster's red velvet backdrop, framed by a thin gold fillet."""
+    c = velvet(x, y, w, h, 3)
+    # inner gold fillet along the moulding
+    if fillet and (x == 0 or y == 0 or x == w - 1 or y == h - 1):
+        c = GOLD_DARK
+    return c
+
+
+def canvas(x, y, w, h):
+    return poster_red(x, y, w, h)
+
+
+def white_back(x, y, w, h):
+    """Back of the canvas: plain white primed canvas."""
+    return jitter((236, 232, 222), 4)
+
+
+box_uv(20, 10, FW - 2 * FB, FH - 2 * FB, 1, canvas, top=wood_back, side=wood_back, back=white_back)
+# Window look (Antichamber): white outside of the box (64..68 x 0..4), red backdrop inside (64..96 x 32..64)
+face(64, 0, 4, 4, white_back)
+face(64, 32, 32, 32, lambda x, y, w, h: poster_red(x, y, w, h, fillet=False))
+
+# Window look backdrop (its own 64 x 64 texture): a velvet curtain, gold fringe at the bottom
+curtain = []
+for y in range(64):
+    row = []
+    for x in range(64):
+        c = velvet(x, y, 64, 64, 7)
+        if y >= 58:
+            c = GOLD if (x + y) % 3 else GOLD_LO
+        elif y == 57:
+            c = GOLD_DARK
+        row.append(c + (255,))
+    curtain.append(row)
+write_png(os.path.join(A, "textures/entity/portrait_backdrop.png"), 64, 64, curtain)
+
+# Brass hook (112..116 x 0..4) and string (120..121 x 0..16)
+face(112, 0, 4, 4, lambda x, y, w, h: (186, 140, 60) if (x + y) % 2 else (150, 108, 44))
+face(120, 0, 1, 16, lambda x, y, w, h: (226, 214, 186))   # uniform: the string reads as one straight line
+
+# Highlight glow (96..128 x 32..64): white, fading out from the frame's edge (the quad is the frame + 7 px)
+for y in range(32):
+    for x in range(32):
+        px = (x + 0.5) / 32 * (FW + 14) - (FW + 14) / 2
+        py = (y + 0.5) / 32 * (FH + 14) - (FH + 14) / 2
+        dist = math.hypot(max(0, abs(px) - FW / 2), max(0, abs(py) - FH / 2))
+        a = int(255 * max(0.0, 1 - dist / 7) ** 1.6)
+        TEX[32 + y][96 + x] = (255, 255, 255, a)
+
+write_png(os.path.join(A, "textures/entity/portrait_frame.png"), 128, 64, TEX)
+
+# Item: a small golden frame on its string, a player's head in it
+write_json(os.path.join(A, "models/item/portrait.json"),
+           {"parent": "minecraft:item/generated", "textures": {"layer0": "craftmaster:item/portrait"}})
+write_json(os.path.join(A, "items/portrait.json"), {"model": {"type": "minecraft:model", "model": "craftmaster:item/portrait"}})
+art = [
+    ".......SS.......",
+    "......S..S......",
+    ".....S....S.....",
+    "...HGGGGGGGGH...",
+    "...GgggggggdG...",
+    "...Gg......dG...",
+    "...Gg.hhhh.dG...",
+    "...Gg.hfhf.dG...",
+    "...Gg.hfff.dG...",
+    "...Gg..bb..dG...",
+    "...Gg.bbbb.dG...",
+    "...Gg.bbbb.dG...",
+    "...GgddddddDG...",
+    "...HGGGGGGGGH...",
+    "................",
+    "................",
+]
+pal = {".": T, "S": (226, 214, 186, 255), "H": (255, 236, 140, 255), "G": (240, 196, 64, 255),
+       "g": (214, 160, 44, 255), "d": (170, 116, 30, 255), "D": (120, 78, 22, 255),
+       "h": (74, 52, 34, 255), "f": (226, 172, 132, 255), "b": (40, 160, 170, 255)}
+# Canvas behind the figure
+pix = []
+for row in art:
+    line = []
+    for c in row:
+        line.append(pal[c] if c != "." else T)
+    pix.append(line)
+for y in range(5, 12):
+    for x in range(5, 11):
+        if pix[y][x] == T:
+            pix[y][x] = (112, 26, 38, 255)
+write_png(os.path.join(A, "textures/item/portrait.png"), 16, 16, pix)
+
 # ------------------------------------------------------------------ recipes
 def shaped(name, pattern, key, result, count=1, category="misc"):
     """category: building, redstone, equipment or misc (the crafting book tabs)."""
@@ -257,6 +425,8 @@ for color in COLORS:
     shaped(f"{color}_curtain", ["T", "W", "W"], {"T": "minecraft:string", "W": f"minecraft:{color}_wool"},
            f"{color}_curtain", 2, "building")
 shaped("curtain_remote", ["R", "I", "I"], {"R": "minecraft:redstone", "I": "minecraft:iron_ingot"}, "curtain_remote", 1, "redstone")
+# A painting in a gold frame, with its string
+shaped("portrait", [" S ", "GPG", " G "], {"S": "minecraft:string", "G": "minecraft:gold_ingot", "P": "minecraft:painting"}, "portrait")
 
 # ------------------------------------------------------------------ translations
 en = {
@@ -369,6 +539,125 @@ fr = {
     "message.craftmaster.regie.no_context": "Le serveur n'a pas répondu (contexte de la partie)",
     "message.craftmaster.regie.no_result": "Le serveur n'a pas confirmé les actions",
 }
+# Hanging portraits (chantier B)
+en.update({
+    "item.craftmaster.portrait": "Portrait",
+    "item.craftmaster.portrait.hint": "Use it under a ceiling block to hang it",
+    "entity.craftmaster.portrait": "Portrait",
+    "message.craftmaster.portrait_ceiling": "Hang it under a block: use it on the underside of the ceiling",
+    "message.craftmaster.portrait_saved": "Portrait updated",
+    "message.craftmaster.portrait_bad_url": "Invalid skin address (http:// or https:// expected)",
+    "message.craftmaster.pose_saved": "Pose “%s” saved",
+    "message.craftmaster.pose_deleted": "Pose “%s” deleted",
+    "message.craftmaster.no_client_mod": "Your game needs the CraftMaster mod for this screen",
+    "screen.craftmaster.portrait": "Portrait",
+    "screen.craftmaster.portrait.season": "Season (gallery)",
+    "screen.craftmaster.portrait.follow": "Followed rank or player",
+    "screen.craftmaster.portrait.by_rank": "Rank",
+    "screen.craftmaster.portrait.by_player": "Player",
+    "screen.craftmaster.portrait.name": "Shown name",
+    "screen.craftmaster.portrait.skin": "Skin (URL)",
+    "screen.craftmaster.portrait.pose": "Pose",
+    "screen.craftmaster.portrait.edit_pose": "Edit…",
+    "screen.craftmaster.portrait.hang": "String (blocks)",
+    "screen.craftmaster.portrait.hang_hint": "auto = varies",
+    "screen.craftmaster.portrait.window": "Window",
+    "screen.craftmaster.portrait.window_label": "Antichamber px %",
+    "screen.craftmaster.portrait.window_depth": "Depth of the window's room (px)",
+    "screen.craftmaster.portrait.window_size": "Size of the window's room (% of the opening)",
+    "screen.craftmaster.portrait.bad_window": "Window: depth 4 to 96 px, size 100 to 200 %",
+    "screen.craftmaster.portrait.save": "Save",
+    "screen.craftmaster.portrait.hint": "Empty name / skin = the player's own",
+    "screen.craftmaster.portrait.bad_season": "The season must be a number",
+    "screen.craftmaster.portrait.bad_rank": "The rank must be 1 or more",
+    "screen.craftmaster.portrait.bad_player": "Type a player name (no spaces)",
+    "screen.craftmaster.portrait.bad_hang": "String: \"auto\" or 0 to 16 blocks",
+    "screen.craftmaster.pose_editor": "Pose editor",
+    "screen.craftmaster.pose.figure": "Whole",
+    "screen.craftmaster.pose.head": "Head",
+    "screen.craftmaster.pose.body": "Body",
+    "screen.craftmaster.pose.right_arm": "R. arm",
+    "screen.craftmaster.pose.left_arm": "L. arm",
+    "screen.craftmaster.pose.right_leg": "R. leg",
+    "screen.craftmaster.pose.left_leg": "L. leg",
+    "screen.craftmaster.pose.frame": "Frame",
+    "screen.craftmaster.pose.rot_x": "Turn X: %s°",
+    "screen.craftmaster.pose.rot_y": "Turn Y: %s°",
+    "screen.craftmaster.pose.rot_z": "Turn Z: %s°",
+    "screen.craftmaster.pose.scale": "Size: %s",
+    "screen.craftmaster.pose.offset_x": "Move X: %s px",
+    "screen.craftmaster.pose.offset_y": "Move Y: %s px",
+    "screen.craftmaster.pose.offset_z": "Move Z: %s px",
+    "screen.craftmaster.pose.pitch": "Lean: %s°",
+    "screen.craftmaster.pose.roll": "Tilt: %s°",
+    "screen.craftmaster.pose.shown": "Shown",
+    "screen.craftmaster.pose.hidden": "Hidden",
+    "screen.craftmaster.pose.name": "Pose name",
+    "screen.craftmaster.pose.save_new": "Save as new",
+    "screen.craftmaster.pose.overwrite": "Overwrite",
+    "screen.craftmaster.pose.delete": "Delete",
+    "screen.craftmaster.pose.load": "Start from",
+    "screen.craftmaster.pose.use": "Use this pose",
+})
+fr.update({
+    "item.craftmaster.portrait": "Tableau",
+    "item.craftmaster.portrait.hint": "S'utilise sous un bloc du plafond pour l'y suspendre",
+    "entity.craftmaster.portrait": "Tableau",
+    "message.craftmaster.portrait_ceiling": "Un tableau se suspend : utilise-le sous le bloc du plafond",
+    "message.craftmaster.portrait_saved": "Tableau mis à jour",
+    "message.craftmaster.portrait_bad_url": "Adresse de skin invalide (http:// ou https:// attendu)",
+    "message.craftmaster.pose_saved": "Pose « %s » enregistrée",
+    "message.craftmaster.pose_deleted": "Pose « %s » supprimée",
+    "message.craftmaster.no_client_mod": "Il faut le mod CraftMaster dans ton jeu pour cet écran",
+    "screen.craftmaster.portrait": "Tableau",
+    "screen.craftmaster.portrait.season": "Saison (galerie)",
+    "screen.craftmaster.portrait.follow": "Rang ou joueur suivi",
+    "screen.craftmaster.portrait.by_rank": "Rang",
+    "screen.craftmaster.portrait.by_player": "Joueur",
+    "screen.craftmaster.portrait.name": "Nom affiché",
+    "screen.craftmaster.portrait.skin": "Skin (adresse)",
+    "screen.craftmaster.portrait.pose": "Pose",
+    "screen.craftmaster.portrait.edit_pose": "Éditer…",
+    "screen.craftmaster.portrait.hang": "Ficelle (blocs)",
+    "screen.craftmaster.portrait.hang_hint": "auto = varie",
+    "screen.craftmaster.portrait.window": "Fenêtre",
+    "screen.craftmaster.portrait.window_label": "Antichamber px %",
+    "screen.craftmaster.portrait.window_depth": "Profondeur de la pièce derrière la fenêtre (px)",
+    "screen.craftmaster.portrait.window_size": "Taille de la pièce (% de l'ouverture)",
+    "screen.craftmaster.portrait.bad_window": "Fenêtre : profondeur 4 à 96 px, taille 100 à 200 %",
+    "screen.craftmaster.portrait.save": "Enregistrer",
+    "screen.craftmaster.portrait.hint": "Nom / skin vides = ceux du joueur",
+    "screen.craftmaster.portrait.bad_season": "La saison doit être un nombre",
+    "screen.craftmaster.portrait.bad_rank": "Le rang doit valoir 1 ou plus",
+    "screen.craftmaster.portrait.bad_player": "Tape un pseudo (sans espace)",
+    "screen.craftmaster.portrait.bad_hang": "Ficelle : « auto » ou de 0 à 16 blocs",
+    "screen.craftmaster.pose_editor": "Éditeur de poses",
+    "screen.craftmaster.pose.figure": "Ensemble",
+    "screen.craftmaster.pose.head": "Tête",
+    "screen.craftmaster.pose.body": "Corps",
+    "screen.craftmaster.pose.right_arm": "Bras D",
+    "screen.craftmaster.pose.left_arm": "Bras G",
+    "screen.craftmaster.pose.right_leg": "Jambe D",
+    "screen.craftmaster.pose.left_leg": "Jambe G",
+    "screen.craftmaster.pose.frame": "Cadre",
+    "screen.craftmaster.pose.rot_x": "Rotation X : %s°",
+    "screen.craftmaster.pose.rot_y": "Rotation Y : %s°",
+    "screen.craftmaster.pose.rot_z": "Rotation Z : %s°",
+    "screen.craftmaster.pose.scale": "Taille : %s",
+    "screen.craftmaster.pose.offset_x": "Décalage X : %s px",
+    "screen.craftmaster.pose.offset_y": "Décalage Y : %s px",
+    "screen.craftmaster.pose.offset_z": "Décalage Z : %s px",
+    "screen.craftmaster.pose.pitch": "Bascule : %s°",
+    "screen.craftmaster.pose.roll": "Inclinaison : %s°",
+    "screen.craftmaster.pose.shown": "Visible",
+    "screen.craftmaster.pose.hidden": "Caché",
+    "screen.craftmaster.pose.name": "Nom de la pose",
+    "screen.craftmaster.pose.save_new": "Nouvelle pose",
+    "screen.craftmaster.pose.overwrite": "Écraser",
+    "screen.craftmaster.pose.delete": "Supprimer",
+    "screen.craftmaster.pose.load": "Partir de",
+    "screen.craftmaster.pose.use": "Utiliser la pose",
+})
 for wood, (_, en_name, fr_name) in WOODS.items():
     en[f"block.craftmaster.{wood}_chair"] = f"{en_name} Chair"
     fr[f"block.craftmaster.{wood}_chair"] = f"Chaise {fr_name}"

@@ -58,6 +58,7 @@ public final class ActionExecutor {
     /** Busts, labels and open ranking screens follow the data. */
     public static void refresh(MinecraftServer server) {
         Busts.updateAll(server);
+        fr.lordfinn.craftmaster.portrait.Portraits.refreshAll(server);
         for (int s : CraftMaster.data().allSeasons()) Network.broadcast(server, s);
     }
 

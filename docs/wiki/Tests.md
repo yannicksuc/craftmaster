@@ -27,6 +27,14 @@ identique quel que soit le contexte, outils stricts, repli), erreurs (pas de cl�
 serveur HTTP, mode hors ligne sur de vraies transcriptions. `tests/whisper_check.py` mesure Whisper sur des
 phrases synthétisées (voix Windows française) : avec les pseudos en vocabulaire, 0,2 s par phrase sur la RTX 3070
 (large-v3-turbo float16), pseudos et surnoms bien écrits sauf « arrobaz » / « l'or fine », rattrapés ensuite.
+- `GalleryPlannerTest` : colonnes par rang, un tableau emporte son joueur, plans avant / arrière, jamais deux
+  tableaux d'un même plan qui se croisent (500 ordres aléatoires), joueurs fixes, nouveaux venus, tableaux vides.
+- `PortraitGeometryTest` : proportions bébé de vanilla, centre de gravité pondéré par les volumes, nœud de la
+  ficelle à la verticale du centre de gravité (cadre incliné, bras tendu, cadre porté), coupe par la toile, effet
+  fenêtre sans boîte.
+- `PoseLibraryTest` : poses fournies, aller-retour JSON, lecture tolérante, fichier créé puis conservé, fichier
+  illisible mis de côté.
+- `PortraitAnimationTest` : les trois phases du réarrangement, progression monotone, durée bornée.
 
 ## 2. Test de bout en bout sur serveur (script)
 Serveur de dev (`run-server/server.properties`) : `online-mode=false`, `enable-rcon=true`, `rcon.port=25692`,
@@ -106,3 +114,19 @@ Vérifié (client LordFinn, serveur de dev, service en mode `offline` puis `clau
 
 Non vérifié automatiquement : le vrai micro (personne ne parle), la touche physique, et la compréhension par le
 vrai Claude tant que `ANTHROPIC_API_KEY` n'est pas définie sur la machine de test.
+
+### Tableaux suspendus (vérifié en jeu, client de dev piloté par MCP Fabric)
+| Fonction | Résultat |
+|---|---|
+| Cadre doré, fond velours rouge, personnage aux proportions bébé avec le skin du joueur ; étiquettes « #1 Notch / 16 pts » | ✔ |
+| Poses fournies (face, trois quarts) ; jambes « dans la peinture » cachées par la coupe ; sortie par le dos vue de derrière | ✔ |
+| Dos des tableaux : toile blanche, aucun membre qui dépasse ; de côté : cadre mince | ✔ |
+| Ficelle droite et verticale, hauteurs automatiques différentes, balancement | ✔ |
+| Effet Antichamber : personnage et pièce de velours vus par l'ouverture, parallaxe en trois quarts, profondeur et taille réglables (16 px / 140 %, 40 px / 200 %, 8 px / 100 %), rien de l'intérieur vu de côté, de dessous ni de dos | ✔ |
+| Parties qui dépassent sous le cadre vues de dos : seules les parties hors du contour du cadre restent, sans tranche ni étiquette vue à l'envers | ✔ |
+| Réarrangement à un changement de score (captures image par image) : avancer / reculer, glisser, revenir, ordre final | ✔ |
+| Écran de réglages et éditeur de poses ouverts par commande (affichage) | ✔ |
+
+Non vérifiable avec les outils actuels (pas de clic dans un écran) : modifier un réglage ou une pose à la souris,
+enregistrer / écraser / supprimer depuis l'éditeur, le clic droit et le coup qui casse le tableau, le skin par
+adresse (pas de serveur d'images de test). À vérifier à la main.

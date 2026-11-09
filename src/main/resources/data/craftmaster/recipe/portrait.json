@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " S ",
+    "GPG",
+    " G "
+  ],
+  "key": {
+    "S": "minecraft:string",
+    "G": "minecraft:gold_ingot",
+    "P": "minecraft:painting"
+  },
+  "result": {
+    "id": "craftmaster:portrait",
+    "count": 1
+  }
+}

@@ -14,6 +14,7 @@ import fr.lordfinn.craftmaster.data.CraftMasterData;
 import fr.lordfinn.craftmaster.data.Manche;
 import fr.lordfinn.craftmaster.show.ActionExecutor;
 import fr.lordfinn.craftmaster.network.Network;
+import fr.lordfinn.craftmaster.portrait.Portraits;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;

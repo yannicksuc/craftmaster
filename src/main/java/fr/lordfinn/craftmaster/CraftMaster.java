@@ -6,6 +6,8 @@ import fr.lordfinn.craftmaster.curtain.Curtains;
 import fr.lordfinn.craftmaster.data.CraftMasterData;
 import fr.lordfinn.craftmaster.network.Network;
 import fr.lordfinn.craftmaster.regie.RegieServer;
+import fr.lordfinn.craftmaster.portrait.PortraitCommands;
+import fr.lordfinn.craftmaster.portrait.Portraits;
 import fr.lordfinn.craftmaster.registry.ModContent;
 import fr.lordfinn.craftmaster.show.ActionExecutor;
 import fr.lordfinn.craftmaster.show.Show;
@@ -44,10 +46,12 @@ public final class CraftMaster implements ModInitializer {
         ModContent.register();
         Network.register();
         RegieServer.register();
+        Portraits.register();
 
         // Synced to the players' game (the mod is on both sides), so it parses the same way there
         ArgumentTypeRegistry.registerArgumentType(id("word"), WordArgument.class, SingletonArgumentInfo.contextFree(WordArgument::word));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> CraftMasterCommands.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> PortraitCommands.register(dispatcher));
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             FabricLoader fl = FabricLoader.getInstance();

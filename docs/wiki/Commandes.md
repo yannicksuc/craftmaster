@@ -98,3 +98,15 @@ Les scores changés ici sont en direct : les joueurs les voient après `/craftMa
 |---|---|---|
 | `/craftMasterRanking [saison]` | cfrk | Ouvre l'écran (dernière saison) ; dans le chat si le jeu n'a pas le mod |
 | `/craftMasterRanking chat [saison]` | | Classement dans le chat (joueurs : publié ; admins : en direct + « non publié ») |
+
+## Tableaux suspendus (admin)
+`/craftMasterPortrait` (alias `cfpt`) — détail dans [Tableaux](Tableaux.md). Sans cible, agit sur le tableau regardé.
+| Commande | Effet |
+|---|---|
+| `/cfpt place <saison> <rang> [<bloc du plafond> <north\|south\|east\|west>]` | Accroche un tableau |
+| `/cfpt set [cibles] season\|rank\|player\|name\|skin\|pose\|window\|windowDepth\|windowSize\|height <valeur>` | Change un réglage |
+| `/cfpt edit [cibles]` / `/cfpt poseEditor [cibles]` | Ouvre l'écran de réglages / l'éditeur de poses |
+| `/cfpt remove [cibles]` | Retire le tableau |
+| `/cfpt poses` | Liste les poses |
+| `/cfpt publish <saison>` | Réarrange les galeries de la saison selon le classement |
+| `/cfpt highlight <saison> <rang>` | Illumine le tableau de ce rang (5 s) |
