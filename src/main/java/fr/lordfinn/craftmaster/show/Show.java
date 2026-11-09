@@ -86,8 +86,9 @@ public final class Show {
                 moved++;
             }
         }
-        Component title = Component.translatable("show.craftmaster.manche_title", m.number(), m.name()).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
-        Component sub = m.timer() > 0 ? Component.literal("⌛ " + Actions.clock(m.timer())).withStyle(ChatFormatting.YELLOW) : null;
+        // "Manche 3" in big, the round's name below: a long name would not fit in the title's size
+        Component title = Component.translatable("show.craftmaster.manche_title", m.number()).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
+        Component sub = Component.literal(m.name() + (m.timer() > 0 ? " · " + Actions.clock(m.timer()) : "")).withStyle(ChatFormatting.YELLOW);
         titleAll(server, title, sub, 10, 60, 20);
         soundAll(server, SoundEvents.GOAT_HORN_SOUND_VARIANTS.getFirst(), 1f, 1f);
         stopTimer(server);
@@ -159,7 +160,7 @@ public final class Show {
     }
 
     private static Component barName(int seconds) {
-        return Component.literal(timerName + " — ⌛ " + Actions.clock(seconds)).withStyle(ChatFormatting.YELLOW);
+        return Component.literal(timerName + " — " + Actions.clock(seconds)).withStyle(ChatFormatting.YELLOW);
     }
 
     /** Players joining while a timer runs see it too. */

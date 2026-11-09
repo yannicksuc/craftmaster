@@ -242,10 +242,8 @@ public final class Actions {
                 case "score.remove" -> scoreRemove(a);
                 case "scores.publish" -> publish(a);
                 case "reveal.start" -> revealStart(a);
-                case "reveal.stop" -> {
-                    effects.add(new RevealStopped());
-                    line("Révélation interrompue.");
-                }
+                // What these two say depends on what runs in the world: ActionExecutor writes the line
+                case "reveal.stop" -> effects.add(new RevealStopped());
                 case "undo" -> throw new Invalid("« undo » doit être la première action de la liste.");
                 case "player.add" -> playerAdd(a);
                 case "player.update" -> playerUpdate(a);
@@ -268,10 +266,7 @@ public final class Actions {
                 case "manche.tp.clear" -> mancheTpClear(a);
                 case "manche.start" -> mancheStart(a);
                 case "manche.end" -> mancheEnd();
-                case "timer.stop" -> {
-                    effects.add(new TimerStopped());
-                    line("Chrono arrêté.");
-                }
+                case "timer.stop" -> effects.add(new TimerStopped());
                 case "curtain.open" -> curtain(a, true);
                 case "curtain.close" -> curtain(a, false);
                 case "scene.set" -> sceneSet(a);

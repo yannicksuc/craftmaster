@@ -25,7 +25,7 @@
   "screen.craftmaster.unpublished": "%s non publié",
   "screen.craftmaster.published_total": "Publié : %s",
   "message.craftmaster.ranking_unavailable": "Aucun classement à afficher pour l'instant",
-  "show.craftmaster.manche_title": "Manche %s — %s",
+  "show.craftmaster.manche_title": "Manche %s",
   "show.craftmaster.manche_end": "Fin de la manche",
   "show.craftmaster.time_up": "Temps écoulé !",
   "show.craftmaster.published": "Classement mis à jour !",

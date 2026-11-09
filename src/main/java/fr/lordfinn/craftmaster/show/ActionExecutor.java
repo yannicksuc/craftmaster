@@ -69,17 +69,13 @@ public final class ActionExecutor {
                 if (!m.tp().isEmpty()) lines.add(moved + " joueur(s) téléporté(s) sur " + m.tp().size() + " point(s).");
             }
             case Actions.MancheEnded m -> Show.endManche(server, m.name());
-            case Actions.TimerStopped t -> {
-                if (!Show.stopTimer(server)) lines.add("(aucun chrono ne tournait)");
-            }
+            case Actions.TimerStopped t -> lines.add(Show.stopTimer(server) ? "Chrono arrêté." : "Aucun chrono ne tournait.");
             case Actions.Published p -> {
                 Show.announcePublished(server);
                 ShowEvents.onPublished(server, p.season());
             }
             case Actions.RevealStarted r -> Reveal.start(server, r.season());
-            case Actions.RevealStopped r -> {
-                if (!Reveal.stop(server, true)) lines.add("(aucune révélation en cours)");
-            }
+            case Actions.RevealStopped r -> lines.add(Reveal.stop(server, true) ? "Révélation interrompue." : "Aucune révélation en cours.");
             case Actions.CurtainMoved c -> {
                 String error = StageControl.moveCurtain(server, c.name(), c.open());
                 if (error != null) lines.add("⚠ " + error);

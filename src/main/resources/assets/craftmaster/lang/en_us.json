@@ -25,7 +25,7 @@
   "screen.craftmaster.unpublished": "%s not published",
   "screen.craftmaster.published_total": "Published: %s",
   "message.craftmaster.ranking_unavailable": "No ranking to show yet",
-  "show.craftmaster.manche_title": "Round %s — %s",
+  "show.craftmaster.manche_title": "Round %s",
   "show.craftmaster.manche_end": "Round over",
   "show.craftmaster.time_up": "Time's up!",
   "show.craftmaster.published": "Ranking updated!",

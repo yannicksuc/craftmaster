@@ -1,5 +1,6 @@
 package fr.lordfinn.craftmaster.command;
 
+import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
@@ -21,6 +22,7 @@ import fr.lordfinn.craftmaster.data.SeasonPlayer;
 import fr.lordfinn.craftmaster.data.Stage;
 import fr.lordfinn.craftmaster.show.ActionExecutor;
 import fr.lordfinn.craftmaster.show.Show;
+import fr.lordfinn.craftmaster.show.ShowContext;
 import fr.lordfinn.craftmaster.show.StageControl;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -535,7 +537,15 @@ public final class ShowCommands {
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> status(String name) {
-        return literal(name).requires(ADMIN).executes(c -> {
+        return literal(name).requires(ADMIN)
+                // The voice control's context as JSON (docs/design/emission.md §4), to check what it receives
+                .then(literal("context").executes(c -> {
+                    String json = new GsonBuilder().serializeNulls().setPrettyPrinting().create()
+                            .toJson(ShowContext.build(c.getSource().getServer(), c.getSource().getPlayer()));
+                    info(c, Component.literal(json).withStyle(ChatFormatting.GRAY));
+                    return 1;
+                }))
+                .executes(c -> {
             Season s = activeSeason();
             header(c, "Direct");
             info(c, "Saison active : " + (s == null ? "aucune" : s.name + " (n° " + s.id + ")" + (s.hidden ? ", cachée" : "")));

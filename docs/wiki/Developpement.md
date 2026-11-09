@@ -20,8 +20,23 @@
 src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
   CraftMaster.java        point d'entrée : enregistrements, événements serveur
   Permissions.java        qui est organisateur (craftmaster:admin ou op 2)
-  data/CraftMasterData    le fichier config.yml : tâches, scores, classement, busts, saisons cachées
-  command/                les commandes (Brigadier) et WordArgument (noms avec accents)
+  data/                   le fichier config.yml (format 2) et le modèle
+    CraftMasterData       chargement / migration / sauvegarde, point unique de modification (change) et
+                          journal d'annulation, API « tâches » du plugin, busts
+    Season, Partie,       saison (joueurs, parties, scores publiés), partie (manches, scores en direct),
+    Manche, SeasonPlayer  manche (id stable, chrono, TP, scène), joueur de la saison (surnoms)
+    Stage, Live           plateau (rideaux nommés, ancre, décors, durées de révélation), état du direct
+    Migration             format 1 (plugin, mod 2.0) → 2
+  show/                   l'émission
+    Actions               le schéma d'actions appliqué aux données, sans serveur (testable) → lignes + effets
+    ActionExecutor        point d'entrée voix et commandes : Actions, puis effets dans le monde, rafraîchissements
+    ShowContext           contexte pour la régie vocale (Map prête pour JSON)
+    ShowEvents            écouteurs : publication, étapes de la révélation (tableaux suspendus)
+    Show                  titres, sons, TP, chrono (barre de boss, décompte), annonces de score
+    Reveal                révélation mise en scène (étapes planifiées par tick)
+    StageControl          rideaux nommés, décors (structures vanilla)
+  command/                les commandes (Brigadier) : CraftMasterCommands (plugin, busts, rideaux, classement),
+                          ShowCommands (v3), WordArgument (noms avec accents)
   bust/Busts              têtes et étiquettes flottantes
   curtain/Curtains        animation d'ouverture / fermeture (file d'attente par tick)
   block/                  ChairBlock, CurtainBlock, Shapes4 (formes tournées dans les 4 sens)
@@ -40,7 +55,16 @@ scripts/                                    générateur de ressources, test ser
 
 ## Choix techniques
 - **Données** : un seul objet en mémoire (le plugin en avait deux qui s'écrasaient), YAML via SnakeYAML embarqué
-  dans le jar (`include`), écriture atomique, clés toujours en texte comme Bukkit.
+  dans le jar (`include`), écriture atomique, clés toujours en texte comme Bukkit. Modèle objet (Season → Partie →
+  Manche) sérialisé en arbre YAML ; toute modification passe par `CraftMasterData#change` (ou `begin` / `commit` /
+  `rollback`) qui garde l'arbre d'avant dans le journal (50 entrées, en mémoire) : annuler = recharger cet arbre.
+  Une modification qui ne change rien n'est pas journalisée. Les objets du modèle ne se modifient que dans `change`.
+- **Actions** : `Actions.apply` interprète une liste d'actions (`type` + champs, voir docs/design/emission.md §4)
+  dans une seule modification : une action invalide annule toute la liste (message français clair). Ce qui touche
+  le monde est rendu sous forme d'`Effect` que `ActionExecutor` joue ensuite (titres, TP, chrono, rideaux, décors,
+  révélation), puis busts et écrans sont rafraîchis. Les commandes construisent les mêmes actions.
+- **Publié / direct** : busts, étiquettes, écran et chat des joueurs lisent `Season#published` ; les admins
+  reçoivent les scores en direct avec le total publié (`Network.Row#publishedTotal`).
 - **Commandes** : chaque commande est enregistrée sous son nom, en minuscules et sous son alias (Brigadier est
   sensible à la casse, Bukkit ne l'était pas). `WordArgument` lit un mot jusqu'à l'espace, accents compris ; il est
   synchronisé avec le client (`ArgumentTypeRegistry`), d'où le mod obligatoire côté joueur.

@@ -9,8 +9,10 @@ and, to test the import, the plugin's file in run-server/plugins/CraftMaster/con
 
 Then:  .\\gradlew.bat runServer   and, once it is up:   python3 scripts/server_smoke_test.py [host]
 (from WSL, host = the Windows host IP: ip route | awk '/default/{print $3}').
-Uses season 90 and the blocks around x=100, z=100 so it does not touch real data.
+Uses season 90, a season named "Smoke" (deleted and created again at each run, the active season is put back at
+the end) and the blocks around x=100..135, z=100..135 so it does not touch real data.
 """
+import re
 import socket
 import struct
 import sys
@@ -33,16 +35,35 @@ class Rcon:
                 time.sleep(3)
         self._send(3, PASSWORD)
 
-    def _send(self, kind, body):
-        data = struct.pack("<ii", 1, kind) + body.encode("utf-8") + b"\0\0"
+    def _packet(self, rid, kind, body):
+        data = struct.pack("<ii", rid, kind) + body.encode("utf-8") + b"\0\0"
         self.s.sendall(struct.pack("<i", len(data)) + data)
+
+    def _reply(self):
         size = struct.unpack("<i", self._read(4))[0]
-        return self._read(size)[8:-2].decode("utf-8", "replace")
+        data = self._read(size)
+        return struct.unpack("<i", data[:4])[0], data[8:-2]
+
+    def _send(self, kind, body):
+        self._packet(1, kind, body)
+        if kind == 3:
+            return self._reply()[1].decode("utf-8", "replace")
+        # Long replies come in several packets: a second, empty command marks the end of the first one's reply
+        self._packet(2, 2, "")
+        out = b""
+        while True:
+            rid, part = self._reply()
+            if rid == 2:
+                return out.decode("utf-8", "replace")
+            out += part
 
     def _read(self, n):
         out = b""
         while len(out) < n:
-            out += self.s.recv(n - len(out))
+            chunk = self.s.recv(n - len(out))
+            if not chunk:
+                raise ConnectionError("RCON connection closed")
+            out += chunk
         return out
 
     def run(self, cmd):
@@ -132,6 +153,92 @@ check("no curtain there", "Pas de rideau" in cmd("craftMasterCurtain open 100 -6
 cmd("setblock 102 -60 102 minecraft:air")
 check("chair block", "Changed" in cmd("setblock 102 -60 102 craftmaster:oak_chair[facing=south]"))
 check("seats cannot be summoned", "summon" in cmd("summon craftmaster:seat 102 -60 102").lower())
+
+# ---------------------------------------------------------------- v3: the show (seasons, rounds, live, undo, stage)
+listing = cmd("craftMasterSeason list")
+previous = re.search(r"(\d+)\. [^\n]*?★ active", listing)
+for old in re.findall(r"(\d+)\. Smoke\b", listing):
+    cmd(f"craftMasterSeason delete {old}")
+check("season create", "créée" in cmd("craftMasterSeason create Smoke"))
+smoke = re.search(r"(\d+)\. Smoke\b", cmd("cfse list")).group(1)
+check("player with nicknames", "Ali" in cmd("craftMasterPlayer add Alice Ali, Lili"))
+check("player", "ajouté" in cmd("cfpl add Bob"))
+check("nickname taken refused", "désigne déjà" in cmd("cfpl add Carl Ali"))
+check("round create", "n° 1" in cmd("craftMasterManche create Pont"))
+check("round with timer", "chrono 0:05" in cmd("cfma create Tour 5"))
+check("round inserted", "ajoutée" in cmd("cfma create Finale"))
+check("round list", "Tour" in cmd("craftmastermanche list") and "Partie" not in cmd("cfma list").split("\n")[0])
+check("round nicknames", "pt" in cmd("cfma aliases Pont pt, bridge"))
+check("round order", "n° 1" in cmd("cfma order Finale 1"))
+cmd("cfma order Finale 3")
+check("register stage curtain", "enregistré" in cmd("craftMasterStage curtain set stage 100 -60 106"))
+
+out = cmd("craftMasterManche start next")
+check("start next round", "Manche 1 — Pont lancée" in out, out)
+check("give points by nickname", "+3 pour Alice" in cmd("craftMasterGive Ali 3"))
+check("give points", "+5 pour Bob" in cmd("cfg Bob 5"))
+check("status", "1 — Pont" in cmd("craftMasterStatus"))
+out = cmd(f"craftMasterRanking chat {smoke}")
+check("organisers see unpublished points", "+5 non publié" in out, out)
+check("publish", "Scores publiés" in cmd("craftMasterPublish"))
+check("nothing unpublished after publish", "non publié" not in cmd(f"cfrk chat {smoke}"))
+check("give then undo", "Annulé : +2 pour Bob" in (cmd("cfg Bob 2"), cmd("craftMasterUndo"))[1])
+check("undo restored", "5 pts" in cmd("cfpl list"))
+check("history", "Scores publiés" in cmd("craftMasterHistory"))
+out = cmd("cfma next")
+check("next round with timer", "Manche 2 — Tour lancée (chrono 0:05)" in out, out)
+check("timer runs", "Chrono : Tour" in cmd("cfst"))
+ctx = cmd("craftMasterStatus context")
+check("voice context", '"currentManche"' in ctx and '"name": "Tour"' in ctx and '"aliases"' in ctx and '"remaining"' in ctx, ctx[:300])
+check("timer stop", "Chrono arrêté" in cmd("craftMasterTimer stop"))
+check("no timer left", "Aucun chrono" in cmd("cfti stop"))
+check("round end", "Fin de la manche" in cmd("cfma end"))
+check("no current round", "aucune manche en cours" in cmd("cfg Bob 1"))
+check("points for a named round", "+1 pour Bob" in cmd("cfg Bob 1 Tour"))
+check("unknown round", "introuvable" in cmd("cfg Bob 1 Nulle"))
+
+# Curtains by name
+check("named curtain close", "Fermeture du rideau « stage »" in cmd("craftMasterStage curtain close"))
+wait(2.5)
+check("stage curtain closed", "passed" in cmd("execute if block 103 -59 106 craftmaster:red_curtain[open=false]"))
+check("named curtain open", "Ouverture" in cmd("cfsg curtain open stage"))
+check("unknown curtain", "inconnu" in cmd("cfsg curtain open fond"))
+
+# Sceneries: save a 3x3x3 box, place it at the anchor
+cmd("fill 120 -60 120 122 -58 122 minecraft:air")
+cmd("fill 130 -60 130 132 -58 132 minecraft:air")
+cmd("setblock 120 -60 120 minecraft:gold_block")
+cmd("setblock 122 -58 122 minecraft:diamond_block")
+check("scene save", "enregistré (3 × 3 × 3)" in cmd("craftMasterStage scene save deco 120 -60 120 122 -58 122"))
+check("anchor", "Ancre" in cmd("cfsg anchor 130 -60 130"))
+check("scene place", "posé" in cmd("cfsg scene place deco"))
+check("scene blocks placed", "passed" in cmd("execute if block 130 -60 130 minecraft:gold_block")
+      and "passed" in cmd("execute if block 132 -58 132 minecraft:diamond_block"))
+check("stage round with scenery", "Décor" in cmd("cfma scene Finale deco") and "scène" in cmd("cfma stage Finale true"))
+
+# Games
+check("game create", "active" in cmd("craftMasterPartie create Revanche"))
+check("game list", "Revanche" in cmd("cfpa list"))
+check("game status", "terminee" in cmd("cfpa status \"Partie 1\" terminée"))
+check("game back", "active" in cmd("cfpa activate \"Partie 1\""))
+check("game delete", "supprimée" in cmd("cfpa delete Revanche"))
+
+# Staged reveal (short timings), then it can be interrupted
+check("reveal timing", "tambour 0.5 s" in cmd("craftMasterReveal timing 0.5 0.5 0.5 0.5"))
+cmd("cfg Bob 4 Pont")
+check("reveal start", "lancée" in cmd("craftMasterReveal start"))
+check("reveal running", "Révélation en cours" in cmd("cfst"))
+wait(7)
+check("reveal published", "non publié" not in cmd(f"cfrk chat {smoke}"))
+check("curtain open after the reveal", "passed" in cmd("execute if block 103 -59 106 craftmaster:red_curtain[open=true]"))
+check("reveal stop when none", "Aucune révélation" in cmd("cfrv stop"))
+cmd("cfrv timing 3 4 3 5")
+
+# Cleanup: the test season goes, the previous active season comes back
+cmd("cfsg curtain remove stage")
+check("season delete", "supprimée" in cmd(f"craftMasterSeason delete {smoke}"))
+if previous:
+    cmd(f"cfse activate {previous.group(1)}")
 
 print()
 print("FAILURES:", failures)

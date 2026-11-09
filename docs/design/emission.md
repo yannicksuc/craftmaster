@@ -133,3 +133,60 @@ Exécution côté serveur : `fr.lordfinn.craftmaster.show.ActionExecutor#execute
   interprétation du schéma d'actions…). Le build doit passer : `cmd.exe /c ".\gradlew.bat build"`.
 - Textes joueurs en fr_fr et en_us via `scripts/gen_assets.py` (ne pas éditer les JSON générés).
 - Wiki `docs/wiki/` mis à jour (pages organisateurs + développeurs).
+
+---------------------------------------------------------------------------------------------------------------------
+
+## 6. Interfaces livrées par le chantier A (à jour)
+
+**Format d'une action** : une `Map<String,Object>` avec le nom de l'action dans `"type"` (`"action"` accepté aussi)
+et ses champs à plat, ex. `{"type":"score.add","player":"Ensuri","points":3}`. Nombres JSON (doubles) acceptés pour
+les entiers, booléens ou "true"/"oui", listes JSON ou texte séparé par des virgules (`aliases`).
+
+**Exécution** : `fr.lordfinn.craftmaster.show.ActionExecutor`
+- `static Result execute(ServerPlayer admin, List<Map<String,Object>> actions)` — vérifie que c'est un admin ;
+  `record Result(List<String> lines, boolean ok)` : une ligne française par action (ou l'erreur). À appeler sur le
+  thread serveur.
+- Toute la liste = une seule entrée du journal d'annulation. Une action invalide → rien n'est modifié, `ok=false`,
+  les lignes donnent l'erreur (« Action 2 (score.add) : manche « X » introuvable dans Partie 1 (Saison 4). »).
+- `undo {count}` n'est accepté qu'en **première** action (fait d'abord, le reste de la liste est une nouvelle
+  entrée) : « annule, c'est 4 » = `[undo, score.add 4]`.
+- `manche` : id, nom ou surnom (sans tenir compte de la casse), `"current"` / `"en cours"`, `"next"` /
+  `"suivante"`. Absent pour `score.*` → manche en cours. `player` : pseudo exact, ou surnom exact (casse
+  ignorée) ; un pseudo inconnu qui reçoit des points rejoint les joueurs de la saison.
+- `season` : numéro ou nom ; `partie` : numéro ou nom. `season.delete`, `season.activate`, `partie.delete`,
+  `partie.activate` exigent le champ (sécurité). `season.create` et `partie.create` activent la nouvelle.
+- Ajouts au schéma : `reveal.stop {}` ; `manche.update {…, merge: true}` (renommer sur une manche existante
+  fusionne les points, sinon refusé) ; `manche.tp.add {manche, world, x, y, z, yaw?, pitch?}` ;
+  `manche.tp.clear {manche}` (utilisés par les commandes).
+- `say {text}` renvoie le texte comme ligne, sans rien modifier.
+
+**Contexte** : `fr.lordfinn.craftmaster.show.ShowContext#build(MinecraftServer, ServerPlayer)` →
+`Map<String,Object>` (maps, listes, String, Number, Boolean, null) ; structure détaillée dans la javadoc. Clés :
+`activeSeason`, `activePartie`, `currentManche {season, partie, id, name, number}`, `lastScoreAt`,
+`secondsSinceLastScore`, `timer {manche, remaining}`, `revealRunning`, `seasons[]` (avec `players[]`,
+`parties[].manches[]` dont `status` = current | played | todo, `live[]`, `publishedRanking[]`, `unpublished`,
+`scores`), `players[]` (joueurs de la saison active, `online`), `onlinePlayers`, `curtains`, `scenes`,
+`currentScene`, `history[]` (10 dernières {at, description}), `you`. Visible en jeu : `/craftMasterStatus context`.
+
+**Événements** : `fr.lordfinn.craftmaster.show.ShowEvents.register(Listener)` ; `Listener` a deux méthodes par
+défaut `onPublished(MinecraftServer, int season)` (après `scores.publish`, `/craftMasterPublish`,
+`/craftMasterHideRanking … false` et l'étape de publication de la révélation) et
+`onRevealStep(MinecraftServer, int season, int rank)` (du dernier rang au premier, rang du classement publié).
+Appelés sur le thread serveur, données déjà à jour (`CraftMaster.data().ranking(season, true)`).
+
+**Données** (`fr.lordfinn.craftmaster.data`) : `CraftMasterData#change(description, Runnable|Supplier)` est le point
+unique de modification (journal + sauvegarde) ; `season(id)`, `activeSeason()`, `seasonMap()`, `currentManche()`,
+`live()`, `stage()`, `ranking(season, published)`, `playerAtRank(season, rank, published)`,
+`publishedTotal(season, player)`, `history()`, `undo(n)`. Modèle : `Season` (players, parties, activePartie,
+published), `Partie` (manches, scores), `Manche`, `SeasonPlayer`, `Stage`, `Live`.
+
+**Écarts avec les sections 1–2** :
+- Titre de manche : « Manche 3 » en grand, le nom (et le chrono) en sous-titre — « Manche 3 — Le Pont » en
+  titre dépassait de l'écran.
+- Journal d'annulation en mémoire (perdu au redémarrage / `/craftMasterReloadScores`) ; il annule les données
+  (scores, manches, manche en cours, plateau…), pas ce qui s'est passé dans le monde (TP, titres, rideaux, décors).
+- `RemoveTask` (plugin) archive la manche (ses points restent, comme dans le plugin) ; un score sur une tâche
+  inconnue crée une manche archivée.
+- Joueur retiré qui a des points : archivé (reste au classement) plutôt que supprimé.
+- Pas de « points du public » : seuls les points de TP par manche existent.
+- Classement d'une saison = joueurs ayant au moins un score (un joueur de la liste sans point n'y figure pas).

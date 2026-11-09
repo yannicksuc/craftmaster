@@ -10,6 +10,12 @@ Au premier démarrage, si `plugins/CraftMaster/config.yml` existe dans le dossie
 `config/craftmaster/config.yml` n'existe pas encore, le mod copie le fichier du plugin tel quel. Rien d'autre à faire :
 tâches, scores et busts sont repris.
 
+## Passage à la version 3 (format de données 2)
+Un fichier de l'ancien format (plugin ou mod 2.0) est converti tout seul au démarrage, après une copie dans
+`config/craftmaster/config.yml.v1` : les tâches d'une saison deviennent les manches de sa « Partie 1 », les scores
+suivent, busts et saisons cachées sont gardés, et les scores actuels sont publiés (rien ne change pour les joueurs).
+Détail : [Fichier de données](Donnees.md).
+
 | Plugin | Mod |
 |---|---|
 | Mêmes commandes et alias | Identiques, en plus en minuscules (`/craftmasteraddtask`) |
