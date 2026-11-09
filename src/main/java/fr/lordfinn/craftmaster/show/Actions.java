@@ -409,6 +409,7 @@ public final class Actions {
             int value = add ? old + (a.containsKey("points") ? requiredInt(a, "points") : requiredInt(a, "value")) : requiredInt(a, "value");
             f.partie().setScore(f.manche().id, player, value);
             data.live().lastScoreAt = System.currentTimeMillis();
+            data.live().lastScoreManche = f.manche().id;
             int delta = value - old;
             String what = add ? (delta >= 0 ? "+" : "") + delta + " pour " + player + " → " + value + " pts"
                     : player + " : " + value + " pts";

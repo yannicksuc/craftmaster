@@ -423,6 +423,7 @@ public final class CraftMasterData {
             s.players.computeIfAbsent(player, SeasonPlayer::new);
             p.setScore(r.id, player, score);
             live.lastScoreAt = System.currentTimeMillis();
+            live.lastScoreManche = r.id;
         });
     }
 

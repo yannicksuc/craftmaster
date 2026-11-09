@@ -26,7 +26,13 @@ public final class ShowContext {
     /**
      * <pre>
      * activeSeason, activePartie       ids (null if none)
-     * currentManche                    {season, partie, id, name, number} or null
+     * currentManche                    id of the round being played, or null
+     * currentMancheInfo                {season, partie, id, name, number} or null
+     * now, idleMinutes                 server time (ms) and the "next round after silence" threshold
+     * lastScoreManche                  id of the round that got the last score
+     * scores {live, published}         active game: {roundId|roundLabel: {pseudo: n}}
+     * totals {live, published}         active season: {pseudo: total}
+     * recentActions[]                  descriptions of the 10 last changes
      * lastScoreAt                      epoch ms (null if never), secondsSinceLastScore
      * timer                            {manche, remaining} or null;  revealRunning
      * seasons[]                        {id, name, hidden, archived, active, published, publishedAt,
@@ -63,10 +69,17 @@ public final class ShowContext {
             c.put("id", current.id);
             c.put("name", current.name);
             c.put("number", data.season(cur.season()).parties.get(cur.partie()).number(current));
-            out.put("currentManche", c);
+            // The voice service reads the round by its id; the details stay available next to it
+            out.put("currentManche", current.id);
+            out.put("currentMancheInfo", c);
         } else {
             out.put("currentManche", null);
+            out.put("currentMancheInfo", null);
         }
+        out.put("now", System.currentTimeMillis());
+        out.put("idleMinutes", IDLE_MINUTES);
+        out.put("lastScoreManche", live.lastScoreManche);
+        putScores(out, active, activePartie);
         out.put("lastScoreAt", live.lastScoreAt == 0 ? null : live.lastScoreAt);
         out.put("secondsSinceLastScore", live.lastScoreAt == 0 ? null : (System.currentTimeMillis() - live.lastScoreAt) / 1000);
         if (Show.timerRunning()) {
@@ -110,6 +123,7 @@ public final class ShowContext {
             history.add(h);
         }
         out.put("history", history);
+        out.put("recentActions", history.stream().map(h -> ((Map<?, ?>) h).get("description")).toList());
         out.put("you", player == null ? null : player.getGameProfile().name());
         return out;
     }
@@ -179,6 +193,39 @@ public final class ShowContext {
         m.put("unpublished", unpublished);
         m.put("scores", scores);
         return m;
+    }
+
+    /**
+     * After this many minutes without a score, a score given without naming a round belongs to the next round
+     * (rule applied by the voice service).
+     */
+    public static final int IDLE_MINUTES = 4;
+
+    /**
+     * Scores of the active game in the shape the voice service reads:
+     * scores {live {roundId: {pseudo: n}}, published {roundLabel: {pseudo: n}}} and totals {live|published {pseudo: n}}.
+     */
+    private static void putScores(Map<String, Object> out, Season season, Partie partie) {
+        Map<String, Object> live = new LinkedHashMap<>();
+        if (partie != null) partie.scores.forEach((round, perPlayer) -> live.put(round, new LinkedHashMap<>(perPlayer)));
+        Map<String, Map<String, Integer>> published = new LinkedHashMap<>();
+        if (season != null && season.published != null)
+            season.published.scores().forEach((player, perRound) ->
+                    perRound.forEach((round, n) -> published.computeIfAbsent(round, k -> new LinkedHashMap<>()).put(player, n)));
+        Map<String, Object> scores = new LinkedHashMap<>();
+        scores.put("live", live);
+        scores.put("published", published);
+        out.put("scores", scores);
+        Map<String, Object> totals = new LinkedHashMap<>();
+        totals.put("live", totals(season == null ? List.of() : season.liveRanking()));
+        totals.put("published", totals(season == null ? List.of() : season.publishedRanking()));
+        out.put("totals", totals);
+    }
+
+    private static Map<String, Integer> totals(List<CraftMasterData.Entry> entries) {
+        Map<String, Integer> out = new LinkedHashMap<>();
+        for (CraftMasterData.Entry e : entries) out.put(e.player(), e.total());
+        return out;
     }
 
     private static List<Object> ranking(List<CraftMasterData.Entry> entries) {

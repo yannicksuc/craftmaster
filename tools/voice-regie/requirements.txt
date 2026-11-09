@@ -1,0 +1,14 @@
+# Régie vocale (Python 3.13, Windows). GPU: the CUDA 12 cuBLAS / runtime wheels below; cuDNN 9 ships with ctranslate2.
+faster-whisper>=1.2.1
+ctranslate2>=4.8
+anthropic>=1.15
+numpy
+nvidia-cublas-cu12
+nvidia-cuda-runtime-cu12
+# tests
+pytest
+# tests/make_tts_wavs.py only (Windows OneCore French voices)
+winrt-runtime; sys_platform == "win32"
+winrt-Windows.Media.SpeechSynthesis; sys_platform == "win32"
+winrt-Windows.Storage.Streams; sys_platform == "win32"
+winrt-Windows.Foundation; sys_platform == "win32"

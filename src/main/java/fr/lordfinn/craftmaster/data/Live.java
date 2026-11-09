@@ -13,6 +13,8 @@ public final class Live {
     public Current current;
     /** Epoch milliseconds of the last score given, 0 = never. */
     public long lastScoreAt;
+    /** Id of the round that received the last score (the voice control uses it to guess the current round). */
+    public String lastScoreManche;
     /** Last scenery placed at the anchor. */
     public String scene;
 
@@ -27,6 +29,7 @@ public final class Live {
             m.put("manche", c);
         }
         Maps.putIf(m, "lastScoreAt", lastScoreAt);
+        if (lastScoreManche != null) m.put("lastScoreManche", lastScoreManche);
         Maps.putIf(m, "scene", scene);
         return m;
     }
@@ -38,6 +41,7 @@ public final class Live {
         if (c.get("manche") != null)
             l.current = new Current(Maps.toInt(c.get("season")), Maps.toInt(c.get("partie")), String.valueOf(c.get("manche")));
         l.lastScoreAt = Maps.toLong(m.get("lastScoreAt"));
+        l.lastScoreManche = m.get("lastScoreManche") == null ? null : String.valueOf(m.get("lastScoreManche"));
         l.scene = m.get("scene") == null ? null : String.valueOf(m.get("scene"));
         return l;
     }
