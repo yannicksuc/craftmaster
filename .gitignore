@@ -124,3 +124,7 @@ run-server/
 # Dev clients (LordFinn, Joueur2) and their logs
 run2/
 logs/
+
+# Python (tools/voice-regie)
+__pycache__/
+.pytest_cache/

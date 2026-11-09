@@ -1,0 +1,16 @@
+# name|phrase  (synthesized by make_tts_wavs.py, transcribed by whisper_check.py)
+score_juste_pont|Trois points pour Juste pour le pont
+score_justedible|Deux points pour JustEdible
+score_ensuri_tour|Ensuri prend quatre points sur la tour
+score_cyllu|Cinq points pour Cyllu
+score_cycy|Un point pour Cycy
+score_arreaubaz|Trois points à Arreaubaz
+score_lordfinn|Quatre points pour LordFinn sur le labyrinthe
+curtain_open|Ouvrez les rideaux
+next_round|Manche suivante
+publish|Mettez à jour les scores
+undo|Annule
+rename|Renomme l'épreuve deux en Tour infernale
+add_player|Ajoute Cyllu comme joueur, surnom Cycy
+remove_score|Enlève le score d'Ensuri sur le pont
+reveal|Lance la révélation
