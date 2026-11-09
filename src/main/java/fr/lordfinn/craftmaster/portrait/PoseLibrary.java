@@ -61,44 +61,51 @@ public final class PoseLibrary {
         return new double[]{x, y, z};
     }
 
-    /** The poses shipped with the mod, in the order of the poster. A part without rotation is hidden. */
+    /**
+     * The poses shipped with the mod, in the order of the poster, for the baby-proportioned figure (18 px tall)
+     * in the 18 × 24 px frame. A part without rotation is hidden.
+     */
     public static Map<String, Pose> presets() {
         Map<String, Pose> m = new LinkedHashMap<>();
         // Bust: head and chest fill the frame, the legs are not shown
-        m.put("classique", pose(0, -32.8, 3, 1.4, 0, 0,
+        m.put("classique", pose(0, -19.6, 1.5, 1.6, 0, 0,
                 Part.HEAD, r(-4, 12, 0), Part.RIGHT_ARM, r(0, 0, 4), Part.LEFT_ARM, r(0, 0, -4),
                 Part.RIGHT_LEG, Part.LEFT_LEG));
         // One foot already out of the frame, leaning toward the audience, a hand on the frame's side
-        m.put("sort du cadre", pose(0, -16, 4, 1, 0, 3,
+        m.put("sort du cadre", pose(0, -10, 3, 1, 0, 3,
                 Part.BODY, r(14, 0, 0), Part.HEAD, r(-12, 0, 0),
                 Part.RIGHT_LEG, r(-38, 0, 0), Part.LEFT_LEG, r(14, 0, 0),
                 Part.RIGHT_ARM, r(-55, 0, 12), Part.LEFT_ARM, r(-10, 0, -62)));
         // Sitting on the bottom edge, legs dangling out of the frame
-        m.put("assis dans le cadre", pose(0, -28, 3, 1, 0, 0,
+        m.put("assis dans le cadre", pose(0, -16, 2, 1, 0, 0,
                 Part.BODY, r(-6, 0, 0), Part.HEAD, r(-4, -14, 0),
                 Part.RIGHT_LEG, r(-78, 10, 0), Part.LEFT_LEG, r(-66, -8, 0),
                 Part.RIGHT_ARM, r(-24, 0, 10), Part.LEFT_ARM, r(-24, 0, -10)));
         // Standing under the frame and holding it above the head
-        m.put("porte le cadre", pose(0, -50, 0, 1, 0, 4,
+        m.put("porte le cadre", pose(0, -28, 0, 1, 0, 4,
                 Part.HEAD, r(-22, 0, 0),
                 Part.RIGHT_ARM, r(-180, 0, -14), Part.LEFT_ARM, r(-180, 0, 14),
                 Part.RIGHT_LEG, r(0, 0, 3), Part.LEFT_LEG, r(0, 0, -3)));
         // Leaning out over the bottom edge, one arm reaching toward the audience
-        m.put("se penche dehors", pose(0, -16, 2, 1, 0, 0,
+        m.put("se penche dehors", pose(0, -10, 2, 1, 0, 0,
                 Part.FIGURE, r(0, 16, 0), Part.BODY, r(38, 0, 0), Part.HEAD, r(-34, 0, 0),
                 Part.RIGHT_ARM, r(-70, 0, 0), Part.LEFT_ARM, r(-30, 0, -24)));
         // Waving
-        m.put("salut", pose(0, -16, 3, 1, 0, 0,
+        m.put("salut", pose(0, -10, 2, 1, 0, 0,
                 Part.HEAD, r(0, -10, 6), Part.RIGHT_ARM, r(0, 0, 140), Part.LEFT_ARM, r(0, 0, -6),
                 Part.RIGHT_LEG, r(0, 0, 2), Part.LEFT_LEG, r(0, 0, -2)));
-        m.put("bras croisés", pose(0, -16, 3, 1, 0, 0,
+        m.put("bras croisés", pose(0, -10, 2, 1, 0, 0,
                 Part.HEAD, r(-4, 0, 0), Part.RIGHT_ARM, r(-72, -36, 0), Part.LEFT_ARM, r(-72, 36, 0),
                 Part.RIGHT_LEG, r(0, 0, 3), Part.LEFT_LEG, r(0, 0, -3)));
         // Seated in front of the frame as if it were the back of a throne (LordFinn on the poster)
-        m.put("trône", pose(0, -24, 5, 1, 0, 0,
+        m.put("trône", pose(0, -13, 3, 1, 0, 0,
                 Part.HEAD, r(-6, 0, 0), Part.BODY, r(-4, 0, 0),
                 Part.RIGHT_LEG, r(-88, 10, 0), Part.LEFT_LEG, r(-88, -10, 0),
                 Part.RIGHT_ARM, r(-38, 0, 10), Part.LEFT_ARM, r(-38, 0, -10)));
+        // Coming out of the back of the portrait: seen from behind, the upper body leans out of the flat back
+        m.put("sort par derrière", pose(0, -10, -3, 1, 0, 0,
+                Part.FIGURE, r(0, 180, 0), Part.BODY, r(28, 0, 0), Part.HEAD, r(-18, 0, 0),
+                Part.RIGHT_ARM, r(-75, 0, 10), Part.LEFT_ARM, r(-40, 0, -18)));
         return m;
     }
 

@@ -14,13 +14,24 @@ import java.util.List;
  * "Portrait space": pixels (1/16 block), origin at the centre of the frame, x to the viewer's right, y up,
  * z toward the viewer. Figure cubes are given like the vanilla player model ("model space": y down, the face
  * looking at -z, the feet at y = 24) and placed in portrait space by {@link #partMatrix}.
+ * <p>
+ * The figure has <b>baby proportions</b> ("baby zombie mode"), exactly those of vanilla baby humanoids
+ * ({@code HumanoidModel.BABY_TRANSFORMER} = {@code BabyModelTransform(true, 16, 0, 2, 2, 24, {"head"})}): the head
+ * is moved down 16 px then scaled by 1.5 / 2 = 0.75, the body, arms and legs are moved down 24 px then scaled by
+ * 1 / 2 (pivots scaled too). The figure is 18 px tall with a big head; the renderer bakes the player model through
+ * that same transformer and checks it against {@link #pivot} and {@link #partScale}.
+ * <p>
+ * The figure always stays on its side of the canvas: a pose in front of it ({@code offsetZ} in front of the
+ * canvas) is pushed forward if a limb would poke out of the back, a pose behind it (coming out of the back of the
+ * portrait) is pushed back if a limb would poke out through the painting. With the "window" look (Antichamber),
+ * the figure is pushed behind the opening, into a closed box behind the frame (see {@link #windowBox}).
  */
 public final class PortraitGeometry {
 
     private PortraitGeometry() {}
 
     /** Outer size of the frame, width of its moulding, its depth and the canvas thickness (pixels). */
-    public static final double FRAME_W = 26, FRAME_H = 36, BORDER = 2, DEPTH = 3, CANVAS = 1;
+    public static final double FRAME_W = 18, FRAME_H = 24, BORDER = 2, DEPTH = 3, CANVAS = 1;
 
     /** An axis-aligned cuboid in its own space. */
     public record Box(double x0, double y0, double z0, double x1, double y1, double z1) {
@@ -40,20 +51,34 @@ public final class PortraitGeometry {
         }
     }
 
-    private static final double HW = FRAME_W / 2, HH = FRAME_H / 2, HD = DEPTH / 2;
+    /** Half sizes of the frame (outer) and of its opening. */
+    public static final double HW = FRAME_W / 2, HH = FRAME_H / 2, HD = DEPTH / 2,
+            OPEN_HW = HW - BORDER, OPEN_HH = HH - BORDER;
 
-    /** Frame mouldings (top, bottom, left, right) then the canvas, in frame space (portrait space before the tilt). */
-    public static final List<Box> FRAME_BOXES = List.of(
+    /** Frame mouldings (top, bottom, left, right), in frame space (portrait space before the tilt). */
+    public static final List<Box> MOULDINGS = List.of(
             new Box(-HW, HH - BORDER, -HD, HW, HH, HD),
             new Box(-HW, -HH, -HD, HW, -HH + BORDER, HD),
             new Box(-HW, -HH + BORDER, -HD, -HW + BORDER, HH - BORDER, HD),
-            new Box(HW - BORDER, -HH + BORDER, -HD, HW, HH - BORDER, HD),
-            new Box(-HW + BORDER, -HH + BORDER, -HD, HW - BORDER, HH - BORDER, -HD + CANVAS));
+            new Box(HW - BORDER, -HH + BORDER, -HD, HW, HH - BORDER, HD));
 
-    /** Where the canvas' front face is (z), the figure should stay in front of it. */
+    /** The painted canvas closing the opening at the back (not drawn with the window look). */
+    public static final Box CANVAS_BOX = new Box(-OPEN_HW, -OPEN_HH, -HD, OPEN_HW, OPEN_HH, -HD + CANVAS);
+
+    /** Mouldings then canvas. */
+    public static final List<Box> FRAME_BOXES = List.of(MOULDINGS.get(0), MOULDINGS.get(1), MOULDINGS.get(2), MOULDINGS.get(3), CANVAS_BOX);
+
+    /** Where the canvas' front face is (z): a pose in front of the canvas keeps its figure in front of that. */
     public static final double CANVAS_FRONT = -HD + CANVAS;
+    /** Back of the canvas (z). */
+    public static final double CANVAS_BACK = -HD;
+    /** Gap kept between the figure and a plane it must not cross (px). */
+    private static final double MARGIN = 0.05;
 
-    /** The figure's base cube for a part (model space, relative to the part's pivot); slim arms are 3 px wide. */
+    /**
+     * The figure's base cube for a part, as in the adult player model (relative to the part's pivot, before
+     * {@link #partScale}); slim arms are 3 px wide.
+     */
     public static Box partBox(Part part, boolean slim) {
         return switch (part) {
             case HEAD -> new Box(-4, -8, -4, 4, 0, 4);
@@ -65,8 +90,11 @@ public final class PortraitGeometry {
         };
     }
 
-    /** Pivot of a part in model space (same as the vanilla player model). */
-    public static Vector3d pivot(Part part) {
+    /** Vanilla baby transform: head offset and scale, body (and limbs) offset and scale. */
+    public static final double BABY_HEAD_Y = 16, BABY_HEAD_SCALE = 1.5 / 2, BABY_BODY_Y = 24, BABY_BODY_SCALE = 1.0 / 2;
+
+    /** Pivot of a part in the adult player model. */
+    private static Vector3d adultPivot(Part part) {
         return switch (part) {
             case RIGHT_ARM -> new Vector3d(-5, 2, 0);
             case LEFT_ARM -> new Vector3d(5, 2, 0);
@@ -76,11 +104,24 @@ public final class PortraitGeometry {
         };
     }
 
+    /** Pivot of a part in model space, baby proportions: (adult pivot + offset) × scale, like PartPose.translated().scaled(). */
+    public static Vector3d pivot(Part part) {
+        Vector3d p = adultPivot(part);
+        return part == Part.HEAD
+                ? p.add(0, BABY_HEAD_Y, 0).mul(BABY_HEAD_SCALE)
+                : p.add(0, BABY_BODY_Y, 0).mul(BABY_BODY_SCALE);
+    }
+
+    /** Scale of a part's cubes (baby proportions). */
+    public static double partScale(Part part) {
+        return part == Part.HEAD ? BABY_HEAD_SCALE : BABY_BODY_SCALE;
+    }
+
     /** The parts that have a cube, in drawing order. */
     public static final List<Part> BODY_PARTS = List.of(Part.HEAD, Part.BODY, Part.RIGHT_ARM, Part.LEFT_ARM, Part.RIGHT_LEG, Part.LEFT_LEG);
 
-    /** Height of the hips above the feet in model space: the figure and the upper body turn around them. */
-    private static final double HIPS = 12;
+    /** The hips in model space (y of the legs' pivot): the figure and the upper body turn around them. */
+    private static final double HIPS = 18;
 
     private static Matrix4d rotate(Matrix4d m, Pose.Rotation r) {
         return m.rotateZYX(Math.toRadians(r.z()), Math.toRadians(r.y()), Math.toRadians(r.x()));
@@ -91,10 +132,10 @@ public final class PortraitGeometry {
         return new Matrix4d().rotateX(Math.toRadians(pose.framePitch())).rotateZ(Math.toRadians(pose.frameRoll()));
     }
 
-    /** Model space → portrait space for the whole figure (before the part's own pivot and rotation). */
-    private static Matrix4d figureMatrix(Pose pose) {
+    /** Model space → portrait space for the whole figure, moved by {@code shiftZ} px toward the viewer. */
+    private static Matrix4d figureMatrix(Pose pose, double shiftZ) {
         Matrix4d m = new Matrix4d()
-                .translate(pose.offsetX(), pose.offsetY(), pose.offsetZ())
+                .translate(pose.offsetX(), pose.offsetY(), pose.offsetZ() + shiftZ)
                 .scale(pose.scale())
                 // feet (model y = 24) on the origin, y up, the face toward the viewer: a half turn around X
                 .translate(0, 24, 0)
@@ -104,41 +145,109 @@ public final class PortraitGeometry {
         return m.translate(0, -HIPS, 0);
     }
 
-    /** Part space (its cube's coordinates) → portrait space. */
-    public static Matrix4d partMatrix(Pose pose, Part part) {
-        Matrix4d m = figureMatrix(pose);
+    private static Matrix4d partMatrix(Pose pose, Part part, double shiftZ) {
+        Matrix4d m = figureMatrix(pose, shiftZ);
         boolean upper = part == Part.HEAD || part == Part.BODY || part == Part.RIGHT_ARM || part == Part.LEFT_ARM;
         if (upper) {
             m.translate(0, HIPS, 0);
             rotate(m, pose.rotation(Part.BODY));
             m.translate(0, -HIPS, 0);
         }
-        if (part == Part.BODY) return m;
         Vector3d p = pivot(part);
         m.translate(p.x, p.y, p.z);
-        return rotate(m, pose.rotation(part));
+        // The body's own rotation is the upper body's, applied above around the hips
+        if (part != Part.BODY) rotate(m, pose.rotation(part));
+        return m.scale(partScale(part));
+    }
+
+    /** z range {min, max} of the visible figure, before any shift. */
+    private static double[] figureDepth(Pose pose) {
+        double min = Double.MAX_VALUE, max = -Double.MAX_VALUE;
+        for (Part p : BODY_PARTS) {
+            if (pose.isHidden(p)) continue;
+            Matrix4d m = partMatrix(pose, p, 0);
+            for (Vector3d c : partBox(p, false).corners()) {
+                m.transformPosition(c);
+                min = Math.min(min, c.z);
+                max = Math.max(max, c.z);
+            }
+        }
+        return min > max ? new double[]{0, 0} : new double[]{min, max};
+    }
+
+    /** True when the pose puts the figure behind the canvas (coming out of the back of the portrait). */
+    public static boolean behindCanvas(Pose pose) {
+        return pose.offsetZ() < CANVAS_FRONT;
+    }
+
+    /**
+     * How far (px, toward the viewer) the figure is moved so it stays on its side of the canvas, or, with the
+     * window look, behind the opening.
+     */
+    public static double figureShift(Pose pose, boolean window) {
+        double[] z = figureDepth(pose);
+        if (window) return Math.min(0, HD - MARGIN - z[1]);
+        if (behindCanvas(pose)) return Math.min(0, CANVAS_FRONT - MARGIN - z[1]);
+        return Math.max(0, CANVAS_BACK + MARGIN - z[0]);
+    }
+
+    /** Part space (its cube's coordinates) → portrait space, as drawn (normal look). */
+    public static Matrix4d partMatrix(Pose pose, Part part) {
+        return partMatrix(pose, part, false);
+    }
+
+    /** Part space (its cube's coordinates) → portrait space, as drawn. */
+    public static Matrix4d partMatrix(Pose pose, Part part, boolean window) {
+        return partMatrix(pose, part, figureShift(pose, window));
+    }
+
+    /**
+     * The closed box behind the opening, for the window look, in frame space: from the back of the mouldings
+     * down to behind the figure, and wide enough for every limb (so nothing pokes out of it, seen from the back).
+     */
+    public static Box windowBox(Pose pose) {
+        double shift = figureShift(pose, true);
+        double x0 = -OPEN_HW, y0 = -OPEN_HH, z0 = -HD - 6, x1 = OPEN_HW, y1 = OPEN_HH;
+        // The figure in frame space (the frame's tilt undone)
+        Matrix4d toFrame = frameMatrix(pose).invert();
+        for (Part p : BODY_PARTS) {
+            if (pose.isHidden(p)) continue;
+            Matrix4d m = new Matrix4d(toFrame).mul(partMatrix(pose, p, shift));
+            for (Vector3d c : partBox(p, false).corners()) {
+                m.transformPosition(c);
+                x0 = Math.min(x0, c.x - 0.5);
+                y0 = Math.min(y0, c.y - 0.5);
+                z0 = Math.min(z0, c.z - 1);
+                x1 = Math.max(x1, c.x + 0.5);
+                y1 = Math.max(y1, c.y + 0.5);
+            }
+        }
+        return new Box(x0, y0, z0, x1, y1, -HD);
     }
 
     /** One weighted piece of the portrait, already placed in portrait space. */
     private record Piece(Box box, Matrix4d matrix) {}
 
-    private static List<Piece> pieces(Pose pose, boolean slim) {
+    private static List<Piece> pieces(Pose pose, boolean window) {
         List<Piece> out = new ArrayList<>();
         Matrix4d frame = frameMatrix(pose);
-        for (Box b : FRAME_BOXES) out.add(new Piece(b, frame));
-        for (Part p : BODY_PARTS) if (!pose.isHidden(p)) out.add(new Piece(partBox(p, slim), partMatrix(pose, p)));
+        for (Box b : window ? MOULDINGS : FRAME_BOXES) out.add(new Piece(b, frame));
+        double shift = figureShift(pose, window);
+        for (Part p : BODY_PARTS)
+            if (!pose.isHidden(p)) out.add(new Piece(partBox(p, false), partMatrix(pose, p, shift)));
         return out;
     }
 
     /**
-     * Centre of gravity of the frame and the visible figure, each cuboid weighing its volume (after the pose's
-     * scale), in portrait space. Same density everywhere: a figure holding the frame above its head pulls the
-     * centre down, an arm stretched to the side pulls it sideways.
+     * Centre of gravity of the frame and the visible figure, each cuboid weighing its volume (after the baby
+     * proportions and the pose's scale), in portrait space. Same density everywhere: a figure holding the frame
+     * above its head pulls the centre down, an arm stretched to the side pulls it sideways. The window look's box
+     * is a thin shell and is not weighed.
      */
-    public static Vector3d centreOfGravity(Pose pose, boolean slim) {
+    public static Vector3d centreOfGravity(Pose pose, boolean window) {
         Vector3d sum = new Vector3d();
         double total = 0;
-        for (Piece piece : pieces(pose, slim)) {
+        for (Piece piece : pieces(pose, window)) {
             // An affine map sends a box's centre to the centre of its image; its volume scales by the determinant
             double v = piece.box().volume() * Math.abs(piece.matrix().determinant());
             Vector3d c = piece.matrix().transformPosition(piece.box().center());
@@ -153,19 +262,24 @@ public final class PortraitGeometry {
     }
 
     /**
-     * Where the string is tied: on the top moulding of the frame, right above the centre of gravity (same x),
-     * so the portrait hangs straight. When the centre of gravity is beyond the frame's width (an arm stretched
-     * far out), the knot goes to the nearest end of the moulding.
+     * Where the string is tied: on the top face of the top moulding, right above the centre of gravity (same x
+     * and z), so the string hangs perfectly vertical and the portrait straight under it. When the centre of
+     * gravity is beyond the moulding (an arm stretched far out), the knot goes to the nearest point of it.
      */
-    public static Vector3d hangPoint(Pose pose, boolean slim) {
-        Vector3d cog = centreOfGravity(pose, slim);
+    public static Vector3d hangPoint(Pose pose, boolean window) {
+        Vector3d cog = centreOfGravity(pose, window);
         Matrix4d f = frameMatrix(pose);
-        // Top edge of the frame, centre line: (t, HH, 0) for t in [-HW, HW], tilted by the frame matrix
-        Vector3d a = f.transformPosition(new Vector3d(-HW, HH, 0));
-        Vector3d b = f.transformPosition(new Vector3d(HW, HH, 0));
-        double t = Math.abs(b.x - a.x) < 1e-9 ? 0.5 : (cog.x - a.x) / (b.x - a.x);
-        t = Math.max(0, Math.min(1, t));
-        return new Vector3d(a).lerp(b, t);
+        // Top face of the frame: f · (t, HH, s), t in [-HW, HW], s in [-HD, HD]; x and z are linear in (t, s)
+        Vector3d o = f.transformPosition(new Vector3d(0, HH, 0));
+        Vector3d dt = f.transformDirection(new Vector3d(1, 0, 0));
+        Vector3d ds = f.transformDirection(new Vector3d(0, 0, 1));
+        double det = dt.x * ds.z - ds.x * dt.z;
+        double ex = cog.x - o.x, ez = cog.z - o.z;
+        double t = Math.abs(det) < 1e-9 ? 0 : (ex * ds.z - ds.x * ez) / det;
+        double s = Math.abs(det) < 1e-9 ? 0 : (dt.x * ez - ex * dt.z) / det;
+        t = Math.max(-HW, Math.min(HW, t));
+        s = Math.max(-HD, Math.min(HD, s));
+        return f.transformPosition(new Vector3d(t, HH, s));
     }
 
     public static Vector3d hangPoint(Pose pose) {
@@ -173,9 +287,11 @@ public final class PortraitGeometry {
     }
 
     /** Bounds of the frame and visible figure in portrait space: {minX, minY, minZ, maxX, maxY, maxZ}. */
-    public static double[] bounds(Pose pose, boolean slim) {
+    public static double[] bounds(Pose pose, boolean window) {
         double[] b = {Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, -Double.MAX_VALUE, -Double.MAX_VALUE, -Double.MAX_VALUE};
-        for (Piece piece : pieces(pose, slim)) {
+        List<Piece> pieces = pieces(pose, window);
+        if (window) pieces.add(new Piece(windowBox(pose), frameMatrix(pose)));
+        for (Piece piece : pieces) {
             for (Vector3d c : piece.box().corners()) {
                 piece.matrix().transformPosition(c);
                 b[0] = Math.min(b[0], c.x);
@@ -190,13 +306,12 @@ public final class PortraitGeometry {
     }
 
     /**
-     * Where the portrait's pieces are relative to the hook, in blocks, before the facing and the sway: the hang
-     * point sits {@code hangLength} blocks below the hook and the centre of gravity is right under it.
-     * Returned as the translation to apply to portrait space (divided by 16) — x, y, z in blocks.
+     * Where portrait space sits relative to the hook, in blocks, before the facing and the sway: the knot is
+     * {@code hangLength} blocks straight below the hook (so the string is one vertical line) and the centre of
+     * gravity right under the knot.
      */
-    public static Vector3d portraitOrigin(Pose pose, boolean slim, double hangLength) {
-        Vector3d cog = centreOfGravity(pose, slim);
-        Vector3d knot = hangPoint(pose, slim);
-        return new Vector3d(-cog.x / 16, -hangLength - knot.y / 16, -cog.z / 16);
+    public static Vector3d portraitOrigin(Pose pose, boolean window, double hangLength) {
+        Vector3d knot = hangPoint(pose, window);
+        return new Vector3d(-knot.x / 16, -hangLength - knot.y / 16, -knot.z / 16);
     }
 }

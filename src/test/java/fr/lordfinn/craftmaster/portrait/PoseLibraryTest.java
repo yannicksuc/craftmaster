@@ -23,7 +23,7 @@ class PoseLibraryTest {
     @Test
     void presetsOfThePoster() {
         assertEquals(List.of("classique", "sort du cadre", "assis dans le cadre", "porte le cadre", "se penche dehors",
-                "salut", "bras croisés", "trône"), List.copyOf(PoseLibrary.presets().keySet()));
+                "salut", "bras croisés", "trône", "sort par derrière"), List.copyOf(PoseLibrary.presets().keySet()));
         Pose bust = PoseLibrary.presets().get("classique");
         assertTrue(bust.isHidden(Part.RIGHT_LEG) && bust.isHidden(Part.LEFT_LEG), "a bust has no legs");
         assertFalse(bust.isHidden(Part.HEAD));
@@ -44,7 +44,7 @@ class PoseLibraryTest {
     @Test
     void jsonIsCompactAndReadable() {
         JsonObject o = Pose.NEUTRAL.withRotation(Part.HEAD, new Rotation(0, 10, 0)).toJson();
-        assertEquals("[0,-16,3]", o.get("offset").toString());
+        assertEquals("[0,-10,2]", o.get("offset").toString());
         assertEquals("[0,10,0]", o.get("head").toString());
         assertFalse(o.has("rightArm"), "parts without rotation are left out");
         assertFalse(o.has("frame"));

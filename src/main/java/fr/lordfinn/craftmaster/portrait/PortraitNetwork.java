@@ -50,10 +50,10 @@ public final class PortraitNetwork {
 
     /**
      * Client → server: new settings of a portrait. {@code rank} 0 with a {@code fixedPlayer} = follows that
-     * player; {@code hang} negative = automatic length; empty strings = default.
+     * player; {@code hang} negative = automatic length; empty strings = default; {@code window}: Antichamber look.
      */
     public record Update(int entityId, int season, int rank, String fixedPlayer, String displayName, String skinUrl,
-                         String pose, float hang) implements CustomPacketPayload {
+                         String pose, float hang, boolean window) implements CustomPacketPayload {
         public static final Type<Update> TYPE = new Type<>(CraftMaster.id("portrait_update"));
         public static final StreamCodec<RegistryFriendlyByteBuf, Update> CODEC = CustomPacketPayload.codec(Update::write, Update::read);
 
@@ -66,11 +66,12 @@ public final class PortraitNetwork {
             buf.writeUtf(skinUrl, 1024);
             buf.writeUtf(pose, 128);
             buf.writeFloat(hang);
+            buf.writeBoolean(window);
         }
 
         private static Update read(RegistryFriendlyByteBuf buf) {
             return new Update(buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readUtf(64), buf.readUtf(128),
-                    buf.readUtf(1024), buf.readUtf(128), buf.readFloat());
+                    buf.readUtf(1024), buf.readUtf(128), buf.readFloat(), buf.readBoolean());
         }
 
         @Override
@@ -153,6 +154,7 @@ public final class PortraitNetwork {
         p.setSkinUrl(u.skinUrl());
         p.setPoseName(u.pose());
         p.setHang(u.hang());
+        p.setWindow(u.window());
         Portraits.refresh(p);
         player.sendOverlayMessage(Component.translatable("message.craftmaster.portrait_saved").withStyle(ChatFormatting.GREEN));
     }

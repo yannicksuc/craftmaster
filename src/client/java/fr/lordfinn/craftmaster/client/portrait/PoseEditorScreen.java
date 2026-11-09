@@ -122,13 +122,14 @@ public class PoseEditorScreen extends Screen {
                                 Component.translatable("screen.craftmaster.pose.hidden"), !editing.isHidden(part)).displayOnlyValue()
                         .create(cx1, cy + 22, sw, 20, Component.empty(), (b, v) -> changed(editing.withHidden(part, !v))));
             } else {
-                addRenderableWidget(new ValueSlider(cx1, cy + 22, sw, "screen.craftmaster.pose.scale", 0.5, 2, 0.05, editing.scale(),
+                addRenderableWidget(new ValueSlider(cx1, cy + 22, sw, "screen.craftmaster.pose.scale", 0.5, 2.5, 0.05, editing.scale(),
                         v -> changed(editing.withScale(v))));
-                addRenderableWidget(new ValueSlider(cx0, cy + 44, sw, "screen.craftmaster.pose.offset_x", -40, 40, 0.5, editing.offsetX(),
+                addRenderableWidget(new ValueSlider(cx0, cy + 44, sw, "screen.craftmaster.pose.offset_x", -24, 24, 0.5, editing.offsetX(),
                         v -> changed(editing.withOffset(v, editing.offsetY(), editing.offsetZ()))));
-                addRenderableWidget(new ValueSlider(cx1, cy + 44, sw, "screen.craftmaster.pose.offset_y", -64, 32, 0.5, editing.offsetY(),
+                addRenderableWidget(new ValueSlider(cx1, cy + 44, sw, "screen.craftmaster.pose.offset_y", -48, 24, 0.5, editing.offsetY(),
                         v -> changed(editing.withOffset(editing.offsetX(), v, editing.offsetZ()))));
-                addRenderableWidget(new ValueSlider(cx0, cy + 66, sw, "screen.craftmaster.pose.offset_z", -16, 24, 0.5, editing.offsetZ(),
+                // Negative: behind the canvas, for figures coming out of the back of the portrait
+            addRenderableWidget(new ValueSlider(cx0, cy + 66, sw, "screen.craftmaster.pose.offset_z", -24, 24, 0.5, editing.offsetZ(),
                         v -> changed(editing.withOffset(editing.offsetX(), editing.offsetY(), v))));
             }
         }
@@ -192,7 +193,7 @@ public class PoseEditorScreen extends Screen {
         } else {
             PortraitEntity p = portrait;
             ClientPlayNetworking.send(new PortraitNetwork.Update(p.getId(), p.season(), p.followsRank() ? p.rank() : 0,
-                    p.fixedPlayer(), p.displayName(), p.skinUrl(), name, p.hangSetting()));
+                    p.fixedPlayer(), p.displayName(), p.skinUrl(), name, p.hangSetting(), p.window()));
         }
         onClose();
     }

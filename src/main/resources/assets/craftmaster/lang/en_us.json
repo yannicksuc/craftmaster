@@ -42,6 +42,8 @@
   "screen.craftmaster.portrait.edit_pose": "Edit…",
   "screen.craftmaster.portrait.hang": "String (blocks)",
   "screen.craftmaster.portrait.hang_hint": "auto = varies",
+  "screen.craftmaster.portrait.window": "Window",
+  "screen.craftmaster.portrait.window_label": "Antichamber look",
   "screen.craftmaster.portrait.save": "Save",
   "screen.craftmaster.portrait.hint": "Empty name / skin = the player's own",
   "screen.craftmaster.portrait.bad_season": "The season must be a number",

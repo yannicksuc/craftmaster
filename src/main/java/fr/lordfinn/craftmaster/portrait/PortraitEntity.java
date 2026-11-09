@@ -45,6 +45,8 @@ public class PortraitEntity extends Entity {
     /** String length in blocks; negative = automatic (a gentle variation of its own). */
     private static final EntityDataAccessor<Float> HANG = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> FACING = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.INT);
+    /** "Antichamber" window look: the figure is only seen through the opening, in a box behind the frame. */
+    private static final EntityDataAccessor<Boolean> WINDOW = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.BOOLEAN);
     // What it shows
     private static final EntityDataAccessor<String> SHOWN_PLAYER = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Integer> SHOWN_RANK = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.INT);
@@ -93,6 +95,7 @@ public class PortraitEntity extends Entity {
         b.define(POSE, PoseLibrary.DEFAULT);
         b.define(HANG, -1f);
         b.define(FACING, Direction.SOUTH.get2DDataValue());
+        b.define(WINDOW, false);
         b.define(SHOWN_PLAYER, "");
         b.define(SHOWN_RANK, 0);
         b.define(POINTS, 0);
@@ -157,6 +160,12 @@ public class PortraitEntity extends Entity {
     public String poseName() { return entityData.get(POSE); }
     /** The string length as set (negative: automatic). */
     public float hangSetting() { return entityData.get(HANG); }
+    public boolean window() { return entityData.get(WINDOW); }
+
+    public void setWindow(boolean window) {
+        entityData.set(WINDOW, window);
+        refreshBox();
+    }
 
     public void setSeason(int season) { entityData.set(SEASON, season); }
 
@@ -295,7 +304,7 @@ public class PortraitEntity extends Entity {
     @Override
     public void onSyncedDataUpdated(EntityDataAccessor<?> accessor) {
         super.onSyncedDataUpdated(accessor);
-        if (accessor == POSE || accessor == HANG || accessor == FACING) refreshBox();
+        if (accessor == POSE || accessor == HANG || accessor == FACING || accessor == WINDOW) refreshBox();
     }
 
     private void refreshBox() {
@@ -315,8 +324,8 @@ public class PortraitEntity extends Entity {
     protected AABB makeBoundingBox(Vec3 pos) {
         if (entityData == null) return super.makeBoundingBox(pos);
         Pose pose = pose();
-        double[] b = PortraitGeometry.bounds(pose, false);
-        Vector3d origin = PortraitGeometry.portraitOrigin(pose, false, hangLength());
+        double[] b = PortraitGeometry.bounds(pose, window());
+        Vector3d origin = PortraitGeometry.portraitOrigin(pose, window(), hangLength());
         Direction facing = getFacing();
         Vec3 c0 = toWorld(new Vector3d(origin).add(b[0] / 16, b[1] / 16, b[2] / 16), facing);
         Vec3 c1 = toWorld(new Vector3d(origin).add(b[3] / 16, b[4] / 16, b[5] / 16), facing);
@@ -334,6 +343,7 @@ public class PortraitEntity extends Entity {
         entityData.set(SKIN_URL, in.getStringOr("SkinUrl", ""));
         entityData.set(POSE, in.getStringOr("Pose", PoseLibrary.DEFAULT));
         entityData.set(HANG, in.getFloatOr("Hang", -1f));
+        entityData.set(WINDOW, in.getBooleanOr("Window", false));
         entityData.set(FACING, Direction.byName(in.getStringOr("Facing", "south")) instanceof Direction d && d.getAxis().isHorizontal()
                 ? d.get2DDataValue() : Direction.SOUTH.get2DDataValue());
         entityData.set(SHOWN_PLAYER, in.getStringOr("ShownPlayer", ""));
@@ -353,6 +363,7 @@ public class PortraitEntity extends Entity {
         out.putString("SkinUrl", skinUrl());
         out.putString("Pose", poseName());
         out.putFloat("Hang", hangSetting());
+        out.putBoolean("Window", window());
         out.putString("Facing", getFacing().getSerializedName());
         out.putString("ShownPlayer", shownPlayer());
         out.putInt("ShownRank", shownRank());

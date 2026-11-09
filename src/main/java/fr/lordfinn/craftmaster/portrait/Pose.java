@@ -21,7 +21,7 @@ import java.util.Set;
  * <p>
  * {@code offset} is where the figure's feet are, in pixels, relative to the centre of the frame (x to the
  * viewer's right, y up, z toward the viewer). {@code scale} enlarges the figure around its feet (a bust fills the
- * frame better at 1.4). {@code framePitch} leans the frame forward (positive: its top comes toward the viewer),
+ * frame better at 1.6). {@code framePitch} leans the frame forward (positive: its top comes toward the viewer),
  * {@code frameRoll} turns it in its own plane (positive: counter-clockwise as seen from the front). Hidden parts
  * are not drawn and do not weigh in the centre of gravity.
  */
@@ -70,7 +70,7 @@ public record Pose(Map<Part, Rotation> rotations, Set<Part> hidden,
     }
 
     /** A figure standing straight in the frame, feet on its bottom edge. */
-    public static final Pose NEUTRAL = new Pose(Map.of(), Set.of(), 0, -16, 3, 1, 0, 0);
+    public static final Pose NEUTRAL = new Pose(Map.of(), Set.of(), 0, -10, 2, 1, 0, 0);
 
     public Rotation rotation(Part part) {
         return rotations.get(part);
@@ -108,7 +108,7 @@ public record Pose(Map<Part, Rotation> rotations, Set<Part> hidden,
     // ---------------------------------------------------------------- JSON
 
     /**
-     * <pre>{"offset": [0, -16, 3], "scale": 1.4, "frame": [pitch, roll], "head": [x, y, z], ..., "hidden": ["rightLeg"]}</pre>
+     * <pre>{"offset": [0, -10, 2], "scale": 1.6, "frame": [pitch, roll], "head": [x, y, z], ..., "hidden": ["rightLeg"]}</pre>
      * Parts without rotation and default values are left out.
      */
     public JsonObject toJson() {

@@ -221,7 +221,7 @@ write_png(os.path.join(A, "icon.png"), 128, 128, big)
 # PortraitGeometry.FRAME_BOXES (top, bottom, left, right mouldings, canvas), plus the brass hook, the string and
 # the highlight glow. Box UV layout of a (w, h, d) cube at (u, v): up (u+d, v), down (u+d+w, v), side (u, v+d),
 # front (u+d, v+d), other side (u+d+w, v+d), back (u+2d+w, v+d). The "front" is the side the audience sees.
-FW, FH, FB, FD = 26, 36, 2, 3
+FW, FH, FB, FD = 18, 24, 2, 3   # PortraitGeometry.FRAME_W, FRAME_H, BORDER, DEPTH (sized for the baby figure)
 TEX = [[(0, 0, 0, 0)] * 128 for _ in range(64)]
 GOLD_HI, GOLD, GOLD_MID, GOLD_LO, GOLD_DARK = (255, 236, 140), (240, 196, 64), (214, 160, 44), (170, 116, 30), (120, 78, 22)
 BACK_WOOD = (92, 62, 38)
@@ -281,30 +281,38 @@ box_uv(0, 10, FB, FH - 2 * FB, FD, moulding_front("left"))
 box_uv(10, 10, FB, FH - 2 * FB, FD, moulding_front("right"))
 
 
-def canvas(x, y, w, h):
-    """Deep burgundy backdrop, lighter behind the head, dark corners: the skin stands out."""
+def poster_red(x, y, w, h, fillet=True):
+    """The poster's red velvet backdrop: bright crimson behind the head, darker toward the corners."""
     cx, cy = (w - 1) / 2, h * 0.32
-    r = math.hypot((x - cx) / w, (y - cy) / h) * 2.2
-    f = max(0.35, 1.15 - r * 0.7)
-    base = (112, 26, 38)
-    c = tuple(int(v * f) for v in base)
-    if (x * 7 + y * 3) % 11 == 0:   # canvas weave
-        c = tuple(max(0, v - 10) for v in c)
+    r = math.hypot((x - cx) / w, (y - cy) / h) * 2.0
+    f = max(0.5, 1.12 - r * 0.55)
+    base = (184, 30, 36)
+    c = tuple(min(255, int(v * f)) for v in base)
+    if (x * 7 + y * 3) % 11 == 0:   # velvet weave
+        c = tuple(max(0, v - 14) for v in c)
     # inner gold fillet along the moulding
-    if x == 0 or y == 0 or x == w - 1 or y == h - 1:
+    if fillet and (x == 0 or y == 0 or x == w - 1 or y == h - 1):
         c = GOLD_DARK
     return c
 
 
-def linen(x, y, w, h):
-    return jitter((176, 152, 112), 8)
+def canvas(x, y, w, h):
+    return poster_red(x, y, w, h)
 
 
-box_uv(20, 10, FW - 2 * FB, FH - 2 * FB, 1, canvas, top=wood_back, side=wood_back, back=linen)
+def white_back(x, y, w, h):
+    """Back of the canvas: plain white primed canvas."""
+    return jitter((236, 232, 222), 4)
+
+
+box_uv(20, 10, FW - 2 * FB, FH - 2 * FB, 1, canvas, top=wood_back, side=wood_back, back=white_back)
+# Window look (Antichamber): white outside of the box (64..68 x 0..4), red backdrop inside (64..96 x 32..64)
+face(64, 0, 4, 4, white_back)
+face(64, 32, 32, 32, lambda x, y, w, h: poster_red(x, y, w, h, fillet=False))
 
 # Brass hook (112..116 x 0..4) and string (120..121 x 0..16)
 face(112, 0, 4, 4, lambda x, y, w, h: (186, 140, 60) if (x + y) % 2 else (150, 108, 44))
-face(120, 0, 1, 16, lambda x, y, w, h: (226, 214, 186) if y % 3 else (198, 186, 160))
+face(120, 0, 1, 16, lambda x, y, w, h: (226, 214, 186))   # uniform: the string reads as one straight line
 
 # Highlight glow (96..128 x 32..64): white, fading out from the frame's edge (the quad is the frame + 7 px)
 for y in range(32):
@@ -448,6 +456,8 @@ en.update({
     "screen.craftmaster.portrait.edit_pose": "Edit…",
     "screen.craftmaster.portrait.hang": "String (blocks)",
     "screen.craftmaster.portrait.hang_hint": "auto = varies",
+    "screen.craftmaster.portrait.window": "Window",
+    "screen.craftmaster.portrait.window_label": "Antichamber look",
     "screen.craftmaster.portrait.save": "Save",
     "screen.craftmaster.portrait.hint": "Empty name / skin = the player's own",
     "screen.craftmaster.portrait.bad_season": "The season must be a number",
@@ -502,6 +512,8 @@ fr.update({
     "screen.craftmaster.portrait.edit_pose": "Éditer…",
     "screen.craftmaster.portrait.hang": "Ficelle (blocs)",
     "screen.craftmaster.portrait.hang_hint": "auto = varie",
+    "screen.craftmaster.portrait.window": "Fenêtre",
+    "screen.craftmaster.portrait.window_label": "Effet Antichamber",
     "screen.craftmaster.portrait.save": "Enregistrer",
     "screen.craftmaster.portrait.hint": "Nom / skin vides = ceux du joueur",
     "screen.craftmaster.portrait.bad_season": "La saison doit être un nombre",

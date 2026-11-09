@@ -86,7 +86,7 @@ public final class PortraitCommands {
         return root;
     }
 
-    /** set [targets] season|rank|player|name|skin|pose|height value */
+    /** set [targets] season|rank|player|name|skin|pose|window|height value */
     private static void addSettings(com.mojang.brigadier.builder.ArgumentBuilder<CommandSourceStack, ?> node, boolean targeted) {
         node.then(literal("season").then(argument("value", integer()).executes(c ->
                 apply(c, targeted, p -> p.setSeason(getInteger(c, "value")), "saison " + getInteger(c, "value")))));
@@ -117,6 +117,10 @@ public final class PortraitCommands {
                 return 0;
             }
             return apply(c, targeted, p -> p.setPoseName(pose), "pose " + pose);
+        })));
+        node.then(literal("window").then(argument("value", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(c -> {
+            boolean on = com.mojang.brigadier.arguments.BoolArgumentType.getBool(c, "value");
+            return apply(c, targeted, p -> p.setWindow(on), on ? "effet fenêtre (Antichamber) activé" : "effet fenêtre désactivé");
         })));
         node.then(literal("height").then(argument("value", StringArgumentType.word()).suggests((c, b) -> SharedSuggestionProvider.suggest(List.of("auto", "0.5", "1", "1.5"), b))
                 .executes(c -> {

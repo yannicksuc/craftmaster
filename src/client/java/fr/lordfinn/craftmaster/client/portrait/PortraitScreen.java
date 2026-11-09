@@ -27,14 +27,14 @@ public class PortraitScreen extends Screen {
 
     private final PortraitEntity portrait;
     private EditBox season, rankOrPlayer, displayName, skinUrl, hang;
-    private CycleButton<Boolean> followsRank;
+    private CycleButton<Boolean> followsRank, window;
     private CycleButton<String> pose;
     private Component error;
     private int left, top;
 
     // Values kept across re-inits (resize, coming back from the pose editor)
     private String seasonV, rankV, playerV, nameV, urlV, hangV, poseV;
-    private boolean rankMode;
+    private boolean rankMode, windowV;
 
     public PortraitScreen(PortraitEntity portrait) {
         super(Component.translatable("screen.craftmaster.portrait"));
@@ -47,6 +47,7 @@ public class PortraitScreen extends Screen {
         urlV = portrait.skinUrl();
         hangV = portrait.hangSetting() < 0 ? "auto" : String.valueOf(portrait.hangSetting());
         poseV = portrait.poseName();
+        windowV = portrait.window();
     }
 
     public PortraitEntity portrait() {
@@ -75,6 +76,7 @@ public class PortraitScreen extends Screen {
         nameV = displayName.getValue();
         urlV = skinUrl.getValue();
         hangV = hang.getValue();
+        windowV = window.getValue();
         if (!poseChosen) poseV = pose.getValue();
         poseChosen = false;
     }
@@ -88,7 +90,7 @@ public class PortraitScreen extends Screen {
     @Override
     protected void init() {
         left = 10;
-        top = Math.max(6, height / 2 - 112);
+        top = Math.max(4, height / 2 - 124);
         int x = left + 92, w = 130, y = top + 26, step = 24;
 
         season = box(x, y, 40, seasonV, "season");
@@ -121,6 +123,9 @@ public class PortraitScreen extends Screen {
         }).bounds(x + w - 44, y, 44, 20).build());
         y += step;
         hang = box(x, y, 50, hangV, "hang");
+        y += step;
+        window = addRenderableWidget(CycleButton.onOffBuilder(windowV)
+                .create(x, y, w, 20, Component.translatable("screen.craftmaster.portrait.window")));
         y += step + 8;
         addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.portrait.save"), b -> save())
                 .bounds(left + 8, y, 105, 20).build());
@@ -184,7 +189,7 @@ public class PortraitScreen extends Screen {
             return;
         }
         ClientPlayNetworking.send(new PortraitNetwork.Update(portrait.getId(), s, rank, player, displayName.getValue().trim(), url,
-                pose.getValue(), h));
+                pose.getValue(), h, window.getValue()));
         onClose();
     }
 
@@ -206,7 +211,7 @@ public class PortraitScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
-        int w = 232, h = 224;
+        int w = 232, h = 248;
         g.fill(left, top, left + w, top + h, PANEL);
         g.outline(left, top, w, h, BORDER);
         g.text(font, Component.translatable("screen.craftmaster.portrait").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), left + 8, top + 8, 0xFFFFFFFF);
@@ -221,6 +226,8 @@ public class PortraitScreen extends Screen {
         y += step;
         g.text(font, Component.translatable("screen.craftmaster.portrait.hang"), left + 8, y, LABEL);
         g.text(font, Component.translatable("screen.craftmaster.portrait.hang_hint").withStyle(ChatFormatting.DARK_GRAY), left + 150, y, LABEL);
+        y += step;
+        g.text(font, Component.translatable("screen.craftmaster.portrait.window_label"), left + 8, y, LABEL);
         if (error != null) g.text(font, error.copy().withStyle(ChatFormatting.RED), left + 8, top + h - 14, 0xFFFF5555);
         else g.text(font, Component.translatable("screen.craftmaster.portrait.hint").withStyle(ChatFormatting.DARK_GRAY), left + 8, top + h - 14, LABEL);
         super.extractRenderState(g, mouseX, mouseY, partial);
