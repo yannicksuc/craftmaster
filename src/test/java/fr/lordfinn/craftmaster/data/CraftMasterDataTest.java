@@ -36,7 +36,7 @@ class CraftMasterDataTest {
         return d;
     }
 
-    // ---------------------------------------------------------------- plugin compatibility
+    // ---------------------------------------------------------------- plugin compatibility (version 1 files)
 
     /** A config.yml written by the Paper plugin (quoted numeric keys, Bukkit world name). */
     private static final String PLUGIN_FILE = """
@@ -72,6 +72,7 @@ class CraftMasterDataTest {
         d.load(legacy);
 
         assertTrue(Files.exists(fresh), "the plugin file is copied next to the mod's config");
+        assertTrue(Files.exists(dir.resolve("other/config.yml.v1")), "the version 1 file is kept before migrating");
         assertEquals(List.of("Pont", "Défi"), d.tasks(3));
         assertEquals(7, d.total(3, "LordFinn"));
         assertEquals(9, d.total(3, "Notch"), "numbers saved as text still count");
@@ -215,11 +216,24 @@ class CraftMasterDataTest {
     }
 
     @Test
-    void savedFileKeepsThePluginLayout() throws IOException {
+    void savedFileIsVersion2WithRoundsInTheActiveGame() throws IOException {
         data.addTask(1, "Pont");
         data.setScore(1, "Pont", "LordFinn", 4);
         String yaml = Files.readString(file, StandardCharsets.UTF_8);
-        assertTrue(yaml.contains("seasons:\n  '1':\n    tasks:\n    - Pont"), yaml);
-        assertTrue(yaml.contains("scores:\n  '1':\n    LordFinn:\n      Pont: 4"), yaml);
+        assertTrue(yaml.contains("version: 2"), yaml);
+        assertTrue(yaml.contains("parties:\n      '1':\n        name: Partie 1"), "the game is created on its own: " + yaml);
+        assertTrue(yaml.contains("- id: pont\n          name: Pont"), yaml);
+        assertTrue(yaml.contains("scores:\n          pont:\n            LordFinn: 4"), yaml);
+    }
+
+    @Test
+    void scoresOnAnUnknownTaskCreateAnArchivedRound() {
+        data.setScore(1, "Bonus", "Bob", 2);
+        assertTrue(data.tasks(1).isEmpty(), "not listed");
+        assertTrue(data.manche(1, "Bonus").archived);
+        assertEquals(2, data.total(1, "Bob"));
+        assertTrue(data.addTask(1, "Bonus"), "adding it lists it again");
+        assertEquals(List.of("Bonus"), data.tasks(1));
+        assertEquals(2, data.score(1, "Bonus", "Bob"), "with its points");
     }
 }
