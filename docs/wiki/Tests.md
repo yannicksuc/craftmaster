@@ -130,3 +130,23 @@ vrai Claude tant que `ANTHROPIC_API_KEY` n'est pas définie sur la machine de te
 Non vérifiable avec les outils actuels (pas de clic dans un écran) : modifier un réglage ou une pose à la souris,
 enregistrer / écraser / supprimer depuis l'éditeur, le clic droit et le coup qui casse le tableau, le skin par
 adresse (pas de serveur d'images de test). À vérifier à la main.
+
+## 5. Test d'ensemble après fusion des trois chantiers (v3)
+Serveur et client de dev avec la version fusionnée (données + direct, tableaux, régie vocale) :
+
+| Cas | Résultat |
+|---|---|
+| Test serveur `server_smoke_test.py` complet | ✔ 0 échec |
+| Galerie de 4 tableaux (saison 3) : classement **publié** affiché, proportions bébé, cadres dorés | ✔ |
+| Score donné sans publier : les tableaux ne bougent pas | ✔ |
+| Publication : le tableau qui monte avance, glisse vers sa colonne, les autres se décalent | ✔ (captures image par image) |
+| Révélation : titre court (« 9e » + « Steve — 3 pts »), halo doré sur le tableau du joueur annoncé | ✔ |
+| Service vocal (mode hors ligne) avec le vrai contexte du serveur : « lord fine » → LordFinn, « annule », « ouvrez les rideaux », « manche suivante » | ✔ |
+| Chaises vues de dos (dossier), rideau haut de plusieurs blocs (ourlet seulement en bas) | ✔ |
+
+Bugs trouvés à cette étape et corrigés : le rafraîchissement général remettait chaque tableau sur le joueur de son
+rang avant l'animation de publication (plus d'animation) ; le titre de la révélation débordait de l'écran avec un
+long pseudo.
+
+Non vérifié : compréhension par le vrai Claude (pas de clé `ANTHROPIC_API_KEY` sur le PC de test), vrai micro et
+touches, sons (jeu muet), clics dans les écrans (réglages des tableaux, éditeur de poses, flèches de l'écran K).

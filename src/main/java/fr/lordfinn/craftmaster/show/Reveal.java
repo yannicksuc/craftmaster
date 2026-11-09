@@ -114,8 +114,12 @@ public final class Reveal {
     }
 
     private static void revealRank(MinecraftServer server, int rank, CraftMasterData.Entry e) {
-        MutableComponent title = ordinal(rank).append(" — " + e.player()).withStyle(Busts.rankColor(rank), ChatFormatting.BOLD);
-        Show.titleAll(server, title, Component.translatable("show.craftmaster.points", e.total()).withStyle(ChatFormatting.YELLOW), 5, 50, 10);
+        // Big text stays short (long pseudos ran off the screen): the rank as title, name and points as subtitle
+        MutableComponent title = ordinal(rank).withStyle(Busts.rankColor(rank), ChatFormatting.BOLD);
+        MutableComponent subtitle = Component.literal(e.player()).withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD)
+                .append(Component.literal(" — ").withStyle(ChatFormatting.GRAY))
+                .append(Component.translatable("show.craftmaster.points", e.total()).withStyle(ChatFormatting.YELLOW));
+        Show.titleAll(server, title, subtitle, 5, 50, 10);
         switch (rank) {
             case 1 -> Show.soundAll(server, Show.holder(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE), 1f, 1f);
             case 2, 3 -> Show.soundAll(server, Show.holder(SoundEvents.PLAYER_LEVELUP), 1f, 1f);

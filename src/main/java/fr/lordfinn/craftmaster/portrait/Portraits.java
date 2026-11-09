@@ -92,6 +92,25 @@ public final class Portraits {
     }
 
     /** Refreshes every loaded portrait (scores reloaded, season hidden or shown...). */
+    /**
+     * Updates points and the anonymous flag (hidden season) of every portrait while keeping the player each one
+     * shows: moving a player to another column is the job of {@link #onPublished}, which animates it. A portrait that
+     * shows nobody yet takes the player of its rank.
+     */
+    public static void refreshLabels(MinecraftServer server) {
+        for (ServerLevel level : server.getAllLevels())
+            for (PortraitEntity p : level.getEntities(EntityTypeTest.forClass(PortraitEntity.class), e -> !e.isRemoved())) {
+                String shown = p.shownPlayer();
+                if (shown.isEmpty()) {
+                    refresh(p);
+                    continue;
+                }
+                List<PortraitRanking.Entry> ranking = PortraitRanking.ranking(p.season());
+                int i = indexOf(ranking, shown);
+                p.show(shown, i < 0 ? p.shownRank() : i + 1, i < 0 ? 0 : ranking.get(i).points(), PortraitRanking.hidden(p.season()));
+            }
+    }
+
     public static void refreshAll(MinecraftServer server) {
         for (ServerLevel level : server.getAllLevels())
             for (PortraitEntity p : level.getEntities(EntityTypeTest.forClass(PortraitEntity.class), e -> !e.isRemoved())) refresh(p);
