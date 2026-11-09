@@ -12,6 +12,7 @@ import fr.lordfinn.craftmaster.bust.Busts;
 import fr.lordfinn.craftmaster.curtain.Curtains;
 import fr.lordfinn.craftmaster.data.CraftMasterData;
 import fr.lordfinn.craftmaster.network.Network;
+import fr.lordfinn.craftmaster.portrait.Portraits;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
@@ -174,9 +175,11 @@ public final class CraftMasterCommands {
                                 }))));
     }
 
-    /** Busts and open ranking screens follow every score change. */
+    /** Busts, portraits and open ranking screens follow every score change. */
     private static void scoresChanged(CommandContext<CommandSourceStack> c, int season) {
         Busts.updateAll(c.getSource().getServer());
+        // Until scores are published explicitly (chantier A), every change counts as a publication
+        Portraits.onPublished(c.getSource().getServer(), season);
         Network.broadcast(c.getSource().getServer(), season);
     }
 
@@ -190,6 +193,7 @@ public final class CraftMasterCommands {
         return literal(name).requires(ADMIN).executes(c -> {
             data().load(null);
             Busts.updateAll(c.getSource().getServer());
+            for (int s : data().allSeasons()) Portraits.onPublished(c.getSource().getServer(), s);
             for (int s : data().allSeasons()) Network.broadcast(c.getSource().getServer(), s);
             ok(c, "Scores rechargés et têtes / displays mis à jour.");
             return 1;
@@ -298,6 +302,7 @@ public final class CraftMasterCommands {
                             MinecraftServer server = c.getSource().getServer();
                             data().setHidden(season, hidden);
                             Busts.updateAll(server);
+                            Portraits.onPublished(server, season);
                             Network.broadcast(server, season);
                             if (hidden) {
                                 ok(c, "Classement de la saison " + season + " caché aux joueurs.");

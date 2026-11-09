@@ -5,6 +5,8 @@ import fr.lordfinn.craftmaster.block.ChairBlock;
 import fr.lordfinn.craftmaster.block.CurtainBlock;
 import fr.lordfinn.craftmaster.entity.SeatEntity;
 import fr.lordfinn.craftmaster.item.CurtainRemoteItem;
+import fr.lordfinn.craftmaster.portrait.PortraitEntity;
+import fr.lordfinn.craftmaster.portrait.PortraitItem;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -40,6 +42,9 @@ public final class ModContent {
     public static final Map<DyeColor, CurtainBlock> CURTAINS = new LinkedHashMap<>();
     public static Item CURTAIN_REMOTE;
     public static EntityType<SeatEntity> SEAT;
+    /** Hanging portraits (chantier B, see portrait/). */
+    public static Item PORTRAIT_ITEM;
+    public static EntityType<PortraitEntity> PORTRAIT;
 
     private static final List<Item> TAB_ITEMS = new ArrayList<>();
 
@@ -68,6 +73,13 @@ public final class ModContent {
         SEAT = Registry.register(BuiltInRegistries.ENTITY_TYPE, seatKey,
                 EntityType.Builder.<SeatEntity>of(SeatEntity::new, MobCategory.MISC)
                         .sized(0.25f, 0.25f).noSummon().clientTrackingRange(10).build(seatKey));
+
+        PORTRAIT_ITEM = item("portrait", PortraitItem::new, new Item.Properties().stacksTo(16));
+        ResourceKey<EntityType<?>> portraitKey = ResourceKey.create(Registries.ENTITY_TYPE, CraftMaster.id("portrait"));
+        // The box is replaced by the frame's (PortraitEntity#makeBoundingBox); seen from far away like paintings
+        PORTRAIT = Registry.register(BuiltInRegistries.ENTITY_TYPE, portraitKey,
+                EntityType.Builder.<PortraitEntity>of(PortraitEntity::new, MobCategory.MISC)
+                        .sized(1f, 1f).noLootTable().clientTrackingRange(10).updateInterval(2).build(portraitKey));
 
         ResourceKey<CreativeModeTab> tabKey = ResourceKey.create(Registries.CREATIVE_MODE_TAB, CraftMaster.id("craftmaster"));
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, tabKey, FabricCreativeModeTab.builder()
