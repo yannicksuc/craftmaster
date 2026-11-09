@@ -150,52 +150,29 @@ class PortraitGeometryTest {
     }
 
     @Test
-    void presetsKeepTheFigureInFrontOfTheCanvas() {
-        for (Map.Entry<String, Pose> e : PoseLibrary.presets().entrySet()) {
-            Pose p = e.getValue();
-            if (Set.of("porte le cadre").contains(e.getKey()) || PortraitGeometry.behindCanvas(p)) continue;
-            // The torso's back must not sink into the canvas
-            Matrix4d body = PortraitGeometry.partMatrix(p, Part.BODY);
-            Box box = PortraitGeometry.partBox(Part.BODY, false);
-            for (Vector3d c : box.corners()) {
-                body.transformPosition(c);
-                assertTrue(c.z >= PortraitGeometry.CANVAS_FRONT - 1.5, e.getKey() + ": body at z " + c.z);
-            }
-        }
-    }
-
-    @Test
-    void figureStaysOnItsSideOfTheCanvas() {
-        // A front pose pushed too far back is moved forward: nothing pokes out of the back
-        Pose sunk = Pose.NEUTRAL.withOffset(0, -10, -0.4);
-        assertTrue(PortraitGeometry.figureShift(sunk, false) > 0);
-        assertTrue(minZ(sunk, false) >= PortraitGeometry.CANVAS_BACK - EPS);
-        // A pose behind the canvas (coming out of the back) is moved back: nothing pokes through the painting
-        Pose back = Pose.NEUTRAL.withOffset(0, -10, -2).withRotation(Part.FIGURE, new Rotation(0, 180, 0));
+    void canvasCutsOnTheRightSide() {
+        // A front pose keeps what is in front of the painted face; a pose behind the canvas, what is behind its back
+        assertEquals(PortraitGeometry.CANVAS_FRONT, PortraitGeometry.cutPlane(Pose.NEUTRAL));
+        Pose back = PoseLibrary.presets().get("sort par derrière");
         assertTrue(PortraitGeometry.behindCanvas(back));
-        assertTrue(maxZ(back, false) <= PortraitGeometry.CANVAS_FRONT + EPS);
-        assertTrue(minZ(back, false) < PortraitGeometry.CANVAS_BACK - 2, "it does come out of the back");
-        // A pose well in front is left alone
-        assertEquals(0, PortraitGeometry.figureShift(Pose.NEUTRAL, false));
+        assertEquals(PortraitGeometry.CANVAS_BACK, PortraitGeometry.cutPlane(back));
+        // Normally the figure is not moved: the cut does the work (legs stay "in the painting")
+        for (Pose p : PoseLibrary.presets().values()) assertEquals(0, PortraitGeometry.figureShift(p, false));
+        // Leaning out: the head is out of the painting, the feet still inside it
+        Pose lean = PoseLibrary.presets().get("se penche dehors");
+        assertTrue(PortraitGeometry.partMatrix(lean, Part.HEAD).transformPosition(new Vector3d(0, -4, 0)).z > PortraitGeometry.CANVAS_FRONT);
+        assertTrue(PortraitGeometry.partMatrix(lean, Part.RIGHT_LEG).transformPosition(new Vector3d(0, 12, 0)).z < PortraitGeometry.CANVAS_FRONT);
     }
 
     @Test
-    void windowLookKeepsTheFigureBehindTheOpeningInsideItsBox() {
+    void windowLookPutsTheFigureBehindTheCanvas() {
         for (Map.Entry<String, Pose> e : PoseLibrary.presets().entrySet()) {
-            Pose p = e.getValue();
-            assertTrue(maxZ(p, true) <= PortraitGeometry.HD + EPS, e.getKey() + " pokes out of the window");
-            Box box = PortraitGeometry.windowBox(p);
-            Matrix4d toFrame = PortraitGeometry.frameMatrix(p).invert();
-            for (Part part : PortraitGeometry.BODY_PARTS) {
-                if (p.isHidden(part)) continue;
-                Matrix4d m = new Matrix4d(toFrame).mul(PortraitGeometry.partMatrix(p, part, true));
-                for (Vector3d c : PortraitGeometry.partBox(part, false).corners()) {
-                    m.transformPosition(c);
-                    assertTrue(c.x >= box.x0() && c.x <= box.x1() && c.y >= box.y0() && c.y <= box.y1() && c.z >= box.z0(),
-                            e.getKey() + ": " + part + " outside the box at " + c);
-                }
-            }
+            double max = maxZ(e.getValue(), true);
+            assertTrue(max <= PortraitGeometry.CANVAS_FRONT - PortraitGeometry.WINDOW_DEPTH + EPS, e.getKey() + " at z " + max);
         }
+        // Nothing of the window look exists outside the frame: same bounds as the frame + figure
+        double[] b = PortraitGeometry.bounds(Pose.NEUTRAL, true);
+        assertTrue(b[2] > -10, "no deep box behind the frame: " + b[2]);
     }
 
     @Test
@@ -213,10 +190,6 @@ class PortraitGeometryTest {
                 assertEquals(0, origin.z + knot.z / 16, EPS);
             }
         }
-    }
-
-    private static double minZ(Pose p, boolean window) {
-        return PortraitGeometry.bounds(only(p, PortraitGeometry.BODY_PARTS.toArray(Part[]::new)), window)[2];
     }
 
     private static double maxZ(Pose p, boolean window) {

@@ -281,15 +281,22 @@ box_uv(0, 10, FB, FH - 2 * FB, FD, moulding_front("left"))
 box_uv(10, 10, FB, FH - 2 * FB, FD, moulding_front("right"))
 
 
-def poster_red(x, y, w, h, fillet=True):
-    """The poster's red velvet backdrop: bright crimson behind the head, darker toward the corners."""
-    cx, cy = (w - 1) / 2, h * 0.32
+def velvet(x, y, w, h, folds):
+    """Theatre red velvet: vertical folds catching the light, a warm spotlight glow, darker toward the edges."""
+    fold = 0.78 + 0.22 * math.sin((x + 0.5) / w * folds * 2 * math.pi) ** 2
+    cx, cy = (w - 1) / 2, h * 0.35
     r = math.hypot((x - cx) / w, (y - cy) / h) * 2.0
-    f = max(0.5, 1.12 - r * 0.55)
-    base = (184, 30, 36)
-    c = tuple(min(255, int(v * f)) for v in base)
-    if (x * 7 + y * 3) % 11 == 0:   # velvet weave
-        c = tuple(max(0, v - 14) for v in c)
+    glow = max(0.45, 1.15 - r * 0.6)
+    f = fold * glow
+    c = (int(min(255, 196 * f)), int(min(255, 28 * f + 6 * (f > 1))), int(min(255, 40 * f)))
+    if (x * 5 + y * 3) % 13 == 0:   # velvet pile
+        c = tuple(max(0, v - 12) for v in c)
+    return c
+
+
+def poster_red(x, y, w, h, fillet=True):
+    """The poster's red velvet backdrop, framed by a thin gold fillet."""
+    c = velvet(x, y, w, h, 3)
     # inner gold fillet along the moulding
     if fillet and (x == 0 or y == 0 or x == w - 1 or y == h - 1):
         c = GOLD_DARK
@@ -309,6 +316,20 @@ box_uv(20, 10, FW - 2 * FB, FH - 2 * FB, 1, canvas, top=wood_back, side=wood_bac
 # Window look (Antichamber): white outside of the box (64..68 x 0..4), red backdrop inside (64..96 x 32..64)
 face(64, 0, 4, 4, white_back)
 face(64, 32, 32, 32, lambda x, y, w, h: poster_red(x, y, w, h, fillet=False))
+
+# Window look backdrop (its own 64 x 64 texture): a velvet curtain, gold fringe at the bottom
+curtain = []
+for y in range(64):
+    row = []
+    for x in range(64):
+        c = velvet(x, y, 64, 64, 7)
+        if y >= 58:
+            c = GOLD if (x + y) % 3 else GOLD_LO
+        elif y == 57:
+            c = GOLD_DARK
+        row.append(c + (255,))
+    curtain.append(row)
+write_png(os.path.join(A, "textures/entity/portrait_backdrop.png"), 64, 64, curtain)
 
 # Brass hook (112..116 x 0..4) and string (120..121 x 0..16)
 face(112, 0, 4, 4, lambda x, y, w, h: (186, 140, 60) if (x + y) % 2 else (150, 108, 44))

@@ -57,6 +57,8 @@ import java.util.Map;
 public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRenderer.State> {
 
     public static final Identifier FRAME_TEXTURE = CraftMaster.id("textures/entity/portrait_frame.png");
+    /** Painted velvet backdrop seen through the opening with the window look. */
+    public static final Identifier BACKDROP_TEXTURE = CraftMaster.id("textures/entity/portrait_backdrop.png");
     private static final int TEX_W = 128, TEX_H = 64;
 
     /** Sway: a few degrees, one period of 8 to 12 seconds. */
@@ -233,40 +235,54 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         poseStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
 
         // Frame: portrait space -> frame space (tilt), then model space (half turn around X), parts in px/16
-        Matrix4f frameMatrix = new Matrix4f(PortraitGeometry.frameMatrix(pose));
-        PortraitGeometry.Box box = window ? PortraitGeometry.windowBox(pose) : null;
         poseStack.pushPose();
-        poseStack.mulPose(frameMatrix);
+        poseStack.mulPose(new Matrix4f(PortraitGeometry.frameMatrix(pose)));
+        // Frame space -> camera space, for the cut and the window (see PortraitClipper)
+        Matrix4f frameToCamera = new Matrix4f(poseStack.last().pose());
         if (s.highlighted) {
             float pulse = s.highlightPulse;
-            float haloZ = window ? (float) box.z0() - 0.3f : (float) -PortraitGeometry.HD - 0.2f;
+            float haloZ = (float) -PortraitGeometry.HD - 0.2f;
             collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(FRAME_TEXTURE), (p, c) -> halo(c, p, pulse, haloZ));
         }
+        float canvasFront = (float) PortraitGeometry.CANVAS_FRONT;
+        boolean seeInside = window && PortraitClipper.cameraInFront(frameToCamera, canvasFront);
         if (window) {
-            // 1) the frame and everything else of the world first (order 0), 2) an invisible depth-only "wall"
-            // around the frame (order 1), 3) the box and the figure behind it (order 2): what lies behind the
-            // wall fails the depth test, so the inside is only seen through the opening
-            collector.order(1).submitCustomGeometry(poseStack, RenderTypes.waterMask(), (p, c) -> maskWall(c, p, box));
-            collector.order(2).submitCustomGeometry(poseStack, RenderTypes.entityCutout(FRAME_TEXTURE), (p, c) -> windowBox(c, p, box, light));
+            // The canvas reduced to a thin plate at the very back of the frame: white seen from behind
+            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(FRAME_TEXTURE), (p, c) -> backPlate(c, p, light));
+        }
+        if (seeInside) {
+            // The backdrop, far behind the opening, flattened onto the canvas plane like the figure
+            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(BACKDROP_TEXTURE), (p, c) -> {
+                PortraitClipper clip = PortraitClipper.portal(c, frameToCamera, canvasFront - 0.02f,
+                        (float) PortraitGeometry.OPEN_HW, (float) PortraitGeometry.OPEN_HH);
+                backdrop(clip, p, light);
+                clip.flush();
+            });
         }
         poseStack.rotate(Axis.XP.rotation((float) Math.PI));
         poseStack.scale(16, 16, 16);
-        submitPart(mouldings, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light);
-        if (!window) submitPart(canvas, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light);
+        submitPart(mouldings, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, null);
+        if (!window) submitPart(canvas, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, null);
         poseStack.popPose();
 
-        // Figure (baby proportions, see PortraitGeometry)
+        // Figure (baby proportions, see PortraitGeometry): cut by the canvas, or seen through the window
         PortraitSkins.Skin skin = s.skin != null ? s.skin : PortraitSkins.defaultSkin();
         Map<Part, ModelPart> parts = skin.slim() ? slim : wide;
         RenderType figure = RenderTypes.entityTranslucent(skin.texture());
-        OrderedSubmitNodeCollector figureCollector = window ? collector.order(2) : collector;
-        for (Part part : PortraitGeometry.BODY_PARTS) {
-            if (pose.isHidden(part)) continue;
-            poseStack.pushPose();
-            poseStack.mulPose(new Matrix4f(PortraitGeometry.partMatrix(pose, part, window)));
-            poseStack.scale(16, 16, 16);
-            submitPart(parts.get(part), poseStack, figureCollector, figure, light);
-            poseStack.popPose();
+        float cutZ = (float) PortraitGeometry.cutPlane(pose);
+        boolean keepFront = !PortraitGeometry.behindCanvas(pose);
+        java.util.function.Function<VertexConsumer, PortraitClipper> clipper = window
+                ? c -> PortraitClipper.portal(c, frameToCamera, canvasFront - 0.02f, (float) PortraitGeometry.OPEN_HW, (float) PortraitGeometry.OPEN_HH)
+                : c -> PortraitClipper.cut(c, frameToCamera, cutZ, keepFront, (float) PortraitGeometry.HW, (float) PortraitGeometry.HH);
+        if (!window || seeInside) {
+            for (Part part : PortraitGeometry.BODY_PARTS) {
+                if (pose.isHidden(part)) continue;
+                poseStack.pushPose();
+                poseStack.mulPose(new Matrix4f(PortraitGeometry.partMatrix(pose, part, window)));
+                poseStack.scale(16, 16, 16);
+                submitPart(parts.get(part), poseStack, collector, figure, light, clipper);
+                poseStack.popPose();
+            }
         }
 
         submitLabel(s, pose, poseStack, collector);
@@ -275,11 +291,18 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
     }
 
     /** Model parts are drawn when the frame is rendered; nothing shared changes in between (their pose is fixed). */
-    private static void submitPart(ModelPart part, PoseStack poseStack, OrderedSubmitNodeCollector collector, RenderType type, int light) {
+    private static void submitPart(ModelPart part, PoseStack poseStack, OrderedSubmitNodeCollector collector, RenderType type, int light,
+                                   java.util.function.Function<VertexConsumer, PortraitClipper> clipper) {
         collector.submitCustomGeometry(poseStack, type, (p, c) -> {
             PoseStack ps = new PoseStack();
             ps.last().set(p);
-            part.render(ps, c, light, OverlayTexture.NO_OVERLAY);
+            if (clipper == null) {
+                part.render(ps, c, light, OverlayTexture.NO_OVERLAY);
+            } else {
+                PortraitClipper clip = clipper.apply(c);
+                part.render(ps, clip, light, OverlayTexture.NO_OVERLAY);
+                clip.flush();
+            }
         });
     }
 
@@ -361,64 +384,22 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         }
     }
 
-    /** A flat quad, both windings: the mask must hide from whatever side it is seen. */
-    private static void maskQuad(VertexConsumer c, PoseStack.Pose p, float x0, float y0, float x1, float y1, float z) {
-        int light = LightCoordsUtil.FULL_BRIGHT, w = 0xFFFFFFFF;
-        vertex(c, p, x0, y0, z, 0, 0, w, light, 0, 0, 1);
-        vertex(c, p, x1, y0, z, 0, 0, w, light, 0, 0, 1);
-        vertex(c, p, x1, y1, z, 0, 0, w, light, 0, 0, 1);
-        vertex(c, p, x0, y1, z, 0, 0, w, light, 0, 0, 1);
-        vertex(c, p, x0, y1, z, 0, 0, w, light, 0, 0, -1);
-        vertex(c, p, x1, y1, z, 0, 0, w, light, 0, 0, -1);
-        vertex(c, p, x1, y0, z, 0, 0, w, light, 0, 0, -1);
-        vertex(c, p, x0, y0, z, 0, 0, w, light, 0, 0, -1);
-    }
-
-    /**
-     * Window look: the invisible wall in the frame's front plane, around the frame (not over it nor over the
-     * opening), wide enough to hide the box behind from any angle up to about 70°.
-     */
-    private static void maskWall(VertexConsumer c, PoseStack.Pose p, PortraitGeometry.Box box) {
-        float hw = (float) PortraitGeometry.HW, hh = (float) PortraitGeometry.HH, z = (float) PortraitGeometry.HD + 0.01f;
-        float depth = (float) (PortraitGeometry.HD - box.z0());
-        float reach = 3 * depth + 2;
-        float ox = Math.max(hw, (float) Math.max(-box.x0(), box.x1())) + reach;
-        float oy = Math.max(hh, (float) Math.max(-box.y0(), box.y1())) + reach;
-        maskQuad(c, p, -ox, hh, ox, oy, z);       // above
-        maskQuad(c, p, -ox, -oy, ox, -hh, z);     // below
-        maskQuad(c, p, -ox, -hh, -hw, hh, z);     // left
-        maskQuad(c, p, hw, -hh, ox, hh, z);       // right
-    }
-
-    /**
-     * Window look: the closed box behind the opening. Inside, the red backdrop (fixed to the portrait, it fills
-     * the opening around the figure); outside (seen from the back or the side), plain white. Pixels, frame space.
-     */
-    private static void windowBox(VertexConsumer c, PoseStack.Pose p, PortraitGeometry.Box b, int light) {
-        float x0 = (float) b.x0(), y0 = (float) b.y0(), z0 = (float) b.z0(), x1 = (float) b.x1(), y1 = (float) b.y1(), z1 = (float) b.z1();
+    /** Window look: the thin plate closing the frame at the back (white behind, velvet in front). */
+    private static void backPlate(VertexConsumer c, PoseStack.Pose p, int light) {
+        float hw = (float) PortraitGeometry.OPEN_HW, hh = (float) PortraitGeometry.OPEN_HH;
+        float back = (float) PortraitGeometry.CANVAS_BACK, front = back + 0.1f;
         int w = 0xFFFFFFFF;
-        float e = 0.03f;
-        // Inside faces (normals toward the inside): back, left, right, bottom, top — backdrop texture
-        float bu0 = 64, bv0 = 32, bu1 = 96, bv1 = 64;
-        quad(c, p, x0, y1, z0, x1, y1, z0, x1, y0, z0, x0, y0, z0, bu0, bv0, bu1, bv1, w, light, 0, 0, 1);
-        quad(c, p, x0, y1, z1, x0, y1, z0, x0, y0, z0, x0, y0, z1, bu0, bv0, bu1, bv1, w, light, 1, 0, 0);
-        quad(c, p, x1, y1, z0, x1, y1, z1, x1, y0, z1, x1, y0, z0, bu0, bv0, bu1, bv1, w, light, -1, 0, 0);
-        quad(c, p, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, bu0, bv0, bu1, bv1, w, light, 0, 1, 0);
-        quad(c, p, x0, y1, z1, x1, y1, z1, x1, y1, z0, x0, y1, z0, bu0, bv0, bu1, bv1, w, light, 0, -1, 0);
-        // Outside faces, just outside: white
-        float wu0 = 64, wv0 = 0, wu1 = 68, wv1 = 4;
-        quad(c, p, x0, y0, z0 - e, x1, y0, z0 - e, x1, y1, z0 - e, x0, y1, z0 - e, wu0, wv0, wu1, wv1, w, light, 0, 0, -1);
-        quad(c, p, x0 - e, y0, z1, x0 - e, y0, z0, x0 - e, y1, z0, x0 - e, y1, z1, wu0, wv0, wu1, wv1, w, light, -1, 0, 0);
-        quad(c, p, x1 + e, y0, z0, x1 + e, y0, z1, x1 + e, y1, z1, x1 + e, y1, z0, wu0, wv0, wu1, wv1, w, light, 1, 0, 0);
-        quad(c, p, x0, y0 - e, z1, x1, y0 - e, z1, x1, y0 - e, z0, x0, y0 - e, z0, wu0, wv0, wu1, wv1, w, light, 0, -1, 0);
-        quad(c, p, x0, y1 + e, z0, x1, y1 + e, z0, x1, y1 + e, z1, x0, y1 + e, z1, wu0, wv0, wu1, wv1, w, light, 0, 1, 0);
-        // The box's front rim around the frame, when the box is wider than the opening: white
-        float hw = (float) PortraitGeometry.HW, hh = (float) PortraitGeometry.HH;
-        float z = z1 - e;
-        if (y1 > hh) quad(c, p, x0, hh, z, x1, hh, z, x1, y1, z, x0, y1, z, wu0, wv0, wu1, wv1, w, light, 0, 0, -1);
-        if (y0 < -hh) quad(c, p, x0, y0, z, x1, y0, z, x1, -hh, z, x0, -hh, z, wu0, wv0, wu1, wv1, w, light, 0, 0, -1);
-        if (x0 < -hw) quad(c, p, x0, -hh, z, -hw, -hh, z, -hw, hh, z, x0, hh, z, wu0, wv0, wu1, wv1, w, light, 0, 0, -1);
-        if (x1 > hw) quad(c, p, hw, -hh, z, x1, -hh, z, x1, hh, z, hw, hh, z, wu0, wv0, wu1, wv1, w, light, 0, 0, -1);
+        quad(c, p, hw, hh, back, -hw, hh, back, -hw, -hh, back, hw, -hh, back, 64, 0, 68, 4, w, light, 0, 0, -1);
+        quad(c, p, -hw, hh, front, hw, hh, front, hw, -hh, front, -hw, -hh, front, 21, 11, 35, 31, w, light, 0, 0, 1);
+    }
+
+    /** Window look: the painted backdrop, far behind the opening (pixels, frame space), facing the viewer. */
+    private static void backdrop(VertexConsumer c, PoseStack.Pose p, int light) {
+        float hw = (float) PortraitGeometry.BACKDROP_HW, hh = (float) PortraitGeometry.BACKDROP_HH;
+        float z = (float) (PortraitGeometry.CANVAS_FRONT - PortraitGeometry.BACKDROP_DEPTH);
+        int w = 0xFFFFFFFF;
+        // Its own texture: u, v in 0..1 (the vertex helper divides by the frame texture's size)
+        quad(c, p, -hw, hh, z, hw, hh, z, hw, -hh, z, -hw, -hh, z, 0, 0, TEX_W, TEX_H, w, light, 0, 0, 1);
     }
 
     private static void quad(VertexConsumer c, PoseStack.Pose p, float ax, float ay, float az, float bx, float by, float bz,

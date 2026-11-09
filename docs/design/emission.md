@@ -87,6 +87,30 @@ par une ficelle à un rail au plafond.
   se penche dehors, salut, bras croisés, trône. **Éditeur de poses** en jeu (admin) : choisir une partie du corps,
   régler rotations et décalages avec aperçu 3D en direct, enregistrer sous un nouveau nom, écraser, supprimer.
 
+### Réalisé (chantier B) — notes et branchements
+
+Code : `fr.lordfinn.craftmaster.portrait` (commun) et `fr.lordfinn.craftmaster.client.portrait` (client). Page
+organisateurs : `docs/wiki/Tableaux.md`.
+
+- Ajouts demandés par LordFinn en cours de route : personnage aux **proportions bébé zombie** (transformateur
+  vanilla `HumanoidModel.BABY_TRANSFORMER`, repris tel quel dans `PortraitGeometry` et vérifié au chargement du
+  rendu), cadre 18 × 24 px adapté, **ficelle toujours verticale** (nœud au-dessus du centre de gravité en x et z),
+  longueur de ficelle libre de 0 à 16 blocs, **effet Antichamber** optionnel par tableau (fenêtre sur une pièce
+  derrière le cadre ; pas de stencil en 26.3 : masque de profondeur + ordres de rendu, limite décrite dans le wiki),
+  poses qui **sortent par le dos** du tableau (décalage Z négatif) et personnage toujours gardé de son côté de la
+  toile.
+- Colonnes d'une galerie = emplacements actuels de ses tableaux (blocs de plafond), de gauche à droite vu du public ;
+  rang 1 à gauche. Un tableau « rang N » emporte son joueur vers sa nouvelle colonne et prend son nouveau rang.
+
+**À brancher après la fusion de A** (tout est isolé, rien d'autre à toucher) :
+1. `PortraitRanking.ranking(int season)` : remplacer `data.ranking(season)` par le classement **publié** (liste
+   ordonnée joueur + total publié). `PortraitRanking.hidden(season)` : garder la règle « saison cachée ».
+2. `ShowEvents.onPublished(server, season)` → appeler `Portraits.onPublished(server, season)`.
+3. `ShowEvents.onRevealStep(server, season, rank)` → appeler `Portraits.highlight(server, season, rank)`.
+4. Retirer l'appel provisoire `Portraits.onPublished` de `CraftMasterCommands.scoresChanged` (aujourd'hui chaque
+   changement de score vaut publication) ; garder ceux de `reloadScores` et `hideRanking` s'ils restent pertinents
+   (révéler une saison = réarranger ses tableaux).
+
 ## 4. Régie vocale (chantier C)
 
 - Côté client (admin uniquement) : touche à maintenir (défaut : `N`), enregistrement du micro (16 kHz mono),

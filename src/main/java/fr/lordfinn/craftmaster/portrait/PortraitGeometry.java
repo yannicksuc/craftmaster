@@ -21,10 +21,10 @@ import java.util.List;
  * 1 / 2 (pivots scaled too). The figure is 18 px tall with a big head; the renderer bakes the player model through
  * that same transformer and checks it against {@link #pivot} and {@link #partScale}.
  * <p>
- * The figure always stays on its side of the canvas: a pose in front of it ({@code offsetZ} in front of the
- * canvas) is pushed forward if a limb would poke out of the back, a pose behind it (coming out of the back of the
- * portrait) is pushed back if a limb would poke out through the painting. With the "window" look (Antichamber),
- * the figure is pushed behind the opening, into a closed box behind the frame (see {@link #windowBox}).
+ * The canvas is a real cut (done by the renderer): in front of the painted surface the figure is solid, behind it
+ * the figure is inside the painting and not drawn — a figure leaning out keeps its legs "in the picture". A figure
+ * turned toward the back ({@link #behindCanvas}) comes out of the flat back instead, and is cut by the back plane. With the "window" look (Antichamber) the figure is pushed behind the opening and drawn as an illusion
+ * flattened onto the canvas plane (see PortraitRenderer): from outside the portrait stays a thin frame.
  */
 public final class PortraitGeometry {
 
@@ -72,8 +72,10 @@ public final class PortraitGeometry {
     public static final double CANVAS_FRONT = -HD + CANVAS;
     /** Back of the canvas (z). */
     public static final double CANVAS_BACK = -HD;
-    /** Gap kept between the figure and a plane it must not cross (px). */
-    private static final double MARGIN = 0.05;
+    /** With the window look, the figure stands this far (px) behind the canvas plane. */
+    public static final double WINDOW_DEPTH = 2;
+    /** With the window look, the painted backdrop is this far (px) behind the canvas plane, and its half size. */
+    public static final double BACKDROP_DEPTH = 16, BACKDROP_HW = OPEN_HW + 22, BACKDROP_HH = OPEN_HH + 22;
 
     /**
      * The figure's base cube for a part, as in the adult player model (relative to the part's pivot, before
@@ -175,20 +177,30 @@ public final class PortraitGeometry {
         return min > max ? new double[]{0, 0} : new double[]{min, max};
     }
 
-    /** True when the pose puts the figure behind the canvas (coming out of the back of the portrait). */
+    /**
+     * True when the figure comes out of the flat back of the portrait: it faces the back (whole figure turned
+     * more than 90° around Y). It is then cut by the canvas' back instead of its painted face.
+     */
     public static boolean behindCanvas(Pose pose) {
-        return pose.offsetZ() < CANVAS_FRONT;
+        return Math.cos(Math.toRadians(pose.rotation(Part.FIGURE).y())) < 0;
     }
 
     /**
-     * How far (px, toward the viewer) the figure is moved so it stays on its side of the canvas, or, with the
-     * window look, behind the opening.
+     * The plane cutting the figure, in frame space: z = this value. A front pose keeps what is in front of the
+     * canvas' painted face, a pose coming out of the back keeps what is behind the canvas' back.
+     */
+    public static double cutPlane(Pose pose) {
+        return behindCanvas(pose) ? CANVAS_BACK : CANVAS_FRONT;
+    }
+
+    /**
+     * How far (px, toward the viewer) the figure is moved: not at all normally (the canvas cuts it), and with the
+     * window look, behind the canvas plane so it is entirely "inside" the window.
      */
     public static double figureShift(Pose pose, boolean window) {
+        if (!window) return 0;
         double[] z = figureDepth(pose);
-        if (window) return Math.min(0, HD - MARGIN - z[1]);
-        if (behindCanvas(pose)) return Math.min(0, CANVAS_FRONT - MARGIN - z[1]);
-        return Math.max(0, CANVAS_BACK + MARGIN - z[0]);
+        return Math.min(0, CANVAS_FRONT - WINDOW_DEPTH - z[1]);
     }
 
     /** Part space (its cube's coordinates) → portrait space, as drawn (normal look). */
@@ -199,30 +211,6 @@ public final class PortraitGeometry {
     /** Part space (its cube's coordinates) → portrait space, as drawn. */
     public static Matrix4d partMatrix(Pose pose, Part part, boolean window) {
         return partMatrix(pose, part, figureShift(pose, window));
-    }
-
-    /**
-     * The closed box behind the opening, for the window look, in frame space: from the back of the mouldings
-     * down to behind the figure, and wide enough for every limb (so nothing pokes out of it, seen from the back).
-     */
-    public static Box windowBox(Pose pose) {
-        double shift = figureShift(pose, true);
-        double x0 = -OPEN_HW, y0 = -OPEN_HH, z0 = -HD - 6, x1 = OPEN_HW, y1 = OPEN_HH;
-        // The figure in frame space (the frame's tilt undone)
-        Matrix4d toFrame = frameMatrix(pose).invert();
-        for (Part p : BODY_PARTS) {
-            if (pose.isHidden(p)) continue;
-            Matrix4d m = new Matrix4d(toFrame).mul(partMatrix(pose, p, shift));
-            for (Vector3d c : partBox(p, false).corners()) {
-                m.transformPosition(c);
-                x0 = Math.min(x0, c.x - 0.5);
-                y0 = Math.min(y0, c.y - 0.5);
-                z0 = Math.min(z0, c.z - 1);
-                x1 = Math.max(x1, c.x + 0.5);
-                y1 = Math.max(y1, c.y + 0.5);
-            }
-        }
-        return new Box(x0, y0, z0, x1, y1, -HD);
     }
 
     /** One weighted piece of the portrait, already placed in portrait space. */
@@ -241,8 +229,8 @@ public final class PortraitGeometry {
     /**
      * Centre of gravity of the frame and the visible figure, each cuboid weighing its volume (after the baby
      * proportions and the pose's scale), in portrait space. Same density everywhere: a figure holding the frame
-     * above its head pulls the centre down, an arm stretched to the side pulls it sideways. The window look's box
-     * is a thin shell and is not weighed.
+     * above its head pulls the centre down, an arm stretched to the side pulls it sideways. The parts hidden in
+     * the painting still weigh (they are "there"); the window look's backdrop is an illusion and weighs nothing.
      */
     public static Vector3d centreOfGravity(Pose pose, boolean window) {
         Vector3d sum = new Vector3d();
@@ -290,7 +278,6 @@ public final class PortraitGeometry {
     public static double[] bounds(Pose pose, boolean window) {
         double[] b = {Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, -Double.MAX_VALUE, -Double.MAX_VALUE, -Double.MAX_VALUE};
         List<Piece> pieces = pieces(pose, window);
-        if (window) pieces.add(new Piece(windowBox(pose), frameMatrix(pose)));
         for (Piece piece : pieces) {
             for (Vector3d c : piece.box().corners()) {
                 piece.matrix().transformPosition(c);

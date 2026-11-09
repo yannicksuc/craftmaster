@@ -62,50 +62,54 @@ public final class PoseLibrary {
     }
 
     /**
-     * The poses shipped with the mod, in the order of the poster, for the baby-proportioned figure (18 px tall)
-     * in the 18 × 24 px frame. A part without rotation is hidden.
+     * The poses shipped with the mod, in the spirit of the CraftMaster poster, for the baby-proportioned figure
+     * (18 px tall: hips 6 px above the feet, shoulders 11, arms 5 long) in the 18 × 24 px frame (opening ±7 × ±10,
+     * bottom bar from y -12 to -10, canvas face at z -0.5). What is behind the canvas is inside the painting (cut).
+     * A part without rotation is hidden.
      */
     public static Map<String, Pose> presets() {
         Map<String, Pose> m = new LinkedHashMap<>();
-        // Bust: head and chest fill the frame, the legs are not shown
-        m.put("classique", pose(0, -19.6, 1.5, 1.6, 0, 0,
-                Part.HEAD, r(-4, 12, 0), Part.RIGHT_ARM, r(0, 0, 4), Part.LEFT_ARM, r(0, 0, -4),
+        // Bust: head and chest come out of the painting, hands resting on the bottom bar
+        m.put("classique", pose(0, -19.6, 1, 1.6, 0, 0,
+                Part.HEAD, r(-4, 12, 0), Part.RIGHT_ARM, r(-28, 0, 6), Part.LEFT_ARM, r(-28, 0, -6),
                 Part.RIGHT_LEG, Part.LEFT_LEG));
-        // One foot already out of the frame, leaning toward the audience, a hand on the frame's side
-        m.put("sort du cadre", pose(0, -10, 3, 1, 0, 3,
-                Part.BODY, r(14, 0, 0), Part.HEAD, r(-12, 0, 0),
-                Part.RIGHT_LEG, r(-38, 0, 0), Part.LEFT_LEG, r(14, 0, 0),
-                Part.RIGHT_ARM, r(-55, 0, 12), Part.LEFT_ARM, r(-10, 0, -62)));
-        // Sitting on the bottom edge, legs dangling out of the frame
-        m.put("assis dans le cadre", pose(0, -16, 2, 1, 0, 0,
-                Part.BODY, r(-6, 0, 0), Part.HEAD, r(-4, -14, 0),
-                Part.RIGHT_LEG, r(-78, 10, 0), Part.LEFT_LEG, r(-66, -8, 0),
-                Part.RIGHT_ARM, r(-24, 0, 10), Part.LEFT_ARM, r(-24, 0, -10)));
-        // Standing under the frame and holding it above the head
+        // Climbing out: one leg hooked over the bottom bar, the other still in the painting, hands on the sides
+        m.put("sort du cadre", pose(0, -15, -0.5, 1, 0, 3,
+                Part.BODY, r(22, 0, 0), Part.HEAD, r(-16, 0, 0),
+                Part.RIGHT_LEG, r(-82, 0, 4), Part.LEFT_LEG, r(10, 0, 0),
+                Part.RIGHT_ARM, r(-30, 0, 62), Part.LEFT_ARM, r(-30, 0, -62)));
+        // Sitting on the bottom bar, legs dangling out of the frame, hands on the bar
+        m.put("assis dans le cadre", pose(0, -15.5, 0.5, 1, 0, 0,
+                Part.HEAD, r(-6, -12, 0),
+                Part.RIGHT_LEG, r(-58, 8, 0), Part.LEFT_LEG, r(-50, -6, 0),
+                Part.RIGHT_ARM, r(-12, 0, 22), Part.LEFT_ARM, r(-12, 0, -22)));
+        // Standing under the frame, holding it above the head by its bottom bar
         m.put("porte le cadre", pose(0, -28, 0, 1, 0, 4,
-                Part.HEAD, r(-22, 0, 0),
-                Part.RIGHT_ARM, r(-180, 0, -14), Part.LEFT_ARM, r(-180, 0, 14),
+                Part.HEAD, r(-25, 0, 0),
+                Part.RIGHT_ARM, r(-180, 0, -15), Part.LEFT_ARM, r(-180, 0, 15),
                 Part.RIGHT_LEG, r(0, 0, 3), Part.LEFT_LEG, r(0, 0, -3)));
-        // Leaning out over the bottom edge, one arm reaching toward the audience
-        m.put("se penche dehors", pose(0, -10, 2, 1, 0, 0,
-                Part.FIGURE, r(0, 16, 0), Part.BODY, r(38, 0, 0), Part.HEAD, r(-34, 0, 0),
-                Part.RIGHT_ARM, r(-70, 0, 0), Part.LEFT_ARM, r(-30, 0, -24)));
-        // Waving
-        m.put("salut", pose(0, -10, 2, 1, 0, 0,
-                Part.HEAD, r(0, -10, 6), Part.RIGHT_ARM, r(0, 0, 140), Part.LEFT_ARM, r(0, 0, -6),
+        // Leaning out of the painting: the upper body outside, the legs still in the picture, one arm reaching out
+        m.put("se penche dehors", pose(0, -10, -3, 1, 0, 0,
+                Part.FIGURE, r(0, 12, 0), Part.BODY, r(62, 0, 0), Part.HEAD, r(-50, 0, 0),
+                Part.RIGHT_ARM, r(-95, 0, 0), Part.LEFT_ARM, r(-40, 0, -30)));
+        // Standing on the bottom bar, waving, the other hand holding the side of the frame
+        m.put("salut", pose(0, -10, 0, 1, 0, 0,
+                Part.HEAD, r(0, -10, 6), Part.RIGHT_ARM, r(0, 0, 140), Part.LEFT_ARM, r(-20, 0, -62),
                 Part.RIGHT_LEG, r(0, 0, 2), Part.LEFT_LEG, r(0, 0, -2)));
-        m.put("bras croisés", pose(0, -10, 2, 1, 0, 0,
-                Part.HEAD, r(-4, 0, 0), Part.RIGHT_ARM, r(-72, -36, 0), Part.LEFT_ARM, r(-72, 36, 0),
-                Part.RIGHT_LEG, r(0, 0, 3), Part.LEFT_LEG, r(0, 0, -3)));
-        // Seated in front of the frame as if it were the back of a throne (LordFinn on the poster)
-        m.put("trône", pose(0, -13, 3, 1, 0, 0,
-                Part.HEAD, r(-6, 0, 0), Part.BODY, r(-4, 0, 0),
-                Part.RIGHT_LEG, r(-88, 10, 0), Part.LEFT_LEG, r(-88, -10, 0),
-                Part.RIGHT_ARM, r(-38, 0, 10), Part.LEFT_ARM, r(-38, 0, -10)));
-        // Coming out of the back of the portrait: seen from behind, the upper body leans out of the flat back
-        m.put("sort par derrière", pose(0, -10, -3, 1, 0, 0,
-                Part.FIGURE, r(0, 180, 0), Part.BODY, r(28, 0, 0), Part.HEAD, r(-18, 0, 0),
-                Part.RIGHT_ARM, r(-75, 0, 10), Part.LEFT_ARM, r(-40, 0, -18)));
+        // Standing on the bottom bar, leaning on the side of the frame, arms crossed
+        m.put("bras croisés", pose(-1.5, -10, 0.5, 1, 0, 0,
+                Part.FIGURE, r(0, 0, 8), Part.HEAD, r(-4, -10, 0),
+                Part.RIGHT_ARM, r(-72, -36, 0), Part.LEFT_ARM, r(-72, 36, 0),
+                Part.RIGHT_LEG, r(0, 0, -10), Part.LEFT_LEG, r(0, 0, -3)));
+        // Seated on the bottom bar as on a throne (LordFinn on the poster), the painting as its back
+        m.put("trône", pose(0, -15.5, 1.5, 1, 0, 0,
+                Part.HEAD, r(-8, 0, 0),
+                Part.RIGHT_LEG, r(-88, 12, 0), Part.LEFT_LEG, r(-88, -12, 0),
+                Part.RIGHT_ARM, r(-40, 0, 24), Part.LEFT_ARM, r(-40, 0, -24)));
+        // Coming out of the flat back of the portrait (seen from behind), the legs still inside the painting
+        m.put("sort par derrière", pose(0, -10, -1, 1, 0, 0,
+                Part.FIGURE, r(0, 180, 0), Part.BODY, r(55, 0, 0), Part.HEAD, r(-40, 0, 0),
+                Part.RIGHT_ARM, r(-90, 0, 10), Part.LEFT_ARM, r(-40, 0, -30)));
         return m;
     }
 
