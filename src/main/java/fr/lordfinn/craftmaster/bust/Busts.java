@@ -32,8 +32,8 @@ import net.minecraft.world.phys.AABB;
 import java.util.List;
 
 /**
- * Busts: player heads placed in the world that wear the skin of the player at a given rank of a season.
- * The mod adds a floating label (rank, name, points) above each one.
+ * Busts: player heads placed in the world that wear the skin of the player at a given rank of a season's
+ * published ranking. The mod adds a floating label (rank, name, published points) above each one.
  */
 public final class Busts {
 
@@ -83,9 +83,9 @@ public final class Busts {
             return;
         }
         BlockPos pos = new BlockPos(bp.x(), bp.y(), bp.z());
-        // A hidden season keeps its busts anonymous until the reveal
+        // A hidden season keeps its busts anonymous until the reveal; busts show the published scores
         boolean hidden = data.isHidden(season);
-        String player = hidden ? null : data.playerAtRank(season, rank);
+        String player = hidden ? null : data.playerAtRank(season, rank, true);
 
         BlockState state = level.getBlockState(pos);
         if (isHead(state) && level.getBlockEntity(pos) instanceof SkullBlockEntity skull) {
@@ -93,7 +93,7 @@ public final class Busts {
         } else {
             CraftMaster.LOG.info("[Busts] Pas de tête en {} pour saison {} rang {}", pos.toShortString(), season, rank);
         }
-        updateLabel(level, pos, state, season, rank, hidden, player, player == null ? 0 : data.total(season, player));
+        updateLabel(level, pos, state, season, rank, hidden, player, player == null ? 0 : data.publishedTotal(season, player));
     }
 
     /** The skin is looked up by the players' own game from the name, like a head given with /give. */
@@ -191,8 +191,8 @@ public final class Busts {
                     return;
                 }
                 boolean hidden = data.isHidden(season);
-                String player = hidden ? null : data.playerAtRank(season, rank);
-                ((TextDisplayAccessor) label).craftmaster$setText(labelText(rank, hidden, player, player == null ? 0 : data.total(season, player)));
+                String player = hidden ? null : data.playerAtRank(season, rank, true);
+                ((TextDisplayAccessor) label).craftmaster$setText(labelText(rank, hidden, player, player == null ? 0 : data.publishedTotal(season, player)));
             } catch (NumberFormatException ignored) {}
             return;
         }

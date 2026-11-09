@@ -6,6 +6,8 @@ import fr.lordfinn.craftmaster.curtain.Curtains;
 import fr.lordfinn.craftmaster.data.CraftMasterData;
 import fr.lordfinn.craftmaster.network.Network;
 import fr.lordfinn.craftmaster.registry.ModContent;
+import fr.lordfinn.craftmaster.show.ActionExecutor;
+import fr.lordfinn.craftmaster.show.Show;
 import net.fabricmc.api.ModInitializer;
 import fr.lordfinn.craftmaster.command.WordArgument;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
@@ -14,6 +16,7 @@ import net.minecraft.commands.synchronization.SingletonArgumentInfo;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
@@ -50,8 +53,12 @@ public final class CraftMaster implements ModInitializer {
             // A server coming from the Paper plugin keeps its seasons, scores and busts
             data.load(fl.getGameDir().resolve("plugins/CraftMaster/config.yml"));
         });
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> Busts.updateAll(server));
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            Busts.updateAll(server);
+            ActionExecutor.onServerStarted();
+        });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            Show.reset(server);
             if (data != null) data.save();
             Curtains.clear();
         });
@@ -59,6 +66,9 @@ public final class CraftMaster implements ModInitializer {
         // Labels above busts whose chunk was not loaded at the last score change get refreshed when it loads
         ServerEntityEvents.ENTITY_LOAD.register(Busts::onEntityLoad);
         ServerTickEvents.END_SERVER_TICK.register(Curtains::tick);
+        // Round timer, countdown and staged reveal
+        ServerTickEvents.END_SERVER_TICK.register(Show::tick);
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> Show.onJoin(handler.getPlayer()));
 
         LOG.info("CraftMaster chargé.");
     }

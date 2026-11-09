@@ -11,12 +11,15 @@ import fr.lordfinn.craftmaster.Permissions;
 import fr.lordfinn.craftmaster.bust.Busts;
 import fr.lordfinn.craftmaster.curtain.Curtains;
 import fr.lordfinn.craftmaster.data.CraftMasterData;
+import fr.lordfinn.craftmaster.data.Manche;
+import fr.lordfinn.craftmaster.show.ActionExecutor;
 import fr.lordfinn.craftmaster.network.Network;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.state.BlockState;
@@ -24,9 +27,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -39,7 +44,8 @@ import static net.minecraft.commands.Commands.literal;
 
 /**
  * All the commands: the plugin's ones (same names, aliases and arguments) plus the mod's (scores, ranking, busts,
- * curtains). Brigadier is case-sensitive while Bukkit was not, so every command is also registered in lower case
+ * curtains; the show's commands are in {@link ShowCommands}). Commands that change seasons, rounds or scores run
+ * through {@link ActionExecutor}, like the voice control, so every change is undoable. Brigadier is case-sensitive while Bukkit was not, so every command is also registered in lower case
  * (/craftmasteraddtask still works). Admin commands need {@link Permissions#ADMIN}. Reference: docs/wiki/Commandes.md.
  */
 public final class CraftMasterCommands {
@@ -48,7 +54,7 @@ public final class CraftMasterCommands {
 
     private static final Predicate<CommandSourceStack> ADMIN = Permissions.ADMIN;
 
-    private interface Tree {
+    interface Tree {
         LiteralArgumentBuilder<CommandSourceStack> build(String name);
     }
 
@@ -65,14 +71,15 @@ public final class CraftMasterCommands {
         add(d, CraftMasterCommands::ranking, "craftMasterRanking", "cfrk");
         add(d, CraftMasterCommands::hideRanking, "craftMasterHideRanking", "cfhr");
         add(d, CraftMasterCommands::curtain, "craftMasterCurtain", "cfcu");
+        ShowCommands.register(d);
     }
 
-    private static void add(CommandDispatcher<CommandSourceStack> d, Tree tree, String name, String alias) {
+    static void add(CommandDispatcher<CommandSourceStack> d, Tree tree, String name, String alias) {
         Set<String> names = new LinkedHashSet<>(List.of(name, name.toLowerCase(Locale.ROOT), alias));
         for (String n : names) d.register(tree.build(n));
     }
 
-    // ---------------------------------------------------------------- tasks
+    // ---------------------------------------------------------------- tasks (= rounds of the active game)
 
     private static LiteralArgumentBuilder<CommandSourceStack> addTask(String name) {
         return literal(name).requires(ADMIN)
@@ -80,10 +87,16 @@ public final class CraftMasterCommands {
                         .then(argument("task", word()).executes(c -> {
                             int season = getInteger(c, "season");
                             String task = c.getArgument("task", String.class);
-                            if (data().addTask(season, task)) ok(c, "Tâche '" + task + "' ajoutée à la saison " + season + ".");
-                            else fail(c, "La tâche '" + task + "' existe déjà dans la saison " + season + ".");
-                            Network.broadcast(c.getSource().getServer(), season);
-                            return 1;
+                            Manche existing = data().manche(season, task);
+                            if (existing != null && !existing.archived) {
+                                fail(c, "La tâche '" + task + "' existe déjà dans la saison " + season + ".");
+                                return 0;
+                            }
+                            // A task removed before comes back with its points
+                            List<Map<String, Object>> actions = existing != null
+                                    ? List.of(action("manche.archive", "season", season, "manche", existing.id, "archived", false))
+                                    : List.of(action("manche.create", "season", season, "name", task));
+                            return run(c, actions, "Tâche '" + task + "' ajoutée à la saison " + season + ".");
                         })));
     }
 
@@ -93,10 +106,14 @@ public final class CraftMasterCommands {
                         .then(argument("task", word()).suggests(TASKS).executes(c -> {
                             int season = getInteger(c, "season");
                             String task = c.getArgument("task", String.class);
-                            if (data().removeTask(season, task)) ok(c, "Tâche '" + task + "' supprimée de la saison " + season + ".");
-                            else fail(c, "Aucune tâche '" + task + "' dans la saison " + season + ".");
-                            Network.broadcast(c.getSource().getServer(), season);
-                            return 1;
+                            Manche existing = data().manche(season, task);
+                            if (existing == null || existing.archived) {
+                                fail(c, "Aucune tâche '" + task + "' dans la saison " + season + ".");
+                                return 0;
+                            }
+                            // Archived: no longer listed, its points still count (as in the plugin)
+                            return run(c, List.of(action("manche.archive", "season", season, "manche", existing.id, "archived", true)),
+                                    "Tâche '" + task + "' supprimée de la saison " + season + ".");
                         })));
     }
 
@@ -108,15 +125,27 @@ public final class CraftMasterCommands {
                                     int season = getInteger(c, "season");
                                     String oldName = c.getArgument("old", String.class);
                                     String newName = c.getArgument("new", String.class);
-                                    if (data().renameTask(season, oldName, newName))
-                                        ok(c, "Tâche renommée: " + oldName + " -> " + newName + " (saison " + season + ")");
-                                    else fail(c, "Aucune tâche '" + oldName + "' dans la saison " + season + ".");
-                                    Network.broadcast(c.getSource().getServer(), season);
-                                    return 1;
+                                    Manche existing = data().manche(season, oldName);
+                                    if (existing == null) {
+                                        fail(c, "Aucune tâche '" + oldName + "' dans la saison " + season + ".");
+                                        return 0;
+                                    }
+                                    return run(c, List.of(action("manche.update", "season", season, "manche", existing.id, "name", newName, "merge", true)),
+                                            "Tâche renommée: " + oldName + " -> " + newName + " (saison " + season + ")");
                                 }))));
     }
 
     // ---------------------------------------------------------------- scores
+
+    /**
+     * The actions that make sure the round exists before scoring it: a score on a task that is not listed is
+     * accepted (as in the plugin), the round is created archived.
+     */
+    private static List<Map<String, Object>> withRound(int season, String task, Map<String, Object> scoreAction) {
+        if (data().manche(season, task) != null) return List.of(scoreAction);
+        return List.of(action("manche.create", "season", season, "name", task),
+                action("manche.archive", "season", season, "manche", task, "archived", true), scoreAction);
+    }
 
     private static LiteralArgumentBuilder<CommandSourceStack> setScore(String name) {
         return literal(name).requires(ADMIN)
@@ -128,11 +157,11 @@ public final class CraftMasterCommands {
                                             String task = c.getArgument("task", String.class);
                                             String pseudo = c.getArgument("pseudo", String.class);
                                             int score = getInteger(c, "score");
-                                            data().setScore(season, task, pseudo, score);
-                                            scoresChanged(c, season);
-                                            ok(c, "Score défini: " + pseudo + " -> " + score + " points (saison " + season + ", tache " + task + ")");
-                                            warnUnknownTask(c, season, task);
-                                            return 1;
+                                            boolean known = data().tasks(season).contains(task);
+                                            int r = run(c, withRound(season, task, action("score.set", "season", season, "manche", task, "player", pseudo, "value", score)),
+                                                    "Score défini: " + pseudo + " -> " + score + " points (saison " + season + ", tache " + task + ")");
+                                            if (r > 0 && !known) warnUnknownTask(c, season, task);
+                                            return r;
                                         })))));
     }
 
@@ -147,12 +176,13 @@ public final class CraftMasterCommands {
                                             String task = c.getArgument("task", String.class);
                                             String pseudo = c.getArgument("pseudo", String.class);
                                             int points = getInteger(c, "points");
-                                            int score = data().addScore(season, task, pseudo, points);
-                                            scoresChanged(c, season);
-                                            ok(c, (points >= 0 ? "+" : "") + points + " pour " + pseudo + " -> " + score
-                                                    + " points (saison " + season + ", tache " + task + ")");
-                                            warnUnknownTask(c, season, task);
-                                            return 1;
+                                            boolean known = data().tasks(season).contains(task);
+                                            int score = data().score(season, task, pseudo) + points;
+                                            int r = run(c, withRound(season, task, action("score.add", "season", season, "manche", task, "player", pseudo, "points", points)),
+                                                    (points >= 0 ? "+" : "") + points + " pour " + pseudo + " -> " + score
+                                                            + " points (saison " + season + ", tache " + task + ")");
+                                            if (r > 0 && !known) warnUnknownTask(c, season, task);
+                                            return r;
                                         })))));
     }
 
@@ -164,33 +194,24 @@ public final class CraftMasterCommands {
                                     int season = getInteger(c, "season");
                                     String task = c.getArgument("task", String.class);
                                     String pseudo = c.getArgument("pseudo", String.class);
-                                    if (!data().removeScore(season, task, pseudo)) {
+                                    if (data().manche(season, task) == null || data().season(season) == null) {
                                         fail(c, pseudo + " n'a pas de score pour '" + task + "' (saison " + season + ").");
                                         return 0;
                                     }
-                                    scoresChanged(c, season);
-                                    ok(c, "Score retiré: " + pseudo + " (saison " + season + ", tache " + task + ")");
-                                    return 1;
+                                    return run(c, List.of(action("score.remove", "season", season, "manche", task, "player", pseudo)),
+                                            "Score retiré: " + pseudo + " (saison " + season + ", tache " + task + ")");
                                 }))));
     }
 
-    /** Busts and open ranking screens follow every score change. */
-    private static void scoresChanged(CommandContext<CommandSourceStack> c, int season) {
-        Busts.updateAll(c.getSource().getServer());
-        Network.broadcast(c.getSource().getServer(), season);
-    }
-
     private static void warnUnknownTask(CommandContext<CommandSourceStack> c, int season, String task) {
-        if (!data().tasks(season).contains(task))
-            c.getSource().sendSystemMessage(Component.literal("Attention : '" + task + "' n'est pas une tâche de la saison "
-                    + season + " (le score compte quand même).").withStyle(ChatFormatting.YELLOW));
+        c.getSource().sendSystemMessage(Component.literal("Attention : '" + task + "' n'est pas une tâche de la saison "
+                + season + " (le score compte quand même).").withStyle(ChatFormatting.YELLOW));
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> reloadScores(String name) {
         return literal(name).requires(ADMIN).executes(c -> {
             data().load(null);
-            Busts.updateAll(c.getSource().getServer());
-            for (int s : data().allSeasons()) Network.broadcast(c.getSource().getServer(), s);
+            ActionExecutor.refresh(c.getSource().getServer());
             ok(c, "Scores rechargés et têtes / displays mis à jour.");
             return 1;
         });
@@ -268,6 +289,7 @@ public final class CraftMasterCommands {
         return printRanking(c, season);
     }
 
+    /** Players get the published ranking; organisers the live one, with the points not published yet. */
     private static int printRanking(CommandContext<CommandSourceStack> c, int season) {
         boolean admin = ADMIN.test(c.getSource());
         if (season < 0) season = Network.latestSeason(admin);
@@ -275,15 +297,20 @@ public final class CraftMasterCommands {
             fail(c, "Aucun classement disponible pour l'instant.");
             return 0;
         }
-        List<CraftMasterData.Entry> r = data().ranking(season);
-        String title = "— Classement saison " + season + (data().isHidden(season) ? " (caché aux joueurs)" : "") + " —";
+        List<CraftMasterData.Entry> r = data().ranking(season, !admin);
+        String title = "— Classement saison " + season + (data().isHidden(season) ? " (caché aux joueurs)" : "")
+                + (admin ? " (en direct)" : "") + " —";
         c.getSource().sendSystemMessage(Component.literal(title).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
         if (r.isEmpty()) c.getSource().sendSystemMessage(Component.literal("Aucun score pour l'instant.").withStyle(ChatFormatting.GRAY));
         for (int i = 0; i < r.size(); i++) {
             CraftMasterData.Entry e = r.get(i);
-            c.getSource().sendSystemMessage(Component.literal("#" + (i + 1) + " ").withStyle(Busts.rankColor(i + 1))
+            MutableComponent line = Component.literal("#" + (i + 1) + " ").withStyle(Busts.rankColor(i + 1))
                     .append(Component.literal(e.player()).withStyle(ChatFormatting.WHITE))
-                    .append(Component.literal("  " + e.total() + " pts").withStyle(ChatFormatting.YELLOW)));
+                    .append(Component.literal("  " + e.total() + " pts").withStyle(ChatFormatting.YELLOW));
+            int unpublished = admin ? e.total() - data().publishedTotal(season, e.player()) : 0;
+            if (unpublished != 0)
+                line.append(Component.literal("  (" + (unpublished > 0 ? "+" : "") + unpublished + " non publié)").withStyle(ChatFormatting.GOLD));
+            c.getSource().sendSystemMessage(line);
         }
         return r.size();
     }
@@ -296,18 +323,16 @@ public final class CraftMasterCommands {
                             int season = getInteger(c, "season");
                             boolean hidden = BoolArgumentType.getBool(c, "hidden");
                             MinecraftServer server = c.getSource().getServer();
-                            data().setHidden(season, hidden);
-                            Busts.updateAll(server);
-                            Network.broadcast(server, season);
-                            if (hidden) {
-                                ok(c, "Classement de la saison " + season + " caché aux joueurs.");
-                            } else {
-                                // The reveal is a moment of the show: everyone is told
-                                server.getPlayerList().broadcastSystemMessage(Component.literal("Le classement de la saison "
-                                        + season + " est révélé ! (touche K)").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
-                                ok(c, "Classement de la saison " + season + " révélé.");
-                            }
-                            return 1;
+                            if (hidden)
+                                return run(c, List.of(action("season.update", "season", season, "hidden", true)),
+                                        "Classement de la saison " + season + " caché aux joueurs.");
+                            // Revealing shows the current scores: they are published at the same time
+                            int r = run(c, List.of(action("season.update", "season", season, "hidden", false),
+                                    action("scores.publish", "season", season)), "Classement de la saison " + season + " révélé.");
+                            // The reveal is a moment of the show: everyone is told
+                            if (r > 0) server.getPlayerList().broadcastSystemMessage(Component.literal("Le classement de la saison "
+                                    + season + " est révélé ! (touche K)").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+                            return r;
                         })));
     }
 
@@ -337,16 +362,38 @@ public final class CraftMasterCommands {
         return CraftMaster.data();
     }
 
-    private static void ok(CommandContext<CommandSourceStack> c, String msg) {
+    static void ok(CommandContext<CommandSourceStack> c, String msg) {
         Supplier<Component> s = () -> Component.literal(msg).withStyle(ChatFormatting.GREEN);
         c.getSource().sendSuccess(s, true);
     }
 
-    private static void fail(CommandContext<CommandSourceStack> c, String msg) {
+    static void fail(CommandContext<CommandSourceStack> c, String msg) {
         c.getSource().sendFailure(Component.literal(msg));
     }
 
-    private static SuggestionProvider<CommandSourceStack> list(java.util.function.Function<CommandContext<CommandSourceStack>, Collection<String>> values) {
+    /** An action of the show schema: its type then key, value pairs. */
+    static Map<String, Object> action(String type, Object... fields) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("type", type);
+        for (int i = 0; i + 1 < fields.length; i += 2) m.put((String) fields[i], fields[i + 1]);
+        return m;
+    }
+
+    /**
+     * Runs the actions through {@link ActionExecutor} (so they are undoable like the voice control's) and answers
+     * with the plugin-era message when they worked, with the reason otherwise.
+     */
+    private static int run(CommandContext<CommandSourceStack> c, List<Map<String, Object>> actions, String okMessage) {
+        ActionExecutor.Result r = ActionExecutor.execute(c.getSource().getServer(), actions);
+        if (!r.ok()) {
+            r.lines().forEach(l -> fail(c, l));
+            return 0;
+        }
+        ok(c, okMessage);
+        return 1;
+    }
+
+    static SuggestionProvider<CommandSourceStack> list(java.util.function.Function<CommandContext<CommandSourceStack>, Collection<String>> values) {
         return (c, b) -> {
             String rem = b.getRemaining().toLowerCase(Locale.ROOT).replace("\"", "");
             for (String v : values.apply(c))

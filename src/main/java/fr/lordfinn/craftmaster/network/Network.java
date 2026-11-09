@@ -3,6 +3,7 @@ package fr.lordfinn.craftmaster.network;
 import fr.lordfinn.craftmaster.CraftMaster;
 import fr.lordfinn.craftmaster.Permissions;
 import fr.lordfinn.craftmaster.data.CraftMasterData;
+import fr.lordfinn.craftmaster.data.Season;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.ChatFormatting;
@@ -17,7 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/** The ranking screen's data: asked by the client (key K), sent by the server (and re-sent when scores change). */
+/**
+ * The ranking screen's data: asked by the client (key K), sent by the server (and re-sent when scores change).
+ * Players get the published scores, organisers the live ones with the published totals beside.
+ */
 public final class Network {
 
     private Network() {}
@@ -32,22 +36,35 @@ public final class Network {
         public Type<RequestRanking> type() { return TYPE; }
     }
 
-    /** One line of the ranking: total and the score of each task of {@link Ranking#tasks}. */
-    public record Row(String player, int total, List<Integer> perTask) {}
+    /**
+     * One line of the ranking: total and the score of each round of {@link Ranking#tasks}. {@code publishedTotal}
+     * is the published total (equal to {@code total} in a players' ranking).
+     */
+    public record Row(String player, int total, int publishedTotal, List<Integer> perTask) {}
 
     /**
      * Server → client: a season's ranking. {@code open} asks the client to open the screen; otherwise it only
      * refreshes a screen already showing that season. {@code seasons} lists the seasons this player may see;
      * {@code hidden}: players cannot see this season yet (admins still get its rows, players get none).
+     * {@code live}: the rows are the live scores (organisers), else the published ones. {@code name}: the season's
+     * name when it is not the default "Saison N", else empty.
      */
-    public record Ranking(boolean open, int season, boolean hidden, List<Integer> seasons, List<String> tasks, List<Row> rows) implements CustomPacketPayload {
+    public record Ranking(boolean open, int season, String name, boolean hidden, boolean live, List<Integer> seasons,
+                          List<String> tasks, List<Row> rows) implements CustomPacketPayload {
         public static final Type<Ranking> TYPE = new Type<>(CraftMaster.id("ranking"));
         public static final StreamCodec<RegistryFriendlyByteBuf, Ranking> CODEC = CustomPacketPayload.codec(Ranking::write, Ranking::read);
+
+        /** Shown while the server answers a season change. */
+        public static Ranking empty(int season, List<Integer> seasons) {
+            return new Ranking(false, season, "", false, false, seasons, List.of(), List.of());
+        }
 
         private void write(RegistryFriendlyByteBuf buf) {
             buf.writeBoolean(open);
             buf.writeVarInt(season);
+            buf.writeUtf(name);
             buf.writeBoolean(hidden);
+            buf.writeBoolean(live);
             buf.writeVarInt(seasons.size());
             seasons.forEach(buf::writeVarInt);
             buf.writeVarInt(tasks.size());
@@ -56,6 +73,7 @@ public final class Network {
             for (Row r : rows) {
                 buf.writeUtf(r.player());
                 buf.writeVarInt(r.total());
+                buf.writeVarInt(r.publishedTotal());
                 r.perTask().forEach(buf::writeVarInt);
             }
         }
@@ -63,7 +81,9 @@ public final class Network {
         private static Ranking read(RegistryFriendlyByteBuf buf) {
             boolean open = buf.readBoolean();
             int season = buf.readVarInt();
+            String name = buf.readUtf();
             boolean hidden = buf.readBoolean();
+            boolean live = buf.readBoolean();
             List<Integer> seasons = new ArrayList<>();
             for (int i = buf.readVarInt(); i > 0; i--) seasons.add(buf.readVarInt());
             List<String> tasks = new ArrayList<>();
@@ -72,11 +92,12 @@ public final class Network {
             for (int i = buf.readVarInt(); i > 0; i--) {
                 String player = buf.readUtf();
                 int total = buf.readVarInt();
+                int published = buf.readVarInt();
                 List<Integer> per = new ArrayList<>();
                 for (int t = 0; t < tasks.size(); t++) per.add(buf.readVarInt());
-                rows.add(new Row(player, total, per));
+                rows.add(new Row(player, total, published, per));
             }
-            return new Ranking(open, season, hidden, seasons, tasks, rows);
+            return new Ranking(open, season, name, hidden, live, seasons, tasks, rows);
         }
 
         @Override
@@ -101,15 +122,26 @@ public final class Network {
         return seasons.isEmpty() ? -1 : seasons.getLast();
     }
 
+    /**
+     * The ranking of a season: live scores for organisers, published scores for players. Columns are the rounds
+     * still listed; points of other rounds only count in the total.
+     */
     public static Ranking build(int season, boolean admin, boolean open) {
         CraftMasterData data = CraftMaster.data();
-        List<String> tasks = data.tasks(season);
+        Season s = data.season(season);
+        String name = s == null || s.name.equals("Saison " + season) ? "" : s.name;
+        if (s == null) return new Ranking(open, season, name, false, admin, visibleSeasons(admin), List.of(), List.of());
+        List<String> tasks = s.activeLabels();
+        Map<String, Map<String, Integer>> live = s.labelledScores();
+        Map<String, Map<String, Integer>> published = s.published == null ? Map.of() : s.published.scores();
+        Map<String, Map<String, Integer>> shown = admin ? live : published;
         List<Row> rows = new ArrayList<>();
-        for (CraftMasterData.Entry e : data.ranking(season)) {
-            Map<String, Integer> scores = data.scores(season, e.player());
-            rows.add(new Row(e.player(), e.total(), tasks.stream().map(t -> scores.getOrDefault(t, 0)).toList()));
+        for (CraftMasterData.Entry e : s.ranking(!admin)) {
+            Map<String, Integer> scores = shown.getOrDefault(e.player(), Map.of());
+            rows.add(new Row(e.player(), e.total(), data.publishedTotal(season, e.player()),
+                    tasks.stream().map(t -> scores.getOrDefault(t, 0)).toList()));
         }
-        return new Ranking(open, season, data.isHidden(season), visibleSeasons(admin), tasks, rows);
+        return new Ranking(open, season, name, s.hidden, admin, visibleSeasons(admin), tasks, rows);
     }
 
     /**
@@ -144,7 +176,7 @@ public final class Network {
             } else {
                 // A screen left open on a season that just got hidden is emptied
                 if (forPlayers == null) forPlayers = hidden
-                        ? new Ranking(false, season, true, visibleSeasons(false), List.of(), List.of())
+                        ? new Ranking(false, season, "", true, false, visibleSeasons(false), List.of(), List.of())
                         : build(season, false, false);
                 ServerPlayNetworking.send(p, forPlayers);
             }

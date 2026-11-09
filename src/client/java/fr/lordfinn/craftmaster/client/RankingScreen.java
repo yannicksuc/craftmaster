@@ -18,14 +18,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Season ranking: podium colours, each player's head, total with a bar, and the detail per task when hovering a
- * line. Arrows (or ← →) change season; it refreshes live when an organiser changes a score.
+ * Season ranking: podium colours, each player's head, total with a bar, and the detail per round when hovering a
+ * line. Arrows (or ← →) change season; it refreshes live. Players see the published scores; organisers see the
+ * live ones, with the points not published yet marked beside the total.
  */
 public class RankingScreen extends Screen {
 
     private static final int ROW_H = 22;
     private static final int GOLD = 0xFFFFC23D, SILVER = 0xFFD5DCE4, BRONZE = 0xFFD98A4E;
-    private static final int PANEL = 0xE0121018, BORDER = 0xFFFFC23D, ROW_ALT = 0x30FFFFFF, ROW_ME = 0x40FFC23D;
+    private static final int PANEL = 0xE0121018, BORDER = 0xFFFFC23D, ROW_ALT = 0x30FFFFFF, ROW_ME = 0x40FFC23D, UNPUBLISHED = 0xFFFF9F43;
+
+    private static final ChatFormatting UNPUBLISHED_STYLE = ChatFormatting.GOLD;
 
     private Network.Ranking data;
     private final Map<String, ItemStack> heads = new HashMap<>();
@@ -77,7 +80,7 @@ public class RankingScreen extends Screen {
         if (target == data.season()) return;
         scroll = 0;
         // Shown right away (empty) while the server answers
-        data = new Network.Ranking(false, target, false, seasons, List.of(), List.of());
+        data = Network.Ranking.empty(target, seasons);
         updateButtons();
         CraftMasterClient.openRanking(minecraft, target);
     }
@@ -122,9 +125,11 @@ public class RankingScreen extends Screen {
         g.fill(left, top, left + panelW, top + panelH, PANEL);
         g.outline(left, top, panelW, panelH, BORDER);
         g.centeredText(font, Component.literal("CraftMaster").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), width / 2, top + 8, 0xFFFFFFFF);
-        Component season = Component.translatable("screen.craftmaster.season", data.season());
+        Component season = data.name().isEmpty() ? Component.translatable("screen.craftmaster.season", data.season()) : Component.literal(data.name());
         // Only admins receive a hidden season: remind them the players cannot see it yet
         if (data.hidden()) season = season.copy().append(Component.translatable("screen.craftmaster.hidden").withStyle(ChatFormatting.LIGHT_PURPLE));
+        // Organisers see the live scores; players see the published ones
+        if (data.live()) season = season.copy().append(Component.translatable("screen.craftmaster.live").withStyle(ChatFormatting.AQUA));
         g.centeredText(font, season, width / 2, top + 20, 0xFFE0E0E0);
         g.text(font, Component.translatable("screen.craftmaster.player"), left + 38, top + 34, 0xFF9A9AA8);
         Component pts = Component.translatable("screen.craftmaster.points");
@@ -164,6 +169,12 @@ public class RankingScreen extends Screen {
 
             String total = String.valueOf(r.total());
             g.text(font, total, x1 - 6 - font.width(total), y + 6, 0xFFFFE082);
+            // Points not published yet: the players do not see them
+            int unpublished = r.total() - r.publishedTotal();
+            if (data.live() && unpublished != 0) {
+                Component note = Component.translatable("screen.craftmaster.unpublished", (unpublished > 0 ? "+" : "") + unpublished);
+                g.text(font, note, x1 - 10 - font.width(total) - font.width(note), y + 3, UNPUBLISHED);
+            }
 
             if (mouseX >= x0 && mouseX < x1 && mouseY >= Math.max(y, listTop) && mouseY < Math.min(y + ROW_H, listTop + listH)) hovered = r;
         }
@@ -191,11 +202,13 @@ public class RankingScreen extends Screen {
                 lines.add(Component.literal(data.tasks().get(t) + " : ").withStyle(ChatFormatting.GRAY)
                         .append(Component.literal(String.valueOf(hovered.perTask().get(t))).withStyle(ChatFormatting.WHITE)));
             }
-            // Points of removed or renamed-away tasks still count in the total: show them so the sum adds up
+            // Points of archived or removed rounds still count in the total: show them so the sum adds up
             int other = hovered.total() - listed;
             if (other != 0)
                 lines.add(Component.translatable("screen.craftmaster.other_tasks").withStyle(ChatFormatting.DARK_GRAY)
                         .append(Component.literal(" : " + other).withStyle(ChatFormatting.WHITE)));
+            if (data.live() && hovered.total() != hovered.publishedTotal())
+                lines.add(Component.translatable("screen.craftmaster.published_total", hovered.publishedTotal()).withStyle(UNPUBLISHED_STYLE));
             g.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
         }
     }
