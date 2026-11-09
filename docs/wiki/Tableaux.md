@@ -30,11 +30,12 @@ s'y voient en direct.
 | Skin (adresse) | Adresse http(s) d'une image de skin 64×64 (ou ancien format 64×32). Vide = skin du joueur. Une image invalide ou injoignable donne le skin par défaut |
 | Pose | Une pose de la bibliothèque ; « Éditer… » ouvre l'éditeur de poses |
 | Ficelle (blocs) | Longueur de la ficelle, de 0 à 16 blocs : on peut pendre aussi bas qu'on veut. `auto` = longueur légèrement différente pour chaque tableau (0,55 à 1,05 bloc) |
-| Antichamber (Fenêtre) | Voir plus bas (désactivé par défaut) |
+| Antichamber px % | Effet fenêtre (Oui / Non, désactivé par défaut), profondeur de la pièce en pixels (4 à 96, défaut 16) et sa taille en % de l'ouverture (100 à 200, défaut 140) — voir plus bas |
 
 Mêmes réglages en commande, sur le tableau regardé ou sur des entités visées :
-`/cfpt set [cibles] season|rank|player|name|skin|pose|window|height <valeur>` (`name -` et `skin -` remettent le
-pseudo / le skin du joueur, `height auto`, `window true|false`).
+`/cfpt set [cibles] season|rank|player|name|skin|pose|window|windowDepth|windowSize|height <valeur>` (`name -` et
+`skin -` remettent le pseudo / le skin du joueur, `height auto`, `window true|false`, `windowDepth 32`,
+`windowSize 180`).
 Exemple : `/cfpt set @e[type=craftmaster:portrait,sort=nearest,limit=1] height 3.5`.
 
 ## Accrochage et balancement
@@ -43,7 +44,8 @@ Exemple : `/cfpt set @e[type=craftmaster:portrait,sort=nearest,limit=1] height 3
 - Elle est nouée sur le haut du cadre, **juste au-dessus du centre de gravité** (cadre + personnage dans sa pose,
   chaque pièce pesant son volume) : le tableau pend droit, même quand le personnage le porte au-dessus de sa tête.
 - Chaque tableau tourne doucement autour de sa ficelle (± 2,5°, 8 à 12 s par oscillation, chacun à son rythme).
-  Calculé par le jeu de chaque joueur, sans trafic réseau.
+  Calculé par le jeu de chaque joueur, sans trafic réseau, image par image sur une horloge lissée (pas d'à-coups
+  à 20 Hz ni de saut quand le serveur envoie l'heure) ; les mouvements suivent des courbes adoucies.
 
 ## Réarrangement à la publication des scores
 Les tableaux d'une galerie occupent des colonnes : leurs emplacements, de gauche à droite vu du public (le côté
@@ -88,9 +90,11 @@ Supprimer une pose utilisée : les tableaux concernés prennent « classique ».
 
 ## Effet Antichamber (option par tableau)
 Le cadre devient une **fenêtre magique** : à travers l'ouverture on voit le personnage dans un espace profond,
-devant un rideau de velours rouge lointain qui reste fixe par rapport au tableau (il glisse avec la perspective
-quand on se déplace). Aucun membre ne dépasse : le personnage est entièrement « derrière la vitre ». De côté, le
-tableau reste un cadre mince ; de dos, on ne voit qu'une toile blanche. Réglage : bouton « Fenêtre » de l'écran,
+dans une petite pièce tendue de velours rouge (rideau au fond, murs plus sombres), fixe par rapport au tableau.
+Sa **profondeur** et sa **taille** (100 à 200 % de l'ouverture) se règlent par tableau : plus la pièce est grande,
+plus on en découvre en se déplaçant (parallaxe). Aucun membre ne dépasse : le personnage est entièrement « derrière la vitre ». De côté, de
+dessus, de dessous, le tableau reste un cadre mince ; de dos, on ne voit qu'une toile blanche : rien de
+l'intérieur n'est visible ailleurs que par l'ouverture. Réglage : bouton « Fenêtre » de l'écran,
 ou `/cfpt set window true`.
 
 Technique : Minecraft 26.3 ne donne pas accès au stencil. L'intérieur est donc une illusion d'optique : chaque

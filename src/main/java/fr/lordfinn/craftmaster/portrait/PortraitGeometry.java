@@ -74,8 +74,6 @@ public final class PortraitGeometry {
     public static final double CANVAS_BACK = -HD;
     /** With the window look, the figure stands this far (px) behind the canvas plane. */
     public static final double WINDOW_DEPTH = 2;
-    /** With the window look, the painted backdrop is this far (px) behind the canvas plane, and its half size. */
-    public static final double BACKDROP_DEPTH = 16, BACKDROP_HW = OPEN_HW + 22, BACKDROP_HH = OPEN_HH + 22;
 
     /**
      * The figure's base cube for a part, as in the adult player model (relative to the part's pivot, before
@@ -201,6 +199,11 @@ public final class PortraitGeometry {
         if (!window) return 0;
         double[] z = figureDepth(pose);
         return Math.min(0, CANVAS_FRONT - WINDOW_DEPTH - z[1]);
+    }
+
+    /** z of the back of the figure as drawn (portrait space): the window's room must be deeper than that. */
+    public static double figureBackZ(Pose pose, boolean window) {
+        return figureDepth(pose)[0] + figureShift(pose, window);
     }
 
     /** Part space (its cube's coordinates) → portrait space, as drawn (normal look). */

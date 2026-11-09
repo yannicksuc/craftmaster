@@ -61,7 +61,8 @@ télécommande. À vérifier à la main.
 | Poses fournies (face, trois quarts) ; jambes « dans la peinture » cachées par la coupe ; sortie par le dos vue de derrière | ✔ |
 | Dos des tableaux : toile blanche, aucun membre qui dépasse ; de côté : cadre mince | ✔ |
 | Ficelle droite et verticale, hauteurs automatiques différentes, balancement | ✔ |
-| Effet Antichamber : personnage et rideau vus par l'ouverture, parallaxe en trois quarts, rien hors du cadre, dos blanc | ✔ |
+| Effet Antichamber : personnage et pièce de velours vus par l'ouverture, parallaxe en trois quarts, profondeur et taille réglables (16 px / 140 %, 40 px / 200 %, 8 px / 100 %), rien de l'intérieur vu de côté, de dessous ni de dos | ✔ |
+| Parties qui dépassent sous le cadre vues de dos : seules les parties hors du contour du cadre restent, sans tranche ni étiquette vue à l'envers | ✔ |
 | Réarrangement à un changement de score (captures image par image) : avancer / reculer, glisser, revenir, ordre final | ✔ |
 | Écran de réglages et éditeur de poses ouverts par commande (affichage) | ✔ |
 

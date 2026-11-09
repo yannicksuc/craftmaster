@@ -47,6 +47,11 @@ public class PortraitEntity extends Entity {
     private static final EntityDataAccessor<Integer> FACING = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.INT);
     /** "Antichamber" window look: the figure is only seen through the opening, in a box behind the frame. */
     private static final EntityDataAccessor<Boolean> WINDOW = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.BOOLEAN);
+    /** Window look: depth of the room behind the opening (px) and its size in percent of the opening. */
+    private static final EntityDataAccessor<Integer> WINDOW_DEPTH = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> WINDOW_SIZE = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.INT);
+    public static final int DEFAULT_WINDOW_DEPTH = 16, MIN_WINDOW_DEPTH = 4, MAX_WINDOW_DEPTH = 96;
+    public static final int DEFAULT_WINDOW_SIZE = 140, MIN_WINDOW_SIZE = 100, MAX_WINDOW_SIZE = 200;
     // What it shows
     private static final EntityDataAccessor<String> SHOWN_PLAYER = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Integer> SHOWN_RANK = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.INT);
@@ -96,6 +101,8 @@ public class PortraitEntity extends Entity {
         b.define(HANG, -1f);
         b.define(FACING, Direction.SOUTH.get2DDataValue());
         b.define(WINDOW, false);
+        b.define(WINDOW_DEPTH, DEFAULT_WINDOW_DEPTH);
+        b.define(WINDOW_SIZE, DEFAULT_WINDOW_SIZE);
         b.define(SHOWN_PLAYER, "");
         b.define(SHOWN_RANK, 0);
         b.define(POINTS, 0);
@@ -161,6 +168,16 @@ public class PortraitEntity extends Entity {
     /** The string length as set (negative: automatic). */
     public float hangSetting() { return entityData.get(HANG); }
     public boolean window() { return entityData.get(WINDOW); }
+    public int windowDepth() { return entityData.get(WINDOW_DEPTH); }
+    public int windowSize() { return entityData.get(WINDOW_SIZE); }
+
+    public void setWindowDepth(int px) {
+        entityData.set(WINDOW_DEPTH, Math.max(MIN_WINDOW_DEPTH, Math.min(MAX_WINDOW_DEPTH, px)));
+    }
+
+    public void setWindowSize(int percent) {
+        entityData.set(WINDOW_SIZE, Math.max(MIN_WINDOW_SIZE, Math.min(MAX_WINDOW_SIZE, percent)));
+    }
 
     public void setWindow(boolean window) {
         entityData.set(WINDOW, window);
@@ -344,6 +361,8 @@ public class PortraitEntity extends Entity {
         entityData.set(POSE, in.getStringOr("Pose", PoseLibrary.DEFAULT));
         entityData.set(HANG, in.getFloatOr("Hang", -1f));
         entityData.set(WINDOW, in.getBooleanOr("Window", false));
+        setWindowDepth(in.getIntOr("WindowDepth", DEFAULT_WINDOW_DEPTH));
+        setWindowSize(in.getIntOr("WindowSize", DEFAULT_WINDOW_SIZE));
         entityData.set(FACING, Direction.byName(in.getStringOr("Facing", "south")) instanceof Direction d && d.getAxis().isHorizontal()
                 ? d.get2DDataValue() : Direction.SOUTH.get2DDataValue());
         entityData.set(SHOWN_PLAYER, in.getStringOr("ShownPlayer", ""));
@@ -364,6 +383,8 @@ public class PortraitEntity extends Entity {
         out.putString("Pose", poseName());
         out.putFloat("Hang", hangSetting());
         out.putBoolean("Window", window());
+        out.putInt("WindowDepth", windowDepth());
+        out.putInt("WindowSize", windowSize());
         out.putString("Facing", getFacing().getSerializedName());
         out.putString("ShownPlayer", shownPlayer());
         out.putInt("ShownRank", shownRank());

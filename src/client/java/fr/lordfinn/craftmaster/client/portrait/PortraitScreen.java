@@ -26,14 +26,14 @@ public class PortraitScreen extends Screen {
     private static final int PANEL = 0xD0101018, BORDER = 0xFFFFC23D, LABEL = 0xFFBFBFCF;
 
     private final PortraitEntity portrait;
-    private EditBox season, rankOrPlayer, displayName, skinUrl, hang;
+    private EditBox season, rankOrPlayer, displayName, skinUrl, hang, windowDepth, windowSize;
     private CycleButton<Boolean> followsRank, window;
     private CycleButton<String> pose;
     private Component error;
     private int left, top;
 
     // Values kept across re-inits (resize, coming back from the pose editor)
-    private String seasonV, rankV, playerV, nameV, urlV, hangV, poseV;
+    private String seasonV, rankV, playerV, nameV, urlV, hangV, poseV, depthV, sizeV;
     private boolean rankMode, windowV;
 
     public PortraitScreen(PortraitEntity portrait) {
@@ -48,6 +48,8 @@ public class PortraitScreen extends Screen {
         hangV = portrait.hangSetting() < 0 ? "auto" : String.valueOf(portrait.hangSetting());
         poseV = portrait.poseName();
         windowV = portrait.window();
+        depthV = String.valueOf(portrait.windowDepth());
+        sizeV = String.valueOf(portrait.windowSize());
     }
 
     public PortraitEntity portrait() {
@@ -77,6 +79,8 @@ public class PortraitScreen extends Screen {
         urlV = skinUrl.getValue();
         hangV = hang.getValue();
         windowV = window.getValue();
+        depthV = windowDepth.getValue();
+        sizeV = windowSize.getValue();
         if (!poseChosen) poseV = pose.getValue();
         poseChosen = false;
     }
@@ -124,8 +128,11 @@ public class PortraitScreen extends Screen {
         y += step;
         hang = box(x, y, 50, hangV, "hang");
         y += step;
-        window = addRenderableWidget(CycleButton.onOffBuilder(windowV)
-                .create(x, y, w, 20, Component.translatable("screen.craftmaster.portrait.window")));
+        // Window look: on / off, depth of the room behind the opening (px), its size (% of the opening)
+        window = addRenderableWidget(CycleButton.onOffBuilder(windowV).displayOnlyValue()
+                .create(x, y, 42, 20, Component.translatable("screen.craftmaster.portrait.window")));
+        windowDepth = box(x + 46, y, 40, depthV, "window_depth");
+        windowSize = box(x + 90, y, 40, sizeV, "window_size");
         y += step + 8;
         addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.portrait.save"), b -> save())
                 .bounds(left + 8, y, 105, 20).build());
@@ -188,8 +195,20 @@ public class PortraitScreen extends Screen {
             error = Component.translatable("message.craftmaster.portrait_bad_url");
             return;
         }
+        int depth, size;
+        try {
+            depth = Integer.parseInt(windowDepth.getValue().trim());
+            size = Integer.parseInt(windowSize.getValue().replace("%", "").trim());
+        } catch (NumberFormatException e) {
+            depth = size = -1;
+        }
+        if (depth < PortraitEntity.MIN_WINDOW_DEPTH || depth > PortraitEntity.MAX_WINDOW_DEPTH
+                || size < PortraitEntity.MIN_WINDOW_SIZE || size > PortraitEntity.MAX_WINDOW_SIZE) {
+            error = Component.translatable("screen.craftmaster.portrait.bad_window");
+            return;
+        }
         ClientPlayNetworking.send(new PortraitNetwork.Update(portrait.getId(), s, rank, player, displayName.getValue().trim(), url,
-                pose.getValue(), h, window.getValue()));
+                pose.getValue(), h, window.getValue(), depth, size));
         onClose();
     }
 

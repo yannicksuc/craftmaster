@@ -62,33 +62,29 @@ public final class PortraitClipper implements VertexConsumer {
     private final float d;
     private final Plane keep;
     private final List<Plane> opening = new ArrayList<>();
-    /** Cut only inside the frame's outline (frame space), not a limb far below a frame held above the head. */
-    private final Matrix4f toFrame;
-    private final float cutHalfW, cutHalfH;
+    /** The cut only hides what is behind the canvas inside the frame's outline (a box, not a whole half-space). */
+    private final List<Plane> outline = new ArrayList<>();
     private final List<V> quad = new ArrayList<>(4);
 
     private PortraitClipper(VertexConsumer out, Matrix4f frameToCamera, float planeZ, boolean keepFront, boolean portal,
                             float openHalfW, float openHalfH, float cutHalfW, float cutHalfH) {
         this.out = out;
         this.portal = portal;
-        this.cutHalfW = cutHalfW;
-        this.cutHalfH = cutHalfH;
-        this.toFrame = new Matrix4f(frameToCamera).invert();
         Vector3f origin = frameToCamera.transformPosition(new Vector3f(0, 0, planeZ));
         n = frameToCamera.transformDirection(new Vector3f(0, 0, 1)).normalize();
         d = n.dot(origin);
         keep = keepFront ? new Plane(new Vector3f(n), -d) : new Plane(new Vector3f(n).negate(), d);
-        if (portal) {
-            // The four sides of the opening, as half-spaces whose normals point inside
-            Vector3f ex = frameToCamera.transformDirection(new Vector3f(1, 0, 0)).normalize();
-            Vector3f ey = frameToCamera.transformDirection(new Vector3f(0, 1, 0)).normalize();
-            Vector3f c0 = frameToCamera.transformPosition(new Vector3f(-openHalfW, -openHalfH, planeZ));
-            Vector3f c1 = frameToCamera.transformPosition(new Vector3f(openHalfW, openHalfH, planeZ));
-            opening.add(new Plane(new Vector3f(ex), -ex.dot(c0)));
-            opening.add(new Plane(new Vector3f(ex).negate(), ex.dot(c1)));
-            opening.add(new Plane(new Vector3f(ey), -ey.dot(c0)));
-            opening.add(new Plane(new Vector3f(ey).negate(), ey.dot(c1)));
-        }
+        // The four sides of a rectangle (the opening, or the frame's outline for the cut), normals pointing inside
+        float hw = portal ? openHalfW : cutHalfW, hh = portal ? openHalfH : cutHalfH;
+        List<Plane> sides = portal ? opening : outline;
+        Vector3f ex = frameToCamera.transformDirection(new Vector3f(1, 0, 0)).normalize();
+        Vector3f ey = frameToCamera.transformDirection(new Vector3f(0, 1, 0)).normalize();
+        Vector3f c0 = frameToCamera.transformPosition(new Vector3f(-hw, -hh, planeZ));
+        Vector3f c1 = frameToCamera.transformPosition(new Vector3f(hw, hh, planeZ));
+        sides.add(new Plane(new Vector3f(ex), -ex.dot(c0)));
+        sides.add(new Plane(new Vector3f(ex).negate(), ex.dot(c1)));
+        sides.add(new Plane(new Vector3f(ey), -ey.dot(c0)));
+        sides.add(new Plane(new Vector3f(ey).negate(), ey.dot(c1)));
     }
 
     /**
@@ -201,19 +197,29 @@ public final class PortraitClipper implements VertexConsumer {
         return res;
     }
 
-    private boolean insideFrameOutline(List<V> poly) {
-        float cx = 0, cy = 0, cz = 0;
-        for (V p : poly) { cx += p.x; cy += p.y; cz += p.z; }
-        Vector3f c = toFrame.transformPosition(new Vector3f(cx / poly.size(), cy / poly.size(), cz / poly.size()));
-        return Math.abs(c.x) <= cutHalfW && Math.abs(c.y) <= cutHalfH;
+    private static Plane flip(Plane plane) {
+        return new Plane(new Vector3f(plane.a()).negate(), -plane.w());
+    }
+
+    /**
+     * The cut: removes exactly the part of the polygon that is on the hidden side of the canvas AND inside the
+     * frame's outline (convex region subtraction); what sticks out below or beside the frame stays whole.
+     */
+    private void emitOutsideHidden(List<V> poly) {
+        emit(clip(poly, keep));
+        List<V> hidden = clip(poly, flip(keep));
+        for (Plane side : outline) {
+            if (hidden.size() < 3) return;
+            emit(clip(hidden, flip(side)));
+            hidden = clip(hidden, side);
+        }
     }
 
     private void processQuad() {
         List<V> poly = new ArrayList<>(quad);
         quad.clear();
         if (!portal) {
-            if (insideFrameOutline(poly)) poly = clip(poly, keep);
-            emit(poly);
+            emitOutsideHidden(poly);
             return;
         }
         // Behind the canvas only, then flattened along the lines of sight, then cut to the opening
@@ -230,9 +236,9 @@ public final class PortraitClipper implements VertexConsumer {
             poly = clip(poly, side);
             if (poly.size() < 3) return;
         }
-        // Depth order kept with a tiny step back (at most ~0.9 px for 2.5 blocks of depth)
+        // Depth order kept with a tiny step back (at most 0.8 px, for 6 blocks of depth: the deepest room)
         for (V p : poly) {
-            float back = Math.min(1f, p.depth / 2.5f) * (0.9f / 16f);
+            float back = Math.min(1f, p.depth / 6f) * (0.8f / 16f);
             p.x -= n.x * back; p.y -= n.y * back; p.z -= n.z * back;
         }
         emit(poly);
@@ -240,6 +246,7 @@ public final class PortraitClipper implements VertexConsumer {
 
     /** Fan of quads (a triangle is sent as a quad repeating its last corner). */
     private void emit(List<V> poly) {
+        if (poly.size() < 3) return;
         for (int i = 1; i + 1 < poly.size(); i += 2) {
             V a = poly.getFirst(), b = poly.get(i), c = poly.get(i + 1), e = i + 2 < poly.size() ? poly.get(i + 2) : c;
             put(a); put(b); put(c); put(e);

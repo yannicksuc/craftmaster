@@ -50,10 +50,10 @@ public final class PortraitNetwork {
 
     /**
      * Client → server: new settings of a portrait. {@code rank} 0 with a {@code fixedPlayer} = follows that
-     * player; {@code hang} negative = automatic length; empty strings = default; {@code window}: Antichamber look.
+     * player; {@code hang} negative = automatic length; empty strings = default; {@code window}: Antichamber look, with the depth (px) and size (% of the opening) of its room.
      */
     public record Update(int entityId, int season, int rank, String fixedPlayer, String displayName, String skinUrl,
-                         String pose, float hang, boolean window) implements CustomPacketPayload {
+                         String pose, float hang, boolean window, int windowDepth, int windowSize) implements CustomPacketPayload {
         public static final Type<Update> TYPE = new Type<>(CraftMaster.id("portrait_update"));
         public static final StreamCodec<RegistryFriendlyByteBuf, Update> CODEC = CustomPacketPayload.codec(Update::write, Update::read);
 
@@ -67,11 +67,13 @@ public final class PortraitNetwork {
             buf.writeUtf(pose, 128);
             buf.writeFloat(hang);
             buf.writeBoolean(window);
+            buf.writeVarInt(windowDepth);
+            buf.writeVarInt(windowSize);
         }
 
         private static Update read(RegistryFriendlyByteBuf buf) {
             return new Update(buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readUtf(64), buf.readUtf(128),
-                    buf.readUtf(1024), buf.readUtf(128), buf.readFloat(), buf.readBoolean());
+                    buf.readUtf(1024), buf.readUtf(128), buf.readFloat(), buf.readBoolean(), buf.readVarInt(), buf.readVarInt());
         }
 
         @Override
@@ -155,6 +157,8 @@ public final class PortraitNetwork {
         p.setPoseName(u.pose());
         p.setHang(u.hang());
         p.setWindow(u.window());
+        p.setWindowDepth(u.windowDepth());
+        p.setWindowSize(u.windowSize());
         Portraits.refresh(p);
         player.sendOverlayMessage(Component.translatable("message.craftmaster.portrait_saved").withStyle(ChatFormatting.GREEN));
     }
