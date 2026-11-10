@@ -150,12 +150,19 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                       [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
                        f("players", STR_LIST, doc="Pseudos EXACTS des destinataires ; absent = tous les candidats connectés."),
                        f("wax", STR, doc="Couleur de cire ; absent = celle de la tâche.")]),
+    # Studio set (chantier F): spotlights of the studio, all at once
+    "spotlight.follow": ("Braque tous les projecteurs du studio sur un joueur et les fait le suivre (« projecteurs sur Ensuri »).",
+                         [f("player", PLAYER, True, PLAYER_DOC)]),
+    "spotlight.stop": ("Les projecteurs arrêtent de suivre (gardent leur direction).", []),
+    "spotlight.on": ("Allume tous les projecteurs du studio.", []),
+    "spotlight.off": ("Éteint tous les projecteurs du studio.", []),
     "say": ("Répond à LordFinn sans rien modifier : question, doute réel, ordre impossible ou incompris. "
             "Texte court en français.", [f("text", STR, True, "Réponse courte.")]),
 }
 
 NO_SCOPE = {"say", "undo", "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset", "camera.cut", "camera.follow", "camera.auto", "broadcast.lowerthird", "broadcast.task",
             "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop"}
+NO_SCOPE |= {"spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off"}
 SCOPE_FIELDS = [f("season", SCOPE, doc="Saison (id ou nom). Absent = saison active."),
                 f("partie", SCOPE, doc="Partie (id ou nom). Absent = partie active.")]
 

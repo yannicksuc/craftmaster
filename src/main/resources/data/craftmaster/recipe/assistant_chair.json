@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "R  ",
+    "RRR",
+    "N N"
+  ],
+  "key": {
+    "R": "minecraft:red_wool",
+    "N": "minecraft:gold_nugget"
+  },
+  "result": {
+    "id": "craftmaster:assistant_chair",
+    "count": 1
+  }
+}

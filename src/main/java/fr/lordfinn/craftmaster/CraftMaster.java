@@ -47,6 +47,8 @@ public final class CraftMaster implements ModInitializer {
     @Override
     public void onInitialize() {
         ModContent.register();
+        // Studio set (chantier F): blocks, screens, timer sync, commands
+        fr.lordfinn.craftmaster.studio.Studio.register();
         Network.register();
         RegieServer.register();
         Portraits.register();

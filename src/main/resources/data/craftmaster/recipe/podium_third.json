@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "CCC",
+    "QQQ"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "Q": "minecraft:quartz_slab"
+  },
+  "result": {
+    "id": "craftmaster:podium_third",
+    "count": 1
+  }
+}

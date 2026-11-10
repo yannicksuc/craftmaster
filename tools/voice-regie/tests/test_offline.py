@@ -42,6 +42,12 @@ CASES = [
     ("Révèle la tâche.", [{"type": "task.reveal"}]),
     ("Montre la tâche à tout le monde.", [{"type": "task.show"}]),
     ("Donne les enveloppes.", [{"type": "envelope.give"}]),
+    # Studio spotlights (chantier F)
+    ("Projecteurs sur Ensuri.", [{"type": "spotlight.follow", "player": "Ensuri"}]),
+    ("Lumière sur Cycy !", [{"type": "spotlight.follow", "player": "Cyllu"}]),
+    ("Éteins les projecteurs.", [{"type": "spotlight.off"}]),
+    ("Allumez les projecteurs.", [{"type": "spotlight.on"}]),
+    ("Projecteurs fixes.", [{"type": "spotlight.stop"}]),
 ]
 
 

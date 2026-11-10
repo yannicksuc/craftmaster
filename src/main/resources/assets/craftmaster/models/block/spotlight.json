@@ -1,0 +1,145 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "craftmaster:block/studio/metal",
+    "metal": "craftmaster:block/studio/metal"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        0,
+        3
+      ],
+      "to": [
+        13,
+        2,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#metal",
+          "uv": [
+            3,
+            14,
+            13,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#metal",
+          "uv": [
+            3,
+            14,
+            13,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#metal",
+          "uv": [
+            3,
+            14,
+            13,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#metal",
+          "uv": [
+            3,
+            14,
+            13,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#metal",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        },
+        "down": {
+          "texture": "#metal",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        2,
+        7
+      ],
+      "to": [
+        9,
+        3,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#metal",
+          "uv": [
+            7,
+            13,
+            9,
+            14
+          ]
+        },
+        "south": {
+          "texture": "#metal",
+          "uv": [
+            7,
+            13,
+            9,
+            14
+          ]
+        },
+        "east": {
+          "texture": "#metal",
+          "uv": [
+            7,
+            13,
+            9,
+            14
+          ]
+        },
+        "west": {
+          "texture": "#metal",
+          "uv": [
+            7,
+            13,
+            9,
+            14
+          ]
+        },
+        "up": {
+          "texture": "#metal",
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ]
+        },
+        "down": {
+          "texture": "#metal",
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ]
+        }
+      }
+    }
+  ]
+}

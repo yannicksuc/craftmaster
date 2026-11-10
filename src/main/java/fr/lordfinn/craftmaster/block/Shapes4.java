@@ -9,10 +9,10 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /** Shapes drawn facing north (in pixels), turned for the 4 horizontal directions like the blockstate models. */
-final class Shapes4 {
+public final class Shapes4 {
     private Shapes4() {}
 
-    static Map<Direction, VoxelShape> of(double[]... boxes) {
+    public static Map<Direction, VoxelShape> of(double[]... boxes) {
         Map<Direction, VoxelShape> out = new EnumMap<>(Direction.class);
         for (Direction d : Direction.Plane.HORIZONTAL) {
             VoxelShape s = Shapes.empty();

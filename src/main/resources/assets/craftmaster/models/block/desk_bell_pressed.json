@@ -1,0 +1,215 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "craftmaster:block/studio/bell_dome",
+    "wood": "craftmaster:block/studio/walnut",
+    "dome": "craftmaster:block/studio/bell_dome",
+    "gold": "craftmaster:block/studio/gold_plain"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        0,
+        4
+      ],
+      "to": [
+        12,
+        1,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#wood",
+          "uv": [
+            4,
+            15,
+            12,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#wood",
+          "uv": [
+            4,
+            15,
+            12,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#wood",
+          "uv": [
+            4,
+            15,
+            12,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#wood",
+          "uv": [
+            4,
+            15,
+            12,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#wood",
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ]
+        },
+        "down": {
+          "texture": "#wood",
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        1,
+        5
+      ],
+      "to": [
+        11,
+        4,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            12,
+            11,
+            15
+          ]
+        },
+        "south": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            12,
+            11,
+            15
+          ]
+        },
+        "east": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            12,
+            11,
+            15
+          ]
+        },
+        "west": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            12,
+            11,
+            15
+          ]
+        },
+        "up": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        },
+        "down": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        4,
+        7
+      ],
+      "to": [
+        9,
+        4.5,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#gold",
+          "uv": [
+            7,
+            11.5,
+            9,
+            12
+          ]
+        },
+        "south": {
+          "texture": "#gold",
+          "uv": [
+            7,
+            11.5,
+            9,
+            12
+          ]
+        },
+        "east": {
+          "texture": "#gold",
+          "uv": [
+            7,
+            11.5,
+            9,
+            12
+          ]
+        },
+        "west": {
+          "texture": "#gold",
+          "uv": [
+            7,
+            11.5,
+            9,
+            12
+          ]
+        },
+        "up": {
+          "texture": "#gold",
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ]
+        },
+        "down": {
+          "texture": "#gold",
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ]
+        }
+      }
+    }
+  ]
+}

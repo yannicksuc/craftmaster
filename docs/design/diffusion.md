@@ -283,3 +283,36 @@ respecte toujours le secret ; « tâche du moment » définie ci-dessus ; les no
 (objets du monde, comme les tableaux) mais par leurs commandes et leur éditeur ; cachettes : sous un tapis / une
 dalle, dans un livre, derrière un tableau ou un cadre, double fond, dedans, feuille épinglée, bouteille, plus encre
 invisible (lampe UV) et morceaux déchirés.
+
+### F. Décor du studio (livré)
+- **Blocs / objets** (`fr.lordfinn.craftmaster.studio.Studio`, champs publics) : `THRONE`, `ASSISTANT_CHAIR`, `SOFA`
+  (sièges = `ChairBlock`, donc `SeatEntity`), `FLOOR_LAMP`, `DESK_LAMP`, `CEILING_PENDANT`, `SPOTLIGHT`,
+  `ON_AIR_SIGN`, `TIMER_DISPLAY`, `CONTESTANT_DESK`, `DESK_BELL`, `GONG`, `PRIZE_TABLE`, `PODIUM_FIRST/SECOND/THIRD`,
+  `TROPHY`, `STANCHION`, objet `STUDIO_SCREEN_ITEM`, entité `STUDIO_SCREEN` (`ImageScreenEntity`). Détail :
+  `docs/wiki/Plateau.md`.
+- **Actions** (bloc « Studio set » de `Actions` / `ActionExecutor`, et `tools/voice-regie`) : `spotlight.follow
+  {player}` (pseudo ou surnom), `spotlight.stop {}`, `spotlight.on {}`, `spotlight.off {}`. Effet
+  `Actions.SpotlightOrder(order, player)` ; rien ne change dans les données (pas d'entrée d'annulation).
+- **Projecteurs** (pour E, réalisation automatique) : `studio.Spotlights.follow(server, player)`, `stop(server)`,
+  `setLit(server, boolean)`, `color(server, DyeColor)` → ligne française ; `SpotlightBlockEntity.loaded()`.
+- **Gong** : `GongBlock.strike(ServerLevel, BlockPos, Player|null)` (son + balancement) ; accroupi par un admin =
+  action `manche.end`.
+- **Paquet** `craftmaster:studio_timer` (S→C) `StudioNetwork.TimerState(running, remaining (-1 = aucun), duration,
+  manche, number)`, envoyé au changement et à la connexion ; côté client `client.studio.StudioTimerClient.view()`
+  → `View(clock, seconds, mode RUNNING|TIME_UP|READY|IDLE, title)`. E peut le réutiliser pour son bandeau (ou le
+  remplacer par son paquet « état de l'émission » : seul `StudioTimer` l'envoie, `StudioTimerClient.receive` le lit).
+- **Écrans** : paquets `studio_screen_open` (S→C, id d'entité) et `studio_screen_save` (C→S) ; client
+  `client.studio.ScreenImages.get(url)` (téléchargement asynchrone, cache mémoire + `craftmaster/image-cache/`)
+  réutilisable pour d'autres images d'adresse (H : images d'épreuve).
+- **Permission** `Permissions.IMAGE` / `canShowImages(player)` = `craftmaster:image` ou admin.
+- **Sons** : `Studio.GONG_SOUND` (`craftmaster:studio.gong`), `Studio.DESK_BELL_SOUND` (`craftmaster:studio.desk_bell`).
+  `scripts/gen_assets.py` a maintenant un dictionnaire commun `SOUNDS` écrit en `sounds.json` : y ajouter ses sons
+  (E : `show.theme`) au lieu d'écrire `sounds.json` soi-même.
+- **Changements hors de studio/** : `ChairBlock.seatTop()` (hauteur d'assise par siège, lue par `SeatEntity`),
+  `Shapes4` public, `ModContent.block()/item()` publics, `Studio.register()` dans `CraftMaster`,
+  `StudioClient.init()` dans `CraftMasterClient`, `Permissions.IMAGE`, le tag `mineable/axe` est réécrit par
+  `gen_studio.py` (chaises + bois du studio), nouveau tag `mineable/pickaxe`.
+- **Écarts** : le trône et le lampadaire font 2 blocs de haut dans un seul bloc (modèle plus haut que le bloc,
+  contour jusqu'à 16 px pour le trône, 31 px pour le lampadaire) ; l'enseigne « EN DIRECT » est plus large que son
+  bloc. Le chrono géant suit le chrono de l'émission sans aucun réglage (pas de chrono propre).
+

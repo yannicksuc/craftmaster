@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSS",
+    "SGS",
+    "S S"
+  ],
+  "key": {
+    "S": "minecraft:stick",
+    "G": "minecraft:gold_block"
+  },
+  "result": {
+    "id": "craftmaster:gong",
+    "count": 1
+  }
+}

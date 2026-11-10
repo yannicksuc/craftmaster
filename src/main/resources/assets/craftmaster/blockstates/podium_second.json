@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "craftmaster:block/podium_second"
+    },
+    "facing=east": {
+      "model": "craftmaster:block/podium_second",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "craftmaster:block/podium_second",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "craftmaster:block/podium_second",
+      "y": 270
+    }
+  }
+}

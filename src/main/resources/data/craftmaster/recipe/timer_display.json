@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "GCG",
+    "RBR"
+  ],
+  "key": {
+    "G": "minecraft:gold_ingot",
+    "C": "minecraft:clock",
+    "R": "minecraft:redstone",
+    "B": "minecraft:black_concrete"
+  },
+  "result": {
+    "id": "craftmaster:timer_display",
+    "count": 1
+  }
+}

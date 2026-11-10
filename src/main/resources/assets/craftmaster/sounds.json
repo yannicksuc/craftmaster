@@ -8,5 +8,30 @@
         "stream": true
       }
     ]
+  },
+  "studio.gong": {
+    "subtitle": "subtitles.craftmaster.studio.gong",
+    "sounds": [
+      {
+        "name": "minecraft:block/bell/bell_use01",
+        "pitch": 0.5,
+        "volume": 1.0
+      },
+      {
+        "name": "minecraft:block/bell/bell_use02",
+        "pitch": 0.5,
+        "volume": 1.0
+      }
+    ]
+  },
+  "studio.desk_bell": {
+    "subtitle": "subtitles.craftmaster.studio.desk_bell",
+    "sounds": [
+      {
+        "name": "minecraft:note/bell",
+        "pitch": 1.6,
+        "volume": 0.9
+      }
+    ]
   }
 }

@@ -43,6 +43,9 @@ COLORS = {  # DyeColor id: (rgb, english, french)
 
 FACING_Y = {"north": 0, "east": 90, "south": 180, "west": 270}
 
+# Sound events of the mod (assets/craftmaster/sounds.json, written at the end): each part adds its own entries
+SOUNDS = {}
+
 
 def write_json(path, obj):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -603,11 +606,10 @@ write_png(os.path.join(A, "textures/gui/broadcast/seal.png"), 32, 32, SEAL)
 
 # Sound events: the theme (scripts/gen_theme.py makes the provisional sounds/show/theme.ogg; a resource pack with
 # assets/craftmaster/sounds/show/theme.ogg replaces it). Other chantiers: add their events to SOUNDS.
-SOUNDS = {
+SOUNDS.update({
     "show.theme": {"category": "record", "subtitle": "subtitles.craftmaster.show.theme",
                    "sounds": [{"name": "craftmaster:show/theme", "stream": True}]},
-}
-write_json(os.path.join(A, "sounds.json"), SOUNDS)
+})
 # ==================================================================================================================
 
 
@@ -1741,6 +1743,15 @@ for color, (_, en_name, fr_name) in COLORS.items():
 import gen_trials  # noqa: E402
 gen_trials.generate(A, D, en, fr, write_json, write_png, self_drop, shaped, COLORS)
 
+
+# ------------------------------------------------------------------ studio set (chantier F): scripts/gen_studio.py
+import sys  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gen_studio  # noqa: E402
+gen_studio.generate(sys.modules[__name__])
+
+if SOUNDS:
+    write_json(os.path.join(A, "sounds.json"), SOUNDS)
 write_json(os.path.join(A, "lang/en_us.json"), en)
 write_json(os.path.join(A, "lang/fr_fr.json"), fr)
 print("ok")

@@ -88,6 +88,10 @@ public final class Actions {
     /** Sealed envelopes of the round for these players (empty = the online cast); {@code wax} null = the task's. */
     public record EnvelopesGiven(int season, String manche, List<String> players, String wax) implements TaskEffect {}
 
+    // Studio set (chantier F)
+    /** Every loaded spotlight: {@code order} = follow (then {@code player}), stop, on or off. */
+    public record SpotlightOrder(String order, String player) implements Effect {}
+
     /** The result: one French line per action (or the error), the effects to play, and whether it worked. */
     public record Outcome(List<String> lines, List<Effect> effects, boolean ok, boolean changed) {}
 
@@ -111,7 +115,9 @@ public final class Actions {
             // TV direction (chantier E): no data change, played by broadcast.Director
             "camera.cut", "camera.follow", "camera.auto", "camera.transition", "broadcast.lowerthird", "broadcast.task",
             "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop",
-            "task.set", "task.clear", "task.reveal", "task.hide", "task.show", "envelope.give");
+            "task.set", "task.clear", "task.reveal", "task.hide", "task.show", "envelope.give",
+            // Studio set (chantier F)
+            "spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off");
 
     /**
      * Applies the actions. {@code undo} is only accepted as the first action (it is done, then the rest is applied
@@ -336,6 +342,9 @@ public final class Actions {
                 case "task.hide" -> taskHide(a);
                 case "task.show" -> taskShow(a);
                 case "envelope.give" -> envelopeGive(a);
+                // Studio set (chantier F): world only, nothing in the data changes
+                case "spotlight.follow" -> spotlightFollow(a);
+                case "spotlight.stop", "spotlight.on", "spotlight.off" -> effects.add(new SpotlightOrder(type.substring("spotlight.".length()), null));
                 // (a guarded pattern must come after the constant labels) TV direction (chantier E): checked here, resolved and played by broadcast.Director
                 case String t when fr.lordfinn.craftmaster.broadcast.BroadcastActions.handles(t) ->
                         effects.add(new Broadcast(fr.lordfinn.craftmaster.broadcast.BroadcastActions.validate(t, a)));
@@ -920,6 +929,14 @@ public final class Actions {
             for (String n : data.stage().curtains.keySet()) if (n.equalsIgnoreCase(name)) return n;
             throw new Invalid("rideau « " + name + " » inconnu (rideaux : "
                     + (data.stage().curtains.isEmpty() ? "aucun" : String.join(", ", data.stage().curtains.keySet())) + ").");
+        }
+
+        /** Spotlights on a player: a cast member by name or nickname, or any exact pseudo (a guest, the master). */
+        private void spotlightFollow(Map<String, Object> a) {
+            String pseudo = required(a, "player");
+            Season s = data.activeSeason();
+            SeasonPlayer p = s == null ? null : castMember(s, pseudo);
+            effects.add(new SpotlightOrder("follow", p != null ? p.name : pseudo));
         }
 
         private void curtain(Map<String, Object> a, boolean open) {

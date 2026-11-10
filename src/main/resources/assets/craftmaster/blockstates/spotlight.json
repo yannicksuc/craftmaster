@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "hanging=false,lit=false": {
+      "model": "craftmaster:block/spotlight"
+    },
+    "hanging=false,lit=true": {
+      "model": "craftmaster:block/spotlight"
+    },
+    "hanging=true,lit=false": {
+      "model": "craftmaster:block/spotlight_hanging"
+    },
+    "hanging=true,lit=true": {
+      "model": "craftmaster:block/spotlight_hanging"
+    }
+  }
+}

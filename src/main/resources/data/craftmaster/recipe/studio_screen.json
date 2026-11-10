@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BBB",
+    "BGB"
+  ],
+  "key": {
+    "B": "minecraft:black_concrete",
+    "G": "minecraft:glass_pane"
+  },
+  "result": {
+    "id": "craftmaster:studio_screen",
+    "count": 1
+  }
+}

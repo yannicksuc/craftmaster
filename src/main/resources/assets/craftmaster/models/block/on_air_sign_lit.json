@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "craftmaster:block/studio/on_air_lit",
+    "box": "craftmaster:block/studio/on_air_lit"
+  },
+  "elements": [
+    {
+      "from": [
+        -12,
+        3,
+        13
+      ],
+      "to": [
+        28,
+        13,
+        16
+      ],
+      "light_emission": 12,
+      "faces": {
+        "north": {
+          "texture": "#box",
+          "uv": [
+            0,
+            0,
+            10,
+            10
+          ]
+        },
+        "south": {
+          "texture": "#box",
+          "uv": [
+            10,
+            0,
+            16,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#box",
+          "uv": [
+            10,
+            0,
+            10.75,
+            10
+          ]
+        },
+        "west": {
+          "texture": "#box",
+          "uv": [
+            10,
+            0,
+            10.75,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#box",
+          "uv": [
+            0,
+            10,
+            10,
+            10.75
+          ]
+        },
+        "down": {
+          "texture": "#box",
+          "uv": [
+            0,
+            10,
+            10,
+            10.75
+          ]
+        }
+      }
+    }
+  ]
+}

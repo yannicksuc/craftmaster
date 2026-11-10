@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "W",
+    "T",
+    "G"
+  ],
+  "key": {
+    "W": "minecraft:white_wool",
+    "T": "minecraft:torch",
+    "G": "minecraft:gold_ingot"
+  },
+  "result": {
+    "id": "craftmaster:floor_lamp",
+    "count": 1
+  }
+}

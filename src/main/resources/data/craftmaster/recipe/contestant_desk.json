@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "SSS",
+    "RGR",
+    "P P"
+  ],
+  "key": {
+    "S": "minecraft:dark_oak_slab",
+    "R": "minecraft:red_wool",
+    "G": "minecraft:gold_ingot",
+    "P": "minecraft:dark_oak_planks"
+  },
+  "result": {
+    "id": "craftmaster:contestant_desk",
+    "count": 1
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "craftmaster:block/studio/podium_3",
+    "side": "craftmaster:block/studio/podium_3",
+    "top": "craftmaster:block/studio/podium_3_top",
+    "bottom": "craftmaster:block/studio/podium_3_top"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        8,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#side",
+          "uv": [
+            0,
+            8,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#side",
+          "uv": [
+            0,
+            8,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            0,
+            8,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            0,
+            8,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#top",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#bottom",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      }
+    }
+  ]
+}

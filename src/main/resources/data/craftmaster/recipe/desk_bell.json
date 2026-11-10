@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "N",
+    "G",
+    "S"
+  ],
+  "key": {
+    "N": "minecraft:gold_nugget",
+    "G": "minecraft:gold_ingot",
+    "S": "#minecraft:wooden_slabs"
+  },
+  "result": {
+    "id": "craftmaster:desk_bell",
+    "count": 1
+  }
+}

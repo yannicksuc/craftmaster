@@ -69,7 +69,13 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
   regie/                  régie vocale, côté serveur et commun : RegiePayloads (paquets), RegieServer (contrôle
                           admin, contexte, exécution), RegieJson, Wav (WAV 16 kHz), RegieService (client HTTP)
   show/                   ShowContext (contexte de la partie) et ActionExecutor (exécution du schéma d'actions)
-  registry/ModContent     blocs, objets, entité, onglet créatif
+  registry/ModContent     blocs, objets, entité, onglet créatif (block / item publics : studio/ s'y enregistre)
+  studio/                 décor du studio (chantier F, Plateau.md) : Studio (enregistrements), sièges
+                          (StudioSeatBlock, SofaBlock : ChairBlock + SeatEntity), LampBlock, OnAirSignBlock,
+                          SpotlightBlock / BlockEntity (+ SpotlightAim, Spotlights), TimerDisplayBlock / BlockEntity
+                          (+ SevenSegment, StudioTimer), ImageScreenEntity / Item (+ ImageRequest), DeskBlock,
+                          PrizeTableBlock, GongBlock (+ GongSwing), DeskBellBlock, DecorBlock, StanchionBlock,
+                          StudioNetwork (paquets), StudioCommands (/image, /cfsp, /cfdk, /cfgo)
   mixin/                  accès aux setters privés des text_display
 src/client/java/…/client/                   client uniquement (jamais chargé par un serveur dédié)
   CraftMasterClient       touche K, rendu (vide) du siège, réception du classement
@@ -79,6 +85,10 @@ src/client/java/…/client/                   client uniquement (jamais chargé 
   task/                   CurrentTask (contrat : tâche du moment, carte en surimpression), PaperView (la carte :
                           papier, typographie, cire), PaperScreen (lecture + ouverture animée de l'enveloppe),
                           TaskEditorScreen, SealScreen, NoteEditorScreen, TwitchChat (!tache), TaskClient (touche J)
+  studio/                 rendus du studio : SpotlightRenderer (lyre, tête, faisceau additif, tache de lumière),
+                          TimerDisplayRenderer (7 segments), ImageScreenRenderer + ScreenImages (téléchargement,
+                          cache mémoire et disque), ImageScreenSettings, DeskRenderer, PrizeTableRenderer,
+                          GongRenderer, StanchionRenderer (cordons), StudioTimerClient, Geo (quads et boîtes)
   portrait/               PortraitRenderer, PortraitClipper (coupe par la toile, fenêtre Antichamber), PortraitSkins
                           (skin du joueur ou image téléchargée), PortraitScreen (réglages), PoseEditorScreen
   broadcast/              mode diffusion (chantier E) : Broadcast (F8, /diffusion, touches 1–9 et molette, HUD
@@ -169,3 +179,11 @@ Formats 26.x à respecter : définitions d'objet dans `assets/<mod>/items/`, loo
 catégories de recette `building | redstone | equipment | misc`.
 Exception (chantier E) : `assets/craftmaster/sounds/show/theme.ogg`, le thème provisoire, est fabriqué par
 `scripts/gen_theme.py` (Python Windows avec numpy, et ffmpeg dans le PATH) ; `sounds.json` vient de gen_assets.py.
+
+### Ressources du studio (chantier F)
+`scripts/gen_studio.py`, appelé par `gen_assets.py` (un seul bloc marqué) : modèles, états, textures peintes texel
+par texel (palettes or, velours, noyer, métal, crème), recettes, loot, tags de minage, traductions. Les sons sont
+dans le dictionnaire commun `SOUNDS` de `gen_assets.py` (écrit en `sounds.json` à la fin) : chaque partie y ajoute
+ses entrées. Les éléments plus hauts qu'un bloc (trône, lampadaire) ou plus larges (enseigne) prennent leurs UV
+dans leur tranche de 16 px (`el()` de gen_studio).
+
