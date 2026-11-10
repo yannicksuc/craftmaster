@@ -110,3 +110,28 @@ Les scores changés ici sont en direct : les joueurs les voient après `/craftMa
 | `/cfpt poses` | Liste les poses |
 | `/cfpt publish <saison>` | Réarrange les galeries de la saison selon le classement |
 | `/cfpt highlight <saison> <rang>` | Illumine le tableau de ce rang (5 s) |
+
+## Épreuves (admin)
+Détail et usage : [Épreuves](Epreuves.md). Ce qui touche aux données (feuille, chronos notés) passe par
+l'exécuteur des actions : **annulable** et identique à la voix.
+
+| Commande | Alias | Effet |
+|---|---|---|
+| `/craftMasterResult` | cfre | Ouvre la feuille de résultats de la manche en cours (touche **N**) ; `open <manche>` pour une autre |
+| `/craftMasterResult set <joueur> <valeur> [temps\|nombre\|distance\|note\|poids]` | | Note une valeur (`42`, `1:05`, `12,5`) ; le type choisit la mesure si la feuille est vide |
+| `/craftMasterResult dq\|undq <joueur>` | | Disqualifie / réintègre |
+| `/craftMasterResult remove <joueur>` · `clear` | | Efface une ligne / la feuille |
+| `/craftMasterResult kind <type>` · `order <lower\|higher\|auto>` · `scale <5,4,3,2,1>` | | Réglages de la feuille |
+| `/craftMasterResult apply [barème]` | | Applique le barème : score de chaque candidat dans la manche (une seule annulation) |
+| `/craftMasterResult show` | | La feuille dans le chat (places, points proposés) |
+| `/craftMasterChrono start\|stop <joueur> [noter]` · `reset [joueur]` · `list` | cfch | Chronos des candidats ; l'arrêt note le temps (sauf `false`) |
+| `/craftMasterBuzzer reset\|status` | cfbz | Rallume la partie de buzzers / qui a buzzé et dans quel ordre |
+| `/craftMasterZone create <nom> [<de> <à>]` | cfzo | Zone d'épreuve (sans coordonnées : les deux derniers points du mètre ruban) |
+| `/craftMasterZone players <nom> <joueurs…\|all>` · `enable <nom> <true\|false>` · `show` · `remove` · `list` | | Réglages des zones |
+| `/craftMasterTrial log` · `reset` · `prop` | cftr | Journal (boutons, buzzers, premiers, sorties de zone) / remise à zéro / réglages de l'objet regardé |
+| `/craftMasterBoard size <l> <h>` · `clear` · `lock <true\|false>` · `text <texte>` | cfbd | Tableau à dessin regardé (`\n` = retour à la ligne) |
+
+## Pour tous
+| Commande | Alias | Effet |
+|---|---|---|
+| `/craftMasterName [nom]` | cfnm | Nomme l'objet tenu (codes `&6`, `&l`…) ; sans nom : retire le nom |

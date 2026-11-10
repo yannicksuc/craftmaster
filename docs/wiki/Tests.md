@@ -150,3 +150,21 @@ long pseudo.
 
 Non vérifié : compréhension par le vrai Claude (pas de clé `ANTHROPIC_API_KEY` sur le PC de test), vrai micro et
 touches, sons (jeu muet), clics dans les écrans (réglages des tableaux, éditeur de poses, flèches de l'écran K).
+
+### Épreuves (chantier H, vérifié en jeu, serveur + 2 clients de dev pilotés par MCP Fabric)
+Tests unitaires : `trial/ResultSheetTest` (classement, ex-aequo, barèmes, disqualifiés, valeurs tapées ou dites,
+stockage), `trial/TrialToolsTest` (chronos, zones, buzzers, réglages et mémoire des props, poids),
+`trial/CanvasPixelsTest` (traits, pinceau, pot de peinture, encodage), `show/JudgingActionsTest` (actions
+`result.*`, `results.*`, `stopwatch.*` : barème appliqué en une annulation, feuille enregistrée et renommée).
+Régie : `tests/test_offline.py` (phrases d'arbitrage hors ligne), `test_validate.py` (schéma).
+
+En jeu (vérifié) : rendu des props (taille, rotation, rotation continue, nom), des trois tableaux (dessin, texte,
+cadres), du socle (objet flottant + nom coloré), des buzzers allumés / éteints, du gros bouton enfoncé, de la
+balance, de la malle ; dessin continu à la teinture (maintenir le clic) ; écran d'écriture du tableau ; écran des
+réglages d'un prop (onglet Apparence) ; feuille de résultats (valeurs, DQ, places ex-aequo, points proposés,
+rafraîchissement en direct après « apply » et « undo ») ; chrono en barre de boss ; essai complet d'un candidat
+(prop « Départ » → chrono, prop « Arrivée » → arrêt, temps noté, objet donné, note, annonce du premier, signal
+redstone) ; sortie / retour de zone ; buzzer (premier, second appui ignoré) ; carton rouge ; mètre ruban et
+compteur (sur un coffre vanilla) avec les boutons « Noter pour » ; `/craftMasterName` avec couleurs.
+Non vérifié en jeu (pas d'outil de clic dans les écrans) : changer d'onglet, boutons des écrans (Appliquer,
+Enregistrer, Tester, DQ…) — leurs actions sont celles des commandes, vérifiées ; régie vocale réelle.

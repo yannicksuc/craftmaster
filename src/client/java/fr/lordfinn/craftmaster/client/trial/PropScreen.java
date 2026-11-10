@@ -39,7 +39,7 @@ public class PropScreen extends Screen {
             {"minecraft:block.chest.open", "chest"}, {"minecraft:entity.cat.ambient", "cat"},
             {"minecraft:entity.experience_orb.pickup", "orb"}, {"minecraft:block.wooden_door.open", "door"}};
 
-    private enum Tab { LOOK, EFFECTS, RULES }
+    private enum Tab { LOOK, EFFECTS, ACTIONS, RULES }
 
     private final TrialPropEntity prop;
     private PropConfig c;
@@ -103,7 +103,7 @@ public class PropScreen extends Screen {
     protected void init() {
         readers.clear();
         labels.clear();
-        h = Math.min(height - 8, 300);
+        h = Math.min(height - 8, 272);
         left = 8;
         top = Math.max(4, (height - h) / 2);
         int tx = left + 8;
@@ -113,14 +113,15 @@ public class PropScreen extends Screen {
                 tab = tb;
                 readers.clear();
                 super.rebuildWidgets();
-            }).bounds(tx, top + 20, 88, 18).build());
+            }).bounds(tx, top + 20, 66, 18).build());
             b.active = tb != tab;
-            tx += 91;
+            tx += 68;
         }
         int y = top + 44;
         switch (tab) {
             case LOOK -> look(y);
             case EFFECTS -> effects(y);
+            case ACTIONS -> actions(y);
             case RULES -> rules(y);
         }
         int by = top + h - 26;
@@ -231,7 +232,10 @@ public class PropScreen extends Screen {
         note.setValue(c.noteText);
         addRenderableWidget(note);
         readers.add(() -> c.noteText = note.getValue());
-        y += 42;
+    }
+
+    private void actions(int y) {
+        int x = left + 96;
         toggle(left + 8, y, 84, "teleport", c.teleport, v -> c.teleport = v);
         box(x, y, 42, num(c.tpX), 12, "tp.tip", v -> c.tpX = d(v));
         box(x + 45, y, 42, num(c.tpY), 12, "tp.tip", v -> c.tpY = d(v));

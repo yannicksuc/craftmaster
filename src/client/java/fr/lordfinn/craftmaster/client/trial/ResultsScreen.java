@@ -316,7 +316,6 @@ public class ResultsScreen extends Screen {
             g.text(font, placeText, left + 302, ry + 8, color, false);
             // A running stopwatch shows its time live where the value goes
             if (running >= 0) g.text(font, "⏱ " + Stopwatch.format(running + (now - receivedAt)), left + 326, ry + 8, 0xFF1E7A2E, false);
-            else if (r.has("text") && !dq) g.text(font, r.get("text").getAsString(), left + 326, ry + 8, 0xFF5A4630, false);
             if (r.has("points")) {
                 String pts = "+" + r.get("points").getAsInt();
                 g.text(font, Component.literal(pts).withStyle(ChatFormatting.BOLD), left + w - 62, ry + 8, 0xFF9A6A00, false);

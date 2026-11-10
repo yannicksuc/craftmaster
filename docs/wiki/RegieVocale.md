@@ -63,3 +63,10 @@ dernières » remonte plus loin (journal de 50 actions, partagé avec les comman
 | Sans internet | `REGIE_UNDERSTANDING=offline` : seulement « N points pour X [sur manche] », « X prend N points », rideaux, manche suivante, publier, révélation, annule |
 
 Détails techniques : [tools/voice-regie/README.md](../../tools/voice-regie/README.md).
+
+## Arbitrage (épreuves)
+« Ensuri a fait 42 secondes » (note sur la feuille de résultats, pas de points), « Cyllu : 12 blocs »,
+« Arreaubaz est disqualifié », « applique le barème » (les points 5-4-3-2-1 de la feuille, en une annulation),
+« barème 3 2 1 », « top chrono pour Ensuri » / « stop Ensuri », « remets les buzzers ». Hors ligne : « X a fait N
+secondes|minutes|blocs|mètres|kilos », « X est disqualifié », « applique le barème », « remets les buzzers ».
+Voir [Épreuves](Epreuves.md).

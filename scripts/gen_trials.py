@@ -166,12 +166,12 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
         base[15][x] = ramp(CHARCOAL, 0)
     tex("buzzer_base", base)
     model("buzzer_template", {"parent": "minecraft:block/block",
-                              "textures": {"particle": "#dome"},
+                              "textures": {"particle": "#dome", "base": "craftmaster:block/buzzer_base"},
                               "elements": [
                                   {"from": [3, 0, 3], "to": [13, 4, 13], "faces": {
-                                      **{d: {"texture": "craftmaster:block/buzzer_base", "uv": [3, 12, 13, 16]} for d in ("north", "south", "east", "west")},
-                                      "up": {"texture": "craftmaster:block/buzzer_base", "uv": [3, 3, 13, 13]},
-                                      "down": {"texture": "craftmaster:block/buzzer_base", "uv": [3, 3, 13, 13]}}},
+                                      **{d: {"texture": "#base", "uv": [3, 12, 13, 16]} for d in ("north", "south", "east", "west")},
+                                      "up": {"texture": "#base", "uv": [3, 3, 13, 13]},
+                                      "down": {"texture": "#base", "uv": [3, 3, 13, 13]}}},
                                   {"from": [5, 4, 5], "to": [11, 7, 11], "faces": {
                                       **{d: {"texture": "#dome", "uv": [5, 10, 11, 13]} for d in ("north", "south", "east", "west")},
                                       "up": {"texture": "#dome", "uv": [5, 5, 11, 11]}}},
@@ -483,7 +483,7 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
         "block.craftmaster.balance": ("Scales", "Balance"),
         "block.craftmaster.display_plinth": ("Display Plinth", "Socle d'exposition"),
         "block.craftmaster.costume_chest": ("Costume Trunk", "Malle à costumes"),
-        "container.craftmaster.costume_chest": ("Costume Trunk — take what you like", "Malle à costumes — sers-toi !"),
+        "container.craftmaster.costume_chest": ("Costume Trunk", "Malle à costumes"),
         "container.craftmaster.costume_chest.edit": ("Costume Trunk — stock", "Malle à costumes — stock"),
         "item.craftmaster.prop_wand": ("Task Prop Wand", "Baguette d'objet d'épreuve"),
         "item.craftmaster.prop_wand.hint": ("On a block: puts a task prop there (looks like the item in your other hand)",
@@ -513,8 +513,9 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
         # Prop settings screen
         "screen.craftmaster.prop": ("Task prop", "Objet d'épreuve"),
         "screen.craftmaster.prop.tab.look": ("Look", "Apparence"),
-        "screen.craftmaster.prop.tab.effects": ("On use", "Quand on l'utilise"),
-        "screen.craftmaster.prop.tab.rules": ("Rules, memory", "Règles, mémoire"),
+        "screen.craftmaster.prop.tab.effects": ("Effects", "Effets"),
+        "screen.craftmaster.prop.tab.actions": ("Actions", "Actions"),
+        "screen.craftmaster.prop.tab.rules": ("Rules", "Règles"),
         "screen.craftmaster.prop.save": ("Save", "Enregistrer"),
         "screen.craftmaster.prop.test": ("Test", "Tester"),
         "screen.craftmaster.prop.test.tip": ("Saves, then uses it as a contestant would", "Enregistre puis l'utilise comme un candidat"),

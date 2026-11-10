@@ -18,6 +18,13 @@ CASES = [
     ("Mettez à jour les scores.", [{"type": "scores.publish"}]),
     ("Annule.", [{"type": "undo", "count": 1}]),
     ("Lance la révélation.", [{"type": "reveal.start"}]),
+    # Chantier H: the judge's results sheet
+    ("Ensuri a fait 42 secondes.", [{"type": "result.set", "player": "Ensuri", "value": "42", "kind": "time"}]),
+    ("Cycy a fait 12 blocs.", [{"type": "result.set", "player": "Cyllu", "value": "12", "kind": "count"}]),
+    ("Juste a fait deux minutes.", [{"type": "result.set", "player": "JustEdible", "value": "120", "kind": "time"}]),
+    ("Arreaubaz est disqualifié.", [{"type": "result.dq", "player": "Arreaubaz"}]),
+    ("Applique le barème.", [{"type": "results.apply"}]),
+    ("Remets les buzzers.", [{"type": "buzzer.reset"}]),
 ]
 
 

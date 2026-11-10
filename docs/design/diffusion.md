@@ -137,3 +137,36 @@ pas été révélée (enveloppe ouverte, ou manche lancée, ou révélation forc
   (Dépôt principal : 25691 / 25692 / 25731 / 25732 ; régie vocale : 25790.)
 
 ## Interfaces livrées (à remplir par chaque chantier)
+
+### H. Épreuves (livré par le chantier H)
+
+**Actions ajoutées** (`show/Actions`, bloc « chantier H » ; outils Claude et phrases hors ligne dans
+`tools/voice-regie`) — toutes annulables, `manche` absent = manche en cours :
+- `result.set {manche?, player, value, kind?}` — `value` nombre ou texte (`"42"`, `"1:05"`, `"12,5"`, `"8/10"`) ;
+  `kind` = `time | count | distance | mark | weight` (ou temps, nombre…) : change le type d'une feuille sans valeur,
+  refusé si la feuille a déjà des valeurs d'un autre type. Effet `ResultRecorded` (annonce en barre d'action).
+- `result.dq {manche?, player, dq?=true}` ; `result.remove {manche?, player}` ; `results.clear {manche?}`.
+- `results.config {manche?, kind?, order? (lower|higher|auto), scale? ("5,4,3,2,1")}`.
+- `results.apply {manche?, scale?}` — classe la feuille et fait un `score.set` par candidat classé (ex-aequo =
+  même place et mêmes points, places au-delà du barème et disqualifiés = 0, sans valeur = score intact).
+- `stopwatch.start {player}`, `stopwatch.stop {player, record?=true}` (le temps va en `result.set` kind time),
+  `stopwatch.reset {player?}` — sans saison/partie. `buzzer.reset {}`.
+- Effets ajoutés à `Actions.Effect` : `ResultRecorded`, `StopwatchStarted`, `StopwatchStopped`, `StopwatchReset`,
+  `BuzzersReset` (joués par `trial/Judging.play`).
+
+**Données** : `Manche.results` (`trial/ResultSheet`), YAML `results: {kind, order?, scale?, entries: {pseudo:
+{value?, dq?}}}` sous la manche (absent si vide). Renommer un joueur renomme ses lignes.
+
+**Pour les autres chantiers** :
+- `fr.lordfinn.craftmaster.trial.Stopwatch.SHARED` (`peek/isRunning/last/find`) : chronos des candidats en cours
+  (E peut les afficher dans l'habillage) ; `trial.Buzzers.LOCK.winner()/presses()`.
+- `trial.TrialNetwork.Sheet` (S→C, JSON) : feuille de la manche (format dans la javadoc de `sheetJson`).
+- `trial.TrialNetwork.RunActions` (C→S) : liste d'actions JSON exécutée par `ActionExecutor` pour un admin (comme la
+  voix) — réutilisable par n'importe quel écran.
+- `trial.TrialLog.add(server, line)` / `latest(n)` : journal des événements d'épreuve.
+- Appel à D : `fr.lordfinn.craftmaster.task.Tasks.openPaper(ServerPlayer, String title, String text)` (note d'un
+  prop). **H fournit un bouchon** du même nom (message dans le chat) : garder la classe de D à la fusion.
+- Ajouts hors `trial/` : une ligne dans `CraftMaster`, `CraftMasterClient`, `ActionExecutor` (cas `play` +
+  `TrialNetwork.refreshSheets` dans `refresh`), bloc dans `Actions`, champ dans `Manche`, bloc dans
+  `gen_assets.py` (+ `scripts/gen_trials.py`), `command/TrialCommands.java`.
+- Touche **N** (catégorie CraftMaster) : feuille de résultats (organisateurs).

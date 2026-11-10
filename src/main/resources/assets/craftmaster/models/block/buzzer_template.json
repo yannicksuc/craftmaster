@@ -1,7 +1,8 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "#dome"
+    "particle": "#dome",
+    "base": "craftmaster:block/buzzer_base"
   },
   "elements": [
     {
@@ -17,7 +18,7 @@
       ],
       "faces": {
         "north": {
-          "texture": "craftmaster:block/buzzer_base",
+          "texture": "#base",
           "uv": [
             3,
             12,
@@ -26,7 +27,7 @@
           ]
         },
         "south": {
-          "texture": "craftmaster:block/buzzer_base",
+          "texture": "#base",
           "uv": [
             3,
             12,
@@ -35,7 +36,7 @@
           ]
         },
         "east": {
-          "texture": "craftmaster:block/buzzer_base",
+          "texture": "#base",
           "uv": [
             3,
             12,
@@ -44,7 +45,7 @@
           ]
         },
         "west": {
-          "texture": "craftmaster:block/buzzer_base",
+          "texture": "#base",
           "uv": [
             3,
             12,
@@ -53,7 +54,7 @@
           ]
         },
         "up": {
-          "texture": "craftmaster:block/buzzer_base",
+          "texture": "#base",
           "uv": [
             3,
             3,
@@ -62,7 +63,7 @@
           ]
         },
         "down": {
-          "texture": "craftmaster:block/buzzer_base",
+          "texture": "#base",
           "uv": [
             3,
             3,
