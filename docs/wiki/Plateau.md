@@ -24,8 +24,8 @@ Tous sont posés face à soi (le dossier de l'autre côté), comme les chaises.
 | Lampe de bureau | `desk_lamp` | Lampe de banquier en verre vert, lumière 12, clic droit |
 | Suspension | `ceiling_pendant` | Se pose sous un plafond (tombe si le bloc au-dessus part), lumière 15, clic droit |
 | Projecteur | `spotlight` | Sur le sol, ou suspendu sous un plafond. Voir ci-dessous |
-| Lumière de studio | `studio_light` | Petit projecteur sur pied, lumière 15. Posé face à soi (8 orientations). **Clic droit** : change l'angle (5 inclinaisons, du bas vers le haut) ; **accroupi + clic droit** : la tourne de 45° |
-| Softbox | `softbox` | Grande boîte à lumière, lumière 15 ; au sol, au plafond ou contre un mur (debout, dos au mur). Clic droit : 4 angles ; accroupi + clic droit : tourner |
+| Lumière de studio | `studio_light` | Petit projecteur sur pied, lumière 15. Au sol, **suspendue** sous un plafond ou une barre, ou **sur le côté** d'un mur (sur un petit bras fixé au mur) ou d'une barre (sur le bras de la barre). Posée face à soi (8 orientations). **Clic droit** : change l'angle (5 inclinaisons, du bas vers le haut) ; **accroupi + clic droit** : la tourne de 45° |
+| Softbox | `softbox` | Grande boîte à lumière, lumière 15 ; au sol, au plafond, contre un mur (debout, dos au mur) ou sur le côté d'une barre (debout sur son bras). Clic droit : 4 angles ; accroupi + clic droit : tourner |
 | Enseigne « EN DIRECT » | `on_air_sign` | Caisson lumineux contre un mur (plus large que le bloc). Clic droit ou courant de redstone (allumée tant qu'elle est alimentée) |
 
 ### Projecteurs
@@ -42,9 +42,33 @@ Tous sont posés face à soi (le dossier de l'autre côté), comme les chaises.
 | Objet | Bloc | Utilisation |
 |---|---|---|
 | Cadre | `decor_frame` | Cadre doré vide (1,5 bloc) : contre un mur, au plafond ou à plat au sol, sans collision |
-| Pied de trépied / barre de trépied | `tripod`, `tripod_rod` | Le trépied du serveur ; la barre se pose dessus (et sur une autre barre) |
+| Pied de trépied / barre de trépied | `tripod`, `tripod_rod` | Le trépied du serveur ; les barres s'assemblent en **structures** (voir [Structures de barres](#structures-de-barres)) |
 | Carrelage noir et blanc | `checker_tile` | Bloc plein, damier |
 | Paroi du globe CraftMaster | `globe_panel` | Verre blanc, une face avec la porte : pour construire le globe |
+
+### Structures de barres
+Les barres de trépied (`tripod_rod`, la barre du serveur, même texture et même épaisseur) se relient toutes seules,
+comme des barrières, mais dans les **6 directions** : tours, poutres, angles, T, croix, et croisements en 3D.
+
+- **Poser** : clic droit sur une barre pour la prolonger de ce côté (dessus : la tour monte ; sur le côté : une
+  poutre part). Une barre se relie à toutes les barres autour d'elle, au **haut d'un trépied** posé dessous, et aux
+  **lumières accrochées** à elle.
+- **Accroupi en posant** : elle ne se relie qu'au bloc contre lequel on la pose (deux poutres côte à côte sans se
+  toucher, par exemple).
+- **Contre un mur, un plafond, le sol** : posée contre lui, elle s'y fixe par une petite platine ; le bout d'une
+  poutre qui touche un mur s'y fixe aussi.
+- Une barre seule (ou une ligne droite) traverse tout son bloc, avec la bague du modèle de LordFinn à chaque bout ;
+  là où des barres se croisent en angle, un **collier** carré les tient.
+- Fines : pas de collision de bloc plein, on passe à côté. **On grimpe** le long d'une barre comme à une échelle.
+- Casser une barre détache ses voisines (elles redeviennent droites).
+
+**Lumières sur la structure** : poser la lumière contre la barre, du côté voulu.
+- **Dessous** : lumière de studio, softbox ou projecteur **suspendus** (la barre descend jusqu'à eux, leur pied est
+  pris dans la bague).
+- **Dessus** : posée sur la barre, comme sur le sol.
+- **Sur le côté** : la barre sort un petit bras ; la lumière de studio ou la softbox se tient **debout sur ce bras**,
+  tournée vers celui qui la pose. Clic droit (angle) et accroupi + clic droit (45°) marchent partout.
+- Les projecteurs (qui suivent un joueur) s'accrochent dessus ou dessous, pas sur le côté.
 
 ## L'émission
 | Objet | Bloc / objet | Utilisation |
@@ -144,6 +168,11 @@ vanilla réaccordés, remplaçables par un pack de ressources (`assets/craftmast
   dessine le même modèle avec les transformations du cadre ou de l'entité d'affichage de Minecraft. Le trépied et
   sa barre sont des modèles de bloc ordinaires ; la caméra (`CameraRenderer`) les dessine sous son boîtier, seul le
   visuel a changé. Le pack tiers « livingroom » du serveur n'est pas repris.
+- **Structures de barres** : `RigRodBlock` (6 propriétés `north`… `down`, les liaisons, toujours réciproques entre
+  deux barres) et `RigLinks` (logique pure, testée par `RigLinksTest`). Le modèle est un multipart généré par
+  `gen_furniture.py` à partir des pièces de la barre de LordFinn : un bras par côté relié (`rig_arm`, la moitié de son
+  tube et sa bague) et un collier (`rig_knuckle`). Une lumière posée sur le côté d'une barre (ou une lumière de studio
+  contre un mur, avec son bras `rig_arm`) est dessinée debout sur ce bras par `FurnitureRenderer`.
 - Projecteurs, chrono, pupitres, table, gong, poteaux : entités de bloc dessinées par le client
   (`client/studio/`). Le projecteur vise côté client à chaque image (suivi fluide), le serveur ne déplace que le
   bloc de lumière (toutes les 4 ticks).

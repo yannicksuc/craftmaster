@@ -1,7 +1,199 @@
 {
-  "variants": {
-    "": {
-      "model": "craftmaster:block/furniture/tripod_rod"
+  "multipart": [
+    {
+      "when": {
+        "OR": [
+          {
+            "down": "true"
+          },
+          {
+            "up": "true",
+            "north": "false",
+            "south": "false",
+            "west": "false",
+            "east": "false"
+          },
+          {
+            "down": "false",
+            "up": "false",
+            "north": "false",
+            "south": "false",
+            "west": "false",
+            "east": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "craftmaster:block/furniture/rig_arm",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "up": "true"
+          },
+          {
+            "down": "true",
+            "north": "false",
+            "south": "false",
+            "west": "false",
+            "east": "false"
+          },
+          {
+            "down": "false",
+            "up": "false",
+            "north": "false",
+            "south": "false",
+            "west": "false",
+            "east": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "craftmaster:block/furniture/rig_arm"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "true"
+          },
+          {
+            "south": "true",
+            "down": "false",
+            "up": "false",
+            "west": "false",
+            "east": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "craftmaster:block/furniture/rig_arm",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "south": "true"
+          },
+          {
+            "north": "true",
+            "down": "false",
+            "up": "false",
+            "west": "false",
+            "east": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "craftmaster:block/furniture/rig_arm",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "west": "true"
+          },
+          {
+            "east": "true",
+            "down": "false",
+            "up": "false",
+            "north": "false",
+            "south": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "craftmaster:block/furniture/rig_arm",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "east": "true"
+          },
+          {
+            "west": "true",
+            "down": "false",
+            "up": "false",
+            "north": "false",
+            "south": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "craftmaster:block/furniture/rig_arm",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "down": "true",
+            "west": "true"
+          },
+          {
+            "down": "true",
+            "east": "true"
+          },
+          {
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "up": "true",
+            "west": "true"
+          },
+          {
+            "up": "true",
+            "east": "true"
+          },
+          {
+            "north": "true",
+            "west": "true"
+          },
+          {
+            "north": "true",
+            "east": "true"
+          },
+          {
+            "south": "true",
+            "west": "true"
+          },
+          {
+            "south": "true",
+            "east": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "craftmaster:block/furniture/rig_knuckle"
+      }
     }
-  }
+  ]
 }
