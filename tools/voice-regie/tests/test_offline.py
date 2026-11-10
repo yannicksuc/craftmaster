@@ -48,6 +48,18 @@ CASES = [
     ("Éteins les projecteurs.", [{"type": "spotlight.off"}]),
     ("Allumez les projecteurs.", [{"type": "spotlight.on"}]),
     ("Projecteurs fixes.", [{"type": "spotlight.stop"}]),
+    # TV direction: lieux, zones, travellings, intros (chantier E)
+    ("Caméra 2 du studio.", [{"type": "camera.cut", "camera": "caméra 2 du studio"}]),
+    ("Caméra un d'Ensuri.", [{"type": "camera.cut", "camera": "caméra 1 d'ensuri"}]),
+    ("Zone d'Ensuri.", [{"type": "camera.focus", "player": "Ensuri", "cut": True}]),
+    ("Les caméras de l'équipe bleue.", [{"type": "camera.focus", "zone": "équipe bleue", "cut": True}]),
+    ("Caméras du studio.", [{"type": "camera.focus", "lieu": "studio"}]),
+    ("Les caméras du pont.", [{"type": "camera.focus", "lieu": "pont"}]),
+    ("La caméra 3 est sur le pont.", [{"type": "camera.lieu", "camera": "3", "lieu": "pont"}]),
+    ("Lance le travelling du pont.", [{"type": "camera.path", "path": "pont"}]),
+    ("Lance l'intro du pont.", [{"type": "intro.play", "manche": "pont"}]),
+    ("Lance l'intro de la tour.", [{"type": "intro.play", "manche": "tour"}]),
+    ("Écran partagé.", [{"type": "camera.mosaic"}]),
 ]
 
 

@@ -93,6 +93,9 @@ class ShowContext:
         # TV direction (chantier E): [{number, name, role}], what is on air
         self.cameras = [c for c in _as_list(r.get("cameras")) if isinstance(c, dict)]
         self.on_air = str(r.get("onAir") or "none")
+        # Lieux (studio / rounds and their zones) and travellings: cameras[].key/lieu/zone, cameraFocus, paths[]
+        self.camera_focus = str(r.get("cameraFocus") or "studio")
+        self.paths = [p for p in _as_list(r.get("paths")) if isinstance(p, dict)]
         self.recent = [a if isinstance(a, str) else str(a.get("text", a)) for a in _as_list(r.get("recentActions"))][-10:]
 
     # ------------------------------------------------------------------ parsing helpers
@@ -271,9 +274,17 @@ class ShowContext:
         out.append("Rideaux : " + (", ".join(self.curtains) if self.curtains else "stage (défaut)"))
         out.append("Décors : " + (", ".join(self.scenes) if self.scenes else "aucun"))
         if self.cameras:
-            out.append("Caméras : " + ", ".join(f"{c.get('number')} « {c.get('name', '')} »"
-                                                 + (f" ({c.get('role')})" if c.get("role") else "") for c in self.cameras)
+            focus = self.camera_focus
+            here = [c for c in self.cameras if str(c.get("key", "")).rsplit(":", 1)[0] == focus] if any("key" in c for c in self.cameras) else self.cameras
+            others = [c for c in self.cameras if c not in here]
+            out.append(f"Caméras ({focus}, « caméra N » = celles-ci) : " + (", ".join(
+                f"{c.get('number')} « {c.get('name', '')} »" + (f" ({c.get('role')})" if c.get("role") else "") for c in here) or "aucune")
                        + f" · à l'antenne : {self.on_air}")
+            if others:
+                out.append("Autres caméras (par clé) : " + ", ".join(
+                    f"{c.get('key')} « {c.get('name', '')} »" + (f" ({c.get('role')})" if c.get("role") else "") for c in others))
+        if self.paths:
+            out.append("Trajets (travellings) : " + ", ".join(f"{p.get('name')} ({p.get('lieu')}, {p.get('seconds')} s)" for p in self.paths))
         if self.recent:
             out.append("Dernières actions :")
             out.extend("  " + a for a in self.recent)

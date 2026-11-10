@@ -8,7 +8,9 @@ Understood: "caméra <N>" · "plan large" · "plan sur le trône" · "le podium"
 "la révélation" · "<N> point(s) pour|à <joueur> [pour|sur <manche>]" · "<joueur> prend <N> point(s) [sur <manche>]" ·
 "<joueur> a fait <N> secondes|minutes|blocs|mètres" · "<joueur> est disqualifié" · "applique le barème" · "remets les buzzers" ·
 "révèle la tâche" · "montre la tâche" · "donne les enveloppes" ·
-"projecteurs sur <joueur>" · "éteins | allume les projecteurs" · "projecteurs fixes".
+"projecteurs sur <joueur>" · "éteins | allume les projecteurs" · "projecteurs fixes" ·
+"caméra <N> du studio | d'<joueur>" · "zone d'<joueur>" · "caméras de l'équipe bleue | du studio | du <manche>" ·
+"la caméra <N> est sur <lieu>" · "lance le travelling <nom>" · "lance l'intro [du <manche>]" · "écran partagé".
 """
 from __future__ import annotations
 
@@ -99,7 +101,36 @@ class OfflineUnderstander:
             if UNITS.get(unit):
                 action["kind"] = UNITS[unit]
             return [action]
-        # TV direction (chantier E)
+        # TV direction, lieux / travellings / intros (chantier E)
+        m = re.fullmatch(r"(?:lance |joue |envoie )?(?:le |un )?(?:travelling|trajet)s? (?:du |de la |de l'|des |d'|de )?(?P<path>.+)", text)
+        if m:
+            return [{"type": "camera.path", "path": m.group("path").strip()}]
+        m = re.fullmatch(r"(?:lance |joue )?l'intro(?:duction)? (?:du |de la |de l'|des |d'|de )(?:manche )?(?P<manche>.+)", text)
+        if m:
+            return [{"type": "intro.play", "manche": m.group("manche").strip()}]
+        if re.fullmatch(r"(?:lance |joue )?l'intro(?:duction)?(?: de la manche)?", text):
+            return [{"type": "intro.play"}]
+        m = re.fullmatch(r"(?:la )?cam[ée]ra " + NUM + r" est (?:sur|dans|à|au) (?:le |la |l'|les )?(?P<lieu>.+)", text)
+        if m:
+            n = m.group("n")
+            return [{"type": "camera.lieu", "camera": str(FRENCH_NUMBERS.get(n, n)), "lieu": m.group("lieu").strip()}]
+        if re.fullmatch(r"(?:les )?cam[ée]ras du (?:studio|plateau)", text):
+            return [{"type": "camera.focus", "lieu": "studio"}]
+        m = re.fullmatch(r"(?:la )?(?:zone|salle|chambre) (?:de |du |d')(?P<who>.+)", text) \
+            or re.fullmatch(r"(?:les )?cam[ée]ras (?:de |du |d')(?P<who>.+)", text)
+        if m:
+            who = m.group("who").strip()
+            if ctx.manche(who) is not None:
+                return [{"type": "camera.focus", "lieu": ctx.manche(who).id}]
+            if ctx.player(who) is not None:
+                return [{"type": "camera.focus", "player": who, "cut": True}]
+            return [{"type": "camera.focus", "zone": re.sub(r"^(?:l'|la |le )", "", who), "cut": True}]
+        if re.fullmatch(r"(?:un |l')?(?:écran partagé|mosaïque|split screen)", text):
+            return [{"type": "camera.mosaic"}]
+        m = re.fullmatch(r"(?:la |sur la )?cam[ée]ra " + NUM + r" (?P<of>du studio|du plateau|d'.+|de .+|du .+)", text)
+        if m:
+            n = m.group("n")
+            return [{"type": "camera.cut", "camera": f"caméra {FRENCH_NUMBERS.get(n, n)} {m.group('of')}"}]
         m = re.fullmatch(r"(?:la |sur la )?cam[ée]ra " + NUM, text)
         if m:
             n = m.group("n")
