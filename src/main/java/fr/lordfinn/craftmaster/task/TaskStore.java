@@ -34,6 +34,8 @@ public final class TaskStore {
         Map<String, Reveal> revealed = new LinkedHashMap<>();
         String lastRevealed;
         Map<String, Note> notes = new LinkedHashMap<>();
+        /** How many [secret] parts of each task the organiser revealed ("révèle la suite"). */
+        Map<String, Integer> secretsShown = new LinkedHashMap<>();
     }
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
@@ -72,6 +74,7 @@ public final class TaskStore {
         }
         if (state.revealed == null) state.revealed = new LinkedHashMap<>();
         if (state.notes == null) state.notes = new LinkedHashMap<>();
+        if (state.secretsShown == null) state.secretsShown = new LinkedHashMap<>();
         state.notes.values().removeIf(n -> n == null);
         state.notes.forEach((id, n) -> {
             n.id = id;
@@ -121,6 +124,7 @@ public final class TaskStore {
         String k = key(season, mancheId);
         boolean was = state.revealed.remove(k) != null;
         if (k.equals(state.lastRevealed)) state.lastRevealed = null;
+        was |= state.secretsShown.remove(k) != null;
         if (was) save();
         return was;
     }
@@ -130,10 +134,26 @@ public final class TaskStore {
         String prefix = season + ":";
         int before = state.revealed.size();
         state.revealed.keySet().removeIf(k -> k.startsWith(prefix));
+        state.secretsShown.keySet().removeIf(k -> k.startsWith(prefix));
         if (state.lastRevealed != null && state.lastRevealed.startsWith(prefix)) state.lastRevealed = null;
         int n = before - state.revealed.size();
         if (n > 0) save();
         return n;
+    }
+
+    /** How many of the task's [secret] parts are revealed (0 = none). */
+    public int secretsShown(int season, String mancheId) {
+        return state.secretsShown.getOrDefault(key(season, mancheId), 0);
+    }
+
+    /** Reveals the next [secret] part (up to {@code count}). @return the new number shown, or -1 if none was left */
+    public int showNextSecret(int season, String mancheId, int count) {
+        String k = key(season, mancheId);
+        int shown = state.secretsShown.getOrDefault(k, 0);
+        if (shown >= count) return -1;
+        state.secretsShown.put(k, shown + 1);
+        save();
+        return shown + 1;
     }
 
     /** {season, mancheId} of the task revealed last, or null. */

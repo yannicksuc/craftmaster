@@ -7,7 +7,7 @@ Understood: "caméra <N>" · "plan large" · "plan sur le trône" · "le podium"
 "annule" · "ouvrez / fermez les rideaux" · "manche suivante" · "mettez à jour les scores" / "publie" ·
 "la révélation" · "<N> point(s) pour|à <joueur> [pour|sur <manche>]" · "<joueur> prend <N> point(s) [sur <manche>]" ·
 "<joueur> a fait <N> secondes|minutes|blocs|mètres" · "<joueur> est disqualifié" · "applique le barème" · "remets les buzzers" ·
-"révèle la tâche" · "montre la tâche" · "donne les enveloppes" ·
+"révèle la tâche" · "révèle la suite" · "montre la tâche" · "donne les enveloppes" ·
 "projecteurs sur <joueur>" · "éteins | allume les projecteurs" · "projecteurs fixes".
 """
 from __future__ import annotations
@@ -73,6 +73,8 @@ class OfflineUnderstander:
             return [{"type": "manche.start", "manche": "next"}]
         if re.search(r"(mett?\w* à jour (les scores|le classement)|^publie)", text):
             return [{"type": "scores.publish"}]
+        if re.search(r"\b(révèle|révéler|dévoile)\w* (la )?suite\b", text):
+            return [{"type": "task.reveal_more"}]
         if re.search(r"\b(révèle|révéler|dévoile)\w* (la )?tâche\b", text):
             return [{"type": "task.reveal"}]
         if re.search(r"\b(montre|affiche)\w* (la )?tâche\b(?! sur le stream| sur la diffusion| à l.antenne)", text):

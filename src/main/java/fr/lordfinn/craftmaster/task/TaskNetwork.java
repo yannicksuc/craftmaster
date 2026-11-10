@@ -21,7 +21,9 @@ import java.util.List;
  *                  ShowCard(ticks)            the task card on screen for a while (task.show, !tache)
  *                  OpenEditor(mode, rounds)   organisers: task editor (mode 0) or wax seal (mode 1)
  *                  OpenNote(note)             organisers: note editor
+ *                  PaperUpdate(round, text)   a [secret] part revealed: an open letter takes the new text
  * client → server  RequestTask()              J pressed: open the task of the moment
+ *                  SealBroken()               the reader tore the seal off (reveal + announce now)
  *                  RunActions(json)           organisers' screens: actions for ActionExecutor
  *                  SaveNote(note)             organisers: create / change a note
  *                  NoteOrder(id, order)       organisers: give the tool, bottle, reset, unhide, delete
@@ -103,7 +105,9 @@ public final class TaskNetwork {
     }
 
     /** Flags of a {@link Paper}. */
-    public static final int ENVELOPE = 1, INK = 2, LIT = 4, SECRET = 8, CAN_REVEAL = 16, FOUND = 32, CAN_EDIT = 64;
+    public static final int ENVELOPE = 1, INK = 2, LIT = 4, SECRET = 8, CAN_REVEAL = 16, FOUND = 32, CAN_EDIT = 64,
+    /** An organiser's preview of a letter (/tache apercu): nothing is revealed. */
+    PREVIEW = 128;
 
     /**
      * Something to read on the paper screen. {@code kind}: "task", "note" or "text". {@code header}: small line
@@ -240,6 +244,33 @@ public final class TaskNetwork {
         public Type<OpenNote> type() { return TYPE; }
     }
 
+    /** Client → server: the reader tore the seal of the letter just opened (the reveal and the announce follow). */
+    public record SealBroken() implements CustomPacketPayload {
+        public static final Type<SealBroken> TYPE = new Type<>(CraftMaster.id("task_seal_broken"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, SealBroken> CODEC = StreamCodec.unit(new SealBroken());
+
+        @Override
+        public Type<SealBroken> type() { return TYPE; }
+    }
+
+    /**
+     * Server → client: a round's text changed while it may be open on screen (a [secret] part was revealed): an
+     * open letter of that round takes the new text. Redacted for the receiver like any paper.
+     */
+    public record PaperUpdate(int season, String mancheId, String text, List<String> rules) implements CustomPacketPayload {
+        public static final Type<PaperUpdate> TYPE = new Type<>(CraftMaster.id("task_paper_update"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, PaperUpdate> CODEC = CustomPacketPayload.codec(
+                (p, buf) -> {
+                    buf.writeVarInt(p.season);
+                    buf.writeUtf(p.mancheId);
+                    buf.writeUtf(p.text, MAX_TEXT);
+                    writeList(buf, p.rules);
+                }, buf -> new PaperUpdate(buf.readVarInt(), buf.readUtf(), buf.readUtf(MAX_TEXT), readList(buf)));
+
+        @Override
+        public Type<PaperUpdate> type() { return TYPE; }
+    }
+
     public record RequestTask() implements CustomPacketPayload {
         public static final Type<RequestTask> TYPE = new Type<>(CraftMaster.id("task_request"));
         public static final StreamCodec<RegistryFriendlyByteBuf, RequestTask> CODEC = StreamCodec.unit(new RequestTask());
@@ -309,6 +340,8 @@ public final class TaskNetwork {
         PayloadTypeRegistry.clientboundPlay().register(OpenEditor.TYPE, OpenEditor.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(OpenNote.TYPE, OpenNote.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(CloseCard.TYPE, CloseCard.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(PaperUpdate.TYPE, PaperUpdate.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(SealBroken.TYPE, SealBroken.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(RequestTask.TYPE, RequestTask.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(RunActions.TYPE, RunActions.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(SaveNote.TYPE, SaveNote.CODEC);

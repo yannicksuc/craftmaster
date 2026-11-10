@@ -12,7 +12,7 @@ result.set result.dq result.remove results.clear results.config results.apply st
 stopwatch.reset buzzer.reset
 camera.cut camera.follow camera.auto broadcast.lowerthird broadcast.task broadcast.scores broadcast.letterbox
 show.intro show.outro show.stop
-task.set task.clear task.reveal task.hide task.show envelope.give
+task.set task.clear task.reveal task.hide task.show envelope.give task.reveal_more
 spotlight.follow spotlight.stop spotlight.on spotlight.off""".split()
 
 

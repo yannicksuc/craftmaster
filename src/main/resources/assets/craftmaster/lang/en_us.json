@@ -571,5 +571,10 @@
   "screen.craftmaster.studio_screen.hint": "Each player's game downloads the image",
   "screen.craftmaster.studio_screen.bad_size": "Size: 1 to %s blocks wide, 1 to %s high",
   "screen.craftmaster.studio_screen.loading": "Loading…",
-  "screen.craftmaster.studio_screen.failed": "Image unavailable: %s"
+  "screen.craftmaster.studio_screen.failed": "Image unavailable: %s",
+  "paper.craftmaster.signature": "The CraftMaster",
+  "paper.craftmaster.letter_duration": "Time: %s",
+  "paper.craftmaster.tear": "Tear the seal off",
+  "paper.craftmaster.tear_hint": "Drag the seal with the mouse · or click it · or hold Space",
+  "paper.craftmaster.preview_ribbon": "PREVIEW: nothing is revealed to the players"
 }

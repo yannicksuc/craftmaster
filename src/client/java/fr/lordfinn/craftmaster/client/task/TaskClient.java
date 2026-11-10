@@ -45,13 +45,16 @@ public final class TaskClient {
             Minecraft mc = ctx.client();
             // Opened from an editor: closing the card goes back to it
             Screen parent = mc.gui.screen() instanceof TaskEditorScreen || mc.gui.screen() instanceof NoteEditorScreen ? mc.gui.screen() : null;
-            mc.gui.setScreen(new PaperScreen(p, parent));
+            mc.gui.setScreen(open(p, parent));
+        });
+        ClientPlayNetworking.registerGlobalReceiver(TaskNetwork.PaperUpdate.TYPE, (p, ctx) -> {
+            if (ctx.client().gui.screen() instanceof LetterScreen l) l.update(p);
         });
         ClientPlayNetworking.registerGlobalReceiver(TaskNetwork.OpenEditor.TYPE, (p, ctx) ->
                 ctx.client().gui.setScreen(p.mode() == 1 ? new SealScreen(p) : new TaskEditorScreen(p)));
         ClientPlayNetworking.registerGlobalReceiver(TaskNetwork.CloseCard.TYPE, (p, ctx) -> {
             Screen s = ctx.client().gui.screen();
-            if (s instanceof PaperScreen || s instanceof TaskEditorScreen || s instanceof SealScreen || s instanceof NoteEditorScreen)
+            if (s instanceof PaperScreen || s instanceof LetterScreen || s instanceof TaskEditorScreen || s instanceof SealScreen || s instanceof NoteEditorScreen)
                 ctx.client().gui.setScreen(null);
         });
         ClientPlayNetworking.registerGlobalReceiver(TaskNetwork.OpenNote.TYPE, (p, ctx) -> ctx.client().gui.setScreen(new NoteEditorScreen(p.note())));
@@ -79,6 +82,11 @@ public final class TaskClient {
                         })));
         });
         TwitchChat.reload();
+    }
+
+    /** The reading screen of a paper: the folded letter for a task or a free text, the sheet for a note. */
+    static Screen open(TaskNetwork.Paper p, Screen parent) {
+        return "task".equals(p.kind()) || "text".equals(p.kind()) ? new LetterScreen(p, parent) : new PaperScreen(p, parent);
     }
 
     static void openTask(Minecraft mc) {

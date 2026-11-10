@@ -23,12 +23,28 @@ import java.util.Locale;
  * drag x y dx dy [button] [mods]
  * release x y [button]
  * scroll x y amount
- * key NAME [mods]                NAME: a letter, a digit, LEFT, RIGHT, UP, DOWN, HOME, ESCAPE, ENTER
+ * key NAME [mods]                NAME: a letter, a digit, LEFT, RIGHT, UP, DOWN, HOME, ESCAPE, ENTER, SPACE
+ * hold NAME seconds              the key reads as held down ({@link #held}) for that long (pressed once too)
+ * slowmo factor                  animations that ask {@link #timeScale} run this many times slower (1 = normal)
  * </pre>
  */
 public final class DevInput {
 
     private DevInput() {}
+
+    private static final java.util.Map<Integer, Long> HELD = new java.util.HashMap<>();
+    private static float slow = 1;
+
+    /** Is this key (InputConstants.KEY_*) held by a {@code hold} line? Always false outside development. */
+    public static boolean held(int key) {
+        Long until = HELD.get(key);
+        return until != null && System.nanoTime() < until;
+    }
+
+    /** Speed factor of the animations (1 normal, 0.1 = ten times slower with "slowmo 10"); 1 outside development. */
+    public static float timeScale() {
+        return 1 / slow;
+    }
 
     public static void init() {
         if (!FabricLoader.getInstance().isDevelopmentEnvironment()) return;
@@ -43,8 +59,12 @@ public final class DevInput {
                 return;
             }
             Screen screen = mc.gui.screen();
-            if (screen == null) return;
             for (String line : lines) {
+                if (line.strip().toLowerCase(Locale.ROOT).startsWith("slowmo")) {
+                    slow = Math.max(0.01f, Float.parseFloat(line.strip().split("\\s+")[1]));
+                    continue;
+                }
+                if (screen == null) continue;
                 try {
                     run(screen, line.trim().split("\\s+"));
                 } catch (Exception e) {
@@ -85,6 +105,12 @@ public final class DevInput {
             case "release" -> s.mouseReleased(new MouseButtonEvent(Double.parseDouble(a[1]), Double.parseDouble(a[2]),
                     new MouseButtonInfo(button(a, 3), 0)));
             case "scroll" -> s.mouseScrolled(Double.parseDouble(a[1]), Double.parseDouble(a[2]), 0, Double.parseDouble(a[3]));
+            case "hold" -> {
+                int[] k = keyCode(a[1]);
+                HELD.put(k[0], System.nanoTime() + (long) (Double.parseDouble(a.length > 2 ? a[2] : "1") * 1e9));
+                s.keyPressed(new KeyEvent(k[0], k[1], 0));
+            }
+            case "slowmo" -> slow = Math.max(0.01f, Float.parseFloat(a[1]));
             case "key" -> {
                 int[] k = keyCode(a[1]);
                 s.keyPressed(new KeyEvent(k[0], k[1], mods(a, 2)));
@@ -108,6 +134,8 @@ public final class DevInput {
             case "HOME" -> InputConstants.KEY_HOME;
             case "ESCAPE" -> InputConstants.KEY_ESCAPE;
             case "ENTER" -> InputConstants.KEY_RETURN;
+            case "SPACE" -> InputConstants.KEY_SPACE;
+            case "PAGEDOWN" -> InputConstants.KEY_PAGEDOWN;
             default -> throw new IllegalArgumentException("key " + name);
         };
         return new int[]{code, code};

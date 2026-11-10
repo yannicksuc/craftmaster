@@ -82,6 +82,9 @@ public final class Actions {
 
     public record TaskHidden(int season, String manche) implements TaskEffect {}
 
+    /** The next [secret] part of the task's text is revealed to everyone ("révèle la suite"). */
+    public record TaskSecretShown(int season, String manche) implements TaskEffect {}
+
     /** The task's card shows on every screen for {@code seconds} (revealed first if it was not). */
     public record TaskShown(int season, String manche, int seconds) implements TaskEffect {}
 
@@ -115,7 +118,7 @@ public final class Actions {
             // TV direction (chantier E): no data change, played by broadcast.Director
             "camera.cut", "camera.follow", "camera.auto", "camera.transition", "broadcast.lowerthird", "broadcast.task",
             "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop",
-            "task.set", "task.clear", "task.reveal", "task.hide", "task.show", "envelope.give",
+            "task.set", "task.clear", "task.reveal", "task.hide", "task.show", "envelope.give", "task.reveal_more",
             // Studio set (chantier F)
             "spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off");
 
@@ -340,6 +343,7 @@ public final class Actions {
                 case "task.clear" -> taskClear(a);
                 case "task.reveal" -> taskReveal(a);
                 case "task.hide" -> taskHide(a);
+                case "task.reveal_more" -> taskRevealMore(a);
                 case "task.show" -> taskShow(a);
                 case "envelope.give" -> envelopeGive(a);
                 // Studio set (chantier F): world only, nothing in the data changes
@@ -1222,6 +1226,14 @@ public final class Actions {
             Season s = season(a, false);
             Found f = taskManche(s, a);
             effects.add(new TaskHidden(s.id, f.manche().id));
+        }
+
+        private void taskRevealMore(Map<String, Object> a) {
+            Season s = season(a, false);
+            Found f = withTask(a, s);
+            if (fr.lordfinn.craftmaster.task.TaskMarkup.secretCount(f.manche().task.text) == 0)
+                throw new Invalid("la tâche de « " + f.manche().name + " » n'a pas de partie [secret].");
+            effects.add(new TaskSecretShown(s.id, f.manche().id));
         }
 
         private void taskShow(Map<String, Object> a) {

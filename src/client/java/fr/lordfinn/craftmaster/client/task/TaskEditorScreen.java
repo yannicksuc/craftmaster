@@ -245,8 +245,8 @@ public class TaskEditorScreen extends Screen {
         int s = parseSeconds(d.seconds);
         Component header = Component.translatable("paper.craftmaster.round", r.card().number(), r.card().mancheName());
         TaskNetwork.Paper p = new TaskNetwork.Paper("task", header, d.title.strip(), Task.cleanText(d.text), Task.parseRules(d.rules),
-                s > 0 ? s : r.card().seconds(), d.wax.id(), "paper", TaskNetwork.ENVELOPE, List.of(), selected, r.card().season(), "");
-        minecraft.gui.setScreen(new PaperScreen(p, this));
+                s > 0 ? s : r.card().seconds(), d.wax.id(), "paper", TaskNetwork.ENVELOPE | TaskNetwork.PREVIEW, List.of(), selected, r.card().season(), "");
+        minecraft.gui.setScreen(TaskClient.open(p, this));
     }
 
     @Override
