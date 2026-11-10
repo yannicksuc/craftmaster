@@ -13,7 +13,9 @@ powershell -File tools\voice-regie\start.ps1 -Check   # GPU, bibliothèques CUDA
 La clé Claude est lue **uniquement** dans la variable d'environnement `ANTHROPIC_API_KEY` (par le SDK `anthropic`) ;
 le service ne la lit, ne l'affiche ni ne l'enregistre jamais. Variable utilisateur Windows :
 `[Environment]::SetEnvironmentVariable('ANTHROPIC_API_KEY', '<clé>', 'User')` puis **nouveau** terminal.
-Sans clé, le service transcrit quand même et répond l'erreur `no_api_key` (le jeu affiche un message clair).
+**Sans clé, rien à faire** : le service passe par Claude Code (`claude -p`) et ton abonnement Claude, comme finnTools
+(`regie/subscription.py`). Il suffit que Claude Code soit installé et connecté (sous Windows ou dans WSL : le service
+le trouve tout seul). Un peu plus lent : 4 à 6 s par ordre au lieu de 1 à 2 s avec la clé.
 
 Le premier lancement charge Whisper (~10 à 20 s). `GET /health` dit si le modèle est prêt.
 
@@ -21,7 +23,9 @@ Le premier lancement charge Whisper (~10 à 20 s). `GET /health` dit si le modè
 | Variable | Défaut | Rôle |
 |---|---|---|
 | `REGIE_PORT` | 25790 | port (toujours sur 127.0.0.1 ; le mod lit `-Dcraftmaster.regie.url` s'il change) |
-| `REGIE_UNDERSTANDING` | `claude` | `offline` = quelques phrases fixes sans Claude (tests, secours sans internet) |
+| `REGIE_UNDERSTANDING` | `claude` | `claude` = clé API si présente, sinon abonnement ; `abonnement` = toujours Claude Code ; `offline` = quelques phrases fixes sans Claude (tests, secours sans internet) |
+| `REGIE_WSL_DISTRO` | `Ubuntu` | distribution WSL où Claude Code est installé |
+| `REGIE_CLAUDE_CMD` | auto | commande Claude Code du mode abonnement (ex. `wsl.exe -e /home/moi/.local/bin/claude`) |
 | `REGIE_CLAUDE_MODEL` | `claude-opus-5-5` | modèle Claude |
 | `REGIE_CLAUDE_EFFORT` | `low` | effort (`low` = réponse rapide, suffisant pour ces ordres courts) |
 | `REGIE_CLAUDE_FAST` | 0 | 1 = mode rapide (bêta, plus cher, ~2x plus rapide en sortie) |

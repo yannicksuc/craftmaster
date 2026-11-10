@@ -226,7 +226,8 @@ Bugs trouvés à cette étape et corrigés : le rafraîchissement général reme
 rang avant l'animation de publication (plus d'animation) ; le titre de la révélation débordait de l'écran avec un
 long pseudo.
 
-Non vérifié : compréhension par le vrai Claude (pas de clé `ANTHROPIC_API_KEY` sur le PC de test), vrai micro et
+Compréhension par le vrai Claude vérifiée ensuite en mode abonnement (Claude Code, sans clé) : 4 ordres sur 4
+justes, ~3,5 s chacun. Non vérifié : vrai micro et
 touches, sons (jeu muet), clics dans les écrans (réglages des tableaux, éditeur de poses, flèches de l'écran K).
 
 ### Épreuves (chantier H, vérifié en jeu, serveur + 2 clients de dev pilotés par MCP Fabric)

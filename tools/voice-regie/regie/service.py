@@ -36,6 +36,10 @@ class Regie:
             if settings.understanding == "offline":
                 from .offline import OfflineUnderstander
                 understander = OfflineUnderstander()
+            elif settings.understanding == "abonnement" or not api_key_present():
+                # No API key: Claude Code with the Claude subscription (regie.subscription)
+                from .subscription import SubscriptionUnderstander
+                understander = SubscriptionUnderstander(settings)
             else:
                 understander = Understander(settings)
         self.understander = understander
@@ -57,7 +61,8 @@ class Regie:
         return {"ok": self.load_error is None, "whisper": getattr(self.transcriber, "description", "?"),
                 "whisperReady": self.ready.is_set(), "whisperError": self.load_error,
                 "apiKey": api_key_present(), "model": self.settings.model,
-                "understanding": self.settings.understanding}
+                "understanding": self.settings.understanding,
+                "via": type(self.understander).__name__}
 
     def command(self, body: dict) -> dict:
         t0 = time.perf_counter()
@@ -150,8 +155,8 @@ def main() -> None:
     regie = Regie(settings)
     if settings.understanding == "offline":
         log.warning("OFFLINE understanding (REGIE_UNDERSTANDING=offline): fixed patterns only, no Claude")
-    elif not api_key_present():
-        log.warning("ANTHROPIC_API_KEY is not set: transcription works, understanding will answer an error")
+    elif settings.understanding == "abonnement" or not api_key_present():
+        log.info("Understanding through Claude Code and the Claude subscription (no API key)")
     regie.load_async()
     server = ThreadingHTTPServer((settings.host, settings.port), make_handler(regie))
     log.info("Régie vocale on http://%s:%d (Claude model %s, effort %s)", settings.host, settings.port,

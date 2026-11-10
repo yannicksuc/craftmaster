@@ -5,7 +5,7 @@
 .DESCRIPTION
   The Claude API key is read by the service from the ANTHROPIC_API_KEY environment variable (user variable:
   [Environment]::SetEnvironmentVariable('ANTHROPIC_API_KEY', '...', 'User'), then open a new terminal).
-  This script never reads, prints or stores it. Without it, the service still transcribes but answers an error.
+  This script never reads, prints or stores it. Without it, the service uses Claude Code and the Claude subscription (regie/subscription.py).
 
   Optional settings (environment variables): REGIE_PORT, REGIE_CLAUDE_MODEL (claude-opus-5-5),
   REGIE_CLAUDE_EFFORT (low), REGIE_CLAUDE_FAST (1 = fast mode), REGIE_WHISPER_MODEL / _DEVICE / _COMPUTE (auto),
@@ -25,7 +25,7 @@ if (-not $Python) {
 }
 $env:PYTHONIOENCODING = 'utf-8'
 if (-not (Test-Path Env:ANTHROPIC_API_KEY)) {
-    Write-Warning "ANTHROPIC_API_KEY absente de cet environnement : la régie transcrira mais ne comprendra rien. Définis-la (variable utilisateur) puis ouvre un NOUVEAU terminal."
+    Write-Host "Pas de clé ANTHROPIC_API_KEY : la régie passe par Claude Code et ton abonnement Claude (un peu plus lent)."
 }
 if ($Check) {
     & $Python -c "import os; from regie.stt import gpu_status; print('GPU:', gpu_status()); print('ANTHROPIC_API_KEY set:', bool(os.environ.get('ANTHROPIC_API_KEY')))"

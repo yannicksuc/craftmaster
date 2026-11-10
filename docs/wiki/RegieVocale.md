@@ -5,8 +5,10 @@ jour et un panneau en haut à gauche montre ce qui a été compris et fait. Rés
 (`craftmaster:admin` ou opérateur) ; les autres reçoivent « La régie vocale est réservée aux organisateurs ».
 
 ## Démarrer (avant l'émission)
-1. Clé Claude dans l'environnement Windows (une fois) :
-   `[Environment]::SetEnvironmentVariable('ANTHROPIC_API_KEY', '<clé>', 'User')`, puis ouvrir un nouveau terminal.
+1. Rien à faire si Claude Code est installé et connecté sur le PC (Windows ou WSL Ubuntu) : la régie passe par
+   ton abonnement Claude, comme finnTools (3 à 4 s par ordre). Facultatif, plus rapide (1 à 2 s) mais payant à
+   l'usage : une clé `[Environment]::SetEnvironmentVariable('ANTHROPIC_API_KEY', '<clé>', 'User')`, puis un
+   nouveau terminal.
 2. Lancer le service sur le PC de LordFinn : `powershell -File tools\voice-regie\start.ps1` (laisser la fenêtre
    ouverte ; 10 à 20 s de chargement la première fois). `start.ps1 -Check` vérifie GPU et clé.
 3. En jeu, la touche se change dans Options → Commandes → CraftMaster → « Régie vocale ».
@@ -61,7 +63,7 @@ dernières » remonte plus loin (journal de 50 actions, partagé avec les comman
 | Message | Que faire |
 |---|---|
 | Service de régie injoignable | lancer `tools\voice-regie\start.ps1` (port 25790 libre ?) |
-| Le service de régie n'a pas de clé ANTHROPIC_API_KEY | définir la variable utilisateur, **rouvrir** le terminal, relancer `start.ps1` |
+| « Claude injoignable » sans clé API | Claude Code doit être connecté (`claude` une fois dans Ubuntu) ; autre distribution WSL : `REGIE_WSL_DISTRO` |
 | Micro indisponible | micro branché / autorisé pour les applications de bureau (Paramètres Windows → Confidentialité → Microphone) ; Java prend le micro par défaut de Windows |
 | Trop court | maintenir la touche pendant toute la phrase (minimum 0,3 s) |
 | Mauvais nom compris | ajouter un surnom au joueur / à la manche (« ajoute le surnom Juste à JustEdible ») |

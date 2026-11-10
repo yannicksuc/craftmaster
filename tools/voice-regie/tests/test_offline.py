@@ -64,6 +64,10 @@ def test_offline_does_nothing_when_unsure(ctx):
         assert r.reply
 
 
-def test_offline_mode_is_opt_in():
+def test_offline_mode_is_opt_in(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test")
     assert type(Regie(Settings(), transcriber=object()).understander).__name__ == "Understander"
+    monkeypatch.delenv("ANTHROPIC_API_KEY")
+    # No key: Claude Code and the Claude subscription
+    assert type(Regie(Settings(), transcriber=object()).understander).__name__ == "SubscriptionUnderstander"
     assert type(Regie(Settings(understanding="offline"), transcriber=object()).understander).__name__ == "OfflineUnderstander"
