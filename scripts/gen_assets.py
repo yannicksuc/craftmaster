@@ -1851,6 +1851,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gen_studio  # noqa: E402
 gen_studio.generate(sys.modules[__name__])
 
+# ------------------------------------------------------------------ screen effects: post effects, wearable glasses
+# and masks (docs/wiki/Effets.md) — everything in scripts/gen_fx.py
+import gen_fx  # noqa: E402
+gen_fx.generate(sys.modules[__name__])
+
 if SOUNDS:
     write_json(os.path.join(A, "sounds.json"), SOUNDS)
 write_json(os.path.join(A, "lang/en_us.json"), en)

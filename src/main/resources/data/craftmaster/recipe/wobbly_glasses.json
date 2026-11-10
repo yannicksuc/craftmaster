@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "I I",
+    "GPG"
+  ],
+  "key": {
+    "I": "minecraft:iron_nugget",
+    "G": "minecraft:glass_pane",
+    "P": "minecraft:purple_dye"
+  },
+  "result": {
+    "id": "craftmaster:wobbly_glasses",
+    "count": 1
+  }
+}

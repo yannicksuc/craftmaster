@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "I I",
+    "GBG"
+  ],
+  "key": {
+    "I": "minecraft:iron_nugget",
+    "G": "minecraft:tinted_glass",
+    "B": "minecraft:black_dye"
+  },
+  "result": {
+    "id": "craftmaster:pixel_glasses",
+    "count": 1
+  }
+}

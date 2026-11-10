@@ -59,12 +59,15 @@ public final class CraftMaster implements ModInitializer {
         // Tasks, envelopes, hidden notes (chantier D)
         fr.lordfinn.craftmaster.task.Tasks.register();
         Curtains.register();
+        // Screen effects (fx/): post-processing of the view, wearable glasses and masks, /fx
+        fr.lordfinn.craftmaster.fx.ScreenEffectsServer.register();
 
         // Synced to the players' game (the mod is on both sides), so it parses the same way there
         ArgumentTypeRegistry.registerArgumentType(id("word"), WordArgument.class, SingletonArgumentInfo.contextFree(WordArgument::word));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> CraftMasterCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> PortraitCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> CameraCommands.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.FxCommands.register(dispatcher));
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             FabricLoader fl = FabricLoader.getInstance();

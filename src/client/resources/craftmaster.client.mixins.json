@@ -3,6 +3,7 @@
   "package": "fr.lordfinn.craftmaster.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": ["CameraMixin", "EntityRenderDispatcherMixin", "AvatarRendererNameTagMixin", "GameRendererMixin", "GuiGraphicsExtractorAccessor", "HandsRendererMixin",
-    "MouseHandlerMixin", "ToastManagerMixin"],
+    "MouseHandlerMixin", "ToastManagerMixin",
+    "FxGameRendererMixin", "FxPostChainMixin", "FxCameraMixin", "PostChainAccessor", "PostPassAccessor", "HudInvoker"],
   "injectors": { "defaultRequire": 1 }
 }

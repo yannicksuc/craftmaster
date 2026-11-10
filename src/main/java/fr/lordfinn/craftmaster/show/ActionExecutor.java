@@ -109,6 +109,15 @@ public final class ActionExecutor {
                  Actions.BuzzersReset _ -> fr.lordfinn.craftmaster.trial.Judging.play(server, effect, lines);
             // TV direction (chantier E): cameras, overlay, credits
             case Actions.Broadcast b -> fr.lordfinn.craftmaster.broadcast.Director.play(server, b.action(), lines);
+            // Screen effects (fx/): the broadcast view, forced on players
+            case Actions.ScreenEffect f -> {
+                try {
+                    lines.add(fr.lordfinn.craftmaster.fx.ScreenEffectsServer.set(server, f.target(),
+                            fr.lordfinn.craftmaster.fx.ScreenFx.parseLenient(f.effect()), f.seconds(), f.fadeTicks()));
+                } catch (IllegalArgumentException e) {
+                    lines.add("⚠ " + e.getMessage());
+                }
+            }
             // Tasks, envelopes (chantier D)
             case Actions.TaskEffect t -> fr.lordfinn.craftmaster.task.Tasks.play(server, t, lines);
         }

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "I I",
+    "BGW"
+  ],
+  "key": {
+    "I": "minecraft:iron_nugget",
+    "G": "minecraft:glass_pane",
+    "B": "minecraft:black_dye",
+    "W": "minecraft:white_dye"
+  },
+  "result": {
+    "id": "craftmaster:noir_blanc_glasses",
+    "count": 1
+  }
+}

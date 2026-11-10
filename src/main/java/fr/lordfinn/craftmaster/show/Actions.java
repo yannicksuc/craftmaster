@@ -91,6 +91,12 @@ public final class Actions {
     // Studio set (chantier F)
     /** Every loaded spotlight: {@code order} = follow (then {@code player}), stop, on or off. */
     public record SpotlightOrder(String order, String player) implements Effect {}
+    /**
+     * Screen effects (post-processing of the view, fx/): {@code target} = "diffusion", "tous", "candidats", "tout"
+     * or an exact pseudo; {@code effect} canonical ("fisheye+masque_rond", "" = none); {@code seconds} 0 = until
+     * changed. Played by fx.ScreenEffectsServer; nothing in the data changes (no undo entry).
+     */
+    public record ScreenEffect(String target, String effect, int seconds, int fadeTicks) implements Effect {}
 
     /** The result: one French line per action (or the error), the effects to play, and whether it worked. */
     public record Outcome(List<String> lines, List<Effect> effects, boolean ok, boolean changed) {}
@@ -345,6 +351,9 @@ public final class Actions {
                 // Studio set (chantier F): world only, nothing in the data changes
                 case "spotlight.follow" -> spotlightFollow(a);
                 case "spotlight.stop", "spotlight.on", "spotlight.off" -> effects.add(new SpotlightOrder(type.substring("spotlight.".length()), null));
+                // Screen effects (fx/): world only, nothing in the data changes
+                case "fx.set" -> screenEffect(a, false);
+                case "fx.clear" -> screenEffect(a, true);
                 // (a guarded pattern must come after the constant labels) TV direction (chantier E): checked here, resolved and played by broadcast.Director
                 case String t when fr.lordfinn.craftmaster.broadcast.BroadcastActions.handles(t) ->
                         effects.add(new Broadcast(fr.lordfinn.craftmaster.broadcast.BroadcastActions.validate(t, a)));
@@ -929,6 +938,36 @@ public final class Actions {
             for (String n : data.stage().curtains.keySet()) if (n.equalsIgnoreCase(name)) return n;
             throw new Invalid("rideau « " + name + " » inconnu (rideaux : "
                     + (data.stage().curtains.isEmpty() ? "aucun" : String.join(", ", data.stage().curtains.keySet())) + ").");
+        }
+
+        /**
+         * fx.set {target?="diffusion", effect, seconds?, fade?} / fx.clear {target?="tout"}: the target is a word
+         * (diffusion, tous, candidats, tout), a cast member by name or nickname, or a pseudo (checked when played).
+         */
+        private void screenEffect(Map<String, Object> a, boolean clear) {
+            String target = str(a, "target");
+            if (target == null) target = clear ? "tout" : "diffusion";
+            String t = target.toLowerCase(Locale.ROOT);
+            if (!fr.lordfinn.craftmaster.fx.ScreenEffectsServer.BROADCAST_WORDS.contains(t) && !fr.lordfinn.craftmaster.fx.ScreenEffectsServer.ALL_WORDS.contains(t)
+                    && !fr.lordfinn.craftmaster.fx.ScreenEffectsServer.CAST_WORDS.contains(t) && !fr.lordfinn.craftmaster.fx.ScreenEffectsServer.EVERYTHING_WORDS.contains(t)) {
+                Season s = data.activeSeason();
+                SeasonPlayer p = s == null ? null : castMember(s, target);
+                if (p != null) target = p.name;
+            } else if (!clear && fr.lordfinn.craftmaster.fx.ScreenEffectsServer.EVERYTHING_WORDS.contains(t)) {
+                throw new Invalid("« tout » ne sert qu'à retirer les effets (cibles : diffusion, tous, candidats, un joueur).");
+            }
+            java.util.List<String> fx;
+            if (clear) fx = List.of();
+            else try {
+                fx = fr.lordfinn.craftmaster.fx.ScreenFx.parse(required(a, "effect"));
+            } catch (IllegalArgumentException e) {
+                throw new Invalid(e.getMessage());
+            }
+            int seconds = a.get("seconds") == null ? 0 : (int) Math.round(num(a, "seconds"));
+            if (seconds < 0 || seconds > 3600) throw new Invalid("« seconds » : de 0 à 3600.");
+            double fade = a.get("fade") == null ? -1 : num(a, "fade");
+            int fadeTicks = fade < 0 ? fr.lordfinn.craftmaster.fx.ScreenEffectsServer.DEFAULT_FADE_TICKS : (int) Math.round(Math.min(fade, 10) * 20);
+            effects.add(new ScreenEffect(target, fr.lordfinn.craftmaster.fx.ScreenFx.join(fx), seconds, fadeTicks));
         }
 
         /** Spotlights on a player: a cast member by name or nickname, or any exact pseudo (a guest, the master). */

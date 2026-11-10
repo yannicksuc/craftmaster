@@ -1,0 +1,19 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+      {
+        "when": "head",
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/fx/pumpkin_mask_worn"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "craftmaster:item/pumpkin_mask"
+    }
+  }
+}

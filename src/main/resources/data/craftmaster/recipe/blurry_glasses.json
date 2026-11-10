@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "I I",
+    "GSG"
+  ],
+  "key": {
+    "I": "minecraft:iron_nugget",
+    "G": "minecraft:glass_pane",
+    "S": "minecraft:snowball"
+  },
+  "result": {
+    "id": "craftmaster:blurry_glasses",
+    "count": 1
+  }
+}
