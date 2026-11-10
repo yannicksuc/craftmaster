@@ -1,0 +1,135 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "#dome"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        0,
+        3
+      ],
+      "to": [
+        13,
+        4,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "craftmaster:block/buzzer_base",
+          "uv": [
+            3,
+            12,
+            13,
+            16
+          ]
+        },
+        "south": {
+          "texture": "craftmaster:block/buzzer_base",
+          "uv": [
+            3,
+            12,
+            13,
+            16
+          ]
+        },
+        "east": {
+          "texture": "craftmaster:block/buzzer_base",
+          "uv": [
+            3,
+            12,
+            13,
+            16
+          ]
+        },
+        "west": {
+          "texture": "craftmaster:block/buzzer_base",
+          "uv": [
+            3,
+            12,
+            13,
+            16
+          ]
+        },
+        "up": {
+          "texture": "craftmaster:block/buzzer_base",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        },
+        "down": {
+          "texture": "craftmaster:block/buzzer_base",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        4,
+        5
+      ],
+      "to": [
+        11,
+        7,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            10,
+            11,
+            13
+          ]
+        },
+        "south": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            10,
+            11,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            10,
+            11,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            10,
+            11,
+            13
+          ]
+        },
+        "up": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        }
+      }
+    }
+  ]
+}

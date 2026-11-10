@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSS",
+    "SDS",
+    "SSS"
+  ],
+  "key": {
+    "S": "minecraft:stick",
+    "D": "minecraft:polished_deepslate"
+  },
+  "result": {
+    "id": "craftmaster:slate",
+    "count": 1
+  }
+}

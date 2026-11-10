@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " G ",
+    "GCG",
+    " G "
+  ],
+  "key": {
+    "G": "minecraft:gold_nugget",
+    "C": "minecraft:clock"
+  },
+  "result": {
+    "id": "craftmaster:judge_stopwatch",
+    "count": 1
+  }
+}

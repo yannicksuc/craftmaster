@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "P",
+    "R"
+  ],
+  "key": {
+    "P": "minecraft:paper",
+    "R": "minecraft:red_dye"
+  },
+  "result": {
+    "id": "craftmaster:red_card",
+    "count": 1
+  }
+}

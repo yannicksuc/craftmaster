@@ -1,0 +1,6 @@
+{
+  "parent": "craftmaster:block/buzzer_template",
+  "textures": {
+    "dome": "craftmaster:block/black_buzzer_dome_lit"
+  }
+}
