@@ -40,7 +40,7 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
 |---|---|
 | Commandes | `/cam cut 2` · `/cam cut "Plan large" fondu` · `/cam cut trone enchaine` · `/cam wide` · `/cam next` / `prev` · `/cam follow Ensuri` |
 | Voix | « caméra 2 », « plan large », « plan sur le trône », « le podium », « suis Ensuri », « caméra 3 en fondu » |
-| Client de diffusion | touches **1 à 9** = caméra 1 à 9, **molette** = caméra précédente / suivante, `/diffusion camera <n ou nom>` |
+| Client de diffusion | touches **1 à 9** = caméra 1 à 9 du lieu actif, **molette** = caméra précédente / suivante, **Tab** / Maj + molette = zone suivante, **0** = écran partagé, `/diffusion camera <n, nom ou clé>`, `/diffusion zone <zone\|next>` |
 
 - Les touches et la molette du client de diffusion demandent la coupe au serveur : elle n'est faite que si ce
   joueur est organisateur ou a la permission **`craftmaster:camera`**. Suivre la réalisation ne demande rien.
@@ -54,6 +54,81 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   manche et à la fin de chaque plan automatique. Une coupe à la main reprend la main.
 - Le joueur caméra en **spectateur** est déplacé tout seul près du plan (4 blocs sous l'objectif) pour que le
   serveur lui envoie le décor et les joueurs ; un joueur qui n'est pas spectateur n'est jamais déplacé.
+
+## Les lieux : caméras du studio et caméras des épreuves
+Chaque caméra a un **lieu** : le **studio** (par défaut ; toutes les anciennes caméras y sont) ou une **manche**
+(une épreuve, par son id : `pont`). Dans une manche, une caméra peut aussi appartenir à une **zone** : la salle d'un
+candidat ou d'une équipe. Les zones sont les **zones d'épreuve** (`/craftMasterZone create salle-ensuri …` puis
+`players salle-ensuri Ensuri`) : on donne à la caméra le nom de la zone, ou simplement le nom du candidat.
+
+**Numéros : chaque lieu, et chaque zone, a ses caméras 1, 2, 3…** La salle d'Ensuri a sa caméra 1, celle de Cyllu
+aussi. C'est le plus simple en direct : on choisit la salle, puis on appuie sur 1, 2 ou 3, et le numéro peint sur
+le trépied est celui de la touche. (Le lieu et la zone sont écrits en petit sous le numéro, sur le trépied.)
+Chaque caméra a aussi une **clé** unique pour la viser de n'importe où : `studio:2`, `pont:1`, `pont:ensuri:1`.
+
+**Quelles caméras visent les touches 1–9, la molette et « caméra 2 » ?** Ça suit l'émission tout seul :
+- manche lancée (et jusqu'à la révélation) : les caméras **de cette manche** si elle en a ;
+- générique, intro du studio, révélation, entre deux manches : celles **du studio** ;
+- dans une manche à zones : **Tab** (ou Maj + molette) passe à la zone suivante (Maj + Tab : précédente), puis
+  1–9 = les caméras de cette salle ; « zone d'Ensuri » / « caméras de l'équipe bleue » à la voix (et ça montre son
+  plan large), `/cam zone ensuri` ; « suis Ensuri » choisit aussi sa zone ;
+- à la main, jusqu'au prochain temps de l'émission : `/cam focus studio`, `/cam focus pont [zone]`,
+  `/cam focus auto` pour revenir au suivi automatique. `/cam focus` dit où on en est.
+- Viser ailleurs reste possible à tout moment : `/cam cut studio:2`, « caméra 2 du studio », « caméra 1 d'Ensuri »,
+  `/diffusion camera pont:2`. « Plan sur le trône » et « le podium » trouvent la caméra du studio même en manche.
+
+| Mettre en place | Commande |
+|---|---|
+| Ranger une caméra | `/cam lieu <caméra> <studio\|manche> [zone]` : `/cam lieu 3 pont ensuri` · « la caméra 3 est sur le pont » |
+| Poser directement | `/cam focus pont ensuri` puis `/cam here 1` (ou l'objet Caméra de studio) ; ou `/cam here pont:ensuri:1` |
+| Voir | `/cam list` (le lieu actif), `/cam list tout` (tous les lieux), clic droit sur un trépied (son lieu + bouton [Lieu]) |
+
+- Changer de lieu garde le numéro s'il est libre là-bas (sinon le premier libre) ; le trépied reste où il est.
+- **Réalisation automatique en manche** : quand un candidat marque, ouvre son enveloppe ou buzze, elle coupe sur
+  **la caméra de sa zone la plus proche de lui** (sinon le plan qui le suit), puis revient au plan large de la manche.
+- **Écran partagé** : `/cam mosaic` (« écran partagé », touche **0** du client de diffusion) : jusqu'à 4 salles côte à
+  côte, chacune par le plan large de sa zone, avec le nom des candidats. `/cam mosaic off` ou 0 pour revenir. Les
+  vignettes se rafraîchissent à tour de rôle (une image sur deux, trois ou quatre) : parfait pour des salles où l'on
+  construit, moins pour une course rapide.
+- `/cam pov Ensuri` (« vue d'Ensuri ») : à travers les yeux d'un joueur.
+
+## Les travellings enregistrés (trajets)
+Un **trajet** est un mouvement de caméra en plusieurs **étapes** : la caméra glisse de l'une à l'autre en courbe
+douce (pas de cassure aux étapes), démarre et s'arrête en douceur, et peut marquer une **pause** sur une étape.
+1. Place-toi au départ, regarde le premier cadre : `/cam trajet pont point`.
+2. Déplace-toi, regarde le cadre suivant : `/cam trajet pont point 3` (3 secondes pour y aller). Recommence.
+   Plus simple : `/cam trajet pont objet` donne un **Repère de travelling** (clap) : **clic droit = une étape à tes
+   yeux**, accroupi + clic droit = retirer la dernière.
+3. Régler : `duree <s> [étape]` (temps pour arriver à l'étape), `pause <s> [étape]` (arrêt sur l'étape),
+   `courbe lisse|lineaire|entree|sortie [étape]`, `zoom <15..110>|reset [étape]`, `remplacer <étape>` (refaire
+   l'étape d'ici), `aller <étape>` (y aller pour vérifier), `suppr [étape]`, `lieu <lieu>`, `effacer`.
+4. Vérifier : `/cam trajet pont` (la liste des étapes) ; `montrer` (la ligne dorée dans le monde 20 s, étapes en
+   rouge, vue seulement par les organisateurs, jamais par la diffusion) ; `apercu` (le trajet joué **sur ton écran
+   seulement**, avec le temps en haut).
+5. À l'antenne : `/cam jouer pont [transition] [effet]` · « lance le travelling du pont ». À la fin, la caméra reste
+   sur la dernière étape jusqu'au plan suivant. `/cam trajets` les liste.
+- Les trajets sont dans `config/craftmaster/trajets.json`. Ils sont joués image par image par le jeu de diffusion
+  (fluide à 60 i/s, même avec un serveur qui rame).
+
+## L'intro animée d'une manche
+Chaque manche peut avoir son **intro** : une suite de plans (caméras, trajets, joueurs suivis), chacun avec sa durée,
+sa transition (enchaîné par défaut, fondu pour le premier), un **effet d'image** facultatif (`sepia`, `noir_blanc`,
+`pixel`, `fisheye`, `vignette`, `masque_rond`, `citrouille`) et une **carte** facultative : *titre* (grand titre au
+centre) ou *synthé* (bandeau en bas), avec le nom de la manche ou un texte (`Titre | sous-titre`). Sans carte, le
+dernier plan montre le titre de la manche. Musique facultative (le thème, ou n'importe quel son). Pendant l'intro, le
+logo et le bandeau de la manche se retirent, la réalisation automatique attend, puis le plan large de la manche
+prend le relais.
+
+| Faire | Commande (`<m>` = la manche) |
+|---|---|
+| Ajouter un plan | `/tv intro <m> ajouter camera large 4` · `ajouter trajet survol` · `ajouter suivi Ensuri 5` (+ `[transition] [effet]`) |
+| Régler un plan | `/tv intro <m> plan 2 duree 3` · `plan 2 transition coupe` · `plan 2 effet sepia` · `plan 1 carte synthe Le Pont \| Épreuve 1` · `plan 3 retirer` |
+| Réglages | `/tv intro <m> musique theme\|aucune\|<son>` · `titre on\|off` · `auto on` (jouée toute seule au lancement de la manche) · `effacer` |
+| Voir / jouer | `/tv intro <m> voir` · `/tv intro <m>` · « lance l'intro du pont » · `/tv stop` l'arrête |
+
+- Les caméras d'un plan se lisent **dans le lieu de la manche** : `large`, `2`, `ensuri:1`, ou `studio:3`.
+- Tout réglage d'intro est **annulable** (« annule », `/craftMasterUndo`) : il est rangé avec la manche.
+- `/tv intro` seul lance toujours le générique d'ouverture de l'émission.
 
 ## Le mode diffusion (client)
 - **F8** (touche réglable, catégorie CraftMaster) ou `/craftMasterBroadcast` (`/diffusion`) `[on|off]` ;

@@ -76,9 +76,10 @@ public final class Mosaic {
     static void draw(GuiGraphicsExtractor g, int i, float x0, float y0, float x1, float y1) {
         if (!ready(i)) return;
         TextureSetup tex = TextureSetup.singleTexture(TILES[i].getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
-        // Render targets are stored bottom-up: V flipped (as in Transition)
+        // Render targets are stored bottom-up: V flipped (as in Transition). Opaque: the world picture's alpha is not
+        // 1 everywhere (fogged horizon), blending it would let the velvet background show through
         ((GuiGraphicsExtractorAccessor) g).craftmaster$guiRenderState().addGuiElement(new BlitRenderState(
-                RenderPipelines.GUI_TEXTURED, tex, new Matrix3x2f(g.pose()), Math.round(x0), Math.round(y0), Math.round(x1), Math.round(y1),
+                RenderPipelines.GUI_OPAQUE_TEXTURED_BACKGROUND, tex, new Matrix3x2f(g.pose()), Math.round(x0), Math.round(y0), Math.round(x1), Math.round(y1),
                 0, 1, 1, 0, 0xFFFFFFFF, null));
     }
 }

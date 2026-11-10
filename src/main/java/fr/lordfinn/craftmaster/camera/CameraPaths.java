@@ -152,6 +152,6 @@ public final class CameraPaths {
 
     private static void changed(MinecraftServer server) {
         save();
-        if (server != null) Director.sync(server);
+        if (server != null) Director.pathsChanged(server);
     }
 }

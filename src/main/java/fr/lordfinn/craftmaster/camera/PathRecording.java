@@ -1,5 +1,6 @@
 package fr.lordfinn.craftmaster.camera;
 
+import fr.lordfinn.craftmaster.Permissions;
 import fr.lordfinn.craftmaster.broadcast.Director;
 import fr.lordfinn.craftmaster.bust.Busts;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -64,21 +65,34 @@ public final class PathRecording {
         SHOWN.put(CameraPath.normalizeName(name), server.getTickCount() + seconds * 20L);
     }
 
+    /** Stops drawing a path (it goes on air). */
+    public static void hide(String name) {
+        SHOWN.remove(CameraPath.normalizeName(name));
+    }
+
     public static void tick(MinecraftServer server) {
         if (SHOWN.isEmpty() || server.getTickCount() % 4 != 0) return;
         long now = server.getTickCount();
         SHOWN.entrySet().removeIf(e -> e.getValue() < now || CameraPaths.byName().get(e.getKey()) == null);
+        // Only for the organisers' own games: never on a broadcast picture
+        List<ServerPlayer> viewers = new ArrayList<>();
+        for (ServerPlayer p : server.getPlayerList().getPlayers())
+            if (Permissions.canDriveCameras(p) && !Director.broadcasters().contains(p.getUUID())) viewers.add(p);
+        if (viewers.isEmpty()) return;
         DustParticleOptions line = new DustParticleOptions(0xE8B84A, 0.7f), step = new DustParticleOptions(0xE0242E, 1.6f);
         for (String n : SHOWN.keySet()) {
             CameraPath p = CameraPaths.byName().get(n);
             ServerLevel level = Busts.level(server, p.world());
             if (level == null || p.isEmpty()) continue;
-            for (CameraPath.Step s : p.steps()) level.sendParticles(step, s.x(), s.y(), s.z(), 2, 0.04, 0.04, 0.04, 0);
-            double d = p.duration();
-            int samples = (int) Math.min(240, Math.max(8, d * 8));
-            for (int i = 0; i <= samples; i++) {
-                CameraPath.Pose pose = p.sample(d * i / samples);
-                level.sendParticles(line, pose.x(), pose.y(), pose.z(), 1, 0, 0, 0, 0);
+            for (ServerPlayer v : viewers) {
+                if (v.level() != level) continue;
+                for (CameraPath.Step s : p.steps()) level.sendParticles(v, step, true, false, s.x(), s.y(), s.z(), 2, 0.04, 0.04, 0.04, 0);
+                double d = p.duration();
+                int samples = (int) Math.min(240, Math.max(8, d * 8));
+                for (int i = 0; i <= samples; i++) {
+                    CameraPath.Pose pose = p.sample(d * i / samples);
+                    level.sendParticles(v, line, true, false, pose.x(), pose.y(), pose.z(), 1, 0, 0, 0, 0);
+                }
             }
         }
     }

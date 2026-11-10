@@ -144,7 +144,7 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
                 // Outside the studio: the lieu (and zone) in small letters under the number
                 Component place = Component.literal(s.place);
                 float pw = font.width(place);
-                float k = Math.min(0.42f, 20f / Math.max(1, pw));
+                float k = Math.min(0.42f, 17f / Math.max(1, pw));
                 poseStack.translate(0, 5.5f, 0);
                 poseStack.scale(k, k, k);
                 collector.submitText(poseStack, -pw / 2, 0, place.getVisualOrderText(), false, Font.DisplayMode.POLYGON_OFFSET,

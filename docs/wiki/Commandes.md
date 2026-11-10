@@ -151,6 +151,13 @@ Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`
 | `/cam cut <caméra> [transition]` · `/cam wide` · `/cam next` · `/cam prev` | | Change de plan |
 | `/cam follow <joueur> [transition]` | | Plan qui suit un joueur |
 | `/cam auto <on\|off>` · `/cam transition <transition>` | | Réalisation automatique · transition par défaut |
+| `/cam lieu <caméra> <studio\|manche> [zone]` | | Range la caméra dans un lieu (et une zone : nom de zone d'épreuve ou candidat) |
+| `/cam focus [<studio\|manche\|auto> [zone]]` · `/cam zone <zone\|joueur\|suivante\|precedente\|tout>` | | Lieu / zone que visent les touches 1–9 et « caméra 2 » (sans argument : où on en est) |
+| `/cam list tout` | | Les caméras de tous les lieux, par lieu et zone |
+| `/cam mosaic [lieu\|off]` · `/cam pov <joueur>` | | Écran partagé des zones · vue d'un joueur |
+| `/cam trajet <nom> point [s]` · `duree` · `pause` · `courbe` · `zoom` · `suppr` · `remplacer` · `aller` · `apercu` · `montrer` · `jouer` · `objet` · `lieu` · `effacer` | | Enregistre et règle un travelling (voir [Réalisation](Realisation.md)) |
+| `/cam jouer <trajet> [transition] [effet]` · `/cam trajets` | | Travelling à l'antenne · liste |
+| `/tv intro <manche> [jouer\|voir\|ajouter …\|plan <n> …\|auto\|musique\|titre\|effacer]` | | Intro animée d'une manche |
 | `/craftMasterTv lowerthird player <joueur>` | tv | Synthé avec le nom (et le rang publié) d'un joueur |
 | `/tv lowerthird text <titre> [\| sous-titre]` | | Synthé libre |
 | `/tv task [secondes]` · `/tv scores [show\|auto\|on\|off]` · `/tv letterbox <on\|off>` | | Carte de la tâche · bandeau des scores · bandes cinéma |
@@ -163,7 +170,8 @@ Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`
 |---|---|
 | `/craftMasterBroadcast [on\|off]` (alias `/diffusion`) ou **F8** | Mode diffusion (image TV) |
 | `/diffusion chat <on\|off>` · `/diffusion status` | Chat visible en diffusion · état |
-| `/diffusion camera <n ou nom>` (ou touches 1–9, molette) | Demande ce plan (réalisation seulement) |
+| `/diffusion camera <n, nom ou clé>` (ou touches 1–9, molette) | Demande ce plan (réalisation seulement) |
+| `/diffusion zone <zone\|next\|prev>` (ou Tab / Maj+Tab, Maj+molette) · touche **0** | Zone suivante de la manche · écran partagé |
 
 ## Tâches et enveloppes
 `/craftMasterTask` (alias `/tache`, `/cftk`) — détail dans [Tâches](Taches.md). Sans argument (**tous**) : la tâche

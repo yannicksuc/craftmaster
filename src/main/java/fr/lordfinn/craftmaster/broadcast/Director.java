@@ -122,9 +122,12 @@ public final class Director {
     private static boolean revealHold;
     private static ShowState lastSent;
     private static boolean dirty = true;
-    /** Lieu chosen by the operator (null = follow the show), zone selected in the lieu ("" = the lieu's own). */
+    /**
+     * Lieu chosen by the operator (null = follow the show), zone selected in the lieu ("" = the lieu's own cameras,
+     * null = not chosen: the lieu's own, or its first zone when it has only zone cameras).
+     */
     private static String lieuOverride;
-    private static String zoneSel = "";
+    private static String zoneSel;
     private static String lastPhase = CameraSpot.STUDIO;
     private static FreeCamera free = new FreeCamera(0, 0, 0, 0, 0, 0, 0);
     private static Planner planner;
@@ -171,7 +174,7 @@ public final class Director {
         revealHold = false;
         lastSent = null;
         lieuOverride = null;
-        zoneSel = "";
+        zoneSel = null;
         lastPhase = CameraSpot.STUDIO;
         dirty = true;
     }
@@ -232,7 +235,7 @@ public final class Director {
     public static String focus() {
         String lieu = focusLieu();
         if (CameraSpot.STUDIO.equals(lieu)) return lieu;
-        if (!zoneSel.isEmpty()) return CameraSpot.group(lieu, zoneSel);
+        if (zoneSel != null) return CameraSpot.group(lieu, zoneSel);
         CameraList list = Cameras.list();
         if (!list.hasGroup(lieu)) {
             List<String> zones = list.zones(lieu);
@@ -243,12 +246,13 @@ public final class Director {
 
     /**
      * Sets the focus: {@code lieu} null keeps the lieu, "auto" follows the show again; {@code zone} null keeps the
-     * zone, "" = the lieu's own cameras, "next" / "prev" = the next / previous zone that has cameras.
+     * zone, "" = the lieu's own cameras, "auto" = not chosen (the lieu's own, else its first zone), "next" / "prev" =
+     * the next / previous zone that has cameras.
      */
     public static void setFocus(MinecraftServer server, String lieu, String zone) {
         if (lieu != null) {
             String l = lieu.equals("auto") ? null : lieu;
-            if (l == null ? lieuOverride != null : !l.equals(focusLieu())) zoneSel = "";
+            if (l == null ? lieuOverride != null : !l.equals(focusLieu())) zoneSel = null;
             lieuOverride = l;
         }
         if (zone != null) {
@@ -260,7 +264,7 @@ public final class Director {
                     zoneSel = zones.get(((i + (zone.equals("next") ? 1 : -1)) % n + n) % n);
                 }
             } else {
-                zoneSel = zone;
+                zoneSel = zone.equals("auto") ? null : zone;
             }
         }
         sync(server);
@@ -287,6 +291,13 @@ public final class Director {
         sync(server);
     }
 
+    /** The travellings changed: the clients get them; a deleted travelling on air gives way to the wide shot. */
+    public static void pathsChanged(MinecraftServer server) {
+        if (shot.kind() == BroadcastNetwork.SHOT_PATH && CameraPaths.byName().get(shot.camera()) == null && !wide(server, BroadcastNetwork.CUT))
+            shot = Shot.NONE;
+        sync(server);
+    }
+
     /** A camera changed its key (moved to another lieu): the shot on air keeps it. */
     public static void cameraMoved(String oldKey, String newKey) {
         if (shot.kind() == BroadcastNetwork.SHOT_CAMERA && shot.camera().equals(oldKey))
@@ -303,6 +314,8 @@ public final class Director {
         int transition = r.transition() < 0 ? defaultTransition : r.transition();
         shot = new Shot(r.kind(), r.camera(), r.player(), transition, ++serial, r.effect(), r.tiles());
         shotStartTick = server.getTickCount();
+        // The dust line of a travelling being set up never goes on air
+        if (r.kind() == BroadcastNetwork.SHOT_PATH) fr.lordfinn.craftmaster.camera.PathRecording.hide(r.camera());
         sync(server);
         return true;
     }
@@ -457,7 +470,7 @@ public final class Director {
         if (!phase.equals(lastPhase)) {
             lastPhase = phase;
             lieuOverride = null;
-            zoneSel = "";
+            zoneSel = null;
             sync(server);
             if (auto && !sequenceRunning() && !revealHold) {
                 CameraSpot onAir = shot.kind() == BroadcastNetwork.SHOT_CAMERA ? Cameras.list().get(shot.camera()) : null;
@@ -731,7 +744,8 @@ public final class Director {
                 default -> Lieux.zone(zoneRef);
             };
         } else if (lieu != null) {
-            zone = "";
+            // The lieu alone: its own cameras (or its first zone when it only has zone cameras)
+            zone = "auto";
         }
         setFocus(server, lieu, zone);
         String g = focus();

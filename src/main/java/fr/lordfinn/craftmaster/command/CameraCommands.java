@@ -594,7 +594,8 @@ public final class CameraCommands {
         }
         ServerPlayNetworking.send(p, new BroadcastNetwork.ShowCue(BroadcastNetwork.Cues.PATH_PREVIEW, path.name(), "", "",
                 (int) Math.ceil(path.duration() * 20)));
-        PathRecording.show(c.getSource().getServer(), path.name(), (int) Math.ceil(path.duration()) + 2);
+        // The dust line would be right in front of the lens all the way
+        PathRecording.hide(path.name());
         ok(c, "Aperçu du trajet « " + path.name() + " » sur ton écran (" + CameraPath.seconds(Math.round(path.duration() * 10) / 10.0) + ").");
         return 1;
     }
