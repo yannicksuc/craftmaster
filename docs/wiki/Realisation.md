@@ -89,7 +89,8 @@ Chaque caméra a aussi une **clé** unique pour la viser de n'importe où : `stu
 - **Écran partagé** : `/cam mosaic` (« écran partagé », touche **0** du client de diffusion) : jusqu'à 4 salles côte à
   côte, chacune par le plan large de sa zone, avec le nom des candidats. `/cam mosaic off` ou 0 pour revenir. Les
   vignettes se rafraîchissent à tour de rôle (une image sur deux, trois ou quatre) : parfait pour des salles où l'on
-  construit, moins pour une course rapide.
+  construit, moins pour une course rapide. Connu : sur un terrain plat ouvert, une fine ligne orangée peut
+  apparaître à l'horizon des vignettes (rien dans des salles fermées).
 - `/cam pov Ensuri` (« vue d'Ensuri ») : à travers les yeux d'un joueur.
 
 ## Les travellings enregistrés (trajets)

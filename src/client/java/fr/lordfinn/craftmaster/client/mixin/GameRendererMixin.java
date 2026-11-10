@@ -19,7 +19,7 @@ public abstract class GameRendererMixin {
     }
 
     /** Split screen: the world just drawn for one tile is kept for that tile (before the interface is drawn). */
-    @Inject(method = "renderLevel", at = @At("RETURN"))
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/render/GuiRenderer;render()V"))
     private void craftmaster$mosaicTile(CallbackInfo ci) {
         if (Broadcast.active()) fr.lordfinn.craftmaster.client.broadcast.Mosaic.afterLevel();
     }

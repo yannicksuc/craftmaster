@@ -48,11 +48,15 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
   camera/                 réalisation TV (chantier E) : CameraSpot (une caméra : numéro, nom, rôle, objectif, zoom,
                           mouvement), CameraList (recherche « caméra 2 » / « plan large » / « trône »…, pur),
                           CameraMotion (respiration, travelling, panoramique, plan qui suit : maths pures),
-                          Cameras (registre cameras.json + trépieds), CameraEntity (trépied), CameraItem
-  broadcast/              réalisation TV : Director (plan à l'antenne, réalisation auto, état envoyé aux clients,
-                          spectateurs gardés près du plan), BroadcastNetwork (paquets show_state, show_cue,
-                          broadcast_mode, camera_request), BroadcastActions (actions camera.* / broadcast.* /
-                          show.*, vérifiées sans serveur), Credits (génériques d'ouverture et de fin)
+                          Cameras (registre cameras.json + trépieds), CameraEntity (trépied), CameraItem ;
+                          lieux et zones : Lieux (manches, zones d'épreuve, zone d'un joueur, caméras qui le
+                          filment) ; travellings : CameraPath (étapes, spline, pur), CameraPaths (trajets.json),
+                          PathRecording (étape aux yeux, ligne de poussière), PathMarkerItem (repère)
+  broadcast/              réalisation TV : Director (plan à l'antenne, foyer des touches, réalisation auto par
+                          Planner, take(ShotRequest), état envoyé aux clients, spectateurs gardés près du plan),
+                          BroadcastNetwork (paquets show_state, show_cue, free_camera, broadcast_mode,
+                          camera_request), BroadcastActions (actions camera.* / broadcast.* / show.*, vérifiées
+                          sans serveur), Credits (génériques d'ouverture et de fin), MancheIntros (intros de manche)
   task/                   tâches, enveloppes, notes cachées (chantier D, docs/wiki/Taches.md)
     Tasks                 règle du secret, révélation, tâche du moment envoyée à chacun, cartes, enveloppes,
                           effets des actions task.* / envelope.give ; contrat openPaper / reveal
