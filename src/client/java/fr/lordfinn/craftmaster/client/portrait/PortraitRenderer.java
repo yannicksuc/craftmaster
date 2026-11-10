@@ -14,6 +14,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
+import net.minecraft.client.model.player.PlayerCapeModel;
 import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -77,11 +78,35 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         boolean highlighted;
         float highlightPulse;
         List<Component> label = List.of();
+
+        // Pose editor preview (drawn in a screen, see PoseEditorScreen): portrait space only, nothing cut
+        boolean preview;
+        /** Parts drawn tinted: the one being edited and the one under the mouse (null = none; frame: see below). */
+        Part selected, hovered;
+        boolean frameSelected, frameHovered;
+        /** Portrait space → preview view space (the editor's turntable). */
+        Matrix4f view = new Matrix4f();
     }
+
+    /** A render state for the pose editor's preview of {@code pose} with {@code skin}. */
+    static State previewState(Pose pose, PortraitSkins.Skin skin) {
+        State s = new State();
+        s.entityType = fr.lordfinn.craftmaster.registry.ModContent.PORTRAIT;
+        s.preview = true;
+        s.pose = pose;
+        s.skin = skin;
+        s.lightCoords = LightCoordsUtil.FULL_BRIGHT;
+        return s;
+    }
+
+    /** Tints of the pose editor's preview: the part being edited, the part under the mouse. */
+    private static final int SELECTED_TINT = 0xFFFFE48C, HOVER_TINT = 0xFFC4E2FF;
 
     private final Map<Part, ModelPart> wide = new EnumMap<>(Part.class);
     private final Map<Part, ModelPart> slim = new EnumMap<>(Part.class);
     private final ModelPart mouldings, canvas;
+    /** The vanilla cape, worn on the body when the shown player has one. */
+    private final ModelPart cape;
 
     public PortraitRenderer(EntityRendererProvider.Context ctx) {
         super(ctx);
@@ -89,6 +114,9 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         collectParts(babyPlayer(true), slim);
         mouldings = buildFrame(0, 4);
         canvas = buildFrame(4, 5);
+        cape = PlayerCapeModel.createCapeLayer().bakeRoot().getChild("body").getChild("cape");
+        // Hangs a little away from the back, like vanilla's still cape
+        cape.xRot = (float) Math.toRadians(6);
     }
 
     /** The player model with vanilla baby proportions (the baby zombie's transformer). */
@@ -218,6 +246,10 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
 
     @Override
     public void submit(State s, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+        if (s.preview) {
+            submitPreview(s, poseStack, collector);
+            return;
+        }
         Pose pose = s.pose;
         boolean window = s.window;
         Vector3d origin = PortraitGeometry.portraitOrigin(pose, window, s.hangLength);
@@ -292,12 +324,65 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
                 submitPart(parts.get(part), poseStack, collector, figure, light, clipper);
                 poseStack.popPose();
             }
+            if (skin.cape() != null && !pose.isHidden(Part.BODY)) {
+                poseStack.pushPose();
+                poseStack.mulPose(new Matrix4f(PortraitGeometry.partMatrix(pose, Part.BODY, window)));
+                poseStack.scale(16, 16, 16);
+                submitPart(cape, poseStack, collector, RenderTypes.entityCutout(skin.cape()), light, clipper);
+                poseStack.popPose();
+            }
         }
 
         // The label is a plaque on the front: nothing of it shows from behind
         if (PortraitClipper.cameraInFront(frameToCamera, (float) (PortraitGeometry.DEPTH / 2 + 0.6))) submitLabel(s, pose, poseStack, collector);
         poseStack.popPose();
         super.submit(s, poseStack, collector, camera);
+    }
+
+    /**
+     * The pose editor's preview: the frame and the whole figure in portrait space (nothing cut, so a part hidden
+     * in the painting can still be seen and grabbed), turned by the editor's view, the edited part tinted.
+     */
+    private void submitPreview(State s, PoseStack poseStack, SubmitNodeCollector collector) {
+        Pose pose = s.pose;
+        int light = LightCoordsUtil.FULL_BRIGHT;
+        poseStack.pushPose();
+        poseStack.mulPose(s.view);
+        poseStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
+
+        poseStack.pushPose();
+        poseStack.mulPose(new Matrix4f(PortraitGeometry.frameMatrix(pose)));
+        poseStack.rotate(Axis.XP.rotation((float) Math.PI));
+        poseStack.scale(16, 16, 16);
+        int frameTint = s.frameSelected ? SELECTED_TINT : s.frameHovered ? HOVER_TINT : 0xFFFFFFFF;
+        submitTinted(mouldings, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, frameTint);
+        submitTinted(canvas, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, frameTint);
+        poseStack.popPose();
+
+        PortraitSkins.Skin skin = s.skin != null ? s.skin : PortraitSkins.defaultSkin();
+        Map<Part, ModelPart> parts = skin.slim() ? slim : wide;
+        RenderType figure = RenderTypes.entityCutout(skin.texture());
+        for (Part part : PortraitGeometry.BODY_PARTS) {
+            if (pose.isHidden(part)) continue;
+            poseStack.pushPose();
+            poseStack.mulPose(new Matrix4f(PortraitGeometry.partMatrix(pose, part)));
+            poseStack.scale(16, 16, 16);
+            int tint = part == s.selected ? SELECTED_TINT : part == s.hovered ? HOVER_TINT : 0xFFFFFFFF;
+            submitTinted(parts.get(part), poseStack, collector, figure, light, tint);
+            if (part == Part.BODY && skin.cape() != null)
+                submitTinted(cape, poseStack, collector, RenderTypes.entityCutout(skin.cape()), light, tint);
+            poseStack.popPose();
+        }
+        poseStack.popPose();
+    }
+
+    private static void submitTinted(ModelPart part, PoseStack poseStack, OrderedSubmitNodeCollector collector, RenderType type,
+                                     int light, int tint) {
+        collector.submitCustomGeometry(poseStack, type, (p, c) -> {
+            PoseStack ps = new PoseStack();
+            ps.last().set(p);
+            part.render(ps, c, light, OverlayTexture.NO_OVERLAY, tint);
+        });
     }
 
     /** Model parts are drawn when the frame is rendered; nothing shared changes in between (their pose is fixed). */

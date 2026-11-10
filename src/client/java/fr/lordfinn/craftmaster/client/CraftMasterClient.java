@@ -29,6 +29,8 @@ public final class CraftMasterClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModContent.SEAT, NoopRenderer::new);
         PortraitClient.init();
         CurtainClient.init();
+        // Dev environment only: scripted mouse / keys for testing screens (docs/wiki/Tests.md)
+        DevInput.init();
         KeyMappingHelper.registerKeyMapping(RANKING_KEY);
         VoiceRegie.init();
 

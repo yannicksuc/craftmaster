@@ -722,6 +722,9 @@ en.update({
     "screen.craftmaster.portrait.hang_tip": "Length of the string in blocks; auto = each portrait its own, so a row is not too regular",
     "screen.craftmaster.portrait.window_tip": "Window look: the figure stands in a room behind the frame",
     "screen.craftmaster.portrait.season_tip": "Season whose ranking this portrait shows",
+    # Shorter labels: they ran into their fields (the tooltips now say the rest)
+    "screen.craftmaster.portrait.season": "Season",
+    "screen.craftmaster.portrait.window_label": "Window",
 })
 fr.update({
     "screen.craftmaster.pose.pick_tip": "Éditer : %s (touche %s)\nou clic dessus dans l'aperçu",
@@ -756,6 +759,8 @@ fr.update({
     "screen.craftmaster.portrait.hang_tip": "Longueur de la ficelle en blocs ; auto = chaque tableau la sienne, pour une rangée moins régulière",
     "screen.craftmaster.portrait.window_tip": "Effet fenêtre : le personnage est dans une pièce derrière le cadre",
     "screen.craftmaster.portrait.season_tip": "Saison dont ce tableau montre le classement",
+    "screen.craftmaster.portrait.season": "Saison",
+    "screen.craftmaster.portrait.window_label": "Fenêtre",
 })
 # --- end chantier G -----------------------------------------------------------------------------------------
 write_json(os.path.join(A, "lang/en_us.json"), en)
