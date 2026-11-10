@@ -129,8 +129,11 @@ public class CurtainRenderer implements BlockEntityRenderer<CurtainBlockEntity, 
     private static void pleat(VertexConsumer c, PoseStack.Pose p, State s, int o, int slice, int light) {
         float[] q = s.pleats;
         // Corners: a = top, b = bottom; 0 / 1 = the pleat's two edges; n = across (back / front face), shifted
-        float a0 = q[o], a1 = q[o + 1], ta0 = q[o + 2] + q[o + 4], tf0 = q[o + 3] + q[o + 4], ta1 = q[o + 2] + q[o + 5], tf1 = q[o + 3] + q[o + 5];
-        float b0 = q[o + 6], b1 = q[o + 7], ba0 = q[o + 8] + q[o + 10], bf0 = q[o + 9] + q[o + 10], ba1 = q[o + 8] + q[o + 11], bf1 = q[o + 9] + q[o + 11];
+        // (each pleat a hair thicker than its place, so it overlaps its neighbours where their corners meet)
+        float a0 = q[o], a1 = q[o + 1], ta0 = q[o + 2] + q[o + 4] - SEAM, tf0 = q[o + 3] + q[o + 4] + SEAM,
+                ta1 = q[o + 2] + q[o + 5] - SEAM, tf1 = q[o + 3] + q[o + 5] + SEAM;
+        float b0 = q[o + 6], b1 = q[o + 7], ba0 = q[o + 8] + q[o + 10] - SEAM, bf0 = q[o + 9] + q[o + 10] + SEAM,
+                ba1 = q[o + 8] + q[o + 11] - SEAM, bf1 = q[o + 9] + q[o + 11] + SEAM;
         if (a1 - a0 < 1e-4f && b1 - b0 < 1e-4f) return;
         float u0 = slice * 4 / 16f, u1 = u0 + 4 / 16f, us = u0 + 2 / 16f;
         boolean x = s.alongX;
