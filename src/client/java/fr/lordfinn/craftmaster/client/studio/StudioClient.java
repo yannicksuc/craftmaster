@@ -22,6 +22,8 @@ public final class StudioClient {
         BlockEntityRendererRegistry.register(Studio.PRIZE_TABLE_BE, PrizeTableRenderer::new);
         BlockEntityRendererRegistry.register(Studio.GONG_BE, GongRenderer::new);
         BlockEntityRendererRegistry.register(Studio.STANCHION_BE, StanchionRenderer::new);
+        // LordFinn's furniture from the server (throne, contestants' chair, studio lights, softboxes, frame)
+        BlockEntityRendererRegistry.register(fr.lordfinn.craftmaster.studio.Furniture.BE, FurnitureRenderer::new);
 
         ClientPlayNetworking.registerGlobalReceiver(StudioNetwork.TimerState.TYPE, (payload, ctx) -> StudioTimerClient.receive(payload));
         ClientPlayNetworking.registerGlobalReceiver(StudioNetwork.OpenScreen.TYPE, (payload, ctx) -> {

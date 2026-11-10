@@ -23,11 +23,16 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.LightCoordsUtil;
+import fr.lordfinn.craftmaster.client.studio.FurnitureRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.world.item.ItemDisplayContext;
 
 /**
- * The studio camera on its tripod: three splayed wooden legs with brass feet, a brass head, the black camera body
+ * The studio camera on its tripod (LordFinn's tripod and rod models), the black camera body
  * with a brass lens, a hood and a pan bar, and the red "on air" tally light that lights up when the camera is live.
- * Its number is painted on both sides. Nine cubes, the detail is in camera.png (scripts/gen_assets.py).
+ * Its number is painted on both sides. The detail is in camera.png (scripts/gen_assets.py); the tripod and its rod
+ * are LordFinn's own models from his server (scripts/ia_sandbox, drawn as item models).
  * Not drawn at all in broadcast mode (see EntityRenderDispatcherMixin).
  */
 public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.State> {
@@ -38,15 +43,25 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         int number;
         float yaw, pitch;
         boolean onAir;
+        // LordFinn's tripod and rod (the server's ItemsAdder models) under the camera body
+        final ItemStackRenderState tripod = new ItemStackRenderState(), rod = new ItemStackRenderState();
     }
 
+    /** Top of the server's tripod model and bottom of the camera body, above the feet (blocks). */
+    private static final float TRIPOD_TOP = 1f, BODY_BOTTOM = 1.3f;
+
     private final ModelPart root, head, tally;
+    private final ItemModelResolver items;
 
     public CameraRenderer(EntityRendererProvider.Context ctx) {
         super(ctx);
         root = createLayer().bakeRoot();
         head = root.getChild("head");
         tally = head.getChild("tally");
+        // The legs drawn here are replaced by LordFinn's tripod model: only the head (body, lens, tally) stays
+        root.getChild("hub").visible = false;
+        for (int i = 0; i < 3; i++) root.getChild("leg" + i).visible = false;
+        items = ctx.getItemModelResolver();
     }
 
     /**
@@ -87,11 +102,14 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         s.pitch = e.lensPitch();
         BroadcastNetwork.Shot shot = ShowStateClient.get().shot();
         s.onAir = shot.kind() == BroadcastNetwork.SHOT_CAMERA && shot.camera() == e.number();
+        items.updateForNonLiving(s.tripod, FurnitureRenderer.stack(CraftMaster.id("furniture/tripod")), ItemDisplayContext.NONE, e);
+        items.updateForNonLiving(s.rod, FurnitureRenderer.stack(CraftMaster.id("furniture/tripod_rod")), ItemDisplayContext.NONE, e);
     }
 
     @Override
     public void submit(State s, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         int light = s.lightCoords;
+        submitTripod(s, poseStack, collector);
         poseStack.pushPose();
         poseStack.rotate(Axis.YP.rotationDegrees(180 - s.yaw));
         poseStack.scale(-1, -1, 1);
@@ -116,6 +134,22 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         submitNumber(s, poseStack, collector);
         poseStack.popPose();
         super.submit(s, poseStack, collector, camera);
+    }
+
+    /** The tripod (1 block, its model) and its rod up to the camera body, turning with the camera. */
+    private static void submitTripod(State s, PoseStack poseStack, SubmitNodeCollector collector) {
+        poseStack.pushPose();
+        poseStack.rotate(Axis.YP.rotationDegrees(180 - s.yaw));
+        poseStack.translate(0, 0.5, 0);
+        s.tripod.submit(poseStack, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+        poseStack.popPose();
+        float h = BODY_BOTTOM - TRIPOD_TOP;
+        poseStack.pushPose();
+        poseStack.rotate(Axis.YP.rotationDegrees(180 - s.yaw));
+        poseStack.translate(0, TRIPOD_TOP + h / 2, 0);
+        poseStack.scale(1, h, 1);
+        s.rod.submit(poseStack, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+        poseStack.popPose();
     }
 
     /** The camera's number on both sides of the body, like the painted numbers of studio cameras. */

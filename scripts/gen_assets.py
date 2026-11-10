@@ -1851,6 +1851,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gen_studio  # noqa: E402
 gen_studio.generate(sys.modules[__name__])
 
+# ------------------------------------------------------------------ LordFinn's furniture from his server: scripts/gen_furniture.py
+import gen_furniture  # noqa: E402
+gen_furniture.generate(sys.modules[__name__])
+
 if SOUNDS:
     write_json(os.path.join(A, "sounds.json"), SOUNDS)
 write_json(os.path.join(A, "lang/en_us.json"), en)

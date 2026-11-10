@@ -310,3 +310,10 @@ Corrigé pendant ce test :
 
 Non vérifié (pas d'outil pour) : clics dans les écrans, touches (J, R, F8, 1–9, N), sons, vraie connexion Twitch,
 régie vocale avec la vraie compréhension Claude (pas de clé API sur le PC).
+
+## 7. Mobilier du serveur (modèles ItemsAdder de LordFinn)
+Vérifié en jeu (serveur de dev, deux clients) : trône, chaise de candidat, 3 inclinaisons de lumière de studio,
+softbox au sol et au mur, cadre au mur, trépied + barre, carrelage, paroi du globe ; un joueur assis sur le trône et
+sur la chaise (bonne hauteur, vu d'un second client) ; clic droit sur une lumière (angle 3 → 4) ; caméra posée avec
+`/cam here`, son nouveau trépied, coupe `/cam cut` en mode diffusion. Test serveur 0 échec, JUnit 200 tests.
+Non vérifié : icônes dans l'inventaire / l'onglet créatif, softbox et cadre au plafond, rotation accroupi + clic.

@@ -18,6 +18,8 @@
     "craftmaster:sofa",
     "craftmaster:contestant_desk",
     "craftmaster:gong",
-    "craftmaster:prize_table"
+    "craftmaster:prize_table",
+    "craftmaster:candidate_chair",
+    "craftmaster:decor_frame"
   ]
 }

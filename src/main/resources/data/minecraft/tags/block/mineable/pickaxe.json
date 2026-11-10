@@ -12,6 +12,11 @@
     "craftmaster:podium_second",
     "craftmaster:podium_third",
     "craftmaster:trophy",
-    "craftmaster:stanchion"
+    "craftmaster:stanchion",
+    "craftmaster:studio_light",
+    "craftmaster:softbox",
+    "craftmaster:tripod",
+    "craftmaster:tripod_rod",
+    "craftmaster:checker_tile"
   ]
 }

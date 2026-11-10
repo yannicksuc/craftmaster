@@ -3,14 +3,19 @@
 Tout le mobilier du plateau télé, dans l'onglet créatif **CraftMaster** (et en recette). Or, velours rouge et
 papier crème comme l'affiche ; rien n'est copié d'une émission existante.
 
+Le trône, la chaise de candidat, les lumières de studio, les softbox, le cadre, le trépied (aussi sous les
+caméras), le carrelage et la paroi du globe sont **les modèles de LordFinn**, repris tels quels du pack ItemsAdder
+de son serveur (voir [Mobilier du serveur](#mobilier-du-serveur)).
+
 ## Sièges
 | Objet | Bloc | Utilisation |
 |---|---|---|
-| Trône du maître du jeu | `craftmaster:throne` | Or et velours capitonné, sceau CM au dossier (2 blocs de haut). Clic droit : on s'assoit, comme sur les [chaises](Chaises.md) ; s'accroupir pour se lever |
+| Trône du maître du jeu | `craftmaster:throne` | Le trône du serveur : bois doré et velours rouge, couronne au sommet (1,7 bloc de large, 4,5 de haut). Clic droit : on s'assoit, comme sur les [chaises](Chaises.md) ; s'accroupir pour se lever |
+| Chaise de candidat | `craftmaster:candidate_chair` | La chaise de candidat du serveur (bois doré, assise et dossier rouges, ~1,8 bloc de haut) ; s'assoit pareil |
 | Fauteuil de l'assistant | `craftmaster:assistant_chair` | Velours, pieds dorés ; s'assoit pareil |
 | Canapé de velours | `craftmaster:sofa` | Une place par bloc ; posés côte à côte (même sens), ils forment un seul canapé : les accoudoirs ne restent qu'aux bouts |
 
-Les trois sont posés face à soi (le dossier de l'autre côté), comme les chaises.
+Tous sont posés face à soi (le dossier de l'autre côté), comme les chaises.
 
 ## Éclairage
 | Objet | Bloc | Utilisation |
@@ -19,6 +24,8 @@ Les trois sont posés face à soi (le dossier de l'autre côté), comme les chai
 | Lampe de bureau | `desk_lamp` | Lampe de banquier en verre vert, lumière 12, clic droit |
 | Suspension | `ceiling_pendant` | Se pose sous un plafond (tombe si le bloc au-dessus part), lumière 15, clic droit |
 | Projecteur | `spotlight` | Sur le sol, ou suspendu sous un plafond. Voir ci-dessous |
+| Lumière de studio | `studio_light` | Petit projecteur sur pied, lumière 15. Posé face à soi (8 orientations). **Clic droit** : change l'angle (5 inclinaisons, du bas vers le haut) ; **accroupi + clic droit** : la tourne de 45° |
+| Softbox | `softbox` | Grande boîte à lumière, lumière 15 ; au sol, au plafond ou contre un mur (debout, dos au mur). Clic droit : 4 angles ; accroupi + clic droit : tourner |
 | Enseigne « EN DIRECT » | `on_air_sign` | Caisson lumineux contre un mur (plus large que le bloc). Clic droit ou courant de redstone (allumée tant qu'elle est alimentée) |
 
 ### Projecteurs
@@ -30,6 +37,14 @@ Les trois sont posés face à soi (le dossier de l'autre côté), comme les chai
   à côté et viser la cible). **Teinture** à la main : couleur du faisceau (blanc = blanc chaud).
 - Il tourne en douceur (lyre et tête motorisées) ; en mode **suivi**, il suit un joueur en permanence.
 - Commandes et voix ci-dessous (« projecteurs sur Ensuri »).
+
+## Décor
+| Objet | Bloc | Utilisation |
+|---|---|---|
+| Cadre | `decor_frame` | Cadre doré vide (1,5 bloc) : contre un mur, au plafond ou à plat au sol, sans collision |
+| Pied de trépied / barre de trépied | `tripod`, `tripod_rod` | Le trépied du serveur ; la barre se pose dessus (et sur une autre barre) |
+| Carrelage noir et blanc | `checker_tile` | Bloc plein, damier |
+| Paroi du globe CraftMaster | `globe_panel` | Verre blanc, une face avec la porte : pour construire le globe |
 
 ## L'émission
 | Objet | Bloc / objet | Utilisation |
@@ -121,6 +136,14 @@ vanilla réaccordés, remplaçables par un pack de ressources (`assets/craftmast
   `Show.timerRemaining` sans rien modifier.
 - Écrans : entité `craftmaster:studio_screen` (adresse, largeur, hauteur, sens, image entière) ; paquets
   `studio_screen_open` / `studio_screen_save` pour l'écran de réglages.
+- <a id="mobilier-du-serveur"></a>**Mobilier du serveur** : les modèles et textures de LordFinn, copiés de son pack
+  ItemsAdder « sandbox » dans `scripts/ia_sandbox/`, convertis par `scripts/gen_furniture.py` (seuls les noms de
+  textures changent). Sur le serveur, ce sont des modèles d'objet montrés par un cadre invisible (une entité
+  d'affichage pour les softbox), bien plus grands qu'un bloc : ici, le bloc garde le comportement (siège, lumière,
+  collision) et une entité de bloc commune (`craftmaster:furniture`, `Furniture` / `client/studio/FurnitureRenderer`)
+  dessine le même modèle avec les transformations du cadre ou de l'entité d'affichage de Minecraft. Le trépied et
+  sa barre sont des modèles de bloc ordinaires ; la caméra (`CameraRenderer`) les dessine sous son boîtier, seul le
+  visuel a changé. Le pack tiers « livingroom » du serveur n'est pas repris.
 - Projecteurs, chrono, pupitres, table, gong, poteaux : entités de bloc dessinées par le client
   (`client/studio/`). Le projecteur vise côté client à chaque image (suivi fluide), le serveur ne déplace que le
   bloc de lumière (toutes les 4 ticks).

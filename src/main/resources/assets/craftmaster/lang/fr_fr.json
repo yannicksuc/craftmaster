@@ -571,5 +571,15 @@
   "screen.craftmaster.studio_screen.hint": "Le jeu de chaque joueur télécharge l'image",
   "screen.craftmaster.studio_screen.bad_size": "Taille : de 1 à %s blocs de large, de 1 à %s de haut",
   "screen.craftmaster.studio_screen.loading": "Chargement…",
-  "screen.craftmaster.studio_screen.failed": "Image indisponible : %s"
+  "screen.craftmaster.studio_screen.failed": "Image indisponible : %s",
+  "block.craftmaster.candidate_chair": "Chaise de candidat",
+  "block.craftmaster.studio_light": "Lumière de studio",
+  "block.craftmaster.softbox": "Softbox",
+  "block.craftmaster.decor_frame": "Cadre",
+  "block.craftmaster.tripod": "Pied de trépied",
+  "block.craftmaster.tripod_rod": "Barre de trépied",
+  "block.craftmaster.checker_tile": "Carrelage noir et blanc",
+  "block.craftmaster.globe_panel": "Paroi du globe CraftMaster",
+  "message.craftmaster.furniture_tilt": "Angle %s / %s (accroupi + clic droit : la tourner)",
+  "message.craftmaster.furniture_turned": "Tournée de 45°"
 }

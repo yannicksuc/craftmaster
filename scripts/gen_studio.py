@@ -205,25 +205,6 @@ def generate(g):
     vplain.paint(0, 0, 16, 16, lambda x, y, w, h: VELVET[2] if (x + 2 * y) % 5 else VELVET[3])
     vplain.save(g, "block/studio/velvet")
 
-    # Throne back panel: tufted velvet framed by gold piping, the CM seal in the middle (12 x 16 used: x 2..14)
-    back = Img(16, 16)
-    back.paint(0, 0, 16, 16, lambda x, y, w, h: tufted(VELVET, x, y, w, h))
-    for y in range(16):
-        back.set(2, y, GOLD[2]); back.set(13, y, GOLD[3])
-    for x in range(2, 14):
-        back.set(x, 0, GOLD[1]); back.set(x, 15, GOLD[3])
-    # The CM seal: a gold medallion (10 x 10), letters in dark velvet
-    for yy in range(10):
-        for xx in range(10):
-            r = math.hypot(xx - 4.5, yy - 4.5)
-            if r < 5.1:
-                back.set(3 + xx, 3 + yy, GOLD[4] if r > 4.3 else GOLD[0] if xx + yy < 6 else GOLD[1] if xx + yy < 11 else GOLD[2])
-    letters = ["###.#...#", "#...##.##", "#...#.#.#", "#...#...#", "###.#...#"]
-    for yy, row in enumerate(letters):
-        for xx, ch in enumerate(row):
-            if ch == "#":
-                back.set(3 + xx, 5 + yy, VELVET[4])
-    back.save(g, "block/studio/throne_back")
 
     walnut = Img(16, 16)
     walnut.paint(0, 0, 16, 16, lambda x, y, w, h: wood_grain(WALNUT, x, y, w, h))
@@ -483,20 +464,7 @@ def generate(g):
     # ================================================================== models and blockstates
     G, GP, V, VF, VP, W = tex("gold"), tex("gold_plain"), tex("velvet_tufted"), tex("velvet_folds"), tex("velvet"), tex("walnut")
 
-    # Throne (facing north: the seated player looks north, backrest at the south)
-    model("throne", [
-        el([0, 0, 0], [16, 2, 16], "#gold"),
-        el([1, 2, 1], [15, 7, 14], "#gold"),
-        el([1, 7, 1], [15, 10, 13], "#velvet"),
-        el([0, 2, 1], [2, 13, 13], "#gold", faces={"up": "#velvet"}),
-        el([14, 2, 1], [16, 13, 13], "#gold", faces={"up": "#velvet"}),
-        el([0, 2, 13], [16, 16, 16], "#gold"),
-        el([0, 16, 13], [16, 30, 16], "#gold"),
-        el([2, 11, 12], [14, 27, 13], "#back", skip=("south",)),
-        el([5, 30, 13], [11, 32, 16], "#gold"),
-    ], {"particle": G, "gold": G, "velvet": V, "back": tex("throne_back")})
-    facing_states("throne", lambda c: "throne")
-    item_block("throne")
+    # Throne: LordFinn's own model from his server, see scripts/gen_furniture.py
 
     model("assistant_chair", [
         el([2, 0, 2], [4, 7, 4], "#gold"), el([12, 0, 2], [14, 7, 4], "#gold"),

@@ -35,7 +35,8 @@ public final class Studio {
     private Studio() {}
 
     // Seats
-    public static StudioSeatBlock THRONE, ASSISTANT_CHAIR;
+    public static FurnitureSeatBlock THRONE;
+    public static StudioSeatBlock ASSISTANT_CHAIR;
     public static SofaBlock SOFA;
     // Lights
     public static LampBlock FLOOR_LAMP, DESK_LAMP, CEILING_PENDANT;
@@ -67,9 +68,9 @@ public final class Studio {
         DESK_BELL_SOUND = sound("studio.desk_bell");
 
         // ------------------------------------------------------------ seats (facing north, backrest at south)
-        THRONE = ModContent.block("throne", p -> new StudioSeatBlock(p, 10, Shapes4.of(
-                        new double[]{0, 0, 0, 16, 3, 16}, new double[]{1, 3, 1, 15, 10, 14},
-                        new double[]{0, 3, 1, 2, 14, 14}, new double[]{14, 3, 1, 16, 14, 14}, new double[]{1, 3, 13, 15, 16, 16})),
+        // LordFinn's own throne model (Furniture): 1.7 blocks wide, 4.5 tall, seat cushion top at 15 px
+        THRONE = ModContent.block("throne", p -> new FurnitureSeatBlock(p, 15, Shapes4.of(
+                        new double[]{0, 0, 0, 16, 15, 16}, new double[]{0, 15, 14, 16, 16, 16})),
                 props(MapColor.GOLD, 3f).sound(SoundType.WOOD).noOcclusion());
         ASSISTANT_CHAIR = ModContent.block("assistant_chair", p -> new StudioSeatBlock(p, 10, Shapes4.of(
                         new double[]{2, 0, 2, 14, 10, 14}, new double[]{2, 10, 12, 14, 16, 14})),
@@ -112,6 +113,9 @@ public final class Studio {
         STANCHION_BE = blockEntity("stanchion", StanchionBlockEntity::new, STANCHION);
 
         ResourceKey<EntityType<?>> screenKey = ResourceKey.create(Registries.ENTITY_TYPE, CraftMaster.id("studio_screen"));
+        // LordFinn's furniture from the server (after the throne: they share its block entity type)
+        Furniture.register();
+
         STUDIO_SCREEN = Registry.register(BuiltInRegistries.ENTITY_TYPE, screenKey,
                 EntityType.Builder.<ImageScreenEntity>of(ImageScreenEntity::new, MobCategory.MISC)
                         .sized(1f, 1f).noLootTable().clientTrackingRange(10).updateInterval(10).build(screenKey));

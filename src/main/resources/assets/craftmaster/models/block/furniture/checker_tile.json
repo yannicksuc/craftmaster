@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "craftmaster:block/furniture/black_and_white_tile"
+  }
+}

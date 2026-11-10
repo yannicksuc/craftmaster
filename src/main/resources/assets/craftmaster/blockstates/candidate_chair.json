@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "craftmaster:block/furniture/candidate_chair_empty"
+    }
+  }
+}

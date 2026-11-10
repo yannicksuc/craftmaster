@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "craftmaster:block/throne"
+    "model": "craftmaster:item/furniture/throne"
   }
 }
