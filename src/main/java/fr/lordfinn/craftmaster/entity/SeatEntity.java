@@ -27,8 +27,8 @@ import net.minecraft.world.phys.Vec3;
  */
 public class SeatEntity extends Entity {
 
-    /** Where the rider's attachment point sits above the block: players hang 0.6 below it, which puts the hips on the seat. */
-    private static final double RIDE_HEIGHT = ChairBlock.SEAT_TOP - 0.15;
+    /** Where the rider's attachment point sits below the seat top: players hang 0.6 below it, which puts the hips on the seat. */
+    private static final double RIDE_OFFSET = 0.15;
 
     /** How far the seated player can turn away from the chair's direction (degrees). */
     private static final float MAX_TURN = 100f;
@@ -46,7 +46,7 @@ public class SeatEntity extends Entity {
     public static void sit(ServerLevel level, BlockPos pos, Direction facing, Player player) {
         SeatEntity seat = ModContent.SEAT.create(level, EntitySpawnReason.TRIGGERED);
         if (seat == null) return;
-        seat.snapTo(pos.getX() + 0.5, pos.getY() + RIDE_HEIGHT, pos.getZ() + 0.5, facing.toYRot(), 0);
+        seat.snapTo(pos.getX() + 0.5, pos.getY() + seatTop(level, pos) - RIDE_OFFSET, pos.getZ() + 0.5, facing.toYRot(), 0);
         level.addFreshEntity(seat);
         if (!player.startRiding(seat)) seat.discard();
     }
@@ -72,7 +72,12 @@ public class SeatEntity extends Entity {
         if (level().noCollision(passenger, passenger.getDimensions(Pose.STANDING).makeBoundingBox(front))
                 && !level().getBlockState(pos.relative(facing).below()).isAir())
             return front;
-        return new Vec3(pos.getX() + 0.5, pos.getY() + ChairBlock.SEAT_TOP, pos.getZ() + 0.5);
+        return new Vec3(pos.getX() + 0.5, pos.getY() + seatTop(level(), pos), pos.getZ() + 0.5);
+    }
+
+    /** Seat height of the chair at {@code pos} (each kind of seat has its own: chairs, throne, sofa...). */
+    private static double seatTop(Level level, BlockPos pos) {
+        return level.getBlockState(pos).getBlock() instanceof ChairBlock chair ? chair.seatTop() : ChairBlock.SEAT_TOP;
     }
 
     // Same idea as boats: the body follows the chair, the head can look around within MAX_TURN

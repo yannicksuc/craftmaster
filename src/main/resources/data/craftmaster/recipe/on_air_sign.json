@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "PRP"
+  ],
+  "key": {
+    "P": "minecraft:black_stained_glass_pane",
+    "R": "minecraft:redstone_lamp"
+  },
+  "result": {
+    "id": "craftmaster:on_air_sign",
+    "count": 1
+  }
+}

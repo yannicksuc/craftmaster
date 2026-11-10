@@ -45,6 +45,11 @@ public class ChairBlock extends Block {
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
+    /** Height of the seat top in blocks, where the seated player's hips go (studio seats override it). */
+    public double seatTop() {
+        return SEAT_TOP;
+    }
+
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> b) {
         b.add(FACING);

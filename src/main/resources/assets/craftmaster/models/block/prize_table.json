@@ -1,0 +1,138 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "craftmaster:block/studio/velvet_tufted",
+    "cloth": "craftmaster:block/studio/prize_cloth",
+    "top": "craftmaster:block/studio/velvet",
+    "folds": "craftmaster:block/studio/velvet_folds"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        12,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#cloth",
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ]
+        },
+        "south": {
+          "texture": "#cloth",
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ]
+        },
+        "east": {
+          "texture": "#cloth",
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ]
+        },
+        "west": {
+          "texture": "#cloth",
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ]
+        },
+        "up": {
+          "texture": "#top",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#cloth",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        12,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#folds",
+          "uv": [
+            1,
+            4,
+            15,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#folds",
+          "uv": [
+            1,
+            4,
+            15,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#folds",
+          "uv": [
+            1,
+            4,
+            15,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#folds",
+          "uv": [
+            1,
+            4,
+            15,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#folds",
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ]
+        }
+      }
+    }
+  ]
+}

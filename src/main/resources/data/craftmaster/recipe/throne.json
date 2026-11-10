@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "G G",
+    "GRG",
+    "GBG"
+  ],
+  "key": {
+    "G": "minecraft:gold_ingot",
+    "R": "minecraft:red_wool",
+    "B": "minecraft:gold_block"
+  },
+  "result": {
+    "id": "craftmaster:throne",
+    "count": 1
+  }
+}

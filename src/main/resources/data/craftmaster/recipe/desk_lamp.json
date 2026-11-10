@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "E",
+    "T",
+    "N"
+  ],
+  "key": {
+    "E": "minecraft:green_stained_glass",
+    "T": "minecraft:torch",
+    "N": "minecraft:gold_nugget"
+  },
+  "result": {
+    "id": "craftmaster:desk_lamp",
+    "count": 1
+  }
+}

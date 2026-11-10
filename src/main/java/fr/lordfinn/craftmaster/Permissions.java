@@ -18,4 +18,15 @@ public final class Permissions {
     public static boolean isAdmin(ServerPlayer player) {
         return ADMIN.test(player.createCommandSourceStack());
     }
+
+    // ---------------------------------------------------------------- studio set (chantier F)
+
+    /** Showing images on the studio screens (/image), like the plugin's craftmaster.image; admins can too. */
+    private static final Predicate<CommandSourceStack> IMAGE_ONLY =
+            PermissionPredicates.require(CraftMaster.id("image"), PermissionLevel.GAMEMASTERS);
+    public static final Predicate<CommandSourceStack> IMAGE = s -> IMAGE_ONLY.test(s) || ADMIN.test(s);
+
+    public static boolean canShowImages(ServerPlayer player) {
+        return IMAGE.test(player.createCommandSourceStack());
+    }
 }

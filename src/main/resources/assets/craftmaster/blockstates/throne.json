@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "craftmaster:block/throne"
+    },
+    "facing=east": {
+      "model": "craftmaster:block/throne",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "craftmaster:block/throne",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "craftmaster:block/throne",
+      "y": 270
+    }
+  }
+}

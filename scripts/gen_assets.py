@@ -43,6 +43,9 @@ COLORS = {  # DyeColor id: (rgb, english, french)
 
 FACING_Y = {"north": 0, "east": 90, "south": 180, "west": 270}
 
+# Sound events of the mod (assets/craftmaster/sounds.json, written at the end): each part adds its own entries
+SOUNDS = {}
+
 
 def write_json(path, obj):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -664,6 +667,15 @@ for wood, (_, en_name, fr_name) in WOODS.items():
 for color, (_, en_name, fr_name) in COLORS.items():
     en[f"block.craftmaster.{color}_curtain"] = f"{en_name} Curtain"
     fr[f"block.craftmaster.{color}_curtain"] = f"Rideau {fr_name}"
+
+# ------------------------------------------------------------------ studio set (chantier F): scripts/gen_studio.py
+import sys  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gen_studio  # noqa: E402
+gen_studio.generate(sys.modules[__name__])
+
+if SOUNDS:
+    write_json(os.path.join(A, "sounds.json"), SOUNDS)
 write_json(os.path.join(A, "lang/en_us.json"), en)
 write_json(os.path.join(A, "lang/fr_fr.json"), fr)
 print("ok")

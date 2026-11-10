@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "RRR",
+    "PNP",
+    "P P"
+  ],
+  "key": {
+    "R": "minecraft:red_wool",
+    "P": "#minecraft:planks",
+    "N": "minecraft:gold_nugget"
+  },
+  "result": {
+    "id": "craftmaster:prize_table",
+    "count": 1
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "craftmaster:block/on_air_sign_lit"
+  }
+}

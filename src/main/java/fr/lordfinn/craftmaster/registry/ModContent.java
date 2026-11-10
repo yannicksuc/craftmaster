@@ -89,7 +89,8 @@ public final class ModContent {
                 .build());
     }
 
-    private static <B extends Block> B block(String name, Function<BlockBehaviour.Properties, B> factory, BlockBehaviour.Properties props) {
+    /** Registers a block, its item and its place in the creative tab (also used by studio/Studio). */
+    public static <B extends Block> B block(String name, Function<BlockBehaviour.Properties, B> factory, BlockBehaviour.Properties props) {
         ResourceKey<Block> key = ResourceKey.create(Registries.BLOCK, CraftMaster.id(name));
         B block = Registry.register(BuiltInRegistries.BLOCK, key, factory.apply(props.setId(key)));
         ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, CraftMaster.id(name));
@@ -98,7 +99,8 @@ public final class ModContent {
         return block;
     }
 
-    private static Item item(String name, Function<Item.Properties, Item> factory, Item.Properties props) {
+    /** Registers an item and its place in the creative tab (also used by studio/Studio). */
+    public static Item item(String name, Function<Item.Properties, Item> factory, Item.Properties props) {
         ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, CraftMaster.id(name));
         Item item = Registry.register(BuiltInRegistries.ITEM, key, factory.apply(props.setId(key)));
         TAB_ITEMS.add(item);

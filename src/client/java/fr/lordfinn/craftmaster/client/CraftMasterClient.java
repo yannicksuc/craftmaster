@@ -27,6 +27,8 @@ public final class CraftMasterClient implements ClientModInitializer {
     public void onInitializeClient() {
         EntityRendererRegistry.register(ModContent.SEAT, NoopRenderer::new);
         PortraitClient.init();
+        // Studio set (chantier F)
+        fr.lordfinn.craftmaster.client.studio.StudioClient.init();
         KeyMappingHelper.registerKeyMapping(RANKING_KEY);
         VoiceRegie.init();
 

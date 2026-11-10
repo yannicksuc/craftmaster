@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=north,lit=false,powered=false": {
+      "model": "craftmaster:block/on_air_sign"
+    },
+    "facing=north,lit=false,powered=true": {
+      "model": "craftmaster:block/on_air_sign"
+    },
+    "facing=north,lit=true,powered=false": {
+      "model": "craftmaster:block/on_air_sign_lit"
+    },
+    "facing=north,lit=true,powered=true": {
+      "model": "craftmaster:block/on_air_sign_lit"
+    },
+    "facing=east,lit=false,powered=false": {
+      "model": "craftmaster:block/on_air_sign",
+      "y": 90
+    },
+    "facing=east,lit=false,powered=true": {
+      "model": "craftmaster:block/on_air_sign",
+      "y": 90
+    },
+    "facing=east,lit=true,powered=false": {
+      "model": "craftmaster:block/on_air_sign_lit",
+      "y": 90
+    },
+    "facing=east,lit=true,powered=true": {
+      "model": "craftmaster:block/on_air_sign_lit",
+      "y": 90
+    },
+    "facing=south,lit=false,powered=false": {
+      "model": "craftmaster:block/on_air_sign",
+      "y": 180
+    },
+    "facing=south,lit=false,powered=true": {
+      "model": "craftmaster:block/on_air_sign",
+      "y": 180
+    },
+    "facing=south,lit=true,powered=false": {
+      "model": "craftmaster:block/on_air_sign_lit",
+      "y": 180
+    },
+    "facing=south,lit=true,powered=true": {
+      "model": "craftmaster:block/on_air_sign_lit",
+      "y": 180
+    },
+    "facing=west,lit=false,powered=false": {
+      "model": "craftmaster:block/on_air_sign",
+      "y": 270
+    },
+    "facing=west,lit=false,powered=true": {
+      "model": "craftmaster:block/on_air_sign",
+      "y": 270
+    },
+    "facing=west,lit=true,powered=false": {
+      "model": "craftmaster:block/on_air_sign_lit",
+      "y": 270
+    },
+    "facing=west,lit=true,powered=true": {
+      "model": "craftmaster:block/on_air_sign_lit",
+      "y": 270
+    }
+  }
+}
