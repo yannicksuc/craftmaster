@@ -441,9 +441,12 @@ public final class BroadcastOverlay {
             text(g, font, pts, cx + chipW - 4 - pw, y + 5.5f, 0.85f, GOLD_LIGHT, true);
             String nm = c.name();
             float maxName = chipW - 32 - pw - 4;
-            while (nm.length() > 3 && width(font, Component.literal(nm), 0.7f) > maxName) nm = nm.substring(0, nm.length() - 1);
+            // A crowded strip first writes the name smaller, and only cuts it when it still does not fit
+            float ns = 0.7f;
+            while (ns > 0.5f && width(font, Component.literal(nm), ns) > maxName) ns -= 0.05f;
+            while (nm.length() > 3 && width(font, Component.literal(nm), ns) > maxName) nm = nm.substring(0, nm.length() - 1);
             if (!nm.equals(c.name())) nm = nm.substring(0, Math.max(1, nm.length() - 1)) + "…";
-            text(g, font, Component.literal(nm), cx + 30, y + 6.2f, 0.7f, CREAM, true);
+            text(g, font, Component.literal(nm), cx + 30, y + 6.2f + (0.7f - ns) * font.lineHeight / 2, ns, CREAM, true);
         }
     }
 

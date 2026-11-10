@@ -284,3 +284,28 @@ d'outil MCP pour s'accroupir), les clics dans l'écran de réglages (Enregistrer
 (tests unitaires et pytest seulement), la réduction des images de plus de 2048 px (vérifiée seulement par la photo
 de 2,5 Mo), le cache disque entre deux sessions.
 
+
+## 6. Test d'ensemble après fusion des cinq chantiers (v4)
+Serveur de dev + LordFinn (admin, créatif) + Joueur2 en spectateur et **en mode diffusion à 1920 × 1080** (l'image
+que capte OBS), plateau monté par RCON : trône, canapés, pupitres, table des prix, trophée, lampadaire, chrono géant,
+gong, enseigne EN DIRECT, buzzer, gros bouton, projecteur, rideau de scène, trois caméras (`/cam here`).
+- Diffusion : logo, EN DIRECT, bandeau de la manche avec chrono, plan large / trône / suivi, fondu.
+- Enveloppe (D → E) : LordFinn ouvre son enveloppe → animation complète puis carte ; la réalisation automatique
+  coupe sur lui avec le synthé « ouvre son enveloppe » ; le bandeau de la manche prend le titre de la tâche révélée.
+- Rideau de scène ouvert à l'antenne (G) : glissement continu, faisceaux et trône découverts.
+- Points en direct « Joueur2 +3 », publication → bandeau des scores, carte de la tâche (`/tv task`, en français
+  sur le jeu français), générique d'ouverture (titre, puis présentation des candidats).
+- Projecteur qui suit LordFinn (F), chrono géant lisible vu de près et depuis la diffusion.
+- `scripts/server_smoke_test.py` : 0 échec. JUnit : 200 tests. pytest (régie) : 78 tests.
+
+Corrigé pendant ce test :
+- les pseudos flottaient au-dessus des têtes à l'antenne (en double avec le synthé) : masqués en mode diffusion ;
+- les chiffres du chrono géant ne s'affichaient pas sur certains jeux : dessinés comme le panneau (passe opaque) ;
+- le rideau s'ouvrait en moins d'une seconde : 8 ticks par colonne (environ 2 s pour 9 blocs) ;
+- le bandeau des scores coupait des pseudos courts (« Dr… ») avec 6 candidats : le nom rapetisse avant d'être coupé ;
+- un lien de skin de plus de 128 caractères était coupé à la réouverture des réglages d'un tableau ;
+- la touche de la feuille de résultats (N) était déjà celle de la régie vocale : passée sur R ;
+- « montre la tâche » : carte pour tout le monde ; « montre la tâche sur le stream » : sur la diffusion seulement.
+
+Non vérifié (pas d'outil pour) : clics dans les écrans, touches (J, R, F8, 1–9, N), sons, vraie connexion Twitch,
+régie vocale avec la vraie compréhension Claude (pas de clé API sur le PC).

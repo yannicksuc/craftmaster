@@ -96,7 +96,9 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
         };
         int lit = blend(color, alpha);
         int unlit = 0xFF000000 | OFF;
-        collector.submitCustomGeometry(poseStack, RenderTypes.text(TEXTURE), (p, c) -> digits(c, p, v.clock(), lit, unlit));
+        // Same opaque pass as the panel: the translucent text pass drew nothing once the other chantiers' renderers
+        // were in the game (the digits vanished in the merged build)
+        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (p, c) -> digits(c, p, v.clock(), lit, unlit));
 
         // Title on the velvet band: "3 · Le Pont" (or the show's name)
         Component title = Component.literal(v.title().isEmpty() ? "CraftMaster" : v.title());
@@ -169,14 +171,13 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
         rect(c, p, x0, y0, x1, y1, z + ((on & bit) != 0 ? 0.1f : 0), (on & bit) != 0 ? lit : unlit);
     }
 
-    /** A flat rectangle facing +z, sampling the white pixels of the texture (40..48, 0..8). */
+    /** White pixels of the texture, tinted by the vertex colour. */
+    private static final float[] WHITE = {42, 2, 46, 6};
+
+    /** A flat rectangle facing +z (only its front face is drawn), sampling the white pixels of the texture. */
     private static void rect(VertexConsumer c, PoseStack.Pose p, float x0, float y0, float x1, float y1, float z, int color) {
-        int light = LightCoordsUtil.FULL_BRIGHT;
-        float u = 44 / 64f, v = 4 / 32f;
-        c.addVertex(p, x0, y1, z).setColor(color).setUv(u, v).setLight(light);
-        c.addVertex(p, x0, y0, z).setColor(color).setUv(u, v).setLight(light);
-        c.addVertex(p, x1, y0, z).setColor(color).setUv(u, v).setLight(light);
-        c.addVertex(p, x1, y1, z).setColor(color).setUv(u, v).setLight(light);
+        Geo.box(c, p, TEX, x0, y0, z - 0.01f, x1, y1, z, new float[][]{null, WHITE, null, null, null, null}, color,
+                LightCoordsUtil.FULL_BRIGHT);
     }
 
     @Override

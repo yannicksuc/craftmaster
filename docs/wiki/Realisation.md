@@ -30,7 +30,7 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   comme une caméra sur pied tenue par un cadreur ; *travelling* = avance lentement (1,6 bloc max, ralentit) ;
   *panoramique* = balaie doucement ±7° ; *fixe* = immobile.
 - Sur la diffusion, les trépieds **ne sont jamais affichés** (on voit à travers), ni le joueur caméra, ni les
-  spectateurs. En jeu, le **voyant rouge** d'une caméra s'allume quand elle est à l'antenne, et son numéro est peint
+  spectateurs, ni les pseudos au-dessus des têtes (le synthé nomme les candidats). En jeu, le **voyant rouge** d'une caméra s'allume quand elle est à l'antenne, et son numéro est peint
   sur ses flancs.
 - Les caméras sont enregistrées dans `config/craftmaster/cameras.json` (le plan marche même si le trépied est dans
   une zone non chargée).

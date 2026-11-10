@@ -33,8 +33,11 @@ import java.util.Set;
  */
 public final class Curtains {
 
-    /** Ticks between two columns: a 15-block-wide curtain opens in about 1.5 s, like a stage curtain. */
-    public static final int STEP_TICKS = 4;
+    /**
+     * Ticks between two columns: a 9-block-wide curtain opens in about 2 s, a 15-block one in 3 s, slow enough to
+     * read as a stage curtain on the TV picture (at 4 ticks it was over in under a second).
+     */
+    public static final int STEP_TICKS = 8;
     /** Biggest curtain handled at once. */
     public static final int MAX_BLOCKS = 4096;
 
