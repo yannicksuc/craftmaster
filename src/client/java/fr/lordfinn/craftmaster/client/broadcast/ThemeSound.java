@@ -18,9 +18,11 @@ public final class ThemeSound {
 
     private ThemeSound() {}
 
-    static void play() {
+    /** Plays the theme, or the sound {@code soundId} ("minecraft:music_disc.otherside"; "" = the theme). */
+    static void play(String soundId) {
         stop();
-        playing = new SimpleSoundInstance(CraftMaster.id("show.theme"), SoundSource.RECORDS, 1f, 1f, RandomSource.create(),
+        net.minecraft.resources.Identifier id = soundId == null || soundId.isBlank() ? null : net.minecraft.resources.Identifier.tryParse(soundId);
+        playing = new SimpleSoundInstance(id != null ? id : CraftMaster.id("show.theme"), SoundSource.RECORDS, 1f, 1f, RandomSource.create(),
                 false, 0, SoundInstance.Attenuation.NONE, 0, 0, 0, true);
         Minecraft.getInstance().getSoundManager().play(playing);
     }

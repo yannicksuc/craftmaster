@@ -1,19 +1,35 @@
 package fr.lordfinn.craftmaster.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import fr.lordfinn.craftmaster.CraftMaster;
 import fr.lordfinn.craftmaster.Permissions;
 import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork;
 import fr.lordfinn.craftmaster.broadcast.Credits;
 import fr.lordfinn.craftmaster.broadcast.Director;
 import fr.lordfinn.craftmaster.bust.Busts;
+import fr.lordfinn.craftmaster.camera.CameraList;
+import fr.lordfinn.craftmaster.camera.CameraPath;
+import fr.lordfinn.craftmaster.camera.CameraPaths;
 import fr.lordfinn.craftmaster.camera.CameraSpot;
 import fr.lordfinn.craftmaster.camera.Cameras;
+import fr.lordfinn.craftmaster.camera.Lieux;
+import fr.lordfinn.craftmaster.camera.PathMarkerItem;
+import fr.lordfinn.craftmaster.camera.PathRecording;
+import fr.lordfinn.craftmaster.data.Manche;
+import fr.lordfinn.craftmaster.data.MancheIntro;
+import fr.lordfinn.craftmaster.data.Partie;
+import fr.lordfinn.craftmaster.data.Season;
+import fr.lordfinn.craftmaster.registry.ModContent;
 import fr.lordfinn.craftmaster.show.ActionExecutor;
+import fr.lordfinn.craftmaster.trial.TrialZones;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
@@ -25,6 +41,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 import static com.mojang.brigadier.arguments.IntegerArgumentType.getInteger;
 import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
@@ -37,10 +54,14 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 /**
- * TV direction commands (chantier E): {@code /craftMasterCamera} (alias {@code /cam}) places and drives the studio
- * cameras, {@code /craftMasterTv} (alias {@code /tv}) runs the overlay and the credits. They need
- * {@link Permissions#CAMERA} (organisers, or the craftmaster:camera permission). The on-air actions go through
+ * TV direction commands (chantier E): {@code /craftMasterCamera} (alias {@code /cam}) places and drives the cameras
+ * (of the studio and of the rounds, see {@link CameraSpot}) and records the travellings, {@code /craftMasterTv}
+ * (alias {@code /tv}) runs the overlay, the credits and the rounds' intros. They need {@link Permissions#CAMERA}
+ * (organisers, or the craftmaster:camera permission). The on-air actions and the intros go through
  * {@link ActionExecutor}, like the voice control. Reference: docs/wiki/Realisation.md.
+ *
+ * <p>A camera argument is a reference: "2" (camera 2 where the keys point, {@link Director#focus()}), "studio:2",
+ * "pont:2", "pont:ensuri:1", "ensuri:1", a name or a role.
  */
 public final class CameraCommands {
 
@@ -51,13 +72,15 @@ public final class CameraCommands {
         CraftMasterCommands.add(d, CameraCommands::tv, "craftMasterTv", "tv");
     }
 
-    private static final SuggestionProvider<CommandSourceStack> NUMBERS = list(c ->
-            Cameras.list().all().stream().map(s -> String.valueOf(s.number())).toList());
-    /** Numbers, names and roles: what camera.cut understands. */
+    /** Effects of the screen effects system (client.fx); others are accepted too. */
+    public static final List<String> EFFECTS = List.of("aucun", "noir_blanc", "sepia", "pixel", "fisheye", "vignette", "masque_rond", "citrouille");
+
+    /** Numbers of the focus, keys of every camera, names and roles: what a camera reference understands. */
     private static final SuggestionProvider<CommandSourceStack> CAMERAS = list(c -> {
         Set<String> out = new LinkedHashSet<>();
-        for (CameraSpot s : Cameras.list().all()) out.add(String.valueOf(s.number()));
-        for (CameraSpot s : Cameras.list().all()) out.add(s.name());
+        for (CameraSpot s : Cameras.list().group(Director.focus()).all()) out.add(String.valueOf(s.number()));
+        for (CameraSpot s : Cameras.list().all()) out.add(s.key());
+        for (CameraSpot s : Cameras.list().group(Director.focus()).all()) out.add(s.name());
         out.addAll(CameraSpot.ROLES);
         return out;
     });
@@ -66,11 +89,49 @@ public final class CameraCommands {
         r.add("aucun");
         return r;
     });
+    /** "studio" and the rounds of the active season (ids). */
+    private static final SuggestionProvider<CommandSourceStack> LIEUX = list(c -> {
+        List<String> out = new ArrayList<>(List.of(CameraSpot.STUDIO));
+        out.addAll(mancheIds());
+        return out;
+    });
+    private static final SuggestionProvider<CommandSourceStack> FOCUS_LIEUX = list(c -> {
+        List<String> out = new ArrayList<>(List.of("auto", CameraSpot.STUDIO));
+        out.addAll(mancheIds());
+        return out;
+    });
+    /** Trial zones, the contestants, and the zones that already have cameras. */
+    private static final SuggestionProvider<CommandSourceStack> ZONES = list(c -> {
+        Set<String> out = new LinkedHashSet<>(TrialZones.zones().keySet());
+        for (CameraSpot s : Cameras.list().all()) if (!s.zone().isEmpty()) out.add(s.zone());
+        out.addAll(fr.lordfinn.craftmaster.trial.Judging.contestants());
+        return out;
+    });
+    private static final SuggestionProvider<CommandSourceStack> ZONE_CHOICES = list(c -> {
+        Set<String> out = new LinkedHashSet<>(List.of("suivante", "precedente", "tout"));
+        out.addAll(Cameras.list().zones(Director.focusLieu()));
+        out.remove("");
+        out.addAll(fr.lordfinn.craftmaster.trial.Judging.contestants());
+        return out;
+    });
+    private static final SuggestionProvider<CommandSourceStack> PATHS = list(c -> CameraPaths.byName().keySet());
+    private static final SuggestionProvider<CommandSourceStack> MANCHES = list(c -> mancheIds());
     private static final SuggestionProvider<CommandSourceStack> MOTIONS = list(c -> CameraSpot.MOTIONS);
+    private static final SuggestionProvider<CommandSourceStack> CURVES = list(c -> CameraPath.CURVES);
     private static final SuggestionProvider<CommandSourceStack> TRANSITIONS = list(c -> List.of("coupe", "fondu", "enchaine"));
+    private static final SuggestionProvider<CommandSourceStack> EFFECT_IDS = list(c -> EFFECTS);
+    private static final SuggestionProvider<CommandSourceStack> CARDS = list(c -> List.of("titre", "synthe", "aucune"));
+    private static final SuggestionProvider<CommandSourceStack> MUSIC = list(c -> List.of("theme", "aucune", "minecraft:music_disc.otherside"));
     private static final SuggestionProvider<CommandSourceStack> ON_OFF = list(c -> List.of("on", "off"));
     private static final SuggestionProvider<CommandSourceStack> SCORE_MODES = list(c -> List.of("show", "auto", "on", "off"));
     private static final SuggestionProvider<CommandSourceStack> ONLINE = list(c -> c.getSource().getOnlinePlayerNames());
+
+    private static List<String> mancheIds() {
+        List<String> out = new ArrayList<>();
+        Season s = CraftMaster.data() == null ? null : CraftMaster.data().activeSeason();
+        if (s != null) for (Partie p : s.parties.values()) for (Manche m : p.manches) if (!m.archived) out.add(m.id);
+        return out;
+    }
 
     @SafeVarargs
     private static int run(CommandContext<CommandSourceStack> c, Map<String, Object>... actions) {
@@ -92,65 +153,88 @@ public final class CameraCommands {
         return v.equals("on") || v.equals("oui") || v.equals("true");
     }
 
+    private static RequiredArgumentBuilder<CommandSourceStack, String> cam() {
+        return argument("camera", word()).suggests(CAMERAS);
+    }
+
+    /** The camera of the "camera" argument, or null (said so). */
+    private static CameraSpot spot(CommandContext<CommandSourceStack> c) {
+        String ref = str(c, "camera");
+        CameraSpot s = Director.resolve(c.getSource().getServer(), ref);
+        if (s == null) fail(c, "Aucune caméra « " + ref + " » dans " + Director.focusName() + " (/cam list tout pour toutes les voir).");
+        return s;
+    }
+
     // ---------------------------------------------------------------- /craftMasterCamera
 
     private static LiteralArgumentBuilder<CommandSourceStack> camera(String name) {
         return literal(name).requires(Permissions.CAMERA)
-                .executes(CameraCommands::listCameras)
-                .then(literal("list").executes(CameraCommands::listCameras))
+                .executes(c -> listCameras(c, false))
+                .then(literal("list").executes(c -> listCameras(c, false))
+                        .then(literal("tout").executes(c -> listCameras(c, true)))
+                        .then(literal("all").executes(c -> listCameras(c, true))))
                 .then(literal("here")
-                        .then(argument("number", integer(1, 99)).suggests(NUMBERS)
-                                .executes(c -> here(c, getInteger(c, "number"), null))
-                                .then(argument("name", StringArgumentType.greedyString())
-                                        .executes(c -> here(c, getInteger(c, "number"), str(c, "name"))))))
+                        .then(cam().executes(c -> here(c, null))
+                                .then(argument("name", StringArgumentType.greedyString()).executes(c -> here(c, str(c, "name"))))))
                 .then(literal("add")
-                        .executes(c -> here(c, Cameras.list().nextFree(), null))
-                        .then(argument("name", StringArgumentType.greedyString())
-                                .executes(c -> here(c, Cameras.list().nextFree(), str(c, "name")))))
-                .then(literal("aim").then(argument("number", integer(1, 99)).suggests(NUMBERS).executes(CameraCommands::aim)))
-                .then(literal("goto").then(argument("number", integer(1, 99)).suggests(NUMBERS).executes(CameraCommands::gotoCamera)))
-                .then(literal("name").then(argument("number", integer(1, 99)).suggests(NUMBERS)
-                        .then(argument("name", StringArgumentType.greedyString()).executes(c -> {
-                            int n = getInteger(c, "number");
-                            String newName = str(c, "name");
-                            return set(c, n, s -> s.withName(newName), "Caméra " + n + " renommée « " + newName + " ».");
-                        }))))
-                .then(literal("role").then(argument("number", integer(1, 99)).suggests(NUMBERS)
-                        .then(argument("role", word()).suggests(ROLES).executes(c -> {
-                            int n = getInteger(c, "number");
-                            String role = CameraSpot.normalizeRole(str(c, "role"));
-                            if (!role.isEmpty()) {
-                                // One camera per role: the previous holder loses it
-                                CameraSpot holder = Cameras.list().withRole(role);
-                                if (holder != null && holder.number() != n) Cameras.update(c.getSource().getServer(), holder.number(), s -> s.withRole(""));
-                            }
-                            return set(c, n, s -> s.withRole(role), "Caméra " + n + " : " + (role.isEmpty() ? "aucun rôle." : "rôle « " + role + " »."));
-                        }))))
-                .then(literal("zoom").then(argument("number", integer(1, 99)).suggests(NUMBERS)
-                        .then(literal("reset").executes(c -> set(c, getInteger(c, "number"), s -> s.withFov(0),
-                                "Caméra " + getInteger(c, "number") + " : champ de vision du joueur.")))
+                        .executes(c -> add(c, null))
+                        .then(argument("name", StringArgumentType.greedyString()).executes(c -> add(c, str(c, "name")))))
+                .then(literal("aim").then(cam().executes(CameraCommands::aim)))
+                .then(literal("goto").then(cam().executes(CameraCommands::gotoCamera)))
+                .then(literal("name").then(cam().then(argument("name", StringArgumentType.greedyString()).executes(c -> {
+                    String newName = str(c, "name");
+                    return set(c, s -> s.withName(newName), "renommée « " + newName + " »");
+                }))))
+                .then(literal("role").then(cam().then(argument("role", word()).suggests(ROLES).executes(c -> {
+                    CameraSpot target = spot(c);
+                    if (target == null) return 0;
+                    String role = CameraSpot.normalizeRole(str(c, "role"));
+                    if (!role.isEmpty()) {
+                        // One camera per role in each group: the previous holder loses it
+                        CameraSpot holder = Cameras.list().group(target.group()).withRole(role);
+                        if (holder != null && !holder.key().equals(target.key()))
+                            Cameras.update(c.getSource().getServer(), holder.key(), s -> s.withRole(""));
+                    }
+                    return set(c, s -> s.withRole(role), role.isEmpty() ? "aucun rôle" : "rôle « " + role + " »");
+                }))))
+                .then(literal("zoom").then(cam()
+                        .then(literal("reset").executes(c -> set(c, s -> s.withFov(0), "champ de vision du joueur")))
                         .then(argument("fov", FloatArgumentType.floatArg(CameraSpot.MIN_FOV, CameraSpot.MAX_FOV)).executes(c -> {
                             float fov = FloatArgumentType.getFloat(c, "fov");
-                            return set(c, getInteger(c, "number"), s -> s.withFov(fov), "Caméra " + getInteger(c, "number") + " : champ de " + Math.round(fov) + "°.");
+                            return set(c, s -> s.withFov(fov), "champ de " + Math.round(fov) + "°");
                         }))))
-                .then(literal("motion").then(argument("number", integer(1, 99)).suggests(NUMBERS)
-                        .then(argument("motion", word()).suggests(MOTIONS).executes(c -> {
-                            String m = CameraSpot.normalizeMotion(str(c, "motion"));
-                            return set(c, getInteger(c, "number"), s -> s.withMotion(m), "Caméra " + getInteger(c, "number") + " : mouvement « " + m + " ».");
-                        }))))
-                .then(literal("remove").then(argument("number", integer(1, 99)).suggests(NUMBERS).executes(c -> {
-                    int n = getInteger(c, "number");
-                    if (!Cameras.remove(c.getSource().getServer(), n)) {
-                        fail(c, "Aucune caméra " + n + ".");
-                        return 0;
-                    }
-                    ok(c, "Caméra " + n + " retirée.");
+                .then(literal("motion").then(cam().then(argument("motion", word()).suggests(MOTIONS).executes(c -> {
+                    String m = CameraSpot.normalizeMotion(str(c, "motion"));
+                    return set(c, s -> s.withMotion(m), "mouvement « " + m + " »");
+                }))))
+                .then(literal("remove").then(cam().executes(c -> {
+                    CameraSpot s = spot(c);
+                    if (s == null) return 0;
+                    Cameras.remove(c.getSource().getServer(), s.key());
+                    ok(c, "Caméra " + s.label() + " retirée.");
                     return 1;
                 })))
+                // Lieux: which lieu a camera belongs to, which lieu / zone the keys address
+                .then(literal("lieu").then(cam().then(argument("lieu", word()).suggests(LIEUX)
+                        .executes(c -> run(c, action("camera.lieu", "camera", str(c, "camera"), "lieu", str(c, "lieu"))))
+                        .then(argument("zone", word()).suggests(ZONES)
+                                .executes(c -> run(c, action("camera.lieu", "camera", str(c, "camera"), "lieu", str(c, "lieu"), "zone", str(c, "zone"))))))))
+                .then(literal("focus").executes(CameraCommands::showFocus)
+                        .then(argument("lieu", word()).suggests(FOCUS_LIEUX)
+                                .executes(c -> run(c, action("camera.focus", "lieu", str(c, "lieu"))))
+                                .then(argument("zone", word()).suggests(ZONES)
+                                        .executes(c -> run(c, action("camera.focus", "lieu", str(c, "lieu"), "zone", str(c, "zone")))))))
+                .then(literal("zone").executes(CameraCommands::showFocus)
+                        .then(argument("zone", word()).suggests(ZONE_CHOICES)
+                                .executes(c -> run(c, action("camera.focus", "zone", str(c, "zone"))))))
+                // On air
                 .then(literal("cut").then(argument("camera", word()).suggests(CAMERAS)
                         .executes(c -> run(c, action("camera.cut", "camera", str(c, "camera"))))
                         .then(argument("transition", word()).suggests(TRANSITIONS)
-                                .executes(c -> run(c, action("camera.cut", "camera", str(c, "camera"), "transition", str(c, "transition")))))))
+                                .executes(c -> run(c, action("camera.cut", "camera", str(c, "camera"), "transition", str(c, "transition"))))
+                                .then(argument("effect", word()).suggests(EFFECT_IDS)
+                                        .executes(c -> run(c, action("camera.cut", "camera", str(c, "camera"), "transition", str(c, "transition"),
+                                                "effect", str(c, "effect"))))))))
                 .then(literal("wide").executes(c -> run(c, action("camera.cut", "camera", CameraSpot.WIDE))))
                 .then(literal("next").executes(c -> step(c, 1)))
                 .then(literal("prev").executes(c -> step(c, -1)))
@@ -158,90 +242,156 @@ public final class CameraCommands {
                         .executes(c -> run(c, action("camera.follow", "player", str(c, "player"))))
                         .then(argument("transition", word()).suggests(TRANSITIONS)
                                 .executes(c -> run(c, action("camera.follow", "player", str(c, "player"), "transition", str(c, "transition")))))))
+                .then(literal("pov").then(argument("player", word()).suggests(ONLINE)
+                        .executes(c -> run(c, action("camera.pov", "player", str(c, "player"))))))
+                .then(literal("mosaic").executes(c -> run(c, action("camera.mosaic")))
+                        .then(literal("off").executes(c -> run(c, action("camera.mosaic", "enabled", false))))
+                        .then(argument("lieu", word()).suggests(LIEUX).executes(c -> run(c, action("camera.mosaic", "lieu", str(c, "lieu"))))))
                 .then(literal("auto").then(argument("enabled", word()).suggests(ON_OFF)
                         .executes(c -> run(c, action("camera.auto", "enabled", onOff(c, "enabled"))))))
                 .then(literal("transition").then(argument("transition", word()).suggests(TRANSITIONS)
-                        .executes(c -> run(c, action("camera.transition", "transition", str(c, "transition"))))));
+                        .executes(c -> run(c, action("camera.transition", "transition", str(c, "transition"))))))
+                // Travellings
+                .then(literal("jouer").then(argument("path", word()).suggests(PATHS)
+                        .executes(c -> run(c, action("camera.path", "path", str(c, "path"))))
+                        .then(argument("transition", word()).suggests(TRANSITIONS)
+                                .executes(c -> run(c, action("camera.path", "path", str(c, "path"), "transition", str(c, "transition"))))
+                                .then(argument("effect", word()).suggests(EFFECT_IDS)
+                                        .executes(c -> run(c, action("camera.path", "path", str(c, "path"), "transition", str(c, "transition"),
+                                                "effect", str(c, "effect"))))))))
+                .then(literal("trajets").executes(CameraCommands::listPaths))
+                .then(literal("trajet").executes(CameraCommands::listPaths).then(pathCommands()));
     }
 
-    private static int listCameras(CommandContext<CommandSourceStack> c) {
-        List<CameraSpot> all = Cameras.list().all();
-        c.getSource().sendSystemMessage(Component.literal("— Caméras du studio —").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
-        if (all.isEmpty()) c.getSource().sendSystemMessage(Component.literal(
-                "Aucune caméra. Place-toi et regarde le plan voulu, puis /cam here 1 Plan large (ou pose l'objet Caméra de studio).")
-                .withStyle(ChatFormatting.GRAY));
+    private static int listCameras(CommandContext<CommandSourceStack> c, boolean everything) {
+        String focus = Director.focus();
+        List<CameraSpot> all = everything ? Cameras.list().all() : Cameras.list().group(focus).all();
+        c.getSource().sendSystemMessage(Component.literal("— Caméras : " + (everything ? "tous les lieux" : Director.focusName()) + " —")
+                .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        if (all.isEmpty()) c.getSource().sendSystemMessage(Component.literal(Cameras.list().isEmpty()
+                ? "Aucune caméra. Place-toi et regarde le plan voulu, puis /cam here 1 Plan large (ou pose l'objet Caméra de studio)."
+                : "Aucune caméra ici (/cam list tout pour les autres lieux).").withStyle(ChatFormatting.GRAY));
         BroadcastNetwork.Shot shot = Director.shot();
+        String group = "";
         for (CameraSpot s : all) {
-            boolean onAir = shot.kind() == BroadcastNetwork.SHOT_CAMERA && shot.camera() == s.number();
-            c.getSource().sendSystemMessage(Component.literal((onAir ? "● " : "  ") + s.label()).withStyle(onAir ? ChatFormatting.RED : ChatFormatting.WHITE)
-                    .append(Component.literal("  " + s.describe()).withStyle(ChatFormatting.GRAY)));
+            if (everything && !s.group().equals(group)) {
+                group = s.group();
+                c.getSource().sendSystemMessage(Component.literal(" " + CameraSpot.placeName(group) + " (" + Lieux.lieuName(s.lieu()) + ")"
+                        + (group.equals(focus) ? " ← touches 1–9" : "")).withStyle(ChatFormatting.YELLOW));
+            }
+            boolean onAir = shot.kind() == BroadcastNetwork.SHOT_CAMERA && shot.camera().equals(s.key());
+            c.getSource().sendSystemMessage(Component.literal((onAir ? "● " : "  ") + s.number() + " · " + s.name()
+                            + (s.role().isEmpty() ? "" : " (" + s.role() + ")")).withStyle(onAir ? ChatFormatting.RED : ChatFormatting.WHITE)
+                    .append(Component.literal("  " + s.key() + " · " + s.describe()).withStyle(ChatFormatting.GRAY)));
         }
-        String onAirText = switch (shot.kind()) {
-            case BroadcastNetwork.SHOT_CAMERA -> "caméra " + shot.camera();
-            case BroadcastNetwork.SHOT_FOLLOW -> "on suit " + shot.player();
-            default -> "rien (vue du joueur)";
-        };
-        c.getSource().sendSystemMessage(Component.literal("À l'antenne : " + onAirText + " · réalisation auto "
-                + (Director.autoDirection() ? "on" : "off") + " · " + Director.broadcasters().size() + " jeu(x) en mode diffusion"
-                + (Credits.running().isEmpty() ? "" : " · générique en cours")).withStyle(ChatFormatting.GRAY));
+        c.getSource().sendSystemMessage(Component.literal("À l'antenne : " + onAir(shot) + " · touches 1–9 : " + Director.focusName()
+                + " · réalisation auto " + (Director.autoDirection() ? "on" : "off") + " · " + Director.broadcasters().size()
+                + " jeu(x) en mode diffusion" + (Director.sequenceRunning() ? " · générique / intro en cours" : "")).withStyle(ChatFormatting.GRAY));
         return all.size();
     }
 
-    /** Camera {@code n} put where the player's eyes are, looking where they look. */
-    private static int here(CommandContext<CommandSourceStack> c, int n, String name) {
+    static String onAir(BroadcastNetwork.Shot shot) {
+        return switch (shot.kind()) {
+            case BroadcastNetwork.SHOT_CAMERA -> {
+                CameraSpot s = Cameras.list().get(shot.camera());
+                yield "caméra " + (s == null ? shot.camera() : s.label());
+            }
+            case BroadcastNetwork.SHOT_FOLLOW -> "on suit " + shot.player();
+            case BroadcastNetwork.SHOT_PATH -> "trajet « " + shot.camera() + " »";
+            case BroadcastNetwork.SHOT_MOSAIC -> "écran partagé (" + shot.tiles().size() + ")";
+            case BroadcastNetwork.SHOT_POV -> "vue de " + shot.player();
+            case BroadcastNetwork.SHOT_FREE -> "caméra libre";
+            default -> "rien (vue du joueur)";
+        } + (shot.effect().isEmpty() ? "" : ", effet " + shot.effect());
+    }
+
+    private static int showFocus(CommandContext<CommandSourceStack> c) {
+        List<String> zones = new ArrayList<>(Cameras.list().zones(Director.focusLieu()));
+        zones.remove("");
+        ok(c, "Touches 1–9 : " + Director.focusName() + " (" + Cameras.list().group(Director.focus()).size() + " caméra(s))"
+                + (zones.isEmpty() ? "" : " · zones : " + String.join(", ", zones)) + ". /cam focus <studio|manche|auto> [zone], /cam zone <zone|joueur|suivante|tout>.");
+        return 1;
+    }
+
+    /**
+     * Camera {@code ref} put where the player's eyes are, looking where they look: moved if it exists, else created
+     * ("2" in the focus, "pont:ensuri:2" in that group).
+     */
+    private static int here(CommandContext<CommandSourceStack> c, String name) {
         ServerPlayer p = player(c);
         if (p == null) return 0;
-        CameraSpot old = Cameras.get(n);
-        String newName = name != null ? name : old != null ? old.name() : null;
-        CameraSpot spot = old != null
-                ? old.withPlace(Busts.worldId(p.level()), p.getX(), p.getEyeY(), p.getZ(), p.getYRot(), p.getXRot())
-                : new CameraSpot(n, null, "", Busts.worldId(p.level()), p.getX(), p.getEyeY(), p.getZ(), p.getYRot(), p.getXRot(), 0, CameraSpot.BREATHING);
-        if (newName != null) spot = spot.withName(newName);
+        String ref = str(c, "camera");
+        CameraSpot old = Director.resolve(c.getSource().getServer(), ref);
+        CameraSpot spot;
+        if (old != null) {
+            spot = old.withPlace(Busts.worldId(p.level()), p.getX(), p.getEyeY(), p.getZ(), p.getYRot(), p.getXRot());
+        } else {
+            String group = Director.focus();
+            String num = ref;
+            int colon = ref.lastIndexOf(':');
+            if (colon > 0) {
+                group = Cameras.list().place(ref.substring(0, colon), group, Lieux.places(c.getSource().getServer(), group), true);
+                num = ref.substring(colon + 1);
+                if (group != null && !CameraSpot.STUDIO.equals(CameraSpot.lieuOf(group)) && Lieux.lieu(CameraSpot.lieuOf(group)) == null) group = null;
+            }
+            if (group == null || !num.matches("\\d{1,2}") || Integer.parseInt(num) < 1) {
+                fail(c, "« " + ref + " » : donne un numéro (/cam here 3) ou lieu:numéro (/cam here pont:2, /cam here pont:ensuri:1).");
+                return 0;
+            }
+            spot = new CameraSpot(Integer.parseInt(num), null, "", Busts.worldId(p.level()), p.getX(), p.getEyeY(), p.getZ(), p.getYRot(),
+                    p.getXRot(), 0, CameraSpot.BREATHING, CameraSpot.lieuOf(group), CameraSpot.zoneOf(group));
+        }
+        if (name != null) spot = spot.withName(name);
         Cameras.place(c.getSource().getServer(), spot);
-        ok(c, "Caméra " + spot.label() + (old == null ? " posée" : " déplacée") + " à ta place, elle regarde là où tu regardes.");
+        ok(c, "Caméra " + spot.label() + (old == null ? " posée" : " déplacée") + " à ta place (" + spot.placeName() + "), elle regarde là où tu regardes.");
+        return 1;
+    }
+
+    private static int add(CommandContext<CommandSourceStack> c, String name) {
+        ServerPlayer p = player(c);
+        if (p == null) return 0;
+        String group = Director.focus();
+        CameraSpot spot = new CameraSpot(Cameras.list().nextFree(group), name, "", Busts.worldId(p.level()), p.getX(), p.getEyeY(), p.getZ(),
+                p.getYRot(), p.getXRot(), 0, CameraSpot.BREATHING, CameraSpot.lieuOf(group), CameraSpot.zoneOf(group));
+        Cameras.place(c.getSource().getServer(), spot);
+        ok(c, "Caméra " + spot.label() + " posée à ta place (" + spot.placeName() + ").");
         return 1;
     }
 
     private static int aim(CommandContext<CommandSourceStack> c) {
         ServerPlayer p = player(c);
         if (p == null) return 0;
-        int n = getInteger(c, "number");
-        return set(c, n, s -> s.withRotation(p.getYRot(), p.getXRot()), "Caméra " + n + " : elle regarde maintenant là où tu regardes.");
+        return set(c, s -> s.withRotation(p.getYRot(), p.getXRot()), "elle regarde maintenant là où tu regardes");
     }
 
     private static int gotoCamera(CommandContext<CommandSourceStack> c) {
         ServerPlayer p = player(c);
         if (p == null) return 0;
-        int n = getInteger(c, "number");
-        CameraSpot s = Cameras.get(n);
+        CameraSpot s = spot(c);
         ServerLevel level = s == null ? null : Busts.level(c.getSource().getServer(), s.world());
-        if (level == null) {
-            fail(c, "Aucune caméra " + n + ".");
-            return 0;
-        }
+        if (level == null) return 0;
         // Eyes at the lens: what the player sees is the shot (to check or adjust it)
         p.teleportTo(level, s.x(), s.y() - p.getEyeHeight(), s.z(), Set.of(), s.yaw(), s.pitch(), false);
-        ok(c, "Tu vois ce que voit la caméra " + s.label() + ". /cam here " + n + " pour la recadrer d'ici.");
+        ok(c, "Tu vois ce que voit la caméra " + s.label() + ". /cam here " + s.key() + " pour la recadrer d'ici.");
         return 1;
     }
 
-    private static int set(CommandContext<CommandSourceStack> c, int n, java.util.function.UnaryOperator<CameraSpot> change, String message) {
-        if (!Cameras.update(c.getSource().getServer(), n, change)) {
-            fail(c, "Aucune caméra " + n + ".");
-            return 0;
-        }
-        ok(c, message);
+    private static int set(CommandContext<CommandSourceStack> c, UnaryOperator<CameraSpot> change, String what) {
+        CameraSpot s = spot(c);
+        if (s == null) return 0;
+        Cameras.update(c.getSource().getServer(), s.key(), change);
+        ok(c, "Caméra " + s.label() + " : " + what + ".");
         return 1;
     }
 
     private static int step(CommandContext<CommandSourceStack> c, int delta) {
         BroadcastNetwork.Shot shot = Director.shot();
-        CameraSpot s = Cameras.list().step(shot.kind() == BroadcastNetwork.SHOT_CAMERA ? shot.camera() : -1, delta);
+        CameraSpot s = Cameras.list().group(Director.focus()).step(shot.kind() == BroadcastNetwork.SHOT_CAMERA ? shot.camera() : "", delta);
         if (s == null) {
-            fail(c, "Aucune caméra posée.");
+            fail(c, "Aucune caméra dans " + Director.focusName() + ".");
             return 0;
         }
-        return run(c, action("camera.cut", "camera", String.valueOf(s.number())));
+        return run(c, action("camera.cut", "camera", s.key()));
     }
 
     /** All eyes on a player: what chantier D's envelopes fire ({@code ShowEvents.spotlight}), by hand. */
@@ -249,6 +399,203 @@ public final class CameraCommands {
         String player = str(c, "player");
         fr.lordfinn.craftmaster.show.ShowEvents.spotlight(c.getSource().getServer(), player, reason == null ? "" : reason);
         ok(c, "Projecteur sur " + player + (Director.autoDirection() ? "." : " (la réalisation automatique est désactivée : /cam auto on)."));
+        return 1;
+    }
+
+    // ---------------------------------------------------------------- travellings
+
+    private static int listPaths(CommandContext<CommandSourceStack> c) {
+        c.getSource().sendSystemMessage(Component.literal("— Trajets (travellings) —").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        if (CameraPaths.all().isEmpty()) c.getSource().sendSystemMessage(Component.literal(
+                "Aucun trajet. Place-toi au départ et tape /cam trajet <nom> point, puis déplace-toi et recommence (ou /cam trajet <nom> objet).")
+                .withStyle(ChatFormatting.GRAY));
+        for (CameraPath p : CameraPaths.all())
+            c.getSource().sendSystemMessage(Component.literal("  " + p.name()).withStyle(ChatFormatting.WHITE)
+                    .append(Component.literal("  " + Lieux.lieuName(p.lieu()) + " · " + p.steps().size() + " étape(s) · "
+                            + CameraPath.seconds(Math.round(p.duration() * 10) / 10.0)).withStyle(ChatFormatting.GRAY)));
+        return CameraPaths.all().size();
+    }
+
+    private static CameraPath path(CommandContext<CommandSourceStack> c) {
+        String n = str(c, "path");
+        CameraPath p = CameraPaths.get(n);
+        if (p == null) fail(c, "Aucun trajet « " + n + " » (/cam trajets).");
+        return p;
+    }
+
+    /** Index (1-based argument "step", or the last step) of a path; -1 (said so) if out of range. */
+    private static int stepIndex(CommandContext<CommandSourceStack> c, CameraPath p, boolean given) {
+        if (p.isEmpty()) {
+            fail(c, "Le trajet « " + p.name() + " » n'a aucune étape.");
+            return -1;
+        }
+        int i = given ? getInteger(c, "step") - 1 : p.steps().size() - 1;
+        if (i < 0 || i >= p.steps().size()) {
+            fail(c, "Le trajet « " + p.name() + " » a " + p.steps().size() + " étape(s).");
+            return -1;
+        }
+        return i;
+    }
+
+    private static int changeStep(CommandContext<CommandSourceStack> c, boolean given, UnaryOperator<CameraPath.Step> change, String what) {
+        CameraPath p = path(c);
+        if (p == null) return 0;
+        int i = stepIndex(c, p, given);
+        if (i < 0) return 0;
+        List<CameraPath.Step> steps = new ArrayList<>(p.steps());
+        steps.set(i, change.apply(steps.get(i)));
+        CameraPaths.put(c.getSource().getServer(), p.withSteps(steps));
+        PathRecording.show(c.getSource().getServer(), p.name(), 6);
+        ok(c, "Trajet « " + p.name() + " », étape " + (i + 1) + " : " + what + " (total " + CameraPath.seconds(Math.round(p.withSteps(steps).duration() * 10) / 10.0) + ").");
+        return 1;
+    }
+
+    /** A sub-command that changes one step: "… <value>" (last step) or "… <value> <step>". */
+    private static RequiredArgumentBuilder<CommandSourceStack, ?> onStep(RequiredArgumentBuilder<CommandSourceStack, ?> value,
+                                                                           java.util.function.BiFunction<CommandContext<CommandSourceStack>, Boolean, Integer> run) {
+        return value.executes(c -> run.apply(c, false)).then(argument("step", integer(1, 99)).executes(c -> run.apply(c, true)));
+    }
+
+    private static RequiredArgumentBuilder<CommandSourceStack, String> pathCommands() {
+        return argument("path", word()).suggests(PATHS)
+                .executes(CameraCommands::pathInfo)
+                .then(literal("info").executes(CameraCommands::pathInfo))
+                .then(literal("point")
+                        .executes(c -> addPoint(c, -1))
+                        .then(argument("seconds", DoubleArgumentType.doubleArg(0, CameraPath.MAX_SECONDS)).executes(c -> addPoint(c, DoubleArgumentType.getDouble(c, "seconds")))))
+                .then(literal("remplacer").then(argument("step", integer(1, 99)).executes(c -> {
+                    ServerPlayer p = player(c);
+                    if (p == null) return 0;
+                    return changeStep(c, true, s -> s.withPlace(p.getX(), p.getEyeY(), p.getZ(), p.getYRot(), p.getXRot()), "replacée à tes yeux");
+                })))
+                .then(literal("duree").then(onStep(argument("seconds", DoubleArgumentType.doubleArg(0, CameraPath.MAX_SECONDS)), (c, given) -> {
+                    double s = DoubleArgumentType.getDouble(c, "seconds");
+                    return changeStep(c, given, st -> st.withTravel(s), "atteinte en " + CameraPath.seconds(s));
+                })))
+                .then(literal("pause").then(onStep(argument("seconds", DoubleArgumentType.doubleArg(0, CameraPath.MAX_SECONDS)), (c, given) -> {
+                    double s = DoubleArgumentType.getDouble(c, "seconds");
+                    return changeStep(c, given, st -> st.withHold(s), s > 0 ? "pause de " + CameraPath.seconds(s) : "sans pause");
+                })))
+                .then(literal("courbe").then(onStep(argument("curve", word()).suggests(CURVES), (c, given) -> {
+                    String k = CameraPath.normalizeCurve(str(c, "curve"));
+                    return changeStep(c, given, st -> st.withCurve(k), "courbe « " + k + " »");
+                })))
+                .then(literal("zoom")
+                        .then(onStep(argument("fov", FloatArgumentType.floatArg(CameraSpot.MIN_FOV, CameraSpot.MAX_FOV)), (c, given) -> {
+                            float f = FloatArgumentType.getFloat(c, "fov");
+                            return changeStep(c, given, st -> st.withFov(f), "champ de " + Math.round(f) + "°");
+                        }))
+                        .then(literal("reset").executes(c -> changeStep(c, false, st -> st.withFov(0), "champ du joueur"))
+                                .then(argument("step", integer(1, 99)).executes(c -> changeStep(c, true, st -> st.withFov(0), "champ du joueur")))))
+                .then(literal("suppr")
+                        .executes(c -> removeStep(c, -1))
+                        .then(argument("step", integer(1, 99)).executes(c -> removeStep(c, getInteger(c, "step") - 1))))
+                .then(literal("aller").then(argument("step", integer(1, 99)).executes(c -> {
+                    ServerPlayer p = player(c);
+                    CameraPath path = path(c);
+                    if (p == null || path == null) return 0;
+                    int i = stepIndex(c, path, true);
+                    ServerLevel level = Busts.level(c.getSource().getServer(), path.world());
+                    if (i < 0 || level == null) return 0;
+                    CameraPath.Step s = path.steps().get(i);
+                    p.teleportTo(level, s.x(), s.y() - p.getEyeHeight(), s.z(), Set.of(), s.yaw(), s.pitch(), false);
+                    ok(c, "Tu es à l'étape " + (i + 1) + " du trajet « " + path.name() + " » (/cam trajet " + path.name() + " remplacer " + (i + 1) + " pour la refaire d'ici).");
+                    return 1;
+                })))
+                .then(literal("apercu").executes(CameraCommands::preview))
+                .then(literal("montrer").executes(c -> {
+                    CameraPath p = path(c);
+                    if (p == null) return 0;
+                    PathRecording.show(c.getSource().getServer(), p.name(), 20);
+                    ok(c, "Trajet « " + p.name() + " » dessiné 20 s (poussière dorée, étapes en rouge).");
+                    return 1;
+                }))
+                .then(literal("jouer").executes(c -> run(c, action("camera.path", "path", str(c, "path"))))
+                        .then(argument("transition", word()).suggests(TRANSITIONS)
+                                .executes(c -> run(c, action("camera.path", "path", str(c, "path"), "transition", str(c, "transition"))))))
+                .then(literal("lieu").then(argument("lieu", word()).suggests(LIEUX).executes(c -> {
+                    CameraPath p = path(c);
+                    if (p == null) return 0;
+                    String lieu = Lieux.lieu(str(c, "lieu"));
+                    if (lieu == null) {
+                        fail(c, "Lieu « " + str(c, "lieu") + " » inconnu (studio ou une manche).");
+                        return 0;
+                    }
+                    CameraPaths.put(c.getSource().getServer(), p.withLieu(lieu));
+                    ok(c, "Trajet « " + p.name() + " » : lieu " + Lieux.lieuName(lieu) + ".");
+                    return 1;
+                })))
+                .then(literal("objet").executes(c -> {
+                    ServerPlayer p = player(c);
+                    if (p == null) return 0;
+                    String n = CameraPath.normalizeName(str(c, "path"));
+                    p.getInventory().add(PathMarkerItem.bound(ModContent.PATH_MARKER, n));
+                    ok(c, "Repère de travelling pour « " + n + " » : clic droit = une étape à tes yeux, accroupi + clic droit = retirer la dernière.");
+                    return 1;
+                }))
+                .then(literal("effacer").executes(c -> {
+                    String n = str(c, "path");
+                    if (!CameraPaths.remove(c.getSource().getServer(), n)) {
+                        fail(c, "Aucun trajet « " + n + " ».");
+                        return 0;
+                    }
+                    ok(c, "Trajet « " + CameraPath.normalizeName(n) + " » effacé.");
+                    return 1;
+                }));
+    }
+
+    private static int addPoint(CommandContext<CommandSourceStack> c, double seconds) {
+        ServerPlayer p = player(c);
+        if (p == null) return 0;
+        String line = PathRecording.addStep(c.getSource().getServer(), p, str(c, "path"), seconds);
+        if (line.startsWith("⚠")) {
+            fail(c, line);
+            return 0;
+        }
+        ok(c, line);
+        return 1;
+    }
+
+    private static int removeStep(CommandContext<CommandSourceStack> c, int index) {
+        String line = PathRecording.removeStep(c.getSource().getServer(), str(c, "path"), index);
+        if (line.startsWith("⚠")) {
+            fail(c, line);
+            return 0;
+        }
+        ok(c, line);
+        return 1;
+    }
+
+    private static int pathInfo(CommandContext<CommandSourceStack> c) {
+        CameraPath p = path(c);
+        if (p == null) return 0;
+        c.getSource().sendSystemMessage(Component.literal("— Trajet « " + p.name() + " » — " + Lieux.lieuName(p.lieu()) + " · "
+                + CameraPath.seconds(Math.round(p.duration() * 10) / 10.0)).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        for (int i = 0; i < p.steps().size(); i++)
+            c.getSource().sendSystemMessage(Component.literal("  " + p.steps().get(i).describe(i)).withStyle(ChatFormatting.GRAY));
+        c.getSource().sendSystemMessage(Component.literal("point [s] · duree <s> [étape] · pause <s> [étape] · courbe · zoom · suppr [étape] · "
+                + "remplacer <étape> · aller <étape> · apercu · montrer · jouer · objet · lieu · effacer").withStyle(ChatFormatting.DARK_GRAY));
+        PathRecording.show(c.getSource().getServer(), p.name(), 10);
+        return 1;
+    }
+
+    /** The travelling on the organiser's own screen (not on the broadcast). */
+    private static int preview(CommandContext<CommandSourceStack> c) {
+        ServerPlayer p = player(c);
+        CameraPath path = path(c);
+        if (p == null || path == null) return 0;
+        if (path.steps().size() < 2) {
+            fail(c, "Il faut au moins deux étapes pour un aperçu.");
+            return 0;
+        }
+        if (!ServerPlayNetworking.canSend(p, BroadcastNetwork.ShowCue.TYPE)) {
+            fail(c, "Ton jeu n'a pas le mod : /cam trajet " + path.name() + " montrer dessine le trajet.");
+            return 0;
+        }
+        ServerPlayNetworking.send(p, new BroadcastNetwork.ShowCue(BroadcastNetwork.Cues.PATH_PREVIEW, path.name(), "", "",
+                (int) Math.ceil(path.duration() * 20)));
+        PathRecording.show(c.getSource().getServer(), path.name(), (int) Math.ceil(path.duration()) + 2);
+        ok(c, "Aperçu du trajet « " + path.name() + " » sur ton écran (" + CameraPath.seconds(Math.round(path.duration() * 10) / 10.0) + ").");
         return 1;
     }
 
@@ -277,21 +624,93 @@ public final class CameraCommands {
                         .then(argument("enabled", word()).suggests(ON_OFF).executes(c -> {
                             // Switches a game's broadcast mode from here (the camera account's PC may be out of reach)
                             ServerPlayer target = c.getSource().getServer().getPlayerList().getPlayerByName(str(c, "player"));
-                            if (target == null || !net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(target, BroadcastNetwork.ShowCue.TYPE)) {
+                            if (target == null || !ServerPlayNetworking.canSend(target, BroadcastNetwork.ShowCue.TYPE)) {
                                 fail(c, str(c, "player") + " n'est pas connecté avec le mod.");
                                 return 0;
                             }
                             boolean on = onOff(c, "enabled");
-                            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(target,
-                                    new BroadcastNetwork.ShowCue(BroadcastNetwork.Cues.BROADCAST, on ? "on" : "off", "", "", 0));
+                            ServerPlayNetworking.send(target, new BroadcastNetwork.ShowCue(BroadcastNetwork.Cues.BROADCAST, on ? "on" : "off", "", "", 0));
                             ok(c, "Mode diffusion " + (on ? "activé" : "désactivé") + " pour " + target.getGameProfile().name() + ".");
                             return 1;
                         }))))
                 .then(literal("spotlight").then(argument("player", word()).suggests(ONLINE)
                         .executes(c -> spotlight(c, null))
                         .then(argument("reason", StringArgumentType.greedyString()).executes(c -> spotlight(c, str(c, "reason"))))))
-                .then(literal("intro").executes(c -> run(c, action("show.intro"))))
+                .then(literal("intro").executes(c -> run(c, action("show.intro"))).then(introCommands()))
                 .then(literal("outro").executes(c -> run(c, action("show.outro"))))
                 .then(literal("stop").executes(c -> run(c, action("show.stop"))));
+    }
+
+    // ---------------------------------------------------------------- round intros
+
+    private static Map<String, Object> intro(CommandContext<CommandSourceStack> c, String type, Object... fields) {
+        Map<String, Object> a = action(type, fields);
+        a.put("manche", str(c, "manche"));
+        return a;
+    }
+
+    private static RequiredArgumentBuilder<CommandSourceStack, ?> addShot(String literalName, String field, SuggestionProvider<CommandSourceStack> suggest) {
+        return argument("ref", word()).suggests(suggest)
+                .executes(c -> run(c, intro(c, "intro.shot.add", field, str(c, "ref"))))
+                .then(argument("seconds", DoubleArgumentType.doubleArg(0, MancheIntro.MAX_SECONDS))
+                        .executes(c -> run(c, intro(c, "intro.shot.add", field, str(c, "ref"), "seconds", DoubleArgumentType.getDouble(c, "seconds"))))
+                        .then(argument("transition", word()).suggests(TRANSITIONS)
+                                .executes(c -> run(c, intro(c, "intro.shot.add", field, str(c, "ref"), "seconds", DoubleArgumentType.getDouble(c, "seconds"),
+                                        "transition", str(c, "transition"))))
+                                .then(argument("effect", word()).suggests(EFFECT_IDS)
+                                        .executes(c -> run(c, intro(c, "intro.shot.add", field, str(c, "ref"), "seconds", DoubleArgumentType.getDouble(c, "seconds"),
+                                                "transition", str(c, "transition"), "effect", str(c, "effect")))))));
+    }
+
+    private static RequiredArgumentBuilder<CommandSourceStack, String> introCommands() {
+        return argument("manche", word()).suggests(MANCHES)
+                .executes(c -> run(c, intro(c, "intro.play")))
+                .then(literal("jouer").executes(c -> run(c, intro(c, "intro.play"))))
+                .then(literal("voir").executes(CameraCommands::showIntro))
+                .then(literal("ajouter")
+                        .then(literal("camera").then(addShot("camera", "camera", CAMERAS)))
+                        .then(literal("trajet").then(addShot("trajet", "path", PATHS)))
+                        .then(literal("suivi").then(addShot("suivi", "follow", ONLINE))))
+                .then(literal("plan").then(argument("index", integer(1, MancheIntro.MAX_SHOTS))
+                        .then(literal("retirer").executes(c -> run(c, intro(c, "intro.shot.remove", "index", getInteger(c, "index")))))
+                        .then(literal("duree").then(argument("seconds", DoubleArgumentType.doubleArg(0, MancheIntro.MAX_SECONDS))
+                                .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "seconds", DoubleArgumentType.getDouble(c, "seconds"))))))
+                        .then(literal("transition").then(argument("transition", word()).suggests(TRANSITIONS)
+                                .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "transition", str(c, "transition"))))))
+                        .then(literal("effet").then(argument("effect", word()).suggests(EFFECT_IDS)
+                                .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "effect", str(c, "effect"))))))
+                        .then(literal("carte").then(argument("card", word()).suggests(CARDS)
+                                .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "card", str(c, "card"), "text", "")))
+                                .then(argument("text", StringArgumentType.greedyString())
+                                        .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "card", str(c, "card"), "text", str(c, "text")))))))))
+                .then(literal("auto").then(argument("enabled", word()).suggests(ON_OFF)
+                        .executes(c -> run(c, intro(c, "intro.set", "auto", onOff(c, "enabled"))))))
+                .then(literal("musique").then(argument("music", word()).suggests(MUSIC)
+                        .executes(c -> run(c, intro(c, "intro.set", "music", str(c, "music"))))))
+                .then(literal("titre").then(argument("enabled", word()).suggests(ON_OFF)
+                        .executes(c -> run(c, intro(c, "intro.set", "titleCard", onOff(c, "enabled"))))))
+                .then(literal("effacer").executes(c -> run(c, intro(c, "intro.clear"))));
+    }
+
+    private static int showIntro(CommandContext<CommandSourceStack> c) {
+        Manche m = Lieux.manche(str(c, "manche"));
+        if (m == null) {
+            fail(c, "Manche « " + str(c, "manche") + " » introuvable.");
+            return 0;
+        }
+        MancheIntro in = m.intro;
+        c.getSource().sendSystemMessage(Component.literal("— Intro de « " + m.name + " » — " + (in.auto ? "jouée au lancement" : "à la main (/tv intro " + m.id + ")")
+                + " · " + (in.music.isEmpty() ? "sans musique" : "musique " + in.music) + " · "
+                + CameraPath.seconds(Math.round(in.duration(n -> {
+                    CameraPath p = CameraPaths.get(n);
+                    return p == null ? 0 : p.duration();
+                }) * 10) / 10.0)).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        if (in.shots.isEmpty()) c.getSource().sendSystemMessage(Component.literal(
+                "Aucun plan : /tv intro " + m.id + " ajouter camera <caméra> [s] · ajouter trajet <nom> [s] · ajouter suivi <joueur> [s]").withStyle(ChatFormatting.GRAY));
+        int auto = in.autoCardShot();
+        for (int i = 0; i < in.shots.size(); i++)
+            c.getSource().sendSystemMessage(Component.literal("  " + (i + 1) + " · " + in.shots.get(i).describe() + (i == auto ? ", titre (automatique)" : ""))
+                    .withStyle(ChatFormatting.GRAY));
+        return in.shots.size();
     }
 }

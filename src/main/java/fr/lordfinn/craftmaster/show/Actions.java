@@ -117,7 +117,11 @@ public final class Actions {
             "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop",
             "task.set", "task.clear", "task.reveal", "task.hide", "task.show", "envelope.give",
             // Studio set (chantier F)
-            "spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off");
+            "spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off",
+            // TV direction, lieux / travellings / intros (chantier E): no data change for these four
+            "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu",
+            // ... and the round intros, which are round data (undoable), and playing one
+            "intro.set", "intro.shot.add", "intro.shot.set", "intro.shot.remove", "intro.clear", "intro.play");
 
     /**
      * Applies the actions. {@code undo} is only accepted as the first action (it is done, then the rest is applied
@@ -345,6 +349,13 @@ public final class Actions {
                 // Studio set (chantier F): world only, nothing in the data changes
                 case "spotlight.follow" -> spotlightFollow(a);
                 case "spotlight.stop", "spotlight.on", "spotlight.off" -> effects.add(new SpotlightOrder(type.substring("spotlight.".length()), null));
+                // ---- round intros (chantier E, TV direction)
+                case "intro.set" -> introSet(a);
+                case "intro.shot.add" -> introShotAdd(a);
+                case "intro.shot.set" -> introShotSet(a);
+                case "intro.shot.remove" -> introShotRemove(a);
+                case "intro.clear" -> introClear(a);
+                case "intro.play" -> introPlay(a);
                 // (a guarded pattern must come after the constant labels) TV direction (chantier E): checked here, resolved and played by broadcast.Director
                 case String t when fr.lordfinn.craftmaster.broadcast.BroadcastActions.handles(t) ->
                         effects.add(new Broadcast(fr.lordfinn.craftmaster.broadcast.BroadcastActions.validate(t, a)));
@@ -1194,6 +1205,130 @@ public final class Actions {
             if (changed.isEmpty()) throw new Invalid("rien à changer dans la tâche de « " + r.name + " ».");
             r.task = t;
             line("Tâche de « " + r.name + " » : " + String.join(", ", changed) + ".");
+        }
+
+        // ------------------------------------------------------------ round intros (chantier E)
+
+        /** The round of an intro action ("manche" absent = the current one), writable. */
+        private Manche introManche(Map<String, Object> a) {
+            Season s = season(a, false);
+            writable(s);
+            Found f = mancheOrCurrent(s, a);
+            writable(f.partie());
+            return f.manche();
+        }
+
+        /** intro.set {manche?, auto?, music?, titleCard?} */
+        private void introSet(Map<String, Object> a) {
+            Manche r = introManche(a);
+            fr.lordfinn.craftmaster.data.MancheIntro in = r.intro;
+            List<String> changed = new ArrayList<>();
+            Boolean auto = bool(a, "auto");
+            if (auto != null) {
+                in.auto = auto;
+                changed.add(auto ? "jouée au lancement de la manche" : "lancée à la main seulement");
+            }
+            if (a.containsKey("music")) {
+                in.music = fr.lordfinn.craftmaster.data.MancheIntro.normalizeMusic(a.get("music") == null ? "" : String.valueOf(a.get("music")));
+                changed.add(in.music.isEmpty() ? "sans musique" : "musique « " + in.music + " »");
+            }
+            Boolean card = bool(a, "titleCard");
+            if (card != null) {
+                in.titleCard = card;
+                changed.add(card ? "titre de la manche à la fin" : "sans titre automatique");
+            }
+            if (changed.isEmpty()) throw new Invalid("rien à changer (auto, music ou titleCard).");
+            line("Intro de « " + r.name + " » : " + String.join(", ", changed) + ".");
+        }
+
+        /** A shot of an intro from the action's fields (camera | path | follow, seconds, transition, effect, card, text). */
+        private fr.lordfinn.craftmaster.data.MancheIntro.Shot introShot(Map<String, Object> a, fr.lordfinn.craftmaster.data.MancheIntro.Shot base) {
+            String kind = base == null ? null : base.kind(), ref = base == null ? null : base.ref();
+            for (String[] k : new String[][]{{"camera", "camera"}, {"path", "trajet"}, {"follow", "suivi"}}) {
+                Object v = a.get(k[0]);
+                if (v == null || String.valueOf(v).isBlank()) continue;
+                kind = k[1];
+                ref = v instanceof Number n && n.doubleValue() == Math.rint(n.doubleValue()) ? String.valueOf(n.longValue()) : String.valueOf(v).trim();
+            }
+            if (kind == null) throw new Invalid("donnez une caméra (« camera »), un trajet (« path ») ou un joueur à suivre (« follow »).");
+            double seconds = base == null ? 0 : base.seconds();
+            if (a.get("seconds") != null) {
+                seconds = num(a, "seconds");
+                if (seconds < 0 || seconds > fr.lordfinn.craftmaster.data.MancheIntro.MAX_SECONDS)
+                    throw new Invalid("« seconds » doit être entre 0 (durée du trajet / 4 s) et 120.");
+            }
+            String transition = base == null ? "" : base.transition();
+            if (a.get("transition") != null) {
+                String t = String.valueOf(a.get("transition")).trim();
+                int code = fr.lordfinn.craftmaster.broadcast.BroadcastActions.parseTransition(t);
+                transition = switch (code) {
+                    case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.FADE -> "fondu";
+                    case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.CROSSFADE -> "enchaine";
+                    default -> "coupe";
+                };
+            }
+            String effect = base == null ? "" : base.effect();
+            if (a.containsKey("effect")) effect = fr.lordfinn.craftmaster.broadcast.BroadcastActions.effectId(a.get("effect") == null ? "" : String.valueOf(a.get("effect")));
+            String card = base == null ? "" : base.card(), text = base == null ? "" : base.text();
+            if (a.containsKey("card")) card = fr.lordfinn.craftmaster.data.MancheIntro.normalizeCard(a.get("card") == null ? "" : String.valueOf(a.get("card")));
+            if (a.containsKey("text")) text = a.get("text") == null ? "" : String.valueOf(a.get("text")).strip();
+            if (text.length() > 80) throw new Invalid("texte de carte trop long (80 caractères au plus).");
+            return new fr.lordfinn.craftmaster.data.MancheIntro.Shot(kind, ref, seconds, transition, effect, card, text);
+        }
+
+        private int introIndex(Manche r, Map<String, Object> a) {
+            int i = requiredInt(a, "index");
+            if (i < 1 || i > r.intro.shots.size())
+                throw new Invalid("plan " + i + " inexistant (l'intro de « " + r.name + " » a " + r.intro.shots.size() + " plan(s)).");
+            return i - 1;
+        }
+
+        /** intro.shot.add {manche?, camera | path | follow, seconds?, transition?, effect?, card?, text?, at?} */
+        private void introShotAdd(Map<String, Object> a) {
+            Manche r = introManche(a);
+            if (r.intro.shots.size() >= fr.lordfinn.craftmaster.data.MancheIntro.MAX_SHOTS)
+                throw new Invalid("une intro a " + fr.lordfinn.craftmaster.data.MancheIntro.MAX_SHOTS + " plans au plus.");
+            fr.lordfinn.craftmaster.data.MancheIntro.Shot s = introShot(a, null);
+            Integer at = integer(a, "at");
+            int i = at == null ? r.intro.shots.size() : Math.max(0, Math.min(r.intro.shots.size(), at - 1));
+            r.intro.shots.add(i, s);
+            line("Intro de « " + r.name + " », plan " + (i + 1) + " : " + s.describe() + ".");
+        }
+
+        /** intro.shot.set {manche?, index, …fields to change} */
+        private void introShotSet(Map<String, Object> a) {
+            Manche r = introManche(a);
+            int i = introIndex(r, a);
+            fr.lordfinn.craftmaster.data.MancheIntro.Shot s = introShot(a, r.intro.shots.get(i));
+            r.intro.shots.set(i, s);
+            line("Intro de « " + r.name + " », plan " + (i + 1) + " : " + s.describe() + ".");
+        }
+
+        /** intro.shot.remove {manche?, index} */
+        private void introShotRemove(Map<String, Object> a) {
+            Manche r = introManche(a);
+            int i = introIndex(r, a);
+            r.intro.shots.remove(i);
+            line("Intro de « " + r.name + " » : plan " + (i + 1) + " retiré (" + r.intro.shots.size() + " restant(s)).");
+        }
+
+        /** intro.clear {manche?} */
+        private void introClear(Map<String, Object> a) {
+            Manche r = introManche(a);
+            if (r.intro.isEmpty()) throw new Invalid("« " + r.name + " » n'a pas d'intro.");
+            r.intro = new fr.lordfinn.craftmaster.data.MancheIntro();
+            line("Intro de « " + r.name + " » effacée.");
+        }
+
+        /** intro.play {manche?}: nothing changes in the data, the director plays it. */
+        private void introPlay(Map<String, Object> a) {
+            Season s = season(a, false);
+            Manche r = mancheOrCurrent(s, a).manche();
+            if (r.intro.shots.isEmpty()) throw new Invalid("« " + r.name + " » n'a pas encore d'intro (ajoutez des plans : intro.shot.add).");
+            Map<String, Object> play = new LinkedHashMap<>();
+            play.put("type", "intro.play");
+            play.put("manche", r.id);
+            effects.add(new Broadcast(play));
         }
 
         private void taskClear(Map<String, Object> a) {

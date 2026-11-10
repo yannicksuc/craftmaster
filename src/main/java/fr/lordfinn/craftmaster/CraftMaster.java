@@ -72,6 +72,7 @@ public final class CraftMaster implements ModInitializer {
             // A server coming from the Paper plugin keeps its seasons, scores and busts
             data.load(fl.getGameDir().resolve("plugins/CraftMaster/config.yml"));
             Cameras.load(fl.getConfigDir().resolve("craftmaster/cameras.json"));
+            fr.lordfinn.craftmaster.camera.CameraPaths.load(fl.getConfigDir().resolve("craftmaster/trajets.json"));
         });
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             Busts.updateAll(server);
@@ -88,6 +89,8 @@ public final class CraftMaster implements ModInitializer {
         // Camera tripods follow the camera registry (a removed or replaced camera's tripod goes)
         ServerEntityEvents.ENTITY_LOAD.register(Cameras::onEntityLoad);
         ServerTickEvents.END_SERVER_TICK.register(Curtains::tick);
+        // Dust line of the travellings being recorded or shown (/cam trajet)
+        ServerTickEvents.END_SERVER_TICK.register(fr.lordfinn.craftmaster.camera.PathRecording::tick);
         // Round timer, countdown and staged reveal
         ServerTickEvents.END_SERVER_TICK.register(Show::tick);
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> Show.onJoin(handler.getPlayer()));

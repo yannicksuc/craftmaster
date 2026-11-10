@@ -40,14 +40,16 @@ public class CameraItem extends Item {
             return InteractionResult.FAIL;
         }
         Vec3 at = ctx.getClickLocation();
-        int number = Cameras.list().nextFree();
+        // In the lieu / zone the operator works in (/cam focus), like the keys 1–9
+        String group = fr.lordfinn.craftmaster.broadcast.Director.focus();
+        int number = Cameras.list().nextFree(group);
         CameraSpot spot = new CameraSpot(number, null, "", Busts.worldId(level), at.x, at.y + CameraEntity.LENS_HEIGHT, at.z,
-                player.getYRot(), player.getXRot(), 0, CameraSpot.BREATHING);
+                player.getYRot(), player.getXRot(), 0, CameraSpot.BREATHING, CameraSpot.lieuOf(group), CameraSpot.zoneOf(group));
         Cameras.place(level.getServer(), spot);
         level.playSound(null, at.x, at.y, at.z, SoundEvents.ARMOR_STAND_PLACE, SoundSource.BLOCKS, 1f, 1.2f);
-        player.sendSystemMessage(Component.literal("Caméra " + number + " posée. ").withStyle(ChatFormatting.GOLD)
-                .append(Component.literal("Clic droit dessus pour la régler, /cam aim " + number + " pour la viser.")
-                        .withStyle(ChatFormatting.GRAY)));
+        player.sendSystemMessage(Component.literal("Caméra " + number + " posée (" + spot.placeName() + "). ").withStyle(ChatFormatting.GOLD)
+                .append(Component.literal("Clic droit dessus pour la régler, /cam aim " + spot.key() + " pour la viser, /cam lieu "
+                        + spot.key() + " <lieu> [zone] pour changer de lieu.").withStyle(ChatFormatting.GRAY)));
         ItemStack stack = ctx.getItemInHand();
         if (!player.isCreative()) stack.shrink(1);
         return InteractionResult.SUCCESS;

@@ -1,0 +1,195 @@
+package fr.lordfinn.craftmaster.broadcast;
+
+import fr.lordfinn.craftmaster.CraftMaster;
+import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Cues;
+import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowCue;
+import fr.lordfinn.craftmaster.camera.CameraPath;
+import fr.lordfinn.craftmaster.camera.CameraPaths;
+import fr.lordfinn.craftmaster.camera.CameraSpot;
+import fr.lordfinn.craftmaster.camera.Lieux;
+import fr.lordfinn.craftmaster.data.CraftMasterData;
+import fr.lordfinn.craftmaster.data.Manche;
+import fr.lordfinn.craftmaster.data.MancheIntro;
+import fr.lordfinn.craftmaster.data.Partie;
+import fr.lordfinn.craftmaster.data.Season;
+import fr.lordfinn.craftmaster.show.Actions;
+import fr.lordfinn.craftmaster.show.ShowEvents;
+import net.minecraft.server.MinecraftServer;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+/**
+ * Plays a round's intro ({@link MancheIntro}) on the server, so every broadcast game sees the same shots at the
+ * same time: each shot goes on air with its transition and effect, the cards and the music cue come with it, and
+ * at the end the round's wide shot takes over. While it runs the automatic direction waits and the overlay hides
+ * its usual graphics (sequence "manche" in the show state).
+ */
+public final class MancheIntros {
+
+    private record Step(long due, Runnable run) {}
+
+    private static final List<Step> STEPS = new ArrayList<>();
+    /** Round whose intro is playing, or null. */
+    private static String running;
+    private static boolean music;
+
+    private MancheIntros() {}
+
+    /** Id of the round whose intro is playing, or null. */
+    public static String running() {
+        return running;
+    }
+
+    private static void at(MinecraftServer server, double seconds, Runnable run) {
+        STEPS.add(new Step(server.getTickCount() + Math.round(seconds * 20), run));
+    }
+
+    /** Length of a travelling for the timeline (0 if unknown: the default length is used). */
+    static double pathSeconds(String name) {
+        CameraPath p = CameraPaths.get(name);
+        return p == null ? 0 : p.duration();
+    }
+
+    /** Starts the intro of round {@code mancheId}; returns the line for the organiser. */
+    public static String play(MinecraftServer server, String mancheId) {
+        Manche m = Lieux.manche(mancheId);
+        if (m == null) return "⚠ Manche « " + mancheId + " » introuvable.";
+        MancheIntro intro = m.intro;
+        if (intro.shots.isEmpty())
+            return "⚠ La manche « " + m.name + " » n'a pas encore d'intro (/tv intro " + m.id + " ajouter camera <caméra>).";
+        stop(server);
+        Credits.stop(server);
+        running = m.id;
+        music = !intro.music.isEmpty();
+        Director.cue(server, new ShowCue(Cues.CLEAR, "", "", "", 0));
+        if (music) Director.cue(server, new ShowCue(Cues.THEME, "play", intro.music.equals("theme") ? "" : intro.music, "", 0));
+        String title = m.name, subtitle = subtitle(m);
+        List<String> problems = new ArrayList<>();
+        int autoCard = intro.autoCardShot();
+        List<MancheIntro.Timed> timeline = intro.timeline(MancheIntros::pathSeconds);
+        for (MancheIntro.Timed t : timeline) {
+            MancheIntro.Shot s = t.shot();
+            Director.ShotRequest request = request(server, m, s, problems, t.index());
+            int ticks = (int) Math.round(t.length() * 20);
+            String card = t.index() == autoCard ? MancheIntro.TITLE : s.card();
+            String[] text = s.text().isEmpty() ? new String[]{title, subtitle} : s.text().split("\\|", 2);
+            String cardTitle = text[0].trim(), cardSub = text.length > 1 ? text[1].trim() : s.text().isEmpty() ? subtitle : "";
+            at(server, t.start(), () -> {
+                if (request != null) Director.take(server, request);
+                if (card.equals(MancheIntro.TITLE))
+                    Director.cue(server, new ShowCue(Cues.TITLE_CARD, cardTitle, cardSub, "", Math.max(40, ticks - 10)));
+                else if (card.equals(MancheIntro.LOWER_THIRD))
+                    Director.cue(server, new ShowCue(Cues.LOWER_THIRD, cardTitle, cardSub, "", Math.max(40, ticks - 10)));
+            });
+        }
+        double end = intro.duration(MancheIntros::pathSeconds);
+        at(server, end, () -> finish(server, true));
+        Director.sync(server);
+        CraftMaster.LOG.info("[Réalisation] Intro de la manche {} lancée", m.id);
+        return "Intro de « " + m.name + " » lancée (" + timeline.size() + " plan" + (timeline.size() > 1 ? "s" : "") + ", "
+                + CameraPath.seconds(Math.round(end * 10) / 10.0) + ")" + (problems.isEmpty() ? "." : " — ⚠ " + String.join(" ; ", problems));
+    }
+
+    /** "Manche 2 · Partie 1" */
+    private static String subtitle(Manche m) {
+        CraftMasterData data = CraftMaster.data();
+        Season s = data == null ? null : data.activeSeason();
+        if (s != null) for (Partie p : s.parties.values()) if (p.manches.contains(m)) return "Manche " + p.number(m);
+        return "";
+    }
+
+    /** What goes on air for one shot, or null (written in {@code problems}). */
+    private static Director.ShotRequest request(MinecraftServer server, Manche m, MancheIntro.Shot s, List<String> problems, int index) {
+        int transition;
+        try {
+            transition = s.transition().isEmpty() ? BroadcastNetwork.CROSSFADE : BroadcastActions.parseTransition(s.transition());
+        } catch (Actions.Invalid e) {
+            transition = BroadcastNetwork.CROSSFADE;
+        }
+        // The first shot comes out of whatever was on air: a dip to black reads better than a dissolve
+        if (index == 0 && s.transition().isEmpty()) transition = BroadcastNetwork.FADE;
+        String effect = BroadcastActions.effectId(s.effect());
+        switch (s.kind()) {
+            case MancheIntro.PATH -> {
+                CameraPath p = CameraPaths.get(s.ref());
+                if (p == null || p.isEmpty()) {
+                    problems.add("plan " + (index + 1) + " : trajet « " + s.ref() + " » introuvable");
+                    return null;
+                }
+                return new Director.ShotRequest(BroadcastNetwork.SHOT_PATH, p.name(), "", transition, effect, List.of(), Director.Source.SEQUENCE);
+            }
+            case MancheIntro.FOLLOW -> {
+                if (server.getPlayerList().getPlayerByName(s.ref()) == null) {
+                    CameraSpot w = Lieux.resolve(server, "large", m.id);
+                    if (w == null) {
+                        problems.add("plan " + (index + 1) + " : " + s.ref() + " n'est pas connecté");
+                        return null;
+                    }
+                    return Director.ShotRequest.camera(w, transition, effect, Director.Source.SEQUENCE);
+                }
+                return Director.ShotRequest.follow(s.ref(), transition, effect, Director.Source.SEQUENCE);
+            }
+            default -> {
+                // Relative to the round's lieu: "2", "large", "ensuri:1", "studio:3"
+                CameraSpot c = Lieux.resolve(server, s.ref(), m.id);
+                if (c == null) {
+                    problems.add("plan " + (index + 1) + " : caméra « " + s.ref() + " » introuvable");
+                    return null;
+                }
+                return Director.ShotRequest.camera(c, transition, effect, Director.Source.SEQUENCE);
+            }
+        }
+    }
+
+    /** End of the intro: the round's wide shot, music stopped. */
+    private static void finish(MinecraftServer server, boolean wide) {
+        running = null;
+        STEPS.clear();
+        if (music) Director.cue(server, new ShowCue(Cues.THEME, "stop", "", "", 0));
+        music = false;
+        if (wide) Director.wide(server, BroadcastNetwork.CROSSFADE);
+        Director.sync(server);
+    }
+
+    /** Stops the intro (cards cleared, music stopped); true if one was playing. */
+    static boolean stop(MinecraftServer server) {
+        boolean was = running != null;
+        STEPS.clear();
+        if (was && server != null) {
+            Director.cue(server, new ShowCue(Cues.CLEAR, "", "", "", 0));
+            finish(server, false);
+        }
+        running = null;
+        return was;
+    }
+
+    static void tick(MinecraftServer server) {
+        if (STEPS.isEmpty()) return;
+        long now = server.getTickCount();
+        List<Step> due = new ArrayList<>();
+        for (Iterator<Step> it = STEPS.iterator(); it.hasNext(); ) {
+            Step s = it.next();
+            if (s.due() <= now) {
+                due.add(s);
+                it.remove();
+            }
+        }
+        due.sort((a, b) -> Long.compare(a.due(), b.due()));
+        for (Step s : due) s.run().run();
+    }
+
+    /** Starting a round plays its intro by itself when it is set to ({@code intro.auto}). */
+    static final class AutoPlay implements ShowEvents.Listener {
+        @Override
+        public void onMancheStarted(MinecraftServer server, int season, int number, String name) {
+            CraftMasterData data = CraftMaster.data();
+            Manche m = data == null ? null : data.currentManche();
+            if (m != null && m.intro.auto && !m.intro.shots.isEmpty()) {
+                String line = play(server, m.id);
+                CraftMaster.LOG.info("[Réalisation] {}", line);
+            }
+        }
+    }
+}

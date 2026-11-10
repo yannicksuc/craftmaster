@@ -2,7 +2,11 @@ package fr.lordfinn.craftmaster.client.broadcast;
 
 import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowState;
 import fr.lordfinn.craftmaster.camera.CameraList;
+import fr.lordfinn.craftmaster.camera.CameraPath;
 import net.minecraft.client.Minecraft;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The last show state received from the server (every client with the mod gets it, in broadcast mode or not), and
@@ -12,6 +16,8 @@ public final class ShowStateClient {
 
     private static ShowState state = ShowState.EMPTY;
     private static CameraList cameras = new CameraList();
+    private static CameraList focused = new CameraList();
+    private static Map<String, CameraPath> paths = Map.of();
     /** Real time (ms) when the state arrived: the timer is counted from there. */
     private static long receivedAt;
 
@@ -21,13 +27,27 @@ public final class ShowStateClient {
         return state;
     }
 
+    /** Every camera, of every lieu. */
     public static CameraList cameras() {
         return cameras;
+    }
+
+    /** The cameras the keys 1–9 address now (the director's focus). */
+    public static CameraList focused() {
+        return focused;
+    }
+
+    public static CameraPath path(String name) {
+        return paths.get(name);
     }
 
     static void set(ShowState s) {
         state = s;
         cameras = new CameraList(s.cameras());
+        focused = cameras.group(s.focus());
+        Map<String, CameraPath> p = new HashMap<>();
+        for (CameraPath c : s.paths()) p.put(c.name(), c);
+        paths = p;
         receivedAt = System.currentTimeMillis();
     }
 

@@ -49,6 +49,12 @@ public final class Broadcast {
 
     public static final KeyMapping TOGGLE_KEY = new KeyMapping("key.craftmaster.broadcast", InputConstants.Type.KEYBOARD,
             InputConstants.KEY_F8, CraftMasterClient.CATEGORY);
+    /** In broadcast mode: next zone of the round (Shift: previous); the keys 1–9 then pick that zone's cameras. */
+    public static final KeyMapping ZONE_KEY = new KeyMapping("key.craftmaster.broadcast_zone", InputConstants.Type.KEYBOARD,
+            InputConstants.KEY_TAB, CraftMasterClient.CATEGORY);
+    /** In broadcast mode: split screen of the zones on / off. */
+    public static final KeyMapping MOSAIC_KEY = new KeyMapping("key.craftmaster.broadcast_mosaic", InputConstants.Type.KEYBOARD,
+            InputConstants.KEY_0, CraftMasterClient.CATEGORY);
 
     private static final Gson GSON = new Gson();
 
@@ -67,17 +73,22 @@ public final class Broadcast {
 
     public static void init() {
         KeyMappingHelper.registerKeyMapping(TOGGLE_KEY);
+        KeyMappingHelper.registerKeyMapping(ZONE_KEY);
+        KeyMappingHelper.registerKeyMapping(MOSAIC_KEY);
         for (Identifier id : HIDDEN) HudElementRegistry.replaceElement(id, vanilla -> hiddenInBroadcast(vanilla, false));
         HudElementRegistry.replaceElement(VanillaHudElements.CHAT, vanilla -> hiddenInBroadcast(vanilla, true));
         HudElementRegistry.addLast(CraftMaster.id("broadcast"), BroadcastOverlay::extract);
 
         ClientPlayNetworking.registerGlobalReceiver(ShowState.TYPE, (payload, ctx) -> ShowStateClient.set(payload));
+        ClientPlayNetworking.registerGlobalReceiver(BroadcastNetwork.FreeCamera.TYPE, (payload, ctx) -> DirectorCamera.freeCamera(payload));
         ClientPlayNetworking.registerGlobalReceiver(ShowCue.TYPE, (payload, ctx) -> {
             if (Cues.THEME.equals(payload.kind())) {
                 if ("stop".equals(payload.title())) ThemeSound.stop();
-                else ThemeSound.play();
+                else ThemeSound.play(payload.subtitle());
             } else if (Cues.BROADCAST.equals(payload.kind())) {
                 set("on".equals(payload.title()));
+            } else if (Cues.PATH_PREVIEW.equals(payload.kind())) {
+                DirectorCamera.preview(payload.title(), payload.ticks());
             } else {
                 BroadcastOverlay.cue(payload);
             }
@@ -116,7 +127,11 @@ public final class Broadcast {
         if (mc.player != null) mc.player.sendOverlayMessage(Component.literal(on
                 ? "Mode diffusion activé (" + TOGGLE_KEY.getTranslatedKeyMessage().getString() + " pour quitter)"
                 : "Mode diffusion désactivé").withStyle(ChatFormatting.GOLD));
-        if (!on) ThemeSound.stop();
+        if (!on) {
+            ThemeSound.stop();
+            Mosaic.prepare(false);
+        }
+        DirectorCamera.applyEffect();
     }
 
     private static void sendMode(boolean value) {
@@ -125,28 +140,54 @@ public final class Broadcast {
 
     private static void tick(Minecraft mc) {
         while (TOGGLE_KEY.consumeClick()) set(!on);
-        if (!active() || mc.gui.screen() != null) return;
+        if (!active() || mc.gui.screen() != null) {
+            // Keys pressed out of broadcast mode are not kept for later
+            while (ZONE_KEY.consumeClick()) {}
+            while (MOSAIC_KEY.consumeClick()) {}
+            return;
+        }
         for (int i = 0; i < 9; i++) {
             while (mc.options.keyHotbarSlots[i].consumeClick()) cutTo(String.valueOf(i + 1));
         }
+        while (ZONE_KEY.consumeClick()) zone(mc.hasShiftDown() ? "prev" : "next");
+        while (MOSAIC_KEY.consumeClick()) {
+            Map<String, Object> a = new LinkedHashMap<>();
+            a.put("type", "camera.mosaic");
+            if (DirectorCamera.shown().kind() == BroadcastNetwork.SHOT_MOSAIC) a.put("enabled", false);
+            request(a);
+        }
     }
 
-    /** Mouse wheel in broadcast mode (from the mixin): previous / next camera. True if consumed. */
+    /** Next / previous zone of the round (the keys 1–9 then address its cameras). */
+    private static void zone(String which) {
+        Map<String, Object> a = new LinkedHashMap<>();
+        a.put("type", "camera.focus");
+        a.put("zone", which);
+        request(a);
+    }
+
+    /** Mouse wheel in broadcast mode (from the mixin): previous / next camera, with Shift the zone. True if consumed. */
     public static boolean onScroll(double amount) {
         if (!active() || amount == 0) return false;
         long now = System.currentTimeMillis();
         if (now - lastScroll < 180) return true;
         lastScroll = now;
+        if (Minecraft.getInstance().hasShiftDown()) {
+            zone(amount > 0 ? "prev" : "next");
+            return true;
+        }
         BroadcastNetwork.Shot shot = ShowStateClient.get().shot();
-        CameraSpot s = ShowStateClient.cameras().step(shot.kind() == BroadcastNetwork.SHOT_CAMERA ? shot.camera() : -1, amount > 0 ? -1 : 1);
-        if (s != null) cutTo(String.valueOf(s.number()));
+        CameraSpot s = ShowStateClient.focused().step(shot.kind() == BroadcastNetwork.SHOT_CAMERA ? shot.camera() : "", amount > 0 ? -1 : 1);
+        if (s != null) cutTo(s.key());
         return true;
     }
 
+    /** Asks the server for a cut ("3" = camera 3 of the focus; a key or any reference the server understands). */
     private static void cutTo(String camera) {
         Minecraft mc = Minecraft.getInstance();
-        if (ShowStateClient.cameras().resolve(camera) == null) {
-            if (mc.player != null) mc.player.sendOverlayMessage(Component.literal("Pas de caméra " + camera).withStyle(ChatFormatting.GRAY));
+        if (camera.matches("\\d+") && ShowStateClient.focused().get(Integer.parseInt(camera)) == null) {
+            if (mc.player != null) mc.player.sendOverlayMessage(Component.literal("Pas de caméra " + camera + " ici ("
+                    + CameraSpot.placeName(ShowStateClient.get().focus()) + ")").withStyle(ChatFormatting.GRAY));
             return;
         }
         Map<String, Object> a = new LinkedHashMap<>();
@@ -194,10 +235,15 @@ public final class Broadcast {
                     cutTo(StringArgumentType.getString(c, "camera"));
                     return 1;
                 })))
+                .then(literal("zone").then(argument("zone", StringArgumentType.greedyString()).executes(c -> {
+                    zone(StringArgumentType.getString(c, "zone"));
+                    return 1;
+                })))
                 .then(literal("status").executes(c -> {
                     ShowState st = ShowStateClient.get();
                     c.getSource().sendFeedback(Component.literal("Diffusion " + (on ? "activée" : "désactivée") + " · "
-                            + st.cameras().size() + " caméra(s) · plan : " + describe(st.shot())
+                            + st.cameras().size() + " caméra(s) · touches 1–9 : " + CameraSpot.placeName(st.focus())
+                            + " (" + ShowStateClient.focused().size() + ") · plan : " + describe(st.shot())
                             + (st.auto() ? " · réalisation auto" : "")).withStyle(ChatFormatting.GOLD));
                     return 1;
                 }));
@@ -210,7 +256,11 @@ public final class Broadcast {
                 yield spot == null ? "caméra " + s.camera() : spot.label();
             }
             case BroadcastNetwork.SHOT_FOLLOW -> "on suit " + s.player();
+            case BroadcastNetwork.SHOT_PATH -> "trajet " + s.camera();
+            case BroadcastNetwork.SHOT_MOSAIC -> "écran partagé (" + s.tiles().size() + ")";
+            case BroadcastNetwork.SHOT_POV -> "vue de " + s.player();
+            case BroadcastNetwork.SHOT_FREE -> "caméra libre";
             default -> "aucun (vue du joueur)";
-        };
+        } + (s.effect().isEmpty() ? "" : ", effet " + s.effect());
     }
 }

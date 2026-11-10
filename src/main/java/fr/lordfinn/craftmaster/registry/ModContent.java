@@ -57,6 +57,7 @@ public final class ModContent {
     public static Item CAMERA_ITEM;
     public static EntityType<CameraEntity> CAMERA;
     public static SoundEvent SHOW_THEME;
+    public static Item PATH_MARKER;
 
     private static final List<Item> TAB_ITEMS = new ArrayList<>();
 
@@ -101,6 +102,8 @@ public final class ModContent {
         CAMERA = Registry.register(BuiltInRegistries.ENTITY_TYPE, cameraKey,
                 EntityType.Builder.<CameraEntity>of(CameraEntity::new, MobCategory.MISC)
                         .sized(0.7f, 1.9f).noLootTable().clientTrackingRange(10).updateInterval(5).build(cameraKey));
+        // Records travellings: right click = a step at the eyes (chantier E, lieux and travellings)
+        PATH_MARKER = item("path_marker", fr.lordfinn.craftmaster.camera.PathMarkerItem::new, new Item.Properties().stacksTo(1));
         SHOW_THEME = Registry.register(BuiltInRegistries.SOUND_EVENT, CraftMaster.id("show.theme"),
                 SoundEvent.createVariableRangeEvent(CraftMaster.id("show.theme")));
         // Tasks, envelopes, hidden notes (chantier D)
