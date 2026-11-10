@@ -24,7 +24,7 @@ public final class TrialClient {
 
     /** Opens the results sheet of the current round (organisers). */
     public static final KeyMapping RESULTS_KEY = new KeyMapping("key.craftmaster.results", InputConstants.Type.KEYBOARD,
-            InputConstants.KEY_N, CraftMasterClient.CATEGORY);
+            InputConstants.KEY_R, CraftMasterClient.CATEGORY);
 
     public static void init() {
         EntityRendererRegistry.register(TrialContent.TRIAL_PROP, TrialPropRenderer::new);

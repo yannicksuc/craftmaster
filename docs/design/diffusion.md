@@ -169,4 +169,4 @@ pas été révélée (enveloppe ouverte, ou manche lancée, ou révélation forc
 - Ajouts hors `trial/` : une ligne dans `CraftMaster`, `CraftMasterClient`, `ActionExecutor` (cas `play` +
   `TrialNetwork.refreshSheets` dans `refresh`), bloc dans `Actions`, champ dans `Manche`, bloc dans
   `gen_assets.py` (+ `scripts/gen_trials.py`), `command/TrialCommands.java`.
-- Touche **N** (catégorie CraftMaster) : feuille de résultats (organisateurs).
+- Touche **R** (catégorie CraftMaster) : feuille de résultats (organisateurs).

@@ -49,7 +49,7 @@ poids) ou « disqualifié ». Le classement est automatique (le plus petit ou le
 **ex-aequo partagent la place** et ses points (deux premiers à 5, le suivant est 3e et prend 3). Le barème par
 défaut est 5-4-3-2-1 (places au-delà : 0 point ; disqualifié : 0 ; sans valeur : son score n'est pas touché).
 
-- **Écran** : touche **N** (organisateurs) ou `/craftMasterResult`. Sur papier crème : tête, candidat, valeur
+- **Écran** : touche **R** (organisateurs) ou `/craftMasterResult`. Sur papier crème : tête, candidat, valeur
   (taper `42`, `1:05`, `12,5`… Entrée = ligne suivante, vide = effacer), **DQ**, **⏱** (son chrono, le temps
   défile en direct), place, points proposés, score actuel de la manche entre parenthèses. En haut : mesure, ordre,
   barème ; ◀ ▶ pour les autres manches.
@@ -104,4 +104,4 @@ Voir [Commandes](Commandes.md#épreuves-admin) : `/craftMasterResult` (cfre), `/
    message « C'est parti {player} ! ». Une autre sur l'arrivée (cloche) : *Termine l'essai*, *Annonce le 1er*,
    signal redstone vers des feux d'artifice.
 3. `/craftMasterZone create parcours` avec le mètre ruban sur deux coins.
-4. Chaque candidat passe seul : son temps s'écrit sur la feuille. Touche **N**, vérifier, « Appliquer le barème ».
+4. Chaque candidat passe seul : son temps s'écrit sur la feuille. Touche **R**, vérifier, « Appliquer le barème ».

@@ -117,7 +117,7 @@ l'exécuteur des actions : **annulable** et identique à la voix.
 
 | Commande | Alias | Effet |
 |---|---|---|
-| `/craftMasterResult` | cfre | Ouvre la feuille de résultats de la manche en cours (touche **N**) ; `open <manche>` pour une autre |
+| `/craftMasterResult` | cfre | Ouvre la feuille de résultats de la manche en cours (touche **R**) ; `open <manche>` pour une autre |
 | `/craftMasterResult set <joueur> <valeur> [temps\|nombre\|distance\|note\|poids]` | | Note une valeur (`42`, `1:05`, `12,5`) ; le type choisit la mesure si la feuille est vide |
 | `/craftMasterResult dq\|undq <joueur>` | | Disqualifie / réintègre |
 | `/craftMasterResult remove <joueur>` · `clear` | | Efface une ligne / la feuille |
