@@ -39,7 +39,8 @@ public final class ShowContext {
      *                                   players[] {pseudo, aliases[], archived},
      *                                   parties[] {id, name, status, archived, active,
      *                                              manches[] {id, name, aliases[], order, number, onStage, scene,
-     *                                                         timer, tpPoints, archived, status}},
+     *                                                         timer, tpPoints, archived, status,
+     *                                                         task {title, wax, revealed} (only if written)}},
      *                                   live[] / publishedRanking[] {rank, pseudo, total}, unpublished {pseudo: delta},
      *                                   scores {partieId: {mancheId: {pseudo: points}}}}
      * players[]                        cast of the active season {pseudo, aliases[], online}
@@ -191,6 +192,15 @@ public final class ShowContext {
                 rm.put("archived", r.archived);
                 boolean isCurrent = cur != null && cur.season() == s.id && cur.partie() == p.id && cur.manche().equals(r.id);
                 rm.put("status", isCurrent ? "current" : p.scores.containsKey(r.id) ? "played" : "todo");
+                // Task of the round (chantier D): its title only (the voice control does not need the text)
+                if (r.task != null && !r.task.isEmpty()) {
+                    Map<String, Object> tm = new LinkedHashMap<>();
+                    tm.put("title", r.task.title);
+                    tm.put("wax", r.task.wax);
+                    tm.put("revealed", fr.lordfinn.craftmaster.task.Tasks.store() != null
+                            && fr.lordfinn.craftmaster.task.Tasks.store().isRevealed(s.id, r.id));
+                    rm.put("task", tm);
+                }
                 manches.add(rm);
             }
             pm.put("manches", manches);

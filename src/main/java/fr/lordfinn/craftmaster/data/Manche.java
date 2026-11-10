@@ -26,6 +26,8 @@ public final class Manche {
     public boolean archived;
     // ---- chantier H: the judge's results sheet of this round (times, counts... → proposed points), undoable
     public fr.lordfinn.craftmaster.trial.ResultSheet results = new fr.lordfinn.craftmaster.trial.ResultSheet();
+    /** Text of the task read on the envelope's card (chantier D), or null if none was written. */
+    public Task task;
 
     public Manche(String id, String name) {
         this.id = id;
@@ -45,6 +47,7 @@ public final class Manche {
         Maps.putIf(m, "tp", spots);
         Maps.putIf(m, "archived", archived);
         if (!results.isEmpty()) m.put("results", results.toYaml()); // chantier H
+        if (task != null) m.put("task", task.toYaml());
         return m;
     }
 
@@ -61,6 +64,8 @@ public final class Manche {
         }
         r.archived = Maps.bool(m.get("archived"));
         r.results = fr.lordfinn.craftmaster.trial.ResultSheet.fromYaml(m.get("results")); // chantier H
+        // Files written before v4 have no task: the round simply has none
+        if (m.get("task") instanceof Map<?, ?>) r.task = Task.fromYaml(Maps.map(m.get("task")));
         return r;
     }
 

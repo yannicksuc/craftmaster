@@ -36,8 +36,12 @@ CASES = [
     ("Générique.", [{"type": "show.intro"}]),
     ("Lance le générique de fin.", [{"type": "show.outro"}]),
     ("Réalisation automatique.", [{"type": "camera.auto", "enabled": True}]),
-    ("Montre la tâche.", [{"type": "broadcast.task"}]),
+    ("Montre la tâche sur le stream.", [{"type": "broadcast.task"}]),
+    ("Montre la tâche.", [{"type": "task.show"}]),
     ("Montre les scores.", [{"type": "broadcast.scores", "mode": "show"}]),
+    ("Révèle la tâche.", [{"type": "task.reveal"}]),
+    ("Montre la tâche à tout le monde.", [{"type": "task.show"}]),
+    ("Donne les enveloppes.", [{"type": "envelope.give"}]),
 ]
 
 

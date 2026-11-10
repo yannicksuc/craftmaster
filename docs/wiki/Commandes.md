@@ -164,3 +164,43 @@ Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`
 | `/craftMasterBroadcast [on\|off]` (alias `/diffusion`) ou **F8** | Mode diffusion (image TV) |
 | `/diffusion chat <on\|off>` · `/diffusion status` | Chat visible en diffusion · état |
 | `/diffusion camera <n ou nom>` (ou touches 1–9, molette) | Demande ce plan (réalisation seulement) |
+
+## Tâches et enveloppes
+`/craftMasterTask` (alias `/tache`, `/cftk`) — détail dans [Tâches](Taches.md). Sans argument (**tous**) : la tâche
+du moment (comme la touche J). Le reste est admin et passe par l'exécuteur d'actions (textes annulables).
+| Commande | Effet |
+|---|---|
+| `/tache` | Ouvre la tâche du moment (secrète : l'enveloppe scellée ; admin : même secrète) |
+| `/tache edit [manche]` · `/tache seal` | Éditeur de tâches · écran du sceau à cire |
+| `/tache view <manche>` | Lire la tâche d'une manche (admin, même secrète) |
+| `/tache list` | Les manches, leur tâche, secrète ou révélée (quand, par qui) |
+| `/tache set <manche> title <texte>` | Titre |
+| `/tache set <manche> text <texte>` · `append <texte>` | Texte (`\n` = retour à la ligne) · ajouter un paragraphe |
+| `/tache set <manche> rules [r1 \| r2 \| r3]` | Règles en puces (vide = aucune) |
+| `/tache set <manche> seconds <n>` | Durée affichée (0 = chrono de la manche) |
+| `/tache set <manche> wax <couleur>` | Cire : rouge, or, noir, blanc, bleu, vert, violet, rose, orange, cyan, marron, gris |
+| `/tache set <manche> revealOnStart <true\|false>` | Révélée au lancement de la manche, ou par enveloppe seulement |
+| `/tache clear <manche>` | Efface la tâche |
+| `/tache reveal [manche]` · `/tache hide [manche]` | Révèle à tous (annoncé) · remet au secret (défaut : manche en cours) |
+| `/tache show [manche] [secondes]` | La carte à l'écran de tous (12 s), révélée d'abord |
+| `/tache envelope <manche> [joueurs\|tous]` | Enveloppes scellées à leur nom (défaut : candidats connectés) |
+| `/tache close [joueurs]` | Ferme les cartes ouvertes |
+| `/tache resetReveals` | Toutes les tâches de la saison active redeviennent secrètes (répétition) |
+| `/tache tools` | Donne le sceau à cire et la lampe UV |
+
+## Notes cachées (admin)
+`/craftMasterNote` (alias `/cfno`) — détail dans [Tâches](Taches.md#notes-cachées).
+| Commande | Effet |
+|---|---|
+| `/cfno list` · `/cfno info <note>` | Les notes · cachettes et trouvailles d'une note |
+| `/cfno create [titre]` | Nouvelle note (sans titre : l'éditeur) ; donne son outil de cachette |
+| `/cfno edit <note>` · `/cfno text <note> <texte>` | Éditeur · texte |
+| `/cfno set <note> look\|readers\|players\|title\|once\|ink\|pieces <valeur>` | Un réglage (aspect, lecteurs, prise unique, encre invisible, morceaux) |
+| `/cfno give <note>` · `/cfno bottle <note>` | Outil de cachette · bouteille à la mer |
+| `/cfno reset <note>` | Oublie les trouvailles, remet les notes prises en place |
+| `/cfno unhide <note>` · `/cfno delete <note>` | Retire toutes les cachettes · supprime la note |
+
+## Client (chacun dans son jeu)
+| Commande | Effet |
+|---|---|
+| `/craftMasterTwitch` · `reload` · `test` | État de la lecture du chat Twitch · relire `config/craftmaster-client.json` · simuler un `!tache` |

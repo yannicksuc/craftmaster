@@ -3,10 +3,11 @@ for tests without an API key, or as an emergency mode without internet. Delibera
 answers "not understood" and does nothing.
 
 Understood: "caméra <N>" · "plan large" · "plan sur le trône" · "le podium" · "suis <joueur>" · "générique" /
-"générique de fin" · "réalisation automatique" · "montre la tâche" · "montre les scores" ·
+"générique de fin" · "réalisation automatique" · "montre la tâche sur le stream" · "montre les scores" ·
 "annule" · "ouvrez / fermez les rideaux" · "manche suivante" · "mettez à jour les scores" / "publie" ·
 "la révélation" · "<N> point(s) pour|à <joueur> [pour|sur <manche>]" · "<joueur> prend <N> point(s) [sur <manche>]" ·
-"<joueur> a fait <N> secondes|minutes|blocs|mètres" · "<joueur> est disqualifié" · "applique le barème" · "remets les buzzers".
+"<joueur> a fait <N> secondes|minutes|blocs|mètres" · "<joueur> est disqualifié" · "applique le barème" · "remets les buzzers" ·
+"révèle la tâche" · "montre la tâche" · "donne les enveloppes".
 """
 from __future__ import annotations
 
@@ -61,6 +62,12 @@ class OfflineUnderstander:
             return [{"type": "manche.start", "manche": "next"}]
         if re.search(r"(mett?\w* à jour (les scores|le classement)|^publie)", text):
             return [{"type": "scores.publish"}]
+        if re.search(r"\b(révèle|révéler|dévoile)\w* (la )?tâche\b", text):
+            return [{"type": "task.reveal"}]
+        if re.search(r"\b(montre|affiche)\w* (la )?tâche\b(?! sur le stream| sur la diffusion| à l.antenne)", text):
+            return [{"type": "task.show"}]
+        if re.search(r"\b(donne|distribue)\w* (les )?enveloppes?\b", text):
+            return [{"type": "envelope.give"}]
         if re.search(r"\brévélation\b", text):
             return [{"type": "reveal.start"}]
         if re.search(r"\bappliqu\w* (le |les )?barèmes?\b", text):
@@ -101,7 +108,7 @@ class OfflineUnderstander:
             return [{"type": "show.intro"}]
         if re.fullmatch(r"réalisation auto(?:matique)?", text):
             return [{"type": "camera.auto", "enabled": True}]
-        if re.fullmatch(r"(?:montre|affiche) la tâche", text):
+        if re.fullmatch(r"(?:montre|affiche) la tâche (?:sur le stream|sur la diffusion|à l.antenne)", text):
             return [{"type": "broadcast.task"}]
         if re.fullmatch(r"(?:montre|affiche) (?:les scores|le classement)", text):
             return [{"type": "broadcast.scores", "mode": "show"}]

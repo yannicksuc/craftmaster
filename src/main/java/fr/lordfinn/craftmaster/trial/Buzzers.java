@@ -46,6 +46,8 @@ public final class Buzzers {
             Show.soundAll(server, SoundEvents.NOTE_BLOCK_DIDGERIDOO, 1f, 0.7f);
             Show.soundAll(server, SoundEvents.NOTE_BLOCK_BIT, 1f, 1.2f);
             TrialLog.add(server, "Buzzer : " + name + " en premier");
+            // The automatic TV direction cuts to the winner
+            fr.lordfinn.craftmaster.show.ShowEvents.spotlight(server, player.getGameProfile().name(), "buzzer");
         } else {
             String delay = String.format(java.util.Locale.ROOT, "%.2f", press.delayMs() / 1000.0).replace('.', ',');
             player.sendOverlayMessage(Component.literal("Trop tard ! " + press.order() + "e, +" + delay + " s").withStyle(ChatFormatting.RED));

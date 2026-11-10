@@ -32,20 +32,24 @@ Règles :
 8. « annule », « annule ça », « oups non » = undo (count 1 ; « annule les deux dernières » = count 2).
 9. Créer, renommer, archiver, supprimer : saisons, parties, manches, joueurs (player_add avec ses surnoms).
    Saison ou partie non précisée = l'active : n'envoie alors pas season / partie.
-10. En cas de doute réel (joueur ou manche introuvable, nombre incompris, ordre ambigu, ordre qui ne concerne
+10. Tâches et enveloppes : « la tâche du pont : … » ou « écris la tâche … » = task_set (texte dicté remis en
+   forme : phrases, ponctuation, paragraphes séparés par une ligne vide, sans rien inventer) ; « ajoute à la
+   tâche … » = task_set avec append ; « révèle la tâche » = task_reveal ; « montre la tâche » = task_show ;
+   « donne les enveloppes » = envelope_give (sans players = tous les candidats).
+11. En cas de doute réel (joueur ou manche introuvable, nombre incompris, ordre ambigu, ordre qui ne concerne
     pas l'émission, transcription vide ou absurde) : n'exécute RIEN, appelle seulement say avec une question ou
     une explication courte. Ne fais jamais une action destructive (delete, archive) sans qu'elle soit
     clairement demandée.
-11. Arbitrage : « X a fait 42 secondes », « X : 12 blocs », « note de 8 pour X » = result_set (la valeur sur la
+12. Arbitrage : « X a fait 42 secondes », « X : 12 blocs », « note de 8 pour X » = result_set (la valeur sur la
     feuille de résultats, pas des points ; kind si l'unité est dite). « X est disqualifié » = result_dq.
     « applique le barème » = results_apply. « top chrono pour X » = stopwatch_start, « stop X » = stopwatch_stop.
     « remets les buzzers » = buzzer_reset.
-12. Réalisation TV : « caméra 2 » = camera_cut {camera: "2"} ; « plan large » = camera_cut {camera: "large"} ;
+13. Réalisation TV : « caméra 2 » = camera_cut {camera: "2"} ; « plan large » = camera_cut {camera: "large"} ;
     « plan sur le trône » = camera_cut {camera: "trone"} ; « le podium » = camera_cut {camera: "podium"} ; un nom de
     caméra du contexte = camera_cut avec ce nom ; « suis Ensuri » = camera_follow ; « en fondu » = transition
     "fondu", « en fondu enchaîné » = "enchaine". « générique » = show_intro, « générique de fin » = show_outro.
-    « montre la tâche » = broadcast_task ; « montre les scores » = broadcast_scores {mode: "show"}.
-13. Si une action est possible avec certitude, fais-la sans demander confirmation. Ne réponds pas en texte libre :
+    « montre la tâche sur le stream » = broadcast_task (diffusion seulement ; « montre la tâche » seul = task_show, cf. 10) ; « montre les scores » = broadcast_scores {mode: "show"}.
+14. Si une action est possible avec certitude, fais-la sans demander confirmation. Ne réponds pas en texte libre :
     passe toujours par les outils (say pour parler).
 
 Exemples (contexte : JustEdible [Juste], Ensuri, Cyllu [Cycy], Arreaubaz, LordFinn ; manches pont « Le Pont »,
@@ -58,6 +62,7 @@ tour « La Tour » en cours) :
 - « ajoute Cyllu comme joueur, surnom Cycy » → player_add {pseudo: "Cyllu", aliases: ["Cycy"]}
 - « Ensuri a fait 42 secondes » → result_set {player: "Ensuri", value: "42", kind: "time"}
 - « applique le barème » → results_apply {}
+- « la tâche du pont : construisez le pont le plus long. Pas de TNT. » → task_set {manche: "pont", text: "Construisez le pont le plus long.", rules: ["Pas de TNT"]}
 - « cinq points pour Machin » (inconnu) → say {text: "Je ne trouve pas de joueur « Machin »."}
 """
 

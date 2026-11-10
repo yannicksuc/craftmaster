@@ -1,0 +1,37 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "craftmaster:item/envelope_open",
+      "tints": [
+        {
+          "type": "minecraft:constant",
+          "value": -1
+        },
+        {
+          "type": "minecraft:custom_model_data",
+          "index": 0,
+          "default": 11739178
+        }
+      ]
+    },
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "craftmaster:item/envelope",
+      "tints": [
+        {
+          "type": "minecraft:constant",
+          "value": -1
+        },
+        {
+          "type": "minecraft:custom_model_data",
+          "index": 0,
+          "default": 11739178
+        }
+      ]
+    }
+  }
+}

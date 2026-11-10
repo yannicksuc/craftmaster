@@ -54,6 +54,8 @@ public final class CraftMaster implements ModInitializer {
         fr.lordfinn.craftmaster.trial.Trials.register();
         // TV direction (chantier E): cameras, show state, overlay cues, credits
         Director.register();
+        // Tasks, envelopes, hidden notes (chantier D)
+        fr.lordfinn.craftmaster.task.Tasks.register();
 
         // Synced to the players' game (the mod is on both sides), so it parses the same way there
         ArgumentTypeRegistry.registerArgumentType(id("word"), WordArgument.class, SingletonArgumentInfo.contextFree(WordArgument::word));

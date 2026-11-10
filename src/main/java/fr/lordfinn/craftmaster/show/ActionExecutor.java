@@ -63,6 +63,8 @@ public final class ActionExecutor {
         for (int s : CraftMaster.data().allSeasons()) Network.broadcast(server, s);
         // chantier H: open results sheets follow
         fr.lordfinn.craftmaster.trial.TrialNetwork.refreshSheets(server);
+        // Task cards and the J screen follow the task texts (chantier D)
+        fr.lordfinn.craftmaster.task.Tasks.sync(server);
     }
 
     private static void play(MinecraftServer server, Actions.Effect effect, List<String> lines) {
@@ -101,6 +103,8 @@ public final class ActionExecutor {
                  Actions.BuzzersReset _ -> fr.lordfinn.craftmaster.trial.Judging.play(server, effect, lines);
             // TV direction (chantier E): cameras, overlay, credits
             case Actions.Broadcast b -> fr.lordfinn.craftmaster.broadcast.Director.play(server, b.action(), lines);
+            // Tasks, envelopes (chantier D)
+            case Actions.TaskEffect t -> fr.lordfinn.craftmaster.task.Tasks.play(server, t, lines);
         }
     }
 

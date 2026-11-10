@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "craftmaster:block/pinned_note"
+    },
+    "facing=east": {
+      "model": "craftmaster:block/pinned_note",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "craftmaster:block/pinned_note",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "craftmaster:block/pinned_note",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "craftmaster:block/pinned_note",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "craftmaster:block/pinned_note",
+      "x": 90
+    }
+  }
+}

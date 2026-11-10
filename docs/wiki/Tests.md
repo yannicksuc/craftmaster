@@ -15,6 +15,14 @@
 - `ActionsTest` : le schéma d'actions de la régie (préparation, manche suivante / en cours, scores par surnom,
   liste invalide annulée en entier, messages, `undo` en tête de liste, `say`, publication et révélation, joueurs,
   ordre des manches, parties, saison archivée en lecture seule, rideaux et décors, points de TP).
+- `TaskActionsTest` (chantier D) : `task.set` (champs partiels, texte nettoyé, règles, cire en français, durée),
+  dictée en plusieurs fois (`append`), valeurs invalides sans effet, fichier écrit / relu, ancien fichier sans
+  tâche, annulation des textes, révélation hors journal d'annulation, révélée au lancement ou par enveloppe seulement,
+  enveloppes pour des joueurs nommés ou tous.
+- `TaskStoreTest` (chantier D) : révélations (la première gagne, par saison, sauvegarde, remise au secret),
+  notes (ids, cachettes de bloc et d'entité, une trouvaille par joueur, réinitialisation), lecteurs, morceaux cachés
+  à tour de rôle, texte déchiré qui se recolle (1 à 6 morceaux, équilibré), fichier illisible gardé, lignes IRC
+  Twitch (chaîne, PING, PRIVMSG avec ou sans tags, `!tâche`, délai anti-spam).
 - `WordArgumentTest` : accents sans guillemets, noms avec espaces, aller-retour des suggestions.
 - `RegieTest` (régie vocale) : en-tête WAV 16 kHz mono, lecture d'un WAV avec bloc LIST, niveau du micro, JSON des
   actions (entiers gardés entiers), retrait des `say`, réponses du service (dont malformées, service absent),
@@ -198,3 +206,17 @@ redstone) ; sortie / retour de zone ; buzzer (premier, second appui ignoré) ; c
 compteur (sur un coffre vanilla) avec les boutons « Noter pour » ; `/craftMasterName` avec couleurs.
 Non vérifié en jeu (pas d'outil de clic dans les écrans) : changer d'onglet, boutons des écrans (Appliquer,
 Enregistrer, Tester, DQ…) — leurs actions sont celles des commandes, vérifiées ; régie vocale réelle.
+
+### Tâches, enveloppes, notes (chantier D, vérifié en jeu, MCP Fabric, LordFinn admin + Joueur2 non admin en français)
+- Ouverture d'une enveloppe : arrivée, tremblement puis craquelure de la cire, moitiés qui tombent et miettes, rabat
+  qui s'ouvre sur la doublure rouge, carte qui sort et se déplie, puis la carte lisible (en-tête, titre, règles en
+  puces, durée, sceau) ; la tâche est notée « révélée par … ».
+- Tâche secrète : Joueur2 voit l'enveloppe scellée « Tâche encore secrète » ; LordFinn la lit avec « Révéler à
+  tous / À l'écran / Modifier ».
+- Éditeur de tâches, sceau à cire, éditeur de notes : affichés (les clics dans les écrans ne sont pas pilotables
+  par MCP : non vérifiés).
+- Enveloppes posées sur des tables (cire rouge et or), ramassée par Joueur2 (message), ouverte, carte « Pour Joueur2 ».
+- Carte en surimpression : `/tache show` (glisse, disparaît après la durée), `/craftMasterTwitch test`.
+- Notes : sous un tapis (rien sans s'accroupir, trouvée accroupi), dans une bibliothèque, épinglée sur une face,
+  double fond d'un coffre ; note déchirée en 2 à l'encre invisible et prise unique : vierge sans lampe, violette
+  avec la lampe UV (morceau 2 manquant), recollée après le 2e morceau ; cachettes « prise par Joueur2 ».

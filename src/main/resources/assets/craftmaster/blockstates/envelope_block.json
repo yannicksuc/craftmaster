@@ -1,0 +1,364 @@
+{
+  "variants": {
+    "facing=north,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red"
+    },
+    "facing=east,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red",
+      "y": 90
+    },
+    "facing=south,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red",
+      "y": 180
+    },
+    "facing=west,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red",
+      "y": 270
+    },
+    "facing=north,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red"
+    },
+    "facing=east,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red",
+      "y": 90
+    },
+    "facing=south,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red",
+      "y": 180
+    },
+    "facing=west,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red",
+      "y": 270
+    },
+    "facing=north,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold"
+    },
+    "facing=east,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold",
+      "y": 90
+    },
+    "facing=south,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold",
+      "y": 180
+    },
+    "facing=west,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold",
+      "y": 270
+    },
+    "facing=north,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold"
+    },
+    "facing=east,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold",
+      "y": 90
+    },
+    "facing=south,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold",
+      "y": 180
+    },
+    "facing=west,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold",
+      "y": 270
+    },
+    "facing=north,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black"
+    },
+    "facing=east,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black",
+      "y": 90
+    },
+    "facing=south,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black",
+      "y": 180
+    },
+    "facing=west,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black",
+      "y": 270
+    },
+    "facing=north,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black"
+    },
+    "facing=east,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black",
+      "y": 90
+    },
+    "facing=south,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black",
+      "y": 180
+    },
+    "facing=west,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black",
+      "y": 270
+    },
+    "facing=north,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white"
+    },
+    "facing=east,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white",
+      "y": 90
+    },
+    "facing=south,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white",
+      "y": 180
+    },
+    "facing=west,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white",
+      "y": 270
+    },
+    "facing=north,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white"
+    },
+    "facing=east,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white",
+      "y": 90
+    },
+    "facing=south,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white",
+      "y": 180
+    },
+    "facing=west,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white",
+      "y": 270
+    },
+    "facing=north,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue"
+    },
+    "facing=east,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue",
+      "y": 90
+    },
+    "facing=south,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue",
+      "y": 180
+    },
+    "facing=west,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue",
+      "y": 270
+    },
+    "facing=north,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue"
+    },
+    "facing=east,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue",
+      "y": 90
+    },
+    "facing=south,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue",
+      "y": 180
+    },
+    "facing=west,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue",
+      "y": 270
+    },
+    "facing=north,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green"
+    },
+    "facing=east,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green",
+      "y": 90
+    },
+    "facing=south,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green",
+      "y": 180
+    },
+    "facing=west,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green",
+      "y": 270
+    },
+    "facing=north,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green"
+    },
+    "facing=east,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green",
+      "y": 90
+    },
+    "facing=south,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green",
+      "y": 180
+    },
+    "facing=west,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green",
+      "y": 270
+    },
+    "facing=north,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple"
+    },
+    "facing=east,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple",
+      "y": 90
+    },
+    "facing=south,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple",
+      "y": 180
+    },
+    "facing=west,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple",
+      "y": 270
+    },
+    "facing=north,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple"
+    },
+    "facing=east,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple",
+      "y": 90
+    },
+    "facing=south,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple",
+      "y": 180
+    },
+    "facing=west,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple",
+      "y": 270
+    },
+    "facing=north,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink"
+    },
+    "facing=east,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink",
+      "y": 90
+    },
+    "facing=south,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink",
+      "y": 180
+    },
+    "facing=west,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink",
+      "y": 270
+    },
+    "facing=north,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink"
+    },
+    "facing=east,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink",
+      "y": 90
+    },
+    "facing=south,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink",
+      "y": 180
+    },
+    "facing=west,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink",
+      "y": 270
+    },
+    "facing=north,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange"
+    },
+    "facing=east,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange",
+      "y": 90
+    },
+    "facing=south,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange",
+      "y": 180
+    },
+    "facing=west,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange",
+      "y": 270
+    },
+    "facing=north,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange"
+    },
+    "facing=east,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange",
+      "y": 90
+    },
+    "facing=south,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange",
+      "y": 180
+    },
+    "facing=west,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange",
+      "y": 270
+    },
+    "facing=north,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan"
+    },
+    "facing=east,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan",
+      "y": 90
+    },
+    "facing=south,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan",
+      "y": 180
+    },
+    "facing=west,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan",
+      "y": 270
+    },
+    "facing=north,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan"
+    },
+    "facing=east,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan",
+      "y": 90
+    },
+    "facing=south,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan",
+      "y": 180
+    },
+    "facing=west,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan",
+      "y": 270
+    },
+    "facing=north,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown"
+    },
+    "facing=east,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown",
+      "y": 90
+    },
+    "facing=south,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown",
+      "y": 180
+    },
+    "facing=west,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown",
+      "y": 270
+    },
+    "facing=north,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown"
+    },
+    "facing=east,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown",
+      "y": 90
+    },
+    "facing=south,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown",
+      "y": 180
+    },
+    "facing=west,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown",
+      "y": 270
+    },
+    "facing=north,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray"
+    },
+    "facing=east,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray",
+      "y": 90
+    },
+    "facing=south,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray",
+      "y": 180
+    },
+    "facing=west,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray",
+      "y": 270
+    },
+    "facing=north,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray"
+    },
+    "facing=east,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray",
+      "y": 90
+    },
+    "facing=south,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray",
+      "y": 180
+    },
+    "facing=west,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray",
+      "y": 270
+    }
+  }
+}

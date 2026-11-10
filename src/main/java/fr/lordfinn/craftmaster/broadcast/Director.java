@@ -430,6 +430,12 @@ public final class Director {
             autoRevertAt = server.getTickCount() + AUTO_SPOTLIGHT_TICKS;
         }
 
+        /** A contestant opening a sealed envelope (chantier D) is an "all eyes on them" moment. */
+        @Override
+        public void onEnvelopeOpened(MinecraftServer server, ServerPlayer player, int season, String mancheId) {
+            onSpotlight(server, player.getGameProfile().name(), "envelope");
+        }
+
         @Override
         public void onMancheStarted(MinecraftServer server, int season, int number, String name) {
             if (!active()) return;

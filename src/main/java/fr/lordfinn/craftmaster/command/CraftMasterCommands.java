@@ -73,6 +73,8 @@ public final class CraftMasterCommands {
         add(d, CraftMasterCommands::hideRanking, "craftMasterHideRanking", "cfhr");
         add(d, CraftMasterCommands::curtain, "craftMasterCurtain", "cfcu");
         ShowCommands.register(d);
+        // Tasks, envelopes, hidden notes (chantier D)
+        TaskCommands.register(d);
     }
 
     static void add(CommandDispatcher<CommandSourceStack> d, Tree tree, String name, String alias) {

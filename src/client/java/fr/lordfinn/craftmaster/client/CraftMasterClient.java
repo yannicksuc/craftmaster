@@ -36,6 +36,8 @@ public final class CraftMasterClient implements ClientModInitializer {
         // TV direction (chantier E): broadcast mode, director's shots, overlay, camera tripods
         Broadcast.init();
         EntityRendererRegistry.register(ModContent.CAMERA, CameraRenderer::new);
+        // Tasks, envelopes, hidden notes (chantier D)
+        fr.lordfinn.craftmaster.client.task.TaskClient.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (RANKING_KEY.consumeClick()) openRanking(mc, -1);

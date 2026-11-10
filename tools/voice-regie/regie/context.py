@@ -50,6 +50,8 @@ class Manche:
     on_stage: bool = False
     scene: str | None = None
     timer: int = 0
+    task: str | None = None        # title of its task (None = no task), chantier D
+    task_revealed: bool = False
 
 
 @dataclass
@@ -110,7 +112,9 @@ class ShowContext:
         return Manche(id=str(m.get("id") or m.get("name")), name=str(m.get("name") or m.get("id")),
                       aliases=[str(a) for a in _as_list(m.get("aliases"))], order=int(m.get("order") or 0),
                       archived=bool(m.get("archived")), on_stage=bool(m.get("onStage")), scene=m.get("scene"),
-                      timer=int(m.get("timer") or 0))
+                      timer=int(m.get("timer") or 0),
+                      task=(str(m["task"].get("title") or "(sans titre)") if isinstance(m.get("task"), dict) else None),
+                      task_revealed=bool(m["task"].get("revealed")) if isinstance(m.get("task"), dict) else False)
 
     @staticmethod
     def _player(p: dict) -> Player:
@@ -227,6 +231,8 @@ class ShowContext:
                 flags.append("sur scène" + (f", décor {m.scene}" if m.scene else ""))
             if m.timer:
                 flags.append(f"chrono {m.timer}s")
+            if m.task is not None:
+                flags.append(f"tâche « {m.task} » " + ("révélée" if m.task_revealed else "secrète"))
             given = self.live.get(m.id) or {}
             if given:
                 flags.append("notes : " + ", ".join(f"{k} {v}" for k, v in given.items()))

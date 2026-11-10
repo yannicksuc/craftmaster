@@ -96,12 +96,17 @@ public final class ModContent {
                         .sized(0.7f, 1.9f).noLootTable().clientTrackingRange(10).updateInterval(5).build(cameraKey));
         SHOW_THEME = Registry.register(BuiltInRegistries.SOUND_EVENT, CraftMaster.id("show.theme"),
                 SoundEvent.createVariableRangeEvent(CraftMaster.id("show.theme")));
+        // Tasks, envelopes, hidden notes (chantier D)
+        fr.lordfinn.craftmaster.task.TaskContent.register();
 
         ResourceKey<CreativeModeTab> tabKey = ResourceKey.create(Registries.CREATIVE_MODE_TAB, CraftMaster.id("craftmaster"));
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, tabKey, FabricCreativeModeTab.builder()
                 .title(Component.translatable("itemGroup.craftmaster"))
                 .icon(() -> new ItemStack(CURTAINS.get(DyeColor.RED)))
-                .displayItems((params, out) -> TAB_ITEMS.forEach(out::accept))
+                .displayItems((params, out) -> {
+                    TAB_ITEMS.forEach(out::accept);
+                    fr.lordfinn.craftmaster.task.TaskContent.tabItems().forEach(out::accept);
+                })
                 .build());
     }
 
