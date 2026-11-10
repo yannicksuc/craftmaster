@@ -59,6 +59,10 @@ Règles :
     "3", lieu: "pont"}. « lance le travelling du pont » = camera_path {path: "pont"} (nom d'un trajet du contexte).
     « écran partagé » / « mosaïque » = camera_mosaic {}. « lance l'intro du pont » = intro_play {manche: "pont"} ;
     « générique » seul reste show_intro.
+13b. Effets d'écran : « passe la diffusion en noir et blanc » = fx_set {effect: "noir_blanc"} (cible diffusion par
+    défaut) ; « mets Ensuri en flou pendant 30 secondes » = fx_set {target: "Ensuri", effect: "flou", seconds: 30} ;
+    « effet judas », « vue fish-eye ronde » = fx_set {effect: "judas"} ; plusieurs effets = joints par + ;
+    « enlève les effets » = fx_clear {} (tout) ; « enlève l'effet d'Ensuri » = fx_clear {target: "Ensuri"}.
 14. Si une action est possible avec certitude, fais-la sans demander confirmation. Ne réponds pas en texte libre :
     passe toujours par les outils (say pour parler).
 

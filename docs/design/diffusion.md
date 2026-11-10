@@ -410,3 +410,40 @@ invisible (lampe UV) et morceaux déchirés.
 - **Skins** : `PortraitSkins.Skin(texture, slim, cape)` (cape nullable) ; `portrait/SkinFormat` (64·k, k ≤ 16).
 - **Tests d'écrans** : `client/DevInput` (dev uniquement) et l'étape `!input` de `scripts/mcp_session.py` ; utile
   aux autres chantiers pour tester leurs écrans sans souris.
+
+### Effets d'écran (livré)
+
+Guide : `docs/wiki/Effets.md`. Effets (ids) : `noir_blanc`, `sepia`, `pixel`, `fisheye`, `vignette`, `masque_rond`,
+`citrouille`, `flou`, `vhs`, `vieux_film`, `infrarouge`, `reve`, `ondule`, `jumelles`, `bd`, `negatif` ; combinaisons
+`a+b` (6 au plus, dessinées dans l'ordre fixe de `fx.ScreenFx.ORDER`), préréglages `judas`, `camera_cachee`,
+`souvenir`, `film_muet`, `cauchemar`, alias français (`fx.ScreenFx.parse`).
+
+**API client (pour les intros / travellings)** : `fr.lordfinn.craftmaster.client.fx.ScreenEffects.setBroadcastEffect(
+String idOrNull)` (fondu 0,6 s ; `setBroadcastEffect(String, float fadeSeconds)`), `broadcastEffect()`. Ne s'affiche
+que sur un jeu en mode diffusion ; même emplacement que `/fx diffusion` (le dernier ordre gagne). Hors diffusion, la
+vue d'un joueur combine l'effet imposé par le serveur, celui de son objet de tête et l'essai `/essaifx`.
+Rendu : post effects `craftmaster:fx/<id>` appliqués au monde avant le HUD (l'habillage reste net) ; `citrouille`
+est la superposition vanille `textures/misc/pumpkinblur.png` dessinée par `Hud.extractTextureOverlay` (élément HUD
+`craftmaster:screen_fx_overlay` juste après les superpositions vanille, sous l'habillage).
+
+**Actions** (bloc « Screen effects » de `Actions`, effet `Actions.ScreenEffect(target, effect, seconds, fadeTicks)`
+joué par `fx.ScreenEffectsServer.set`, **pas d'entrée d'annulation** : c'est l'image du direct, comme les plans) :
+`fx.set {target? = "diffusion" | "tous" | "candidats" | pseudo (ou surnom), effect, seconds?, fade? (s)}`,
+`fx.clear {target? = "tout"}`. Régie vocale : outils `fx_set` / `fx_clear` ; hors ligne « passe la diffusion en
+noir et blanc », « mets Ensuri en flou », « enlève les effets [de X] ».
+
+**Paquet** `craftmaster:screen_fx` (S→C) `fx.FxNetwork.Order(layer 0 joueur / 1 diffusion, effect, fadeTicks,
+ticks)` ; le serveur garde l'ordre en cours et le renvoie à la connexion.
+
+**Objets** (`fx.FxContent`, onglet CraftMaster) : composant `craftmaster:screen_fx` (String, sur n'importe quel
+objet de tête) ; `blurry_glasses`, `sepia_glasses`, `noir_blanc_glasses`, `pixel_glasses`, `peephole_glasses`,
+`pumpkin_mask` (avec la `camera_overlay` vanille `misc/pumpkinblur`), `vintage_glasses`, `vhs_headset`,
+`thermal_goggles`, `heart_glasses`, `wobbly_glasses`, `binocular_goggles` (modèle 3D sur la tête par
+`select display_context = head`). Serveur : `ScreenEffectsServer.wear(player, item, lock)` / `takeOff(player)`
+(verrou = malédiction du lien, sans reflet).
+
+**Hors de fx/** : une ligne dans `CraftMaster`, `CraftMasterClient`, `ActionExecutor` (cas `ScreenEffect`), bloc
+dans `Actions`, `command/FxCommands`, 6 mixins client (`FxGameRendererMixin`, `FxPostChainMixin`, `FxCameraMixin`,
+`PostChainAccessor`, `PostPassAccessor`, `HudInvoker`) dans `craftmaster.client.mixins.json`, bloc dans
+`gen_assets.py` (+ `scripts/gen_fx.py`), section « fx » de `scripts/server_smoke_test.py` (port RCON en 2e
+argument).

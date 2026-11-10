@@ -165,6 +165,16 @@ Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`
 | `/tv spotlight <joueur> [raison]` | | « Tous les yeux sur lui » : la réalisation auto coupe dessus |
 | `/tv broadcast <joueur> <on\|off>` | | Active / coupe le mode diffusion de ce jeu à distance |
 
+## Effets d'écran ([Effets](Effets.md))
+| Commande | Alias | Rôle |
+|---|---|---|
+| `/craftMasterFx diffusion <effet[+effet]\|aucun> [secondes]` | `/fx` | Effet sur l'image de la diffusion (organisateur ou `craftmaster:camera`) |
+| `/fx <joueur\|tous\|candidats> <effet[+effet]\|aucun> [secondes]` | | Effet imposé sur la vue de joueurs (organisateur) |
+| `/fx aucun` | | Plus aucun effet (diffusion et joueurs) |
+| `/fx porter <joueurs> <objet> [verrouille]` · `/fx retirer <joueurs>` | | Met / enlève des lunettes, un masque (verrouillé : malédiction du lien) |
+| `/fx etat` · `/fx liste` | | Qui a quel effet · les effets et combinaisons |
+| `/essaifx <effet\|aucun> [secondes]` | `/craftMasterFxTry` | Commande du jeu : essai sur sa propre vue, images par seconde |
+
 ## Mode diffusion (tous, commande du jeu)
 | Commande | Effet |
 |---|---|

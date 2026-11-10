@@ -19,7 +19,8 @@ import sys
 import time
 
 HOST = sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1"
-PORT, PASSWORD = int(sys.argv[2]) if len(sys.argv) > 2 else 25692, "cmtest"
+# Optional second argument: the RCON port (another checkout's dev server)
+PORT, PASSWORD = (int(sys.argv[2]) if len(sys.argv) > 2 else 25692), "cmtest"
 
 
 class Rcon:
@@ -272,6 +273,19 @@ if "LordFinn" in cmd("list"):
     check("path deleted", "effacé" in cmd("cam trajet smoke effacer"))
 else:
     print("(TV direction: connect LordFinn to also check cameras in lieux, travellings and intros)")
+# Screen effects (docs/wiki/Effets.md): the broadcast picture, unknown effects, wearables, status
+check("fx broadcast", "Diffusion : fish-eye + sépia + masque rond" in cmd("craftMasterFx diffusion masque_rond+sepia+fisheye 5"))
+check("fx preset", "fish-eye + masque rond" in cmd("fx diffusion judas"))
+check("fx status", "Diffusion : fish-eye + masque rond" in cmd("fx etat"))
+check("fx unknown effect refused", "inconnu" in cmd("fx diffusion arc-en-ciel"))
+check("fx player offline refused", "pas connecté" in cmd("fx Personne sepia"))
+check("fx everything off", "retirés" in cmd("fx aucun"))
+check("fx list", "masque_rond" in cmd("fx liste"))
+for item in ("blurry_glasses", "peephole_glasses", "pumpkin_mask", "vhs_headset", "binocular_goggles"):
+    out = cmd(f"give @a craftmaster:{item}")
+    check(f"wearable {item}", "Gave" in out or "No player" in out, out)
+out = cmd("give @a minecraft:carved_pumpkin[craftmaster:screen_fx=\"sepia+vignette\"]")
+check("screen_fx component on any item", "Gave" in out or "No player" in out, out)
 
 # Cleanup: the test season goes, the previous active season comes back
 cmd("cfsg curtain remove stage")

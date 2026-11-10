@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "N N",
+    "GPG"
+  ],
+  "key": {
+    "N": "minecraft:gold_nugget",
+    "G": "minecraft:glass_pane",
+    "P": "minecraft:paper"
+  },
+  "result": {
+    "id": "craftmaster:vintage_glasses",
+    "count": 1
+  }
+}

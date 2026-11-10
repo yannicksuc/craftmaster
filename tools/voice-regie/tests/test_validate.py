@@ -14,7 +14,7 @@ camera.cut camera.follow camera.auto broadcast.lowerthird broadcast.task broadca
 show.intro show.outro show.stop
 task.set task.clear task.reveal task.hide task.show envelope.give
 spotlight.follow spotlight.stop spotlight.on spotlight.off
-camera.path camera.focus camera.lieu camera.mosaic camera.pov intro.play intro.set intro.shot.add intro.shot.remove""".split()
+camera.path camera.focus camera.lieu camera.mosaic camera.pov intro.play intro.set intro.shot.add intro.shot.remove fx.set fx.clear""".split()
 
 
 def test_lieux_and_intro_actions_are_normalized(ctx):
@@ -152,3 +152,14 @@ def test_task_dictation_is_kept_and_normalized(ctx):
     assert a["seconds"] == 90 and a["append"] is True
     assert out.actions[1]["players"] == ["JustEdible"]
     assert out.actions[2] == {"type": "task.show"}
+
+
+def test_screen_effect_targets(ctx):
+    r = check([{"type": "fx.set", "target": "le stream", "effect": "sepia", "seconds": "30"},
+               {"type": "fx.set", "target": "Juste", "effect": "flou"},
+               {"type": "fx.clear"},
+               {"type": "fx.set", "target": "Machin", "effect": "flou"}], ctx)
+    assert r.actions == [{"type": "fx.set", "target": "diffusion", "effect": "sepia", "seconds": 30},
+                         {"type": "fx.set", "target": "JustEdible", "effect": "flou"},
+                         {"type": "fx.clear"}]
+    assert any("Machin" in w for w in r.warnings)

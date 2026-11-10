@@ -1896,6 +1896,10 @@ gen_studio.generate(sys.modules[__name__])
 # ------------------------------------------------------------------ LordFinn's furniture from his server: scripts/gen_furniture.py
 import gen_furniture  # noqa: E402
 gen_furniture.generate(sys.modules[__name__])
+# ------------------------------------------------------------------ screen effects: post effects, wearable glasses
+# and masks (docs/wiki/Effets.md) — everything in scripts/gen_fx.py
+import gen_fx  # noqa: E402
+gen_fx.generate(sys.modules[__name__])
 
 if SOUNDS:
     write_json(os.path.join(A, "sounds.json"), SOUNDS)

@@ -193,6 +193,17 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
     "spotlight.stop": ("Les projecteurs arrêtent de suivre (gardent leur direction).", []),
     "spotlight.on": ("Allume tous les projecteurs du studio.", []),
     "spotlight.off": ("Éteint tous les projecteurs du studio.", []),
+    # Screen effects (docs/wiki/Effets.md): post-processing of the broadcast picture or of a player's view
+    "fx.set": ("Met un effet d'écran sur l'image de la diffusion (par défaut) ou sur la vue d'un joueur : noir_blanc, "
+               "sepia, pixel, fisheye, vignette, masque_rond, citrouille, flou, vhs, vieux_film, infrarouge, reve, ondule, "
+               "jumelles, bd, negatif ; combinables avec + (« fisheye+masque_rond+sepia ») ; combinaisons prêtes : judas "
+               "(fisheye+masque_rond), camera_cachee, souvenir, film_muet, cauchemar. Remplace l'effet précédent de la cible.",
+               [f("target", STR, doc="« diffusion » (l'image du stream, défaut), « tous » (tous les joueurs), « candidats », "
+                                     "ou le pseudo EXACT d'un joueur."),
+                f("effect", STR, True, "Effet(s) joints par + , ids ci-dessus."),
+                f("seconds", INT, doc="Durée en secondes ; absent = jusqu'à nouvel ordre.")]),
+    "fx.clear": ("Enlève les effets d'écran (« enlève les effets »).",
+                 [f("target", STR, doc="Absent = tout (diffusion et joueurs) ; sinon diffusion, tous, candidats ou un pseudo EXACT.")]),
     "say": ("Répond à LordFinn sans rien modifier : question, doute réel, ordre impossible ou incompris. "
             "Texte court en français.", [f("text", STR, True, "Réponse courte.")]),
 }
@@ -201,6 +212,7 @@ NO_SCOPE = {"say", "undo", "stopwatch.start", "stopwatch.stop", "stopwatch.reset
             "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop"}
 NO_SCOPE |= {"spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off"}
 NO_SCOPE |= {"camera.path", "camera.focus", "camera.lieu", "camera.mosaic", "camera.pov"}
+NO_SCOPE |= {"fx.set", "fx.clear"}
 SCOPE_FIELDS = [f("season", SCOPE, doc="Saison (id ou nom). Absent = saison active."),
                 f("partie", SCOPE, doc="Partie (id ou nom). Absent = partie active.")]
 

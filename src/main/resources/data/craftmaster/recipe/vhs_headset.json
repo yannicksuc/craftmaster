@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "LBL",
+    "BRB"
+  ],
+  "key": {
+    "L": "minecraft:leather",
+    "B": "minecraft:black_dye",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "craftmaster:vhs_headset",
+    "count": 1
+  }
+}

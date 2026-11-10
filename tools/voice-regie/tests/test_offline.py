@@ -60,6 +60,13 @@ CASES = [
     ("Lance l'intro du pont.", [{"type": "intro.play", "manche": "pont"}]),
     ("Lance l'intro de la tour.", [{"type": "intro.play", "manche": "tour"}]),
     ("Écran partagé.", [{"type": "camera.mosaic"}]),
+    # Screen effects
+    ("Passe la diffusion en noir et blanc.", [{"type": "fx.set", "target": "diffusion", "effect": "noir et blanc"}]),
+    ("Mets Cycy en flou.", [{"type": "fx.set", "target": "Cyllu", "effect": "flou"}]),
+    ("Mets tout le monde en sépia !", [{"type": "fx.set", "target": "tous", "effect": "sépia"}]),
+    ("Enlève les effets.", [{"type": "fx.clear"}]),
+    ("Retire les effets de Ensuri.", [{"type": "fx.clear", "target": "Ensuri"}]),
+    ("Enlève les effets de la diffusion.", [{"type": "fx.clear", "target": "diffusion"}]),
 ]
 
 

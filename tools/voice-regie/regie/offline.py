@@ -11,6 +11,7 @@ Understood: "caméra <N>" · "plan large" · "plan sur le trône" · "le podium"
 "projecteurs sur <joueur>" · "éteins | allume les projecteurs" · "projecteurs fixes" ·
 "caméra <N> du studio | d'<joueur>" · "zone d'<joueur>" · "caméras de l'équipe bleue | du studio | du <manche>" ·
 "la caméra <N> est sur <lieu>" · "lance le travelling <nom>" · "lance l'intro [du <manche>]" · "écran partagé".
+"passe | mets la diffusion | <joueur> en <effet>" · "enlève | retire les effets [de <joueur> | de la diffusion]".
 """
 from __future__ import annotations
 
@@ -71,6 +72,22 @@ class OfflineUnderstander:
             return [{"type": "spotlight.on"}]
         if re.fullmatch(r"(?:les )?projecteurs? fixes?", text):
             return [{"type": "spotlight.stop"}]
+        # Screen effects: "passe la diffusion en noir et blanc", "mets Ensuri en flou", "enlève les effets"
+        m = re.fullmatch(r"(?:enl[èe]v\w*|retir\w*|coupe\w*|plus d.|supprim\w*) (?:les |l.)?effets?"
+                         r"(?: (?:de |du |sur |pour )(?P<who>.+))?", text)
+        if m:
+            who = m.group("who")
+            if not who:
+                return [{"type": "fx.clear"}]
+            who = re.sub(r"^(la |le |l.)", "", who)
+            return [{"type": "fx.clear", "target": "diffusion" if who in ("diffusion", "stream", "live") else who}]
+        m = re.fullmatch(r"(?:passe|mets|met|mettez|passez) (?P<who>la diffusion|le stream|le live|tout le monde|tous|"
+                         r"les candidats|.+?) en (?:mode |effet )?(?P<fx>.+)", text)
+        if m:
+            who = m.group("who")
+            target = {"la diffusion": "diffusion", "le stream": "diffusion", "le live": "diffusion", "tout le monde": "tous",
+                      "tous": "tous", "les candidats": "candidats"}.get(who, who)
+            return [{"type": "fx.set", "target": target, "effect": m.group("fx").replace(" plus ", "+").replace(" avec ", "+")}]
         if re.fullmatch(r"(on passe à la )?manches? suivantes?", text):
             return [{"type": "manche.start", "manche": "next"}]
         if re.search(r"(mett?\w* à jour (les scores|le classement)|^publie)", text):
