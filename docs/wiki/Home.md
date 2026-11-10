@@ -13,6 +13,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Tableaux suspendus (galeries, poses, éditeur)](Tableaux.md)
 - [Rideaux de scène](Rideaux.md)
 - [Chaises](Chaises.md)
+- [Plateau : trône, éclairage, projecteurs, chrono géant, écrans /image, pupitres, gong…](Plateau.md)
 - [Régie vocale (piloter à la voix)](RegieVocale.md)
 - [Fichier de données](Donnees.md)
 

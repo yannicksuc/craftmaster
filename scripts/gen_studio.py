@@ -265,9 +265,12 @@ def generate(g):
     for lit in (False, True):
         s = Img(16, 16)
 
+        # Rows 1..5: the narrow top part of the shade, rows 5..11: the wide bottom part (see the floor lamp model)
         def shade(x, y, w, h, lit=lit):
-            if y in (0, 15):
-                return GOLD[1]
+            if y in (1, 10):
+                return GOLD[1] if y == 1 else GOLD[2]
+            if y == 5:
+                return CREAM[3]
             c = CREAM[1 if x % 3 else 2] if not lit else CREAM[0 if x % 3 else 1]
             if lit and y > 10:
                 c = (255, 236, 170)
@@ -531,9 +534,10 @@ def generate(g):
         model("floor_lamp" + ("_lit" if lit else ""), [
             el([5, 0, 5], [11, 1, 11], "#brass"),
             el([7, 1, 7], [9, 16, 9], "#brass"), el([7, 16, 7], [9, 21, 9], "#brass"),
-            el([3, 21, 3], [13, 31, 13], "#shade", faces={"down": "#glow", "up": "#glow"}, emission=e),
+            el([3, 21, 3], [13, 27, 13], "#shade", faces={"down": "#glow", "up": "#shade_top"}, emission=e),
+            el([4, 27, 4], [12, 31, 12], "#shade", faces={"down": None, "up": "#glow"}, emission=e),
         ], {"particle": tex("brass"), "brass": tex("brass"), "shade": tex("lampshade_lit" if lit else "lampshade"),
-            "glow": tex("lamp_glow" if lit else "lamp_off")})
+            "shade_top": tex("lampshade_lit" if lit else "lampshade"), "glow": tex("lamp_glow" if lit else "lamp_off")})
     facing_states("floor_lamp", lambda c: "floor_lamp" + ("_lit" if c["lit"] == "true" else ""), {"lit": ["false", "true"]})
     item_block("floor_lamp", "floor_lamp_lit")
 
@@ -630,7 +634,9 @@ def generate(g):
         el([1, 0, 1], [15, 12, 15], "#folds", skip=("up",)),
     ], {"particle": V, "cloth": tex("prize_cloth"), "top": VP, "folds": VF})
     cloth = Img(16, 16)
-    cloth.paint(0, 0, 16, 16, lambda x, y, w, h: VELVET[2] if y < 12 else GOLD[1] if y == 12 else (GOLD[2] if x % 2 else None) if y < 15 else (GOLD[3] if x % 2 else None))
+    # The drape's sides are 4 px high (rows 0..3): velvet, a gold band, then the gold fringe
+    cloth.paint(0, 0, 16, 16, lambda x, y, w, h: VELVET[1] if y == 0 else VELVET[2] if y == 1 else GOLD[1] if y == 2
+                else (GOLD[2] if x % 2 else GOLD[4]) if y == 3 else VELVET[2])
     cloth.save(g, "block/studio/prize_cloth")
     facing_states("prize_table", lambda c: "prize_table")
     item_block("prize_table")

@@ -35,6 +35,12 @@ phrases synthétisées (voix Windows française) : avec les pseudos en vocabulai
 - `PoseLibraryTest` : poses fournies, aller-retour JSON, lecture tolérante, fichier créé puis conservé, fichier
   illisible mis de côté.
 - `PortraitAnimationTest` : les trois phases du réarrangement, progression monotone, durée bornée.
+- `StudioLogicTest` (décor du studio) : angles des projecteurs (conventions de Minecraft, aller-retour direction ↔
+  angles, plus court chemin à travers ±180°, approche douce sans dépassement), chiffres à 7 segments et format du
+  chrono, arguments de `/image` (5 × 3 par défaut, hauteur en 5:3, limites 16 × 9, adresses refusées), balancement
+  amorti du gong.
+- `StudioActionsTest` : `spotlight.follow` (surnom → pseudo, invité gardé tel quel, rien dans le journal),
+  `spotlight.stop / on / off`, joueur manquant refusé.
 
 ## 2. Test de bout en bout sur serveur (script)
 Serveur de dev (`run-server/server.properties`) : `online-mode=false`, `enable-rcon=true`, `rcon.port=25692`,
@@ -150,3 +156,27 @@ long pseudo.
 
 Non vérifié : compréhension par le vrai Claude (pas de clé `ANTHROPIC_API_KEY` sur le PC de test), vrai micro et
 touches, sons (jeu muet), clics dans les écrans (réglages des tableaux, éditeur de poses, flèches de l'écran K).
+
+### Décor du studio (chantier F, vérifié en jeu, client de dev piloté par MCP Fabric, serveur 25721)
+Captures : dossier de travail de l'agent (non versionnées).
+
+| Fonction | Résultat |
+|---|---|
+| Modèles et textures : trône, fauteuil, canapé (3 places jointes, accoudoirs aux bouts), lampadaire, lampe de bureau, suspension, enseigne « EN DIRECT » (éteinte / allumée), pupitres, sonnette, gong, table des prix, podium 1-2-3, trophée, poteaux à cordon, icônes dans la barre | ✔ |
+| S'asseoir sur le trône (clic droit, entité `craftmaster:seat`) | ✔ |
+| Canapé : les places se joignent / se séparent quand on ajoute ou retire un voisin | ✔ |
+| Suspension qui tombe quand le plafond disparaît | ✔ |
+| Projecteurs : faisceau, tache de lumière, couleur, `cfsp all here`, suivi de Joueur2 en mouvement (captures successives), bloc de lumière posé sous le joueur | ✔ |
+| Chrono géant : durée avant le départ, temps qui défile, rouge les 10 dernières secondes, « 0:00 » rouge à la fin, bandeau « 1 · Le Pont » | ✔ |
+| `/image <URL> 4 3` sur un mur : écran posé ; adresse refusée par le site → mire + « Image unavailable: HTTP 400 » ; `/image <URL>` en regardant l'écran : photo JPEG (2,5 Mo) affichée, image entière avec bandes | ✔ |
+| Écran de réglages ouvert par clic droit (adresse complète, taille, image entière / étirée, mire) | ✔ |
+| Pupitre nommé par une étiquette renommée ; nom « Ensuri / JustEdible / Cyllu » sur la plaque | ✔ |
+| Table des prix : objet posé dans le quart visé, affiché à plat | ✔ |
+| Sonnette : « ♪ LordFinn rang the bell », impulsion (état `powered`) ; gong : balancement image par image, `/cfgo` ; enseigne et gong par redstone | ✔ |
+| Joueur2 (non admin) : `/image` et `/cfsp` inconnus | ✔ |
+
+Non vérifiés en jeu : les sons (jeu muet), les clics accroupi (viser un projecteur, finir la manche au gong : pas
+d'outil MCP pour s'accroupir), les clics dans l'écran de réglages (Enregistrer), les ordres vocaux des projecteurs
+(tests unitaires et pytest seulement), la réduction des images de plus de 2048 px (vérifiée seulement par la photo
+de 2,5 Mo), le cache disque entre deux sessions.
+

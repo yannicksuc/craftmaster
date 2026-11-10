@@ -37,11 +37,11 @@ public class ImageScreenSettings extends Screen {
         left = 10;
         top = Math.max(2, height / 2 - 70);
         int x = left + 82;
-        url = box(x, top + 24, 196, screen.url(), "url");
-        url.setMaxLength(ImageRequest.MAX_URL_LENGTH);
+        url = box(x, top + 24, 196, screen.url(), "url", ImageRequest.MAX_URL_LENGTH);
+        url.moveCursorToStart(false);
         url.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.studio_screen.url_hint")));
-        widthBox = box(x, top + 48, 40, String.valueOf(screen.width()), "width");
-        heightBox = box(x + 60, top + 48, 40, String.valueOf(screen.height()), "height");
+        widthBox = box(x, top + 48, 40, String.valueOf(screen.width()), "width", 2);
+        heightBox = box(x + 60, top + 48, 40, String.valueOf(screen.height()), "height", 2);
         fit = addRenderableWidget(CycleButton.booleanBuilder(Component.translatable("screen.craftmaster.studio_screen.fit_whole"),
                 Component.translatable("screen.craftmaster.studio_screen.fit_stretch"), screen.fit()).displayOnlyValue()
                 .create(x, top + 72, 120, 20, Component.translatable("screen.craftmaster.studio_screen.fit")));
@@ -54,9 +54,10 @@ public class ImageScreenSettings extends Screen {
         setInitialFocus(url);
     }
 
-    private EditBox box(int x, int y, int w, String value, String key) {
+    /** The maximum length is set before the value (a long address would be cut otherwise). */
+    private EditBox box(int x, int y, int w, String value, String key, int maxLength) {
         EditBox b = new EditBox(font, x, y, w, 20, Component.translatable("screen.craftmaster.studio_screen." + key));
-        b.setMaxLength(8);
+        b.setMaxLength(maxLength);
         b.setValue(value == null ? "" : value);
         return addRenderableWidget(b);
     }

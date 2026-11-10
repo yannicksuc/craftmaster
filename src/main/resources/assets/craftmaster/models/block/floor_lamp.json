@@ -4,6 +4,7 @@
     "particle": "craftmaster:block/studio/brass",
     "brass": "craftmaster:block/studio/brass",
     "shade": "craftmaster:block/studio/lampshade",
+    "shade_top": "craftmaster:block/studio/lampshade",
     "glow": "craftmaster:block/studio/lamp_off"
   },
   "elements": [
@@ -219,7 +220,7 @@
       ],
       "to": [
         13,
-        31,
+        27,
         13
       ],
       "faces": {
@@ -227,7 +228,7 @@
           "texture": "#shade",
           "uv": [
             3,
-            1,
+            5,
             13,
             11
           ]
@@ -236,7 +237,7 @@
           "texture": "#shade",
           "uv": [
             3,
-            1,
+            5,
             13,
             11
           ]
@@ -245,7 +246,7 @@
           "texture": "#shade",
           "uv": [
             3,
-            1,
+            5,
             13,
             11
           ]
@@ -254,13 +255,13 @@
           "texture": "#shade",
           "uv": [
             3,
-            1,
+            5,
             13,
             11
           ]
         },
         "up": {
-          "texture": "#glow",
+          "texture": "#shade_top",
           "uv": [
             3,
             3,
@@ -275,6 +276,65 @@
             3,
             13,
             13
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        27,
+        4
+      ],
+      "to": [
+        12,
+        31,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#shade",
+          "uv": [
+            4,
+            1,
+            12,
+            5
+          ]
+        },
+        "south": {
+          "texture": "#shade",
+          "uv": [
+            4,
+            1,
+            12,
+            5
+          ]
+        },
+        "east": {
+          "texture": "#shade",
+          "uv": [
+            4,
+            1,
+            12,
+            5
+          ]
+        },
+        "west": {
+          "texture": "#shade",
+          "uv": [
+            4,
+            1,
+            12,
+            5
+          ]
+        },
+        "up": {
+          "texture": "#glow",
+          "uv": [
+            4,
+            4,
+            12,
+            12
           ]
         }
       }

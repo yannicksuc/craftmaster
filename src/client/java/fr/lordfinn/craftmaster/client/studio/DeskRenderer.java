@@ -19,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
 public class DeskRenderer implements BlockEntityRenderer<DeskBlockEntity, DeskRenderer.State> {
 
     /** Plate front (pixels, block facing north): x 3..13, y 6..10, at z = -1. */
-    private static final float PLATE_W = 9f / 16, PLATE_CENTER_Y = 8f / 16, PLATE_FRONT = 0.5f + 1f / 16 + 0.002f;
+    private static final float PLATE_W = 8.4f / 16, PLATE_CENTER_Y = 8f / 16, PLATE_FRONT = 0.5f + 1f / 16 + 0.002f;
 
     public static class State extends BlockEntityRenderState {
         float yaw;

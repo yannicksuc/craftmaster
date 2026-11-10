@@ -52,13 +52,23 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
   regie/                  régie vocale, côté serveur et commun : RegiePayloads (paquets), RegieServer (contrôle
                           admin, contexte, exécution), RegieJson, Wav (WAV 16 kHz), RegieService (client HTTP)
   show/                   ShowContext (contexte de la partie) et ActionExecutor (exécution du schéma d'actions)
-  registry/ModContent     blocs, objets, entité, onglet créatif
+  registry/ModContent     blocs, objets, entité, onglet créatif (block / item publics : studio/ s'y enregistre)
+  studio/                 décor du studio (chantier F, Plateau.md) : Studio (enregistrements), sièges
+                          (StudioSeatBlock, SofaBlock : ChairBlock + SeatEntity), LampBlock, OnAirSignBlock,
+                          SpotlightBlock / BlockEntity (+ SpotlightAim, Spotlights), TimerDisplayBlock / BlockEntity
+                          (+ SevenSegment, StudioTimer), ImageScreenEntity / Item (+ ImageRequest), DeskBlock,
+                          PrizeTableBlock, GongBlock (+ GongSwing), DeskBellBlock, DecorBlock, StanchionBlock,
+                          StudioNetwork (paquets), StudioCommands (/image, /cfsp, /cfdk, /cfgo)
   mixin/                  accès aux setters privés des text_display
 src/client/java/…/client/                   client uniquement (jamais chargé par un serveur dédié)
   CraftMasterClient       touche K, rendu (vide) du siège, réception du classement
   RankingScreen           l'écran de classement
   regie/VoiceRegie        touche N, enregistrement, envoi au service puis au serveur ; Recorder (micro / WAV) ;
   regie/RegieHud          le panneau « ● Régie à l'écoute » / résultat (HudElementRegistry)
+  studio/                 rendus du studio : SpotlightRenderer (lyre, tête, faisceau additif, tache de lumière),
+                          TimerDisplayRenderer (7 segments), ImageScreenRenderer + ScreenImages (téléchargement,
+                          cache mémoire et disque), ImageScreenSettings, DeskRenderer, PrizeTableRenderer,
+                          GongRenderer, StanchionRenderer (cordons), StudioTimerClient, Geo (quads et boîtes)
   portrait/               PortraitRenderer, PortraitClipper (coupe par la toile, fenêtre Antichamber), PortraitSkins
                           (skin du joueur ou image téléchargée), PortraitScreen (réglages), PoseEditorScreen
 src/main/resources/                         fabric.mod.json, mixins, assets et data (générés)
@@ -112,3 +122,11 @@ Tout ce qui est dans `src/main/resources/assets` et `data` vient de `scripts/gen
 dépendance, les PNG sont écrits à la main). Modifier le script puis le relancer, ne pas éditer les JSON générés.
 Formats 26.x à respecter : définitions d'objet dans `assets/<mod>/items/`, loot tables avec `"condition"` unique,
 catégories de recette `building | redstone | equipment | misc`.
+
+### Ressources du studio (chantier F)
+`scripts/gen_studio.py`, appelé par `gen_assets.py` (un seul bloc marqué) : modèles, états, textures peintes texel
+par texel (palettes or, velours, noyer, métal, crème), recettes, loot, tags de minage, traductions. Les sons sont
+dans le dictionnaire commun `SOUNDS` de `gen_assets.py` (écrit en `sounds.json` à la fin) : chaque partie y ajoute
+ses entrées. Les éléments plus hauts qu'un bloc (trône, lampadaire) ou plus larges (enseigne) prennent leurs UV
+dans leur tranche de 16 px (`el()` de gen_studio).
+

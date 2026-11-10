@@ -22,6 +22,7 @@ besoin de rien).
 | « mets Arreaubaz à cinq sur la tour » / « efface la note d'Ensuri » | fixer / effacer un score |
 | « manche suivante » / « lance le labyrinthe » / « fin de manche » / « stop le chrono » | déroulé |
 | « ouvrez les rideaux » / « fermez le rideau du fond » | rideaux (scène par défaut) |
+| « projecteurs sur Ensuri » / « projecteurs fixes » / « éteins les projecteurs » | projecteurs du studio ([Plateau](Plateau.md)) |
 | « mettez à jour les scores » | publier (busts, tableaux, écrans des joueurs) |
 | « lance la révélation » | révélation mise en scène |
 | « annule » / « annule les deux dernières » | annuler |
@@ -60,6 +61,6 @@ dernières » remonte plus loin (journal de 50 actions, partagé avec les comman
 | Trop court | maintenir la touche pendant toute la phrase (minimum 0,3 s) |
 | Mauvais nom compris | ajouter un surnom au joueur / à la manche (« ajoute le surnom Juste à JustEdible ») |
 | Lent (> 3 s) | `start.ps1 -Check` : sans GPU Whisper passe sur le processeur (2 à 6 s) ; `REGIE_CLAUDE_FAST=1` accélère Claude |
-| Sans internet | `REGIE_UNDERSTANDING=offline` : seulement « N points pour X [sur manche] », « X prend N points », rideaux, manche suivante, publier, révélation, annule |
+| Sans internet | `REGIE_UNDERSTANDING=offline` : seulement « N points pour X [sur manche] », « X prend N points », rideaux, projecteurs, manche suivante, publier, révélation, annule |
 
 Détails techniques : [tools/voice-regie/README.md](../../tools/voice-regie/README.md).
