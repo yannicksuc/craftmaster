@@ -2,6 +2,7 @@ package fr.lordfinn.craftmaster.client.portrait;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import fr.lordfinn.craftmaster.CraftMaster;
+import fr.lordfinn.craftmaster.portrait.SkinFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.resources.DefaultPlayerSkin;
@@ -25,15 +26,15 @@ import java.util.concurrent.CompletableFuture;
 /**
  * The skin a portrait wears: the shown player's own (looked up from the name by the game, like a player head),
  * or an image downloaded from the portrait's URL. Downloads are asynchronous and cached per URL; the image must
- * be a 64×64 or legacy 64×32 PNG, anything else (or an unreachable link) falls back to the default skin.
+ * be a skin PNG, 64×64 or legacy 64×32, or an HD one (128×128, 256×256... up to 1024, see {@link SkinFormat});
+ * anything else (or an unreachable link) falls back to the default skin. A player's own skin brings their cape.
  */
 public final class PortraitSkins {
 
     private PortraitSkins() {}
 
-    public record Skin(Identifier texture, boolean slim) {}
-
-    private static final int MAX_BYTES = 512 * 1024;
+    /** @param cape the cape's texture, or null */
+    public record Skin(Identifier texture, boolean slim, Identifier cape) {}
     private static final HttpClient HTTP = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(8)).followRedirects(HttpClient.Redirect.NORMAL).build();
 
@@ -48,7 +49,7 @@ public final class PortraitSkins {
     private static int nextId;
 
     private static Skin of(PlayerSkin s) {
-        return new Skin(s.body().texturePath(), s.model() == PlayerModelType.SLIM);
+        return new Skin(s.body().texturePath(), s.model() == PlayerModelType.SLIM, s.cape() == null ? null : s.cape().texturePath());
     }
 
     public static Skin defaultSkin() {
@@ -88,16 +89,16 @@ public final class PortraitSkins {
                 if (resp.statusCode() / 100 != 2) throw new IOException("HTTP " + resp.statusCode());
                 byte[] bytes;
                 try (InputStream in = resp.body()) {
-                    bytes = in.readNBytes(MAX_BYTES + 1);
+                    bytes = in.readNBytes(SkinFormat.MAX_BYTES + 1);
                 }
-                if (bytes.length > MAX_BYTES) throw new IOException("image too large");
+                if (bytes.length > SkinFormat.MAX_BYTES) throw new IOException("image too large");
                 NativeImage image = NativeImage.read(bytes);
-                if (image.getWidth() != 64 || (image.getHeight() != 64 && image.getHeight() != 32)) {
-                    int w = image.getWidth(), h = image.getHeight();
+                int w = image.getWidth(), h = image.getHeight();
+                if (SkinFormat.scale(w, h) == 0) {
                     image.close();
-                    throw new IOException("not a skin (" + w + "x" + h + ", 64x64 or 64x32 expected)");
+                    throw new IOException("not a skin (" + w + "x" + h + ", 64x64, 64x32 or HD 128x128, 256x256... expected)");
                 }
-                return image.getHeight() == 32 ? toModern(image) : image;
+                return SkinFormat.legacy(w, h) ? toModern(image) : image;
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
@@ -110,7 +111,7 @@ public final class PortraitSkins {
             boolean slim = isSlim(image);
             Identifier id = CraftMaster.id("portrait_skin/" + (nextId++) + "_" + Integer.toHexString(url.hashCode()).toLowerCase(Locale.ROOT));
             Minecraft.getInstance().getTextureManager().register(id, new DynamicTexture(() -> "craftmaster portrait skin " + url, image));
-            entry.skin = new Skin(id, slim);
+            entry.skin = new Skin(id, slim, null);
             entry.state = State.READY;
         }));
     }
@@ -120,30 +121,22 @@ public final class PortraitSkins {
         return t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage();
     }
 
-    /** Slim (3 px) arms leave the 4th column of the right arm's front transparent. */
+    /** Slim (3 px) arms leave the 4th column of the right arm's front transparent (at any HD scale). */
     static boolean isSlim(NativeImage image) {
-        return (image.getPixel(54, 20) >>> 24) == 0 && (image.getPixel(55, 31) >>> 24) == 0;
+        int k = SkinFormat.scale(image.getWidth(), image.getHeight());
+        for (int[] p : SkinFormat.slimProbes(k)) if ((image.getPixel(p[0], p[1]) >>> 24) != 0) return false;
+        return true;
     }
 
-    /** Legacy 64×32 skin: the left arm and leg are copies (mirrored) of the right ones, like vanilla does. */
+    /** Legacy (2:1) skin: the left arm and leg are copies (mirrored) of the right ones, like vanilla does. */
     private static NativeImage toModern(NativeImage old) {
-        NativeImage img = new NativeImage(64, 64, true);
-        for (int y = 0; y < 32; y++)
-            for (int x = 0; x < 64; x++) img.setPixel(x, y, old.getPixel(x, y));
+        int w = old.getWidth(), half = old.getHeight(), k = SkinFormat.scale(w, half);
+        NativeImage img = new NativeImage(w, w, true);
+        for (int y = 0; y < half; y++)
+            for (int x = 0; x < w; x++) img.setPixel(x, y, old.getPixel(x, y));
         old.close();
-        img.fillRect(0, 32, 64, 32, 0);
-        img.copyRect(4, 16, 16, 32, 4, 4, true, false);
-        img.copyRect(8, 16, 16, 32, 4, 4, true, false);
-        img.copyRect(0, 20, 24, 32, 4, 12, true, false);
-        img.copyRect(4, 20, 16, 32, 4, 12, true, false);
-        img.copyRect(8, 20, 8, 32, 4, 12, true, false);
-        img.copyRect(12, 20, 16, 32, 4, 12, true, false);
-        img.copyRect(44, 16, -8, 32, 4, 4, true, false);
-        img.copyRect(48, 16, -8, 32, 4, 4, true, false);
-        img.copyRect(40, 20, 0, 32, 4, 12, true, false);
-        img.copyRect(44, 20, -8, 32, 4, 12, true, false);
-        img.copyRect(48, 20, -16, 32, 4, 12, true, false);
-        img.copyRect(52, 20, -8, 32, 4, 12, true, false);
+        img.fillRect(0, half, w, half, 0);
+        for (int[] c : SkinFormat.legacyCopies(k)) img.copyRect(c[0], c[1], c[2], c[3], c[4], c[5], true, false);
         return img;
     }
 

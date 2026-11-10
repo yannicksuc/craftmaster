@@ -1,14 +1,15 @@
 package fr.lordfinn.craftmaster.client.portrait;
 
 /**
- * A smooth game clock for the portraits' motion (sway, rearrangement, highlight pulse), in ticks.
+ * A smooth game clock for the portraits' motion (sway, rearrangement, highlight pulse)
+ * and the curtains' slide, in ticks.
  * <p>
  * The client's game time only moves when a tick runs or when the server sends the time, so "game time + partial
  * tick" can stall and jump. This clock runs on real time (20 ticks per second, to the nanosecond, every frame),
  * anchored to the last game time seen and pulled toward it gently, so it never jumps; it snaps only when it is far
  * off (joining a world, a /time change).
  */
-final class PortraitClock {
+public final class PortraitClock {
 
     private PortraitClock() {}
 
@@ -17,7 +18,7 @@ final class PortraitClock {
     private static double estimate;
 
     /** Current time in ticks (same origin as the level's game time). */
-    static double ticks(long gameTime) {
+    public static double ticks(long gameTime) {
         long now = System.nanoTime();
         if (gameTime != syncGameTime) {
             syncGameTime = gameTime;

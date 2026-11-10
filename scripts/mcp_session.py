@@ -6,7 +6,9 @@
 <client run dir>: Windows path of the client's run dir (C:\\Users\\yanni\\code\\craftmaster\\run), whose
 config/mcpfabric.config.json gives the bridge port and token.
 <steps>: JSON list of [tool, arguments, seconds to wait after]. Tool "!rcon" runs a server command instead
-(arguments = the command string), handy to trigger something between two screenshots.
+(arguments = the command string), handy to trigger something between two screenshots. Tool "!input" writes its
+arguments (a string, one command per line) to the client's dev-input.txt: scripted mouse / keys for the open
+screen in the dev environment (src/client/.../DevInput.java), consumed at the next client tick.
 Screenshots are saved as <png prefix>1.png, 2.png...  Requires Windows Node.js and the mcpfabric checkout
 (see the minecraft-mod-dev skill).
 """
@@ -58,6 +60,16 @@ def main():
     for i, (tool, args, delay) in enumerate(steps, 1):
         if tool == "!rcon":
             print("rcon ->", rcon(host, port, "cmtest", args).replace("\n", " ")[:300])
+        elif tool == "!input":
+            wsl_dir = "/mnt/" + run_dir[0].lower() + run_dir[2:].replace("\\", "/")
+            for attempt in range(20):  # the game may be deleting the previous file right now
+                try:
+                    with open(wsl_dir + "/dev-input.txt", "a", encoding="utf-8") as f:
+                        f.write(args.rstrip("\n") + "\n")
+                    break
+                except OSError:
+                    time.sleep(0.05)
+            print("input ->", args.replace("\n", " | "))
         else:
             d = call(i, "tools/call", {"name": tool, "arguments": args})
             for c in d.get("result", {}).get("content", []):

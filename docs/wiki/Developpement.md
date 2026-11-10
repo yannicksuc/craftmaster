@@ -62,6 +62,12 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
     TaskContent, -Components  objets / blocs / composants (enveloppe, sceau, note, bouteille, lampe UV,
                           EnvelopeBlock + entité de bloc, PinnedNoteBlock), WaxColor, TwitchIrc (lecture du chat)
   curtain/Curtains        animation d'ouverture / fermeture (file d'attente par tick)
+                          PoseLibrary (poses.json), PortraitNetwork, PortraitCommands (/cfpt), PortraitItem,
+                          PoseEditing (miroir, copie, remise à zéro, glissers), PoseHistory (annuler / refaire),
+                          PoseHitTest (partie sous la souris dans l'aperçu), SkinFormat (tailles de skins HD)
+  curtain/Curtains        animation d'ouverture / fermeture (file d'attente par tick), paquet de glissement
+  curtain/CurtainCloth    forme du tissu pendant le glissement (plis, paquets sur les côtés, adoucissement), pur
+  curtain/CurtainBlockEntity  bloc-entité vide : le client dessine le tissu (CurtainNetwork : paquet curtain_slide)
   block/                  ChairBlock, CurtainBlock, Shapes4 (formes tournées dans les 4 sens)
   entity/SeatEntity       l'entité invisible sur laquelle on s'assoit
   item/CurtainRemoteItem  la télécommande
@@ -99,6 +105,10 @@ src/client/java/…/client/                   client uniquement (jamais chargé 
   mixin/                  CameraMixin (vue du plan, champ), GameRendererMixin (pas de balancement), HandsRendererMixin,
                           EntityRenderDispatcherMixin (trépieds, joueur caméra et spectateurs cachés), MouseHandlerMixin
                           (molette), ToastManagerMixin, GuiGraphicsExtractorAccessor — craftmaster.client.mixins.json
+                          (skin du joueur ou image téléchargée, HD, cape), PortraitScreen (réglages),
+                          PoseEditorScreen (aperçu 3D dessiné par PortraitRenderer, gestes, raccourcis)
+  curtain/                CurtainClient (forme de chaque rideau, glissements en cours), CurtainRenderer (le tissu)
+  DevInput                dev uniquement : clics / touches lus dans run/dev-input.txt pour tester les écrans
 src/main/resources/                         fabric.mod.json, mixins, assets et data (générés)
 src/test/java/                              tests unitaires JUnit 5
 scripts/                                    générateur de ressources, test serveur, lanceur de client

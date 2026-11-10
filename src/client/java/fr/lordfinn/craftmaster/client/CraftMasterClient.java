@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import fr.lordfinn.craftmaster.CraftMaster;
 import fr.lordfinn.craftmaster.client.broadcast.Broadcast;
 import fr.lordfinn.craftmaster.client.broadcast.CameraRenderer;
+import fr.lordfinn.craftmaster.client.curtain.CurtainClient;
 import fr.lordfinn.craftmaster.client.regie.VoiceRegie;
 import fr.lordfinn.craftmaster.client.portrait.PortraitClient;
 import fr.lordfinn.craftmaster.network.Network;
@@ -31,6 +32,9 @@ public final class CraftMasterClient implements ClientModInitializer {
         PortraitClient.init();
         // Studio set (chantier F)
         fr.lordfinn.craftmaster.client.studio.StudioClient.init();
+        CurtainClient.init();
+        // Dev environment only: scripted mouse / keys for testing screens (docs/wiki/Tests.md)
+        DevInput.init();
         KeyMappingHelper.registerKeyMapping(RANKING_KEY);
         VoiceRegie.init();
         // Chantier H: task props, results sheet, drawing boards, plinth

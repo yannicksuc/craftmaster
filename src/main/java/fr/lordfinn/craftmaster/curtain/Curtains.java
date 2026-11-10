@@ -5,9 +5,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,14 +27,16 @@ import java.util.Set;
 
 /**
  * Opens and closes whole curtains with an animation: column by column, from the middle outwards when opening
- * (the two halves part) and from the sides inwards when closing.
+ * (the two halves part) and from the sides inwards when closing. That is the blocks' state (what can be aimed at,
+ * what is saved); the players' game draws the fabric sliding continuously over the same time
+ * ({@link CurtainNetwork.Slide}, {@link CurtainCloth}).
  */
 public final class Curtains {
 
     /** Ticks between two columns: a 15-block-wide curtain opens in about 1.5 s, like a stage curtain. */
-    private static final int STEP_TICKS = 4;
+    public static final int STEP_TICKS = 4;
     /** Biggest curtain handled at once. */
-    private static final int MAX_BLOCKS = 4096;
+    public static final int MAX_BLOCKS = 4096;
 
     private record Change(boolean open, long due, boolean sound) {}
 
@@ -49,25 +56,8 @@ public final class Curtains {
         Direction facing = first.getValue(CurtainBlock.FACING);
         boolean target = open != null ? open : !isHeadingOpen(level, start, first);
 
-        // The curtain = the touching curtain blocks with the same direction, in its vertical plane
         Direction side = facing.getClockWise();
-        List<Direction> dirs = List.of(side, side.getOpposite(), Direction.UP, Direction.DOWN);
-        Set<BlockPos> group = new HashSet<>();
-        ArrayDeque<BlockPos> todo = new ArrayDeque<>();
-        todo.add(start.immutable());
-        group.add(start.immutable());
-        while (!todo.isEmpty() && group.size() < MAX_BLOCKS) {
-            BlockPos p = todo.poll();
-            for (Direction d : dirs) {
-                BlockPos n = p.relative(d);
-                if (group.contains(n)) continue;
-                BlockState s = level.getBlockState(n);
-                if (s.getBlock() instanceof CurtainBlock && s.getValue(CurtainBlock.FACING) == facing) {
-                    group.add(n);
-                    todo.add(n);
-                }
-            }
-        }
+        Set<BlockPos> group = group(level, start);
 
         // Columns ordered by their distance to the middle of the curtain
         int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
@@ -88,7 +78,45 @@ public final class Curtains {
             long step = Math.round(target ? dist : far - dist);
             pending.put(p, new Change(target, now + 1 + step * STEP_TICKS, p.getY() == lowestY.get(c)));
         }
+        // The players watching it draw the fabric sliding continuously (client/curtain), in step with the columns
+        CurtainNetwork.Slide slide = new CurtainNetwork.Slide(start.immutable(), target,
+                CurtainCloth.durationTicks(max - min + 1, STEP_TICKS));
+        for (ServerPlayer player : PlayerLookup.tracking(level, start)) ServerPlayNetworking.send(player, slide);
         return target;
+    }
+
+    /**
+     * The curtain containing {@code start}: the touching curtain blocks (left, right, above, below) facing the same
+     * way, in its vertical plane, whatever their colour. Same rule on both sides (the client draws with it).
+     */
+    public static Set<BlockPos> group(BlockGetter level, BlockPos start) {
+        Set<BlockPos> group = new HashSet<>();
+        BlockState first = level.getBlockState(start);
+        if (!(first.getBlock() instanceof CurtainBlock)) return group;
+        Direction facing = first.getValue(CurtainBlock.FACING);
+        Direction side = facing.getClockWise();
+        List<Direction> dirs = List.of(side, side.getOpposite(), Direction.UP, Direction.DOWN);
+        ArrayDeque<BlockPos> todo = new ArrayDeque<>();
+        todo.add(start.immutable());
+        group.add(start.immutable());
+        while (!todo.isEmpty() && group.size() < MAX_BLOCKS) {
+            BlockPos p = todo.poll();
+            for (Direction d : dirs) {
+                BlockPos n = p.relative(d);
+                if (group.contains(n)) continue;
+                BlockState s = level.getBlockState(n);
+                if (s.getBlock() instanceof CurtainBlock && s.getValue(CurtainBlock.FACING) == facing) {
+                    group.add(n);
+                    todo.add(n);
+                }
+            }
+        }
+        return group;
+    }
+
+    /** Registers the slide packet (server → clients). */
+    public static void register() {
+        PayloadTypeRegistry.clientboundPlay().register(CurtainNetwork.Slide.TYPE, CurtainNetwork.Slide.CODEC);
     }
 
     /** Where the block is going: its pending change if it is moving, else its current state. */
@@ -98,7 +126,7 @@ public final class Curtains {
         return c != null ? c.open() : state.getValue(CurtainBlock.OPEN);
     }
 
-    private static int column(BlockPos p, Direction side) {
+    public static int column(BlockPos p, Direction side) {
         return side.getAxis() == Direction.Axis.X ? p.getX() : p.getZ();
     }
 

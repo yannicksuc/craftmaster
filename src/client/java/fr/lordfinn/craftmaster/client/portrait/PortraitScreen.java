@@ -9,6 +9,8 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -98,6 +100,7 @@ public class PortraitScreen extends Screen {
         int x = left + 92, w = 130, y = top + 22, step = 22;
 
         season = box(x, y, 40, seasonV, "season");
+        tip(season, "season_tip");
         y += step;
         followsRank = addRenderableWidget(CycleButton.booleanBuilder(Component.translatable("screen.craftmaster.portrait.by_rank"),
                 Component.translatable("screen.craftmaster.portrait.by_player"), rankMode).displayOnlyValue()
@@ -110,29 +113,37 @@ public class PortraitScreen extends Screen {
                         rankOrPlayer.setValue(playerV);
                     }
                 }));
+        followsRank.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.portrait.follow_tip")));
         rankOrPlayer = box(x, y, w, rankMode ? rankV : playerV, "follow");
+        tip(rankOrPlayer, "follow_tip");
         y += step;
         displayName = box(x, y, w, nameV, "name");
+        tip(displayName, "name_tip");
         y += step;
-        skinUrl = box(x, y, w, urlV, "skin");
-        skinUrl.setMaxLength(1000);
+        skinUrl = box(x, y, w, urlV, "skin", 1000);
+        tip(skinUrl, "skin_tip");
         y += step;
         List<String> names = new ArrayList<>(PoseLibraries.client().names());
         if (!names.contains(poseV)) names.add(0, poseV);
         pose = addRenderableWidget(CycleButton.<String>builder(Component::literal, poseV).withValues(names).displayOnlyValue()
+                .withTooltip(v -> Tooltip.create(Component.translatable("screen.craftmaster.portrait.pose_tip")))
                 .create(x, y, w - 46, 20, Component.empty(), (b, v) -> PortraitClient.setPreview(portrait.getId(), PoseLibraries.client().get(v))));
         addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.portrait.edit_pose"), b -> {
             keep();
             minecraft.gui.setScreen(new PoseEditorScreen(portrait, this));
-        }).bounds(x + w - 44, y, 44, 20).build());
+        }).bounds(x + w - 44, y, 44, 20).tooltip(Tooltip.create(Component.translatable("screen.craftmaster.portrait.edit_pose_tip"))).build());
         y += step;
         hang = box(x, y, 50, hangV, "hang");
+        tip(hang, "hang_tip");
         y += step;
         // Window look: on / off, depth of the room behind the opening (px), its size (% of the opening)
         window = addRenderableWidget(CycleButton.onOffBuilder(windowV).displayOnlyValue()
+                .withTooltip(v -> Tooltip.create(Component.translatable("screen.craftmaster.portrait.window_tip")))
                 .create(x, y, 42, 20, Component.translatable("screen.craftmaster.portrait.window")));
         windowDepth = box(x + 46, y, 40, depthV, "window_depth");
+        tip(windowDepth, "window_depth");
         windowSize = box(x + 90, y, 40, sizeV, "window_size");
+        tip(windowSize, "window_size");
         y += step + 8;
         addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.portrait.save"), b -> save())
                 .bounds(left + 8, y, 105, 20).build());
@@ -141,9 +152,28 @@ public class PortraitScreen extends Screen {
         PortraitClient.setPreview(portrait.getId(), PoseLibraries.client().get(poseV));
     }
 
+    private static void tip(EditBox box, String key) {
+        box.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.portrait." + key)));
+    }
+
+    /** Enter saves (outside the text boxes' own use of it), like the other forms. */
+    @Override
+    public boolean keyPressed(KeyEvent e) {
+        if (e.isConfirmation() && !(getFocused() instanceof CycleButton<?>) && !(getFocused() instanceof Button)) {
+            save();
+            return true;
+        }
+        return super.keyPressed(e);
+    }
+
     private EditBox box(int x, int y, int w, String value, String key) {
+        return box(x, y, w, value, key, 128);
+    }
+
+    /** The max length is set before the value, else a longer value (a skin URL) is cut. */
+    private EditBox box(int x, int y, int w, String value, String key, int maxLength) {
         EditBox b = new EditBox(font, x, y, w, 20, Component.translatable("screen.craftmaster.portrait." + key));
-        b.setMaxLength(128);
+        b.setMaxLength(maxLength);
         b.setValue(value == null ? "" : value);
         return addRenderableWidget(b);
     }

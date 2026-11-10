@@ -5,6 +5,7 @@ import fr.lordfinn.craftmaster.block.ChairBlock;
 import fr.lordfinn.craftmaster.camera.CameraEntity;
 import fr.lordfinn.craftmaster.camera.CameraItem;
 import fr.lordfinn.craftmaster.block.CurtainBlock;
+import fr.lordfinn.craftmaster.curtain.CurtainBlockEntity;
 import fr.lordfinn.craftmaster.entity.SeatEntity;
 import fr.lordfinn.craftmaster.item.CurtainRemoteItem;
 import fr.lordfinn.craftmaster.portrait.PortraitEntity;
@@ -25,6 +26,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
@@ -33,6 +35,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /** Blocks, items and entities of the mod. Block/item/model names are listed in the README. */
@@ -44,6 +47,8 @@ public final class ModContent {
     public static final Map<String, ChairBlock> CHAIRS = new LinkedHashMap<>();
     public static final Map<DyeColor, CurtainBlock> CURTAINS = new LinkedHashMap<>();
     public static Item CURTAIN_REMOTE;
+    /** Chantier G: draws the curtains' sliding fabric on the client. */
+    public static BlockEntityType<CurtainBlockEntity> CURTAIN_BLOCK_ENTITY;
     public static EntityType<SeatEntity> SEAT;
     /** Hanging portraits (chantier B, see portrait/). */
     public static Item PORTRAIT_ITEM;
@@ -73,6 +78,8 @@ public final class ModContent {
                     BlockBehaviour.Properties.of().mapColor(color.getMapColor()).strength(0.8f).sound(SoundType.WOOL)
                             .noCollision().noOcclusion().ignitedByLava().pushReaction(PushReaction.POPPED)));
         }
+        CURTAIN_BLOCK_ENTITY = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, CraftMaster.id("curtain"),
+                new BlockEntityType<>(CurtainBlockEntity::new, Set.copyOf(CURTAINS.values())));
         CURTAIN_REMOTE = item("curtain_remote", CurtainRemoteItem::new, new Item.Properties().stacksTo(1));
 
         ResourceKey<EntityType<?>> seatKey = ResourceKey.create(Registries.ENTITY_TYPE, CraftMaster.id("seat"));

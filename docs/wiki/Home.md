@@ -14,6 +14,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Épreuves : objets d'épreuve, buzzers, feuille de résultats, chrono, tableaux à dessiner](Epreuves.md)
 - [Tâches, enveloppes scellées et notes cachées](Taches.md)
 - [Rideaux de scène](Rideaux.md)
+- [Finitions v4 : rideau fluide, éditeur de poses, skins HD](Finitions.md)
 - [Chaises](Chaises.md)
 - [Plateau : trône, éclairage, projecteurs, chrono géant, écrans /image, pupitres, gong…](Plateau.md)
 - [Régie vocale (piloter à la voix)](RegieVocale.md)

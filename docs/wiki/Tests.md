@@ -55,6 +55,17 @@ phrases synthétisées (voix Windows française) : avec les pseudos en vocabulai
   amorti du gong.
 - `StudioActionsTest` : `spotlight.follow` (surnom → pseudo, invité gardé tel quel, rien dans le journal),
   `spotlight.stop / on / off`, joueur manquant refusé.
+- `CurtainClothTest` (chantier G) : rideau fermé = le modèle de bloc (plis de 4 px, z 6..8 / 8..10), rideau ouvert
+  rassemblé contre les deux côtés, plis toujours jointifs et dans l'ordre pendant le glissement, moitiés symétriques,
+  mouvement continu (moins de 3 px par quart de tick) et adouci, durée alignée sur les colonnes du serveur.
+- `PoseEditingTest` (chantier G) : pile annuler / refaire (un glisser entier = une étape, pause ou relâché = nouvelle
+  étape, refaire effacé par une nouvelle modification, limite), miroir (gauche ↔ droite, deux fois = identique, et
+  vraie réflexion géométrique de chaque coin de chaque partie), copie symétrique d'un membre, remise à zéro, sens
+  des glissers (ce qui est sous la souris la suit), angles bornés, et le **clic sur l'aperçu** : chaque partie
+  trouvée sous son dessin (vue de face, tournée, vue de l'éditeur), la plus proche gagne, parties cachées
+  ignorées, cadre seulement hors du personnage.
+- `SkinFormatTest` (chantier G) : tailles acceptées (64, 128, 256, 512, 1024, multiples de 64, anciens formats
+  2:1 HD) et refusées, sondes « bras fins » et copies de l'ancien format à l'échelle.
 
 ## 2. Test de bout en bout sur serveur (script)
 Serveur de dev (`run-server/server.properties`) : `online-mode=false`, `enable-rcon=true`, `rcon.port=25692`,
@@ -112,6 +123,29 @@ le format 26.3 des loot tables et des recettes, les accents refusés sans guille
 Pas automatisable avec les outils actuels (aucun outil MCP pour les touches ni les clics dans un écran) : la
 touche K, les boutons ◀ ▶, la molette et Échap dans l'écran de classement, le survol de l'infobulle de la
 télécommande. À vérifier à la main.
+
+**Clics et touches simulés dans un écran (dev uniquement, chantier G)** : dans l'environnement de dev, le client
+lit `run/dev-input.txt` (ou `run2/`) à chaque tick et envoie à l'écran ouvert les lignes `click x y [bouton]
+[mods]`, `drag x y dx dy [bouton] [mods]`, `release x y`, `scroll x y n`, `key NOM [mods]` (coordonnées de
+l'interface, bouton 0 gauche / 1 droit, mods 1 Maj, 2 Ctrl, 4 Alt ; `DevInput`). `scripts/mcp_session.py` a l'étape
+`["!input", "click 351 106\nkey Z 2", délai]`. Hors dev, rien n'est lu. Le survol (infobulles) suit la vraie
+souris et reste à voir à la main.
+
+### Chantier G : rideau fluide, éditeur de poses, skins HD (vérifié en jeu, captures MCP)
+
+| Fonction | Résultat |
+|---|---|
+| Rideau 15 × 5 : ouverture et fermeture en continu (9 et 13 images à 0,1 s), plis rassemblés sur les côtés, bas qui suit le haut en penchant, se balance à l'arrêt | ✔ |
+| Plis plus marqués sur les 16 couleurs (planche ×8), rideau fermé identique au modèle de bloc | ✔ |
+| Deux joueurs voient le même glissement (LordFinn et Joueur2) | voir ci-dessous |
+| Éditeur de poses : aperçu 3D (même modèle, skin, cadre), clic sur le bras gauche → « L. arm » choisi et teinté, glisser vers le haut → X −20° → −44°, molette +3°, C copie symétrique, Ctrl+Z, R remise à zéro, H cache le bras, Ctrl+glisser déplace le personnage, clic droit glissé tourne la vue, M miroir, Ctrl+Z / Ctrl+Y | ✔ (entrées simulées) |
+| Curseurs qui suivent les gestes et l'annulation | ✔ |
+| Skins HD par adresse : 256×256 (Steve, rayures fines et bandeau), 128×128 bras fins (Alex), ancien format 128×64 | ✔ |
+| Écran du tableau : infobulles, libellés raccourcis | ✔ |
+
+Non vérifiés en jeu : la cape (le serveur de test est hors ligne, aucun joueur n'a de cape), un rideau posé avant
+cette version (son bloc-entité créé au chargement du tronçon), les infobulles de survol de l'aperçu, la vraie
+souris et le vrai clavier AZERTY (Ctrl+Z est lu par la lettre tapée).
 
 ## 4. Régie vocale en jeu (sans micro ni clavier)
 Personne ne parle pendant un test automatique : le client lancé avec `-PregieTrigger` surveille `run/regie-trigger/`.

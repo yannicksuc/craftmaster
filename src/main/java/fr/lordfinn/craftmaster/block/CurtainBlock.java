@@ -1,5 +1,6 @@
 package fr.lordfinn.craftmaster.block;
 
+import fr.lordfinn.craftmaster.curtain.CurtainBlockEntity;
 import fr.lordfinn.craftmaster.curtain.Curtains;
 import fr.lordfinn.craftmaster.registry.ModContent;
 import net.minecraft.core.BlockPos;
@@ -14,6 +15,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -34,8 +38,11 @@ import java.util.Map;
  * from the middle outwards and closes from the sides inwards (see {@link Curtains}). An open curtain is invisible.
  * <p>
  * Opened and closed by: a redstone signal, the curtain remote, a right-click in creative, or /craftMasterCurtain.
+ * <p>
+ * In the world the fabric is drawn by the client ({@link CurtainBlockEntity}, client/curtain/CurtainRenderer), so it
+ * slides continuously and gathers at the sides; the block models only serve the item and the particles.
  */
-public class CurtainBlock extends Block {
+public class CurtainBlock extends Block implements EntityBlock {
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
@@ -90,6 +97,17 @@ public class CurtainBlock extends Block {
                 && ModContent.CURTAINS.values().stream().noneMatch(c -> ctx.isHoldingItem(c.asItem())))
             return Shapes.empty();
         return SHAPES.get(state.getValue(FACING));
+    }
+
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new CurtainBlockEntity(pos, state);
+    }
+
+    /** The fabric is drawn by the block entity's renderer. */
+    @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.INVISIBLE;
     }
 
     @Override

@@ -27,7 +27,7 @@ s'y voient en direct.
 | Saison (galerie) | Les tableaux d'une même saison forment une galerie |
 | Rang / Joueur | « Rang N » (défaut) : montre le joueur classé N ; « Joueur » : toujours ce pseudo |
 | Nom affiché | Remplace le pseudo sur l'étiquette (vide = pseudo) |
-| Skin (adresse) | Adresse http(s) d'une image de skin 64×64 (ou ancien format 64×32). Vide = skin du joueur. Une image invalide ou injoignable donne le skin par défaut |
+| Skin (adresse) | Adresse http(s) d'une image de skin 64×64 (ou ancien format 64×32), ou **HD** : 128×128, 256×256, 512×512, 1024×1024 (tout multiple de 64 jusqu'à 1024, et les anciens formats HD 128×64…), 6 Mo au plus. Bras fins détectés à toutes les tailles. Vide = skin du joueur, **avec sa cape** s'il en a une. Une image invalide ou injoignable donne le skin par défaut |
 | Pose | Une pose de la bibliothèque ; « Éditer… » ouvre l'éditeur de poses |
 | Ficelle (blocs) | Longueur de la ficelle, de 0 à 16 blocs : on peut pendre aussi bas qu'on veut. `auto` = longueur légèrement différente pour chaque tableau (0,55 à 1,05 bloc) |
 | Antichamber px % | Effet fenêtre (Oui / Non, désactivé par défaut), profondeur de la pièce en pixels (4 à 96, défaut 16) et sa taille en % de l'ouverture (100 à 200, défaut 140) — voir plus bas |
@@ -71,12 +71,33 @@ cadre**, **porte le cadre**, **se penche dehors**, **salut**, **bras croisés**,
 derrière** (le haut du corps sort du dos plat du tableau, vu de derrière). Les poses jouent avec le cadre : mains
 sur les montants, jambe passée par-dessus la barre du bas, assis sur la barre, penché hors de la peinture… `/cfpt poses` les liste.
 
-**Éditeur de poses** (« Éditer… » dans l'écran du tableau, ou `/cfpt poseEditor`) : choisir une partie
-(Ensemble, Tête, Corps, Bras D/G, Jambe D/G, Cadre), régler ses rotations (et pour l'ensemble : taille et
-décalage ; pour le cadre : bascule et inclinaison) ; le tableau montre le résultat en direct. Puis :
+Chaque champ de l'écran du tableau a une infobulle ; Entrée enregistre.
+
+**Éditeur de poses** (« Éditer… » dans l'écran du tableau, ou `/cfpt poseEditor`). À droite, un **aperçu 3D**
+du tableau (même modèle, skin, cape et cadre que dans le monde, rien de coupé), et le tableau dans le monde montre
+aussi la pose en direct.
+
+| Geste / touche | Effet |
+|---|---|
+| Clic sur une partie (ou le cadre) dans l'aperçu | la choisir (elle passe en jaune ; celle sous la souris en bleu, avec une infobulle) |
+| Tirer une partie | la tourner : tête, corps, ensemble = tourner (gauche/droite) et hocher (haut/bas) ; bras, jambes = lever sur le côté et vers l'avant / l'arrière. Ce qui est sous la souris la suit |
+| Maj + tirer | le troisième axe (pencher la tête / le corps, vriller un membre) |
+| Ctrl + tirer | déplacer tout le personnage |
+| Tirer le cadre | le basculer (haut/bas) et l'incliner (gauche/droite) |
+| Clic droit tiré, ou tirer le fond | tourner la vue ; Ctrl + molette : zoom ; Origine (ou bouton ⌂) : vue de face |
+| Molette, flèches | 1° sur l'axe affiché en haut de l'aperçu (Maj : 5°) ; X, Y, Z choisissent cet axe (un glisser le règle sur l'axe le plus bougé) |
+| 1 à 8 | choisir Ensemble, Tête, Corps, Bras D, Bras G, Jambe D, Jambe G, Cadre |
+| Ctrl+Z / Ctrl+Y (ou Ctrl+Maj+Z) | annuler / refaire (boutons ← →) ; un glisser entier, un curseur, une rafale de molette = une seule étape |
+| M (bouton ↔) | miroir de toute la pose, gauche ↔ droite |
+| C (bouton ») | copier le bras / la jambe choisi(e) de l'autre côté, en miroir (pose symétrique) |
+| R (bouton 0) | remettre la partie droite (pour l'Ensemble : place et taille aussi ; pour le Cadre : à plat) |
+| H (bouton •/○) | cacher / montrer la partie |
+
+Le `[?]` en haut à droite de l'aperçu rappelle tout cela. À gauche, les curseurs donnent les valeurs exactes
+(ils suivent les gestes) ; puis :
 - « Nouvelle pose » / « Écraser » enregistre sous le nom tapé ;
 - « Supprimer » retire la pose du nom tapé ;
-- « Partir de » charge une pose existante ;
+- « Partir de » charge une pose existante (annulable) ;
 - « Utiliser la pose » l'enregistre et la donne au tableau.
 
 **La toile est une vraie coupe** : ce qui est derrière la surface peinte est « dans le tableau » et ne se voit
