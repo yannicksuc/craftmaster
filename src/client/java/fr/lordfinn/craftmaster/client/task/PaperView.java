@@ -84,8 +84,8 @@ public final class PaperView {
         int y = 14;
         int lh = font.lineHeight + 2;
         // Header: small capitals
-        if (!paper.header().isEmpty()) {
-            String h = paper.header().toUpperCase(Locale.ROOT);
+        String h = paper.header().getString().toUpperCase(Locale.ROOT);
+        if (!h.isEmpty()) {
             for (FormattedCharSequence l : font.split(FormattedText.of(h), inner)) {
                 lines.add(new Line(l, centre(l, w, 1f), y, look.accent(), 1f, TEXT));
                 y += lh;

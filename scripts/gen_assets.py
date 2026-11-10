@@ -876,7 +876,8 @@ for y in range(48):
             base = D_RED1 if (x // 3 + y // 3) % 2 else D_RED2
             flap_in[y][x] = d_rgba(D_G2 if stripe else d_shade(base, 1.0 - 0.25 * y / TIP))
 d_save("textures/gui/task/envelope_flap.png", flap)
-d_save("textures/gui/task/envelope_flap_in.png", flap_in)
+# The lining is seen with the flap standing up: drawn upside down (the screens cannot mirror a quad)
+d_save("textures/gui/task/envelope_flap_in.png", flap_in[::-1])
 
 
 # ------------------------------------------------------------------ items
@@ -1258,6 +1259,8 @@ D_EN = {
     "screen.craftmaster.task.preview.tip": "Plays the envelope opening with the text as typed (only on your screen)",
     "screen.craftmaster.task.reveal": "Reveal to all",
     "screen.craftmaster.task.reveal.tip": "Everybody (spectators, broadcast) can now read it",
+    "screen.craftmaster.task.reveal_short": "Reveal",
+    "screen.craftmaster.task.show_short": "On screens",
     "screen.craftmaster.task.show": "Show on screens",
     "screen.craftmaster.task.show.tip": "The task card shows on every screen for 12 s (revealed first)",
     "screen.craftmaster.task.edit": "Edit",
@@ -1296,6 +1299,7 @@ D_EN = {
     "screen.craftmaster.note.once_on.tip": "The first finder takes it (it goes into their inventory); the hiding place is then empty",
     "screen.craftmaster.note.once_off.tip": "Every allowed player can find and read it where it is",
     "screen.craftmaster.note.ink": "Invisible ink",
+    "screen.craftmaster.note.ink_off": "Normal ink",
     "screen.craftmaster.note.ink.tip": "The sheet looks blank unless read with the UV lamp in hand",
     "screen.craftmaster.note.players": "Players",
     "screen.craftmaster.note.players_hint": "Names, comma separated",
@@ -1436,6 +1440,8 @@ D_FR = {
     "screen.craftmaster.task.preview.tip": "Joue l'ouverture de l'enveloppe avec le texte tapé (sur ton écran seulement)",
     "screen.craftmaster.task.reveal": "Révéler à tous",
     "screen.craftmaster.task.reveal.tip": "Tout le monde (spectateurs, diffusion) peut maintenant la lire",
+    "screen.craftmaster.task.reveal_short": "Révéler",
+    "screen.craftmaster.task.show_short": "À l'écran",
     "screen.craftmaster.task.show": "Montrer à l'écran",
     "screen.craftmaster.task.show.tip": "La carte de la tâche s'affiche 12 s sur tous les écrans (révélée d'abord)",
     "screen.craftmaster.task.edit": "Modifier",
@@ -1474,6 +1480,7 @@ D_FR = {
     "screen.craftmaster.note.once_on.tip": "Le premier qui la trouve la prend (elle va dans son inventaire) ; la cachette est ensuite vide",
     "screen.craftmaster.note.once_off.tip": "Chaque joueur autorisé peut la trouver et la lire sur place",
     "screen.craftmaster.note.ink": "Encre invisible",
+    "screen.craftmaster.note.ink_off": "Encre normale",
     "screen.craftmaster.note.ink.tip": "La feuille paraît vierge, sauf lue avec la lampe UV en main",
     "screen.craftmaster.note.players": "Joueurs",
     "screen.craftmaster.note.players_hint": "Pseudos, séparés par des virgules",

@@ -13,6 +13,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -76,11 +77,15 @@ public final class Notes {
         return Permissions.isAdmin(p) || n.readableBy(p.getGameProfile().name(), inCast(p));
     }
 
-    /** French words for where it was found ("sous le tapis"), for messages and the organisers' log. */
-    static String where(String method) {
+    /** Where it was found ("sous le tapis"), translated by each reader's game. */
+    static Component where(String method) {
         Note.Method m = Note.Method.of(method);
         String key = m == null ? method : m.id();
-        return Component.translatable("note.craftmaster.where." + key).getString();
+        return Component.translatable("note.craftmaster.where." + key);
+    }
+
+    static Component piece(int piece, int pieces) {
+        return Component.translatable("paper.craftmaster.piece", piece + 1, pieces);
     }
 
     /** Pieces the player has: found, or carried in the inventory (a piece given by a team mate). */
@@ -94,7 +99,7 @@ public final class Notes {
     }
 
     /** What the player sees on the paper: the whole text, its found pieces, or a blank sheet (ink, no lamp). */
-    static TaskNetwork.Paper paper(ServerPlayer p, Note n, String header, int flags) {
+    static TaskNetwork.Paper paper(ServerPlayer p, Note n, Component header, int flags) {
         boolean admin = Permissions.isAdmin(p);
         boolean lit = UvLampItem.holds(p);
         String text = n.text;
@@ -141,8 +146,8 @@ public final class Notes {
                 if (level.getBlockState(pos).getBlock() instanceof PinnedNoteBlock) level.removeBlock(pos, false);
             }
         }
-        String header = Component.translatable("paper.craftmaster.found", where(method)).getString();
-        if (n.pieces > 1) header += " · " + Component.translatable("paper.craftmaster.piece", piece + 1, n.pieces).getString();
+        MutableComponent header = Component.translatable("paper.craftmaster.found", where(method));
+        if (n.pieces > 1) header.append(" · ").append(piece(piece, n.pieces));
         Tasks.send(p, paper(p, n, header, TaskNetwork.FOUND));
     }
 
@@ -158,12 +163,13 @@ public final class Notes {
     }
 
     private static void tellAdmins(MinecraftServer server, ServerPlayer finder, Note n, int piece, String method) {
-        String what = n.pieces > 1 ? " (" + Component.translatable("paper.craftmaster.piece", piece + 1, n.pieces).getString() + ")" : "";
+        MutableComponent what = Component.literal(n.title);
+        if (n.pieces > 1) what.append(" (").append(piece(piece, n.pieces)).append(")");
         Component msg = Component.literal("📜 ").withStyle(ChatFormatting.GOLD)
-                .append(Component.translatable("message.craftmaster.note_found_admin", finder.getGameProfile().name(), n.title + what, where(method))
+                .append(Component.translatable("message.craftmaster.note_found_admin", finder.getGameProfile().name(), what, where(method))
                         .withStyle(ChatFormatting.YELLOW));
         for (ServerPlayer p : server.getPlayerList().getPlayers()) if (Permissions.isAdmin(p) && p != finder) p.sendSystemMessage(msg);
-        CraftMaster.LOG.info("[Notes] {} a trouvé « {} »{} ({})", finder.getGameProfile().name(), n.title, what, method);
+        CraftMaster.LOG.info("[Notes] {} a trouvé « {} » (morceau {}, {})", finder.getGameProfile().name(), n.title, piece + 1, method);
     }
 
     /** First hiding place of a note there that this player can find now with this gesture, or null. */
@@ -181,9 +187,12 @@ public final class Notes {
     static InteractionResult onUseBlock(Player player, Level level, InteractionHand hand, BlockHitResult hit) {
         if (hand != InteractionHand.MAIN_HAND || !(player instanceof ServerPlayer p) || !(level instanceof ServerLevel server) || store() == null)
             return InteractionResult.PASS;
-        // The organiser holding a note hides / inspects instead of finding
-        if (NoteItem.isTool(p, p.getMainHandItem())) return InteractionResult.PASS;
         BlockPos pos = hit.getBlockPos();
+        // The organiser holding a note hides it, before the block reacts (a chest would open, a lectern take it)
+        if (NoteItem.isTool(p, p.getMainHandItem())) {
+            hide(p, NoteItem.ref(p.getMainHandItem()), pos, hit.getDirection(), p.isShiftKeyDown());
+            return InteractionResult.SUCCESS_SERVER;
+        }
         Map.Entry<Note, Note.Spot> e = findable(p, store().spotsAt(Busts.worldId(level), pos.getX(), pos.getY(), pos.getZ()));
         if (e == null) return InteractionResult.PASS;
         found(p, e.getKey(), e.getValue(), e.getValue().method().id(), server, pos.getX() + 0.5, pos.getY() + 0.6, pos.getZ() + 0.5);
@@ -248,7 +257,7 @@ public final class Notes {
         if (n == null || !mayRead(player, n)) return false;
         boolean first = store().recordFind(n, player.getGameProfile().name(), 0, "prop", System.currentTimeMillis());
         if (first) tellAdmins(player.level().getServer(), player, n, 0, "prop");
-        Tasks.send(player, paper(player, n, "", TaskNetwork.FOUND));
+        Tasks.send(player, paper(player, n, Component.empty(), TaskNetwork.FOUND));
         return true;
     }
 
@@ -265,8 +274,7 @@ public final class Notes {
         }
         if (store().recordFind(n, p.getGameProfile().name(), r.piece(), "given", System.currentTimeMillis()))
             tellAdmins(p.level().getServer(), p, n, r.piece(), "given");
-        String header = n.pieces > 1 ? Component.translatable("paper.craftmaster.piece", r.piece() + 1, n.pieces).getString() : "";
-        Tasks.send(p, paper(p, n, header, 0));
+        Tasks.send(p, paper(p, n, n.pieces > 1 ? piece(r.piece(), n.pieces) : Component.empty(), 0));
     }
 
     /** Uncorking a message in a bottle. */
@@ -361,9 +369,10 @@ public final class Notes {
 
     private static void hidden(ServerPlayer p, Note n, Note.Spot spot) {
         p.level().playSound(null, p.blockPosition(), SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 0.8f, 0.8f);
-        String piece = n.pieces > 1 ? " · " + Component.translatable("paper.craftmaster.piece", spot.piece + 1, n.pieces).getString() : "";
-        p.sendSystemMessage(Component.translatable("message.craftmaster.note_hidden", n.title, where(spot.method), spot.x + " " + spot.y + " " + spot.z)
-                .withStyle(ChatFormatting.GREEN).append(Component.literal(piece).withStyle(ChatFormatting.YELLOW)));
+        MutableComponent line = Component.translatable("message.craftmaster.note_hidden", n.title, where(spot.method), spot.x + " " + spot.y + " " + spot.z)
+                .withStyle(ChatFormatting.GREEN);
+        if (n.pieces > 1) line.append(Component.literal(" · ").append(piece(spot.piece, n.pieces)).withStyle(ChatFormatting.YELLOW));
+        p.sendSystemMessage(line);
         p.sendSystemMessage(Component.translatable("message.craftmaster.note_how." + spot.method().id()).withStyle(ChatFormatting.GRAY));
     }
 
@@ -379,9 +388,9 @@ public final class Notes {
     static ItemStack taken(Note n, int piece) {
         ItemStack s = new ItemStack(TaskContent.NOTE);
         s.set(TaskComponents.NOTE, new TaskComponents.NoteRef(n.id, piece, true));
-        String name = n.title.isBlank() ? Component.translatable("item.craftmaster.note").getString() : n.title;
-        if (n.pieces > 1) name += " (" + (piece + 1) + "/" + n.pieces + ")";
-        s.set(DataComponents.ITEM_NAME, Component.literal(name));
+        MutableComponent name = n.title.isBlank() ? Component.translatable("item.craftmaster.note") : Component.literal(n.title);
+        if (n.pieces > 1) name.append(" (" + (piece + 1) + "/" + n.pieces + ")");
+        s.set(DataComponents.ITEM_NAME, name);
         return s;
     }
 
@@ -394,17 +403,17 @@ public final class Notes {
     // ---------------------------------------------------------------- editor (organisers)
 
     public static TaskNetwork.NoteView view(Note n) {
-        List<String> spots = new ArrayList<>();
+        List<Component> spots = new ArrayList<>();
         for (Note.Spot s : n.spots) {
-            String line = where(s.method) + " — " + s.world.replace("minecraft:", "") + " " + s.x + " " + s.y + " " + s.z;
-            if (n.pieces > 1) line += " · " + Component.translatable("paper.craftmaster.piece", s.piece + 1, n.pieces).getString();
-            if (s.takenBy != null) line += " · " + Component.translatable("note.craftmaster.taken_by", s.takenBy).getString();
+            MutableComponent line = where(s.method).copy().append(" — " + s.world.replace("minecraft:", "") + " " + s.x + " " + s.y + " " + s.z);
+            if (n.pieces > 1) line.append(" · ").append(piece(s.piece, n.pieces));
+            if (s.takenBy != null) line.append(" · ").append(Component.translatable("note.craftmaster.taken_by", s.takenBy));
             spots.add(line);
         }
-        List<String> finds = new ArrayList<>();
+        List<Component> finds = new ArrayList<>();
         for (Note.Find f : n.finds) {
-            String line = f.player() + " — " + TIME.format(Instant.ofEpochMilli(f.at())) + " — " + where(f.method());
-            if (n.pieces > 1) line += " · " + Component.translatable("paper.craftmaster.piece", f.piece() + 1, n.pieces).getString();
+            MutableComponent line = Component.literal(f.player() + " — " + TIME.format(Instant.ofEpochMilli(f.at())) + " — ").append(where(f.method()));
+            if (n.pieces > 1) line.append(" · ").append(piece(f.piece(), n.pieces));
             finds.add(line);
         }
         return new TaskNetwork.NoteView(n.id, n.title, n.text, n.look, n.readers, List.copyOf(n.players), n.once, n.ink, n.pieces, spots, finds);
@@ -425,7 +434,7 @@ public final class Notes {
     static void save(ServerPlayer p, TaskNetwork.NoteView v) {
         if (!Permissions.isAdmin(p)) return;
         boolean created = v.id().isEmpty() || store().note(v.id()) == null;
-        String title = v.title().strip().isEmpty() ? Component.translatable("item.craftmaster.note").getString() : v.title().strip();
+        String title = v.title().strip().isEmpty() ? "Note" : v.title().strip();
         Note n = created ? store().createNote(title, System.currentTimeMillis()) : store().note(v.id());
         n.title = title.length() > 64 ? title.substring(0, 64) : title;
         n.text = Task.cleanText(v.text());

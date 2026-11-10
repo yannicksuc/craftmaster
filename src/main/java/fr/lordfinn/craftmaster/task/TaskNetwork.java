@@ -4,6 +4,8 @@ import fr.lordfinn.craftmaster.CraftMaster;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
@@ -35,6 +37,18 @@ public final class TaskNetwork {
     static void writeList(FriendlyByteBuf buf, List<String> list) {
         buf.writeVarInt(list.size());
         for (String s : list) buf.writeUtf(s, MAX_TEXT);
+    }
+
+    static void writeComponents(RegistryFriendlyByteBuf buf, List<Component> list) {
+        buf.writeVarInt(list.size());
+        for (Component c : list) ComponentSerialization.TRUSTED_STREAM_CODEC.encode(buf, c);
+    }
+
+    static List<Component> readComponents(RegistryFriendlyByteBuf buf) {
+        int n = Math.min(buf.readVarInt(), 512);
+        List<Component> out = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) out.add(ComponentSerialization.TRUSTED_STREAM_CODEC.decode(buf));
+        return out;
     }
 
     static List<String> readList(FriendlyByteBuf buf) {
@@ -97,15 +111,15 @@ public final class TaskNetwork {
      * each piece, empty for the ones the reader has not found ({@code text} is then empty unless all are found).
      * {@code look}: paper look (Note.LOOKS). {@code mancheId} / {@code season}: the task, for the admin buttons.
      */
-    public record Paper(String kind, String header, String title, String text, List<String> rules, int seconds,
+    public record Paper(String kind, Component header, String title, String text, List<String> rules, int seconds,
                         String wax, String look, int flags, List<String> pieces, String mancheId, int season, String from)
             implements CustomPacketPayload {
         public static final Type<Paper> TYPE = new Type<>(CraftMaster.id("task_paper"));
         public static final StreamCodec<RegistryFriendlyByteBuf, Paper> CODEC = CustomPacketPayload.codec(Paper::write, Paper::read);
 
-        private void write(FriendlyByteBuf buf) {
+        private void write(RegistryFriendlyByteBuf buf) {
             buf.writeUtf(kind);
-            buf.writeUtf(header);
+            ComponentSerialization.TRUSTED_STREAM_CODEC.encode(buf, header);
             buf.writeUtf(title);
             buf.writeUtf(text, MAX_TEXT);
             writeList(buf, rules);
@@ -119,8 +133,8 @@ public final class TaskNetwork {
             buf.writeUtf(from);
         }
 
-        private static Paper read(FriendlyByteBuf buf) {
-            return new Paper(buf.readUtf(), buf.readUtf(), buf.readUtf(), buf.readUtf(MAX_TEXT), readList(buf), buf.readVarInt(),
+        private static Paper read(RegistryFriendlyByteBuf buf) {
+            return new Paper(buf.readUtf(), ComponentSerialization.TRUSTED_STREAM_CODEC.decode(buf), buf.readUtf(), buf.readUtf(MAX_TEXT), readList(buf), buf.readVarInt(),
                     buf.readUtf(), buf.readUtf(), buf.readVarInt(), readList(buf), buf.readUtf(), buf.readVarInt(), buf.readUtf());
         }
 
@@ -140,6 +154,15 @@ public final class TaskNetwork {
 
         @Override
         public Type<ShowCard> type() { return TYPE; }
+    }
+
+    /** Server → client: close the card being read (and the task screens), e.g. when the round starts. */
+    public record CloseCard() implements CustomPacketPayload {
+        public static final Type<CloseCard> TYPE = new Type<>(CraftMaster.id("task_close_card"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, CloseCard> CODEC = StreamCodec.unit(new CloseCard());
+
+        @Override
+        public Type<CloseCard> type() { return TYPE; }
     }
 
     /**
@@ -183,12 +206,12 @@ public final class TaskNetwork {
     }
 
     /**
-     * A note in its editor: settings, then (server → client only) its hiding places and finds as French lines.
+     * A note in its editor: settings, then (server → client only) its hiding places and finds, translated by the client.
      * {@code id} empty = a new note.
      */
     public record NoteView(String id, String title, String text, String look, String readers, List<String> players,
-                           boolean once, boolean ink, int pieces, List<String> spots, List<String> finds) {
-        void write(FriendlyByteBuf buf) {
+                           boolean once, boolean ink, int pieces, List<Component> spots, List<Component> finds) {
+        void write(RegistryFriendlyByteBuf buf) {
             buf.writeUtf(id);
             buf.writeUtf(title);
             buf.writeUtf(text, MAX_TEXT);
@@ -198,13 +221,13 @@ public final class TaskNetwork {
             buf.writeBoolean(once);
             buf.writeBoolean(ink);
             buf.writeVarInt(pieces);
-            writeList(buf, spots);
-            writeList(buf, finds);
+            writeComponents(buf, spots);
+            writeComponents(buf, finds);
         }
 
-        static NoteView read(FriendlyByteBuf buf) {
+        static NoteView read(RegistryFriendlyByteBuf buf) {
             return new NoteView(buf.readUtf(), buf.readUtf(), buf.readUtf(MAX_TEXT), buf.readUtf(), buf.readUtf(), readList(buf),
-                    buf.readBoolean(), buf.readBoolean(), buf.readVarInt(), readList(buf), readList(buf));
+                    buf.readBoolean(), buf.readBoolean(), buf.readVarInt(), readComponents(buf), readComponents(buf));
         }
     }
 
@@ -285,6 +308,7 @@ public final class TaskNetwork {
         PayloadTypeRegistry.clientboundPlay().register(ShowCard.TYPE, ShowCard.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(OpenEditor.TYPE, OpenEditor.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(OpenNote.TYPE, OpenNote.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(CloseCard.TYPE, CloseCard.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(RequestTask.TYPE, RequestTask.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(RunActions.TYPE, RunActions.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(SaveNote.TYPE, SaveNote.CODEC);

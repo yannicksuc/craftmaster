@@ -114,16 +114,17 @@ public class TaskEditorScreen extends Screen {
         title.setResponder(v -> changed(dd -> dd.title = v));
         fy += 18 + 14;
         int bottom = py + ph - 32;
-        int rulesH = 40, optionsH = 22;
-        int textH = Math.max(40, bottom - fy - rulesH - 14 - optionsH - 6);
+        int rulesH = ph < 260 ? 28 : 40, optionsH = 40;
+        int textH = Math.max(30, bottom - fy - rulesH - 22 - optionsH - 6);
         text = addRenderableWidget(MultiLineEditBox.builder().setX(rx).setY(fy)
                 .setPlaceholder(Component.translatable("screen.craftmaster.task.text_hint").withStyle(ChatFormatting.DARK_GRAY))
                 .build(font, rw, textH, Component.translatable("screen.craftmaster.task.text")));
         text.setCharacterLimit(4000);
         text.setValue(d.text);
         text.setValueListener(v -> changed(dd -> dd.text = v));
-        fy += textH + 14;
-        rules = addRenderableWidget(MultiLineEditBox.builder().setX(rx).setY(fy)
+        // Room for the character counter drawn under the text
+        fy += textH + 22;
+        rules = addRenderableWidget(MultiLineEditBox.builder().setX(rx).setY(fy).setShowDecorations(false)
                 .setPlaceholder(Component.translatable("screen.craftmaster.task.rules_hint").withStyle(ChatFormatting.DARK_GRAY))
                 .build(font, rw, rulesH, Component.translatable("screen.craftmaster.task.rules")));
         rules.setCharacterLimit(1500);
@@ -139,13 +140,14 @@ public class TaskEditorScreen extends Screen {
         seconds.setHint(Component.literal(timer > 0 ? String.valueOf(timer) : "—").withStyle(ChatFormatting.DARK_GRAY));
         seconds.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.task.seconds.tip")));
         seconds.setResponder(v -> changed(dd -> dd.seconds = v));
-        swatchX = rx + 96;
-        swatchY = fy + 3;
-        int cycleX = swatchX + TaskStyle.swatchesWidth() + 8;
+        // Second row: the wax colours (the reveal switch shares the first row with the duration)
+        swatchX = rx + 44;
+        swatchY = fy + 26;
+        int cycleX = rx + 92;
         onStart = addRenderableWidget(CycleButton.booleanBuilder(Component.translatable("screen.craftmaster.task.on_start"),
                         Component.translatable("screen.craftmaster.task.on_envelope"), d.revealOnStart).displayOnlyValue()
                 .withTooltip(v -> Tooltip.create(Component.translatable(v ? "screen.craftmaster.task.on_start.tip" : "screen.craftmaster.task.on_envelope.tip")))
-                .create(cycleX, fy, Math.max(60, px + pw - 10 - cycleX), 18, Component.empty(), (b, v) -> changed(dd -> dd.revealOnStart = v)));
+                .create(cycleX, fy, Math.max(40, rx + rw - cycleX), 18, Component.empty(), (b, v) -> changed(dd -> dd.revealOnStart = v)));
         loading = false;
 
         // Buttons
@@ -154,9 +156,9 @@ public class TaskEditorScreen extends Screen {
         buttons.add(Button.builder(Component.translatable("screen.craftmaster.task.save"), b -> save(selected)).build());
         buttons.add(Button.builder(Component.translatable("screen.craftmaster.task.preview"), b -> preview())
                 .tooltip(Tooltip.create(Component.translatable("screen.craftmaster.task.preview.tip"))).build());
-        buttons.add(Button.builder(Component.translatable("screen.craftmaster.task.reveal"), b -> act("task.reveal"))
+        buttons.add(Button.builder(Component.translatable("screen.craftmaster.task.reveal_short"), b -> act("task.reveal"))
                 .tooltip(Tooltip.create(Component.translatable("screen.craftmaster.task.reveal.tip"))).build());
-        buttons.add(Button.builder(Component.translatable("screen.craftmaster.task.show"), b -> act("task.show"))
+        buttons.add(Button.builder(Component.translatable("screen.craftmaster.task.show_short"), b -> act("task.show"))
                 .tooltip(Tooltip.create(Component.translatable("screen.craftmaster.task.show.tip"))).build());
         buttons.add(Button.builder(Component.translatable("screen.craftmaster.task.envelopes"), b -> act("envelope.give"))
                 .tooltip(Tooltip.create(Component.translatable("screen.craftmaster.task.envelopes.tip"))).build());
@@ -241,7 +243,7 @@ public class TaskEditorScreen extends Screen {
         Draft d = draft(selected);
         TaskNetwork.Round r = round(selected);
         int s = parseSeconds(d.seconds);
-        String header = Component.translatable("paper.craftmaster.round", r.card().number(), r.card().mancheName()).getString();
+        Component header = Component.translatable("paper.craftmaster.round", r.card().number(), r.card().mancheName());
         TaskNetwork.Paper p = new TaskNetwork.Paper("task", header, d.title.strip(), Task.cleanText(d.text), Task.parseRules(d.rules),
                 s > 0 ? s : r.card().seconds(), d.wax.id(), "paper", TaskNetwork.ENVELOPE, List.of(), selected, r.card().season(), "");
         minecraft.gui.setScreen(new PaperScreen(p, this));
@@ -296,6 +298,7 @@ public class TaskEditorScreen extends Screen {
                 TaskStyle.label(g, font, Component.translatable("screen.craftmaster.task.text"), rx, text.getY() - 11);
                 TaskStyle.label(g, font, Component.translatable("screen.craftmaster.task.rules"), rx, rules.getY() - 11);
                 TaskStyle.label(g, font, Component.translatable("screen.craftmaster.task.seconds_label"), rx, seconds.getY() + 5);
+                TaskStyle.label(g, font, Component.translatable("screen.craftmaster.seal.wax"), rx, swatchY + 2);
                 TaskStyle.swatches(g, swatchX, swatchY, d.wax, mouseX, mouseY);
                 WaxColor hover = TaskStyle.swatchAt(swatchX, swatchY, mouseX, mouseY);
                 if (hover != null) g.setTooltipForNextFrame(font, TaskStyle.waxName(hover), mouseX, mouseY);

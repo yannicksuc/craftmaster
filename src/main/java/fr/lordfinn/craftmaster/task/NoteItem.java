@@ -59,7 +59,7 @@ public class NoteItem extends Item {
             Notes.read(sp, r);
             return InteractionResult.SUCCESS_SERVER;
         }
-        Notes.hide(sp, r, ctx.getClickedPos(), ctx.getClickedFace(), sp.isShiftKeyDown());
+        // Hiding is done by Notes.onUseBlock (before the block itself reacts)
         return InteractionResult.SUCCESS_SERVER;
     }
 

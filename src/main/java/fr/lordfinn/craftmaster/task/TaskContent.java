@@ -16,7 +16,7 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.List;
 import java.util.function.Function;
 
 /** Blocks, items and data components of the tasks, envelopes and hidden notes (chantier D). */
@@ -30,8 +30,7 @@ public final class TaskContent {
     public static PinnedNoteBlock PINNED_NOTE;
     public static BlockEntityType<EnvelopeBlockEntity> ENVELOPE_BLOCK_ENTITY;
 
-    /** @param tab adds an item to the CraftMaster creative tab */
-    public static void register(Consumer<ItemStack> tab) {
+    public static void register() {
         TaskComponents.register();
         ENVELOPE_BLOCK = block("envelope_block", EnvelopeBlock::new, BlockBehaviour.Properties.of().mapColor(MapColor.SAND)
                 .strength(0.1f).sound(SoundType.WOOL).noCollision().noOcclusion().pushReaction(PushReaction.POPPED));
@@ -45,13 +44,14 @@ public final class TaskContent {
         NOTE = item("note", NoteItem::new, new Item.Properties().stacksTo(1));
         NOTE_BOTTLE = item("note_bottle", NoteBottleItem::new, new Item.Properties().stacksTo(1));
         UV_LAMP = item("uv_lamp", UvLampItem::new, new Item.Properties().stacksTo(1));
+    }
 
-        // A sealed free-text envelope and a red seal in the tab; notes come from /craftMasterNote (they need a text)
-        tab.accept(TaskComponents.setEnvelope(new ItemStack(ENVELOPE), TaskComponents.Envelope.BLANK));
+    /** Items of the CraftMaster creative tab (built when the tab is shown: components are bound by then). */
+    public static List<ItemStack> tabItems() {
+        // A blank free-text envelope and a red seal; notes come from /craftMasterNote (they need a text)
         ItemStack seal = new ItemStack(WAX_SEAL);
         TaskComponents.setSealColor(seal, WaxColor.RED);
-        tab.accept(seal);
-        tab.accept(new ItemStack(UV_LAMP));
+        return List.of(TaskComponents.setEnvelope(new ItemStack(ENVELOPE), TaskComponents.Envelope.BLANK), seal, new ItemStack(UV_LAMP));
     }
 
     private static <B extends Block> B block(String name, Function<BlockBehaviour.Properties, B> factory, BlockBehaviour.Properties props) {

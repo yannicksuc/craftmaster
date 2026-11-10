@@ -223,7 +223,7 @@ public final class Tasks {
 
     /** Opens a free card (title + text) on the player's screen: contract for the task props of chantier H. */
     public static void openPaper(ServerPlayer player, String title, String text) {
-        send(player, new TaskNetwork.Paper("text", "", title == null ? "" : title, Task.cleanText(text), List.of(), 0, "red", "paper",
+        send(player, new TaskNetwork.Paper("text", Component.empty(), title == null ? "" : title, Task.cleanText(text), List.of(), 0, "red", "paper",
                 0, List.of(), "", 0, ""));
     }
 
@@ -233,7 +233,8 @@ public final class Tasks {
             return;
         }
         // A vanilla game: the card in the chat
-        player.sendSystemMessage(Component.literal("— " + (paper.title().isEmpty() ? paper.header() : paper.title()) + " —").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        player.sendSystemMessage(Component.literal("— ").append(paper.title().isEmpty() ? paper.header() : Component.literal(paper.title()))
+                .append(" —").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
         if (!paper.text().isEmpty()) player.sendSystemMessage(Component.literal(paper.text()).withStyle(ChatFormatting.WHITE));
         for (String r : paper.rules()) player.sendSystemMessage(Component.literal(" • " + r).withStyle(ChatFormatting.GRAY));
     }
@@ -241,7 +242,7 @@ public final class Tasks {
     /** The paper of a round's task; {@code flags} adds ENVELOPE, CAN_REVEAL, CAN_EDIT... */
     static TaskNetwork.Paper paper(Located l, boolean full, int flags) {
         TaskNetwork.Card c = card(l, full);
-        String header = Component.translatable("paper.craftmaster.round", l.number(), l.manche().name).getString();
+        Component header = Component.translatable("paper.craftmaster.round", l.number(), l.manche().name);
         boolean secret = !full && !c.revealed();
         return new TaskNetwork.Paper("task", header, c.title(), c.text(), c.rules(), c.seconds(), c.wax(), "paper",
                 flags | (secret ? TaskNetwork.SECRET : 0), List.of(), l.manche().id, l.season().id, "");
@@ -285,7 +286,7 @@ public final class Tasks {
             }
             paper = paper(l, true, flags);
         } else {
-            String header = env.to().isBlank() ? "" : Component.translatable("paper.craftmaster.to", env.to()).getString();
+            Component header = env.to().isBlank() ? Component.empty() : Component.translatable("paper.craftmaster.to", env.to());
             paper = new TaskNetwork.Paper("text", header, env.title(), env.text(), List.of(), 0, env.wax(), "paper", flags, List.of(), "", 0, "");
         }
         // The card carries the envelope's own wax

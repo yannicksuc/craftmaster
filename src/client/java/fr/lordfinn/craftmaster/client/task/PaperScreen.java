@@ -226,7 +226,7 @@ public class PaperScreen extends Screen {
             int ty = y + 4 + (int) ((track - thumb) * (scroll / maxScroll()));
             g.fill(x + w - 5, y + 4, x + w - 3, y + 4 + track, 0x30000000);
             g.fill(x + w - 5, ty, x + w - 3, ty + thumb, 0xA0B08A3A);
-            if (scroll < maxScroll() - 2) g.centeredText(font, Component.literal("▼"), x + w / 2, y + h - 10, 0x90B08A3A);
+            if (scroll < maxScroll() - 2) g.text(font, Component.literal("▼"), x + w - 14, y + h - 11, 0xC0B08A3A, false);
         }
     }
 
@@ -255,7 +255,7 @@ public class PaperScreen extends Screen {
         g.fill((width - tw) / 2, ly - 5, (width + tw) / 2, ly + 13, 0xE0581018);
         g.outline((width - tw) / 2, ly - 5, tw, 18, 0xFFFFC23D);
         g.centeredText(font, title, width / 2, ly, 0xFFFFE6A0);
-        if (!paper.header().isEmpty()) g.centeredText(font, Component.literal(paper.header()), width / 2, ey - 16, 0xFFFFE6A0);
+        g.centeredText(font, paper.header(), width / 2, ey - 16, 0xFFFFE6A0);
         g.centeredText(font, Component.translatable("paper.craftmaster.secret_hint"), width / 2, ly + 20, 0xFFBFB6A0);
     }
 
@@ -263,7 +263,7 @@ public class PaperScreen extends Screen {
     private void drawOpening(GuiGraphicsExtractor g, float t) {
         String wax = paper.wax();
         int ew = envW(), eh = ew * 80 / 128;
-        int ex = (width - ew) / 2, ey0 = (height - eh) / 2 + eh / 4;
+        int ex = (width - ew) / 2, ey0 = (height - eh) / 2 + eh / 6;
         // 1. Arrival: from below, with a slight tilt, easing out
         float arrive = ease(Mth.clamp(t / T_ARRIVE, 0, 1));
         int ey = ey0 + (int) ((1 - arrive) * (height - ey0 + 10));
@@ -299,7 +299,7 @@ public class PaperScreen extends Screen {
         }
         g.pose().popMatrix();
         // Crumbs of wax flying off when it cracks
-        drawCrumbs(g, t, ex + ew / 2, ey + (int) (eh * 0.5f), wax);
+        drawCrumbs(g, t, ex + ew / 2, ey + (int) (eh * 48 / 80 * 0.86f), wax);
         if (unfold > 0) {
             // From the folded card above the envelope to the reading card in the middle
             int sx = ex + (ew - cw0) / 2, sy = ey + cy, sw = cw0, sh = ch0;
@@ -372,12 +372,16 @@ public class PaperScreen extends Screen {
         }
     }
 
-    /** The flap folded down ({@code cos} 1), standing up showing its lining ({@code cos} -1), or in between. */
+    /**
+     * The flap folded down ({@code cos} 1), standing up showing its lining ({@code cos} -1), or in between. The
+     * GUI culls mirrored quads, so the standing flap uses its own upside-down texture instead of a negative scale.
+     */
     private void drawFlap(GuiGraphicsExtractor g, int x, int y, int w, int h, float cos, int alpha) {
         int fh = h * 48 / 80;
+        float k = Math.max(0.02f, Math.abs(cos));
         g.pose().pushMatrix();
-        g.pose().translate(x, y);
-        g.pose().scale(1, Math.abs(cos) < 0.02f ? 0.02f * Math.signum(cos == 0 ? 1 : cos) : cos);
+        g.pose().translate(x, cos >= 0 ? y : y - fh * k);
+        g.pose().scale(1, k);
         g.blit(RenderPipelines.GUI_TEXTURED, cos >= 0 ? FLAP : FLAP_IN, 0, 0, 0, 0, w, fh, 128, 48, 128, 48, alpha << 24 | 0xFFFFFF);
         g.pose().popMatrix();
     }
@@ -393,7 +397,7 @@ public class PaperScreen extends Screen {
         int rgb = WaxColor.of(wax).rgb;
         int a = (int) (255 * Mth.clamp(1 - f / 20f, 0, 1));
         for (Crumb c : crumbs) {
-            int x = cx + (int) (c.vx() * f * 2), y = cy - envW() / 6 + (int) (c.vy() * f * 2 + 0.35f * f * f);
+            int x = cx + (int) (c.vx() * f * 2), y = cy + (int) (c.vy() * f * 2 + 0.35f * f * f);
             g.fill(x, y, x + c.size() + 1, y + c.size() + 1, a << 24 | rgb);
         }
     }

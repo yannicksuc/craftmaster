@@ -82,8 +82,7 @@ public final class ModContent {
                         .sized(1f, 1f).noLootTable().clientTrackingRange(10).updateInterval(2).build(portraitKey));
 
         // Tasks, envelopes, hidden notes (chantier D)
-        List<ItemStack> taskItems = new ArrayList<>();
-        fr.lordfinn.craftmaster.task.TaskContent.register(taskItems::add);
+        fr.lordfinn.craftmaster.task.TaskContent.register();
 
         ResourceKey<CreativeModeTab> tabKey = ResourceKey.create(Registries.CREATIVE_MODE_TAB, CraftMaster.id("craftmaster"));
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, tabKey, FabricCreativeModeTab.builder()
@@ -91,7 +90,7 @@ public final class ModContent {
                 .icon(() -> new ItemStack(CURTAINS.get(DyeColor.RED)))
                 .displayItems((params, out) -> {
                     TAB_ITEMS.forEach(out::accept);
-                    taskItems.forEach(out::accept);
+                    fr.lordfinn.craftmaster.task.TaskContent.tabItems().forEach(out::accept);
                 })
                 .build());
     }

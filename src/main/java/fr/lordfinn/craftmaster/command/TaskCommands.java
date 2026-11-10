@@ -153,6 +153,10 @@ public final class TaskCommands {
                         .then(argument("players", StringArgumentType.greedyString()).suggests(CAST_OR_ALL)
                                 .executes(c -> run(c, action("envelope.give", "manche", str(c, "manche"),
                                         "players", Arrays.stream(str(c, "players").split("[,\\s]+")).filter(w -> !w.isBlank()).toList()))))))
+                .then(literal("close").requires(ADMIN)
+                        .executes(c -> close(c, c.getSource().getServer().getPlayerList().getPlayers()))
+                        .then(argument("players", net.minecraft.commands.arguments.EntityArgument.players())
+                                .executes(c -> close(c, net.minecraft.commands.arguments.EntityArgument.getPlayers(c, "players")))))
                 .then(literal("resetReveals").requires(ADMIN).executes(TaskCommands::resetReveals))
                 .then(literal("tools").requires(ADMIN).executes(TaskCommands::tools));
     }
@@ -218,6 +222,18 @@ public final class TaskCommands {
         return 1;
     }
 
+    /** Closes the cards being read (everybody looks up). */
+    private static int close(CommandContext<CommandSourceStack> c, java.util.Collection<ServerPlayer> players) {
+        int n = 0;
+        for (ServerPlayer p : players) {
+            if (!net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(p, fr.lordfinn.craftmaster.task.TaskNetwork.CloseCard.TYPE)) continue;
+            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new fr.lordfinn.craftmaster.task.TaskNetwork.CloseCard());
+            n++;
+        }
+        CraftMasterCommands.ok(c, "Cartes fermées chez " + n + " joueur(s).");
+        return n;
+    }
+
     private static int resetReveals(CommandContext<CommandSourceStack> c) {
         Season s = CraftMaster.data().activeSeason();
         if (s == null) {
@@ -253,6 +269,14 @@ public final class TaskCommands {
                 .then(literal("info").then(argument("note", word()).suggests(NOTES).executes(TaskCommands::noteInfo)))
                 .then(literal("text").then(argument("note", word()).suggests(NOTES)
                         .then(argument("text", StringArgumentType.greedyString()).executes(TaskCommands::noteText))))
+                .then(literal("set").then(argument("note", word()).suggests(NOTES)
+                        .then(literal("look").then(argument("value", word()).suggests(list(c -> Note.LOOKS)).executes(c -> noteSet(c, "look"))))
+                        .then(literal("readers").then(argument("value", word()).suggests(list(c -> Note.READERS)).executes(c -> noteSet(c, "readers"))))
+                        .then(literal("players").then(argument("value", StringArgumentType.greedyString()).executes(c -> noteSet(c, "players"))))
+                        .then(literal("title").then(argument("value", StringArgumentType.greedyString()).executes(c -> noteSet(c, "title"))))
+                        .then(literal("once").then(argument("value", word()).suggests(list(c -> List.of("true", "false"))).executes(c -> noteSet(c, "once"))))
+                        .then(literal("ink").then(argument("value", word()).suggests(list(c -> List.of("true", "false"))).executes(c -> noteSet(c, "ink"))))
+                        .then(literal("pieces").then(argument("value", word()).suggests(list(c -> List.of("1", "2", "3", "4", "5", "6"))).executes(c -> noteSet(c, "pieces"))))))
                 .then(noteOrder("give")).then(noteOrder("bottle")).then(noteOrder("reset")).then(noteOrder("unhide")).then(noteOrder("delete"));
     }
 
@@ -303,6 +327,46 @@ public final class TaskCommands {
         return 1;
     }
 
+    /** One setting of a note, as in its editor. */
+    private static int noteSet(CommandContext<CommandSourceStack> c, String what) {
+        Note n = Tasks.store().note(str(c, "note"));
+        if (n == null) {
+            fail(c, "Note « " + str(c, "note") + " » inconnue.");
+            return 0;
+        }
+        String v = str(c, "value").strip();
+        boolean yes = v.equalsIgnoreCase("true") || v.equalsIgnoreCase("oui") || v.equals("1");
+        switch (what) {
+            case "look" -> {
+                if (!Note.LOOKS.contains(v)) { fail(c, "Aspect : " + String.join(", ", Note.LOOKS) + "."); return 0; }
+                n.look = v;
+            }
+            case "readers" -> {
+                if (!Note.READERS.contains(v)) { fail(c, "Lecteurs : all (tous), cast (candidats) ou players (liste)."); return 0; }
+                n.readers = v;
+            }
+            case "players" -> {
+                n.players = new ArrayList<>(Arrays.stream(v.split("[,\\s]+")).filter(x -> !x.isBlank()).toList());
+                n.readers = Note.PLAYERS;
+            }
+            case "title" -> n.title = v.length() > 64 ? v.substring(0, 64) : v;
+            case "once" -> n.once = yes;
+            case "ink" -> n.ink = yes;
+            case "pieces" -> {
+                try {
+                    n.pieces = Math.max(1, Math.min(Note.MAX_PIECES, Integer.parseInt(v)));
+                } catch (NumberFormatException e) {
+                    fail(c, "Morceaux : de 1 à " + Note.MAX_PIECES + ".");
+                    return 0;
+                }
+            }
+            default -> { return 0; }
+        }
+        Tasks.store().changed();
+        CraftMasterCommands.ok(c, "Note « " + n.title + " » : " + what + " = " + v + ".");
+        return 1;
+    }
+
     private static int listNotes(CommandContext<CommandSourceStack> c) {
         Map<String, Note> notes = Tasks.store().notes();
         info(c, Component.literal("— Notes cachées —").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
@@ -330,10 +394,10 @@ public final class TaskCommands {
         info(c, n.text.isEmpty() ? "(pas de texte)" : n.text.length() > 120 ? n.text.substring(0, 117) + "…" : n.text);
         info(c, Component.literal("Cachettes :").withStyle(ChatFormatting.YELLOW));
         if (v.spots().isEmpty()) info(c, "  aucune (prends la note en main et clic droit sur un bloc)");
-        v.spots().forEach(s -> info(c, "  • " + s));
+        v.spots().forEach(s -> info(c, Component.literal("  • ").append(s).withStyle(ChatFormatting.GRAY)));
         info(c, Component.literal("Trouvée par :").withStyle(ChatFormatting.YELLOW));
         if (v.finds().isEmpty()) info(c, "  personne pour l'instant");
-        v.finds().forEach(f -> info(c, "  • " + f));
+        v.finds().forEach(f -> info(c, Component.literal("  • ").append(f).withStyle(ChatFormatting.GRAY)));
         return 1;
     }
 }

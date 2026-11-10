@@ -175,7 +175,12 @@ public class SealScreen extends Screen {
         PaperView.drawSeal(g, envX + envW / 2, envY + (int) (envH * 48 / 80 * 0.86f), envW * 30 / 128, wax.id(), 255);
         String name = count == PER_CAST ? Component.translatable("screen.craftmaster.seal.each").getString() : to.strip();
         if (!name.isEmpty()) g.centeredText(font, Component.translatable("paper.craftmaster.to", name), envX + envW / 2, envY + envH + 10, TaskStyle.LABEL);
-        g.centeredText(font, TaskStyle.waxName(wax), envX + envW / 2, envY + envH + 22, 0xFF000000 | wax.rgb | 0x404040);
+        Component waxLabel = Component.translatable("item.craftmaster.envelope.wax", TaskStyle.waxName(wax));
+        int lw = font.width(waxLabel) + 14;
+        int lx = envX + (envW - lw) / 2, ly = envY + envH + 22;
+        g.fill(lx, ly, lx + 9, ly + 9, 0xFF000000 | wax.rgb);
+        g.outline(lx, ly, 9, 9, TaskStyle.GOLD);
+        g.text(font, waxLabel, lx + 14, ly + 1, TaskStyle.LABEL, false);
 
         int x = envX + envW + 14;
         TaskStyle.label(g, font, Component.translatable("screen.craftmaster.seal.content"), x, py + 24);

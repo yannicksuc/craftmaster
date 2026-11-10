@@ -86,7 +86,7 @@ public class NoteEditorScreen extends Screen {
         addRenderableWidget(CycleButton.<String>builder(v -> Component.translatable("note.craftmaster.look." + v), look)
                 .withValues(Note.LOOKS).create(x, y, cw, 20, Component.translatable("screen.craftmaster.note.look"), (b, v) -> look = v));
         addRenderableWidget(CycleButton.<String>builder(v -> Component.translatable("note.craftmaster.readers." + v), readers)
-                .withValues(Note.READERS).withTooltip(v -> Tooltip.create(Component.translatable("note.craftmaster.readers." + v + ".tip")))
+                .withValues(Note.READERS).displayOnlyValue().withTooltip(v -> Tooltip.create(Component.translatable("note.craftmaster.readers." + v + ".tip")))
                 .create(x + cw + 4, y, cw, 20, Component.translatable("screen.craftmaster.note.readers"), (b, v) -> {
                     readers = v;
                     playersBox.visible = v.equals(Note.PLAYERS);
@@ -99,8 +99,10 @@ public class NoteEditorScreen extends Screen {
                         Component.translatable("screen.craftmaster.note.once_off"), once).displayOnlyValue()
                 .withTooltip(v -> Tooltip.create(Component.translatable(v ? "screen.craftmaster.note.once_on.tip" : "screen.craftmaster.note.once_off.tip")))
                 .create(x, y, cw, 20, Component.empty(), (b, v) -> once = v));
-        addRenderableWidget(CycleButton.onOffBuilder(ink).withTooltip(v -> Tooltip.create(Component.translatable("screen.craftmaster.note.ink.tip")))
-                .create(x + cw + 4, y, cw, 20, Component.translatable("screen.craftmaster.note.ink"), (b, v) -> ink = v));
+        addRenderableWidget(CycleButton.booleanBuilder(Component.translatable("screen.craftmaster.note.ink"),
+                        Component.translatable("screen.craftmaster.note.ink_off"), ink).displayOnlyValue()
+                .withTooltip(v -> Tooltip.create(Component.translatable("screen.craftmaster.note.ink.tip")))
+                .create(x + cw + 4, y, cw, 20, Component.empty(), (b, v) -> ink = v));
         playersBox = addRenderableWidget(new EditBox(font, x + 2 * (cw + 4), y + 1, cw, 18, Component.translatable("screen.craftmaster.note.players")));
         playersBox.setMaxLength(200);
         playersBox.setValue(players);
@@ -168,7 +170,7 @@ public class NoteEditorScreen extends Screen {
         String t = Task.cleanText(text);
         List<String> parts = pieces > 1 ? Note.split(t, pieces) : List.of();
         int flags = TaskNetwork.FOUND | (ink ? TaskNetwork.INK | TaskNetwork.LIT : 0);
-        String header = Component.translatable("paper.craftmaster.preview").getString();
+        Component header = Component.translatable("paper.craftmaster.preview");
         minecraft.gui.setScreen(new PaperScreen(new TaskNetwork.Paper("note", header, title.strip(), t, List.of(), 0, "red", look, flags, parts, note.id(), 0, ""), this));
     }
 
@@ -213,15 +215,15 @@ public class NoteEditorScreen extends Screen {
         super.extractRenderState(g, mouseX, mouseY, partial);
     }
 
-    private int section(GuiGraphicsExtractor g, Component title, List<String> lines, Component empty, int y) {
+    private int section(GuiGraphicsExtractor g, Component title, List<Component> lines, Component empty, int y) {
         g.text(font, title, listX, y, TaskStyle.GOLD, false);
         y += 12;
         if (lines.isEmpty()) {
             g.text(font, empty, listX + 4, y, TaskStyle.HINT, false);
             return y + 10;
         }
-        for (String l : lines) {
-            for (FormattedCharSequence s : font.split(Component.literal("• " + l), listW - 6)) {
+        for (Component l : lines) {
+            for (FormattedCharSequence s : font.split(Component.literal("• ").append(l), listW - 6)) {
                 g.text(font, s, listX + 2, y, TaskStyle.LABEL, false);
                 y += 10;
             }

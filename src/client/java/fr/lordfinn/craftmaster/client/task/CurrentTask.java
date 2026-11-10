@@ -78,7 +78,7 @@ public final class CurrentTask {
 
     /** The paper shown on the card: the task if revealed, else the "still secret" card. */
     static TaskNetwork.Paper paperOf(TaskNetwork.Card c) {
-        String header = Component.translatable("paper.craftmaster.round", c.number(), c.mancheName()).getString();
+        Component header = Component.translatable("paper.craftmaster.round", c.number(), c.mancheName());
         if (!c.revealed())
             return new TaskNetwork.Paper("text", header, Component.translatable("paper.craftmaster.secret").getString(),
                     Component.translatable("paper.craftmaster.secret_hint").getString(), List.of(), 0, c.wax(), "paper", 0, List.of(), "", 0, "");

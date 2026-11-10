@@ -49,6 +49,11 @@ public final class TaskClient {
         });
         ClientPlayNetworking.registerGlobalReceiver(TaskNetwork.OpenEditor.TYPE, (p, ctx) ->
                 ctx.client().gui.setScreen(p.mode() == 1 ? new SealScreen(p) : new TaskEditorScreen(p)));
+        ClientPlayNetworking.registerGlobalReceiver(TaskNetwork.CloseCard.TYPE, (p, ctx) -> {
+            Screen s = ctx.client().gui.screen();
+            if (s instanceof PaperScreen || s instanceof TaskEditorScreen || s instanceof SealScreen || s instanceof NoteEditorScreen)
+                ctx.client().gui.setScreen(null);
+        });
         ClientPlayNetworking.registerGlobalReceiver(TaskNetwork.OpenNote.TYPE, (p, ctx) -> ctx.client().gui.setScreen(new NoteEditorScreen(p.note())));
         ClientPlayConnectionEvents.DISCONNECT.register((h, mc) -> {
             CurrentTask.set(new TaskNetwork.State(TaskNetwork.Card.NONE, false));
