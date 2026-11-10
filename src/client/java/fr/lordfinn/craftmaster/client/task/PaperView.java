@@ -1,6 +1,7 @@
 package fr.lordfinn.craftmaster.client.task;
 
 import fr.lordfinn.craftmaster.CraftMaster;
+import fr.lordfinn.craftmaster.task.TaskMarkup;
 import fr.lordfinn.craftmaster.task.TaskNetwork;
 import fr.lordfinn.craftmaster.task.WaxColor;
 import net.minecraft.client.gui.Font;
@@ -128,7 +129,7 @@ public final class PaperView {
         } else if (torn && paper.text().isEmpty()) {
             y = layoutPieces(y, margin, inner, lh);
         } else {
-            y = layoutText(paper.text(), y, margin, inner, lh);
+            y = "note".equals(paper.kind()) ? layoutText(paper.text(), y, margin, inner, lh) : layoutMarkup(paper.text(), y, margin, inner, lh);
         }
         // Rules
         if (!paper.rules().isEmpty()) {
@@ -139,7 +140,7 @@ public final class PaperView {
             y += lh + 1;
             for (String r : paper.rules()) {
                 boolean first = true;
-                for (FormattedCharSequence l : font.split(FormattedText.of(r), inner - 12)) {
+                for (FormattedCharSequence l : font.split(FormattedText.of(TaskMarkup.plain(TaskMarkup.redact(r, 0, false))), inner - 12)) {
                     if (first) lines.add(new Line(null, margin + 2, y, look.accent(), 1f, BULLET));
                     lines.add(new Line(l, margin + 12, y, ink(), 1f, TEXT));
                     y += lh;
@@ -159,6 +160,48 @@ public final class PaperView {
         // Room for the wax seal stamp
         y += "task".equals(paper.kind()) || "text".equals(paper.kind()) ? 34 : 10;
         contentHeight = y;
+        return y;
+    }
+
+    /**
+     * A task text with its markup ({@link TaskMarkup}), simplified for the card: styles kept, the note in blue
+     * italics, the rule in bold, a stamp in brackets. Hidden parts are always bars here (the card is for the TV).
+     */
+    private int layoutMarkup(String text, int y, int margin, int inner, int lh) {
+        TaskMarkup.Doc doc = TaskMarkup.parse(text, java.util.Map.of("time", paper.seconds() > 0 ? clock(paper.seconds()) : ""));
+        for (TaskMarkup.Block b : doc.blocks()) {
+            switch (b.kind()) {
+                case GAP -> y += lh / 2 + 2;
+                case SEPARATOR -> {
+                    lines.add(new Line(null, margin, y, look.accent(), 1f, ORNAMENT));
+                    y += 10;
+                }
+                default -> {
+                    net.minecraft.network.chat.MutableComponent c = Component.empty();
+                    if (b.kind() == TaskMarkup.Kind.STAMP) c.append("[ ");
+                    for (TaskMarkup.Span sp : b.spans()) {
+                        Style st = Style.EMPTY.withBold((sp.style() & TaskMarkup.BOLD) != 0 || b.kind() == TaskMarkup.Kind.RULE
+                                        || b.kind() == TaskMarkup.Kind.HEADING || b.kind() == TaskMarkup.Kind.STAMP ? true : null)
+                                .withUnderlined((sp.style() & TaskMarkup.UNDERLINE) != 0 ? true : null)
+                                .withStrikethrough((sp.style() & TaskMarkup.STRIKE) != 0 ? true : null)
+                                .withItalic(b.kind() == TaskMarkup.Kind.NOTE ? true : null);
+                        if (!sp.color().isEmpty()) st = st.withColor(TaskMarkup.inkColor(sp.color()));
+                        else if (b.kind() == TaskMarkup.Kind.NOTE) st = st.withColor(TaskMarkup.inkColor("blue"));
+                        else if (b.kind() != TaskMarkup.Kind.LINE && b.kind() != TaskMarkup.Kind.RULE) st = st.withColor(look.accent() & 0xFFFFFF);
+                        String t = sp.secret() == TaskMarkup.VISIBLE ? sp.text() : "█".repeat(Math.max(1, (sp.text().length() * 2 + 2) / 3));
+                        c.append(Component.literal(t).withStyle(st));
+                    }
+                    if (b.kind() == TaskMarkup.Kind.STAMP) c.append(" ]");
+                    boolean centred = b.kind() != TaskMarkup.Kind.LINE && b.kind() != TaskMarkup.Kind.NOTE;
+                    if (b.kind() == TaskMarkup.Kind.RULE || b.kind() == TaskMarkup.Kind.STAMP) y += 3;
+                    for (FormattedCharSequence l : font.split(c, b.kind() == TaskMarkup.Kind.NOTE ? inner - 10 : inner)) {
+                        lines.add(new Line(l, centred ? centre(l, width, 1f) : margin + (b.kind() == TaskMarkup.Kind.NOTE ? 10 : 0), y, ink(), 1f, TEXT));
+                        y += lh;
+                    }
+                    if (b.kind() == TaskMarkup.Kind.HEADING) y += 3;
+                }
+            }
+        }
         return y;
     }
 

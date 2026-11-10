@@ -191,6 +191,7 @@ du moment (comme la touche J). Le reste est admin et passe par l'exécuteur d'ac
 | `/tache` | Ouvre la tâche du moment (secrète : l'enveloppe scellée ; admin : même secrète) |
 | `/tache edit [manche]` · `/tache seal` | Éditeur de tâches · écran du sceau à cire |
 | `/tache view <manche>` | Lire la tâche d'une manche (admin, même secrète) |
+| `/tache apercu <manche>` (`preview`) | Jouer la lettre (sceau, ouverture) sur ton écran seulement : rien n'est révélé |
 | `/tache list` | Les manches, leur tâche, secrète ou révélée (quand, par qui) |
 | `/tache set <manche> title <texte>` | Titre |
 | `/tache set <manche> text <texte>` · `append <texte>` | Texte (`\n` = retour à la ligne) · ajouter un paragraphe |
@@ -200,6 +201,7 @@ du moment (comme la touche J). Le reste est admin et passe par l'exécuteur d'ac
 | `/tache set <manche> revealOnStart <true\|false>` | Révélée au lancement de la manche, ou par enveloppe seulement |
 | `/tache clear <manche>` | Efface la tâche |
 | `/tache reveal [manche]` · `/tache hide [manche]` | Révèle à tous (annoncé) · remet au secret (défaut : manche en cours) |
+| `/tache suite [manche]` | Révèle la partie `[secret]` suivante du texte (« révèle la suite ») |
 | `/tache show [manche] [secondes]` | La carte à l'écran de tous (12 s), révélée d'abord |
 | `/tache envelope <manche> [joueurs\|tous]` | Enveloppes scellées à leur nom (défaut : candidats connectés) |
 | `/tache close [joueurs]` | Ferme les cartes ouvertes |

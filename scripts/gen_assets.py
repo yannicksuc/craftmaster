@@ -1179,19 +1179,22 @@ def d_item_model(name, layers):
 
 D_IPAL = {"o": D_PO, "1": D_P1, "2": D_P2, "3": D_P3, "4": D_P4, "r": D_RED1, "R": D_RED3, "w": (252, 250, 242),
           "l": (150, 140, 120), "g": D_G1}
+# The task letter (folded in three, sealed with wax across the edge of its top panel) and, once read, unfolded
+D_IPAL["g"] = (222, 190, 112)   # the warm line of the fold edge
+D_IPAL["l"] = (96, 88, 80)      # typed lines
 envelope_rows = [
     "................",
     "................",
     "................",
+    "................",
     ".oooooooooooooo.",
-    ".o44111111114o4.",
-    ".o2441111114412.",
-    ".o2224411444222.",
-    ".o2222244442222.",
-    ".o2222222222222.",
-    ".o3322222222333.",
-    ".o3333322333333.",
-    ".o3333333333333.",
+    ".o111111111111o.",
+    ".o111111111111o.",
+    ".o111111111111o.",
+    ".oggggggggggggo.",
+    ".o333333333333o.",
+    ".o222222222222o.",
+    ".o222222222222o.",
     ".oooooooooooooo.",
     "................",
     "................",
@@ -1200,23 +1203,22 @@ envelope_rows = [
 d_save("textures/item/envelope.png", d_art(envelope_rows, {k: d_rgba(v) for k, v in D_IPAL.items()}))
 envelope_open_rows = [
     "................",
-    "...ooooooooo....",
-    "...oRrrrrrRo....",
-    "....oRrrrRo.....",
-    ".oooowwwwwwoooo.",
-    ".o44wllllwww4o..",
-    ".o24wwwwwwww4o..",
-    ".o224wlllww422o.",
-    ".o2224wwww42220.",
-    ".o2222244422222.",
-    ".o3322222222333.",
-    ".o3333322333333.",
-    ".o3333333333333.",
-    ".oooooooooooooo.",
-    "................",
+    "...oooooooooo...",
+    "...o11111111o...",
+    "...o11111111o...",
+    "...o44444444o...",
+    "...o1llllll1o...",
+    "...o11111111o...",
+    "...o1lllll11o...",
+    "...o11111111o...",
+    "...o11llll11o...",
+    "...o44444444o...",
+    "...o11111111o...",
+    "...o11111ll1o...",
+    "...o11111111o...",
+    "...oooooooooo...",
     "................",
 ]
-envelope_open_rows = [r.replace("0", "o") for r in envelope_open_rows]
 d_save("textures/item/envelope_open.png", d_art(envelope_open_rows, {k: d_rgba(v) for k, v in D_IPAL.items()}))
 
 
@@ -1236,8 +1238,8 @@ def d_wax_item(cxp, cyp, r, broken=False):
     return img
 
 
-d_save("textures/item/envelope_wax.png", d_wax_item(8, 8.5, 2.6))
-d_save("textures/item/envelope_wax_broken.png", d_wax_item(8, 9.5, 2.4, broken=True))
+d_save("textures/item/envelope_wax.png", d_wax_item(8, 8.5, 2.7))
+d_save("textures/item/envelope_wax_broken.png", d_wax_item(8, 2.2, 1.9, broken=True))
 d_item_model("envelope", ["envelope", "envelope_wax"])
 d_item_model("envelope_open", ["envelope_open", "envelope_wax_broken"])
 D_TINTS = [{"type": "minecraft:constant", "value": -1},
@@ -1345,28 +1347,27 @@ write_json(os.path.join(A, "items/uv_lamp.json"), {"model": {"type": "minecraft:
 
 # ------------------------------------------------------------------ blocks: envelope on a table, pinned note
 def d_envelope_top(wax, opened):
-    """16 x 16 top texture; the envelope covers x 2..13, y 4..11 (the element's area), facing north."""
+    """16 x 16 top texture; the letter covers x 2..13, y 4..11 (the element's area), facing north. Sealed: folded in
+    three, the wax across the edge of the top panel; opened: the top panel flipped up, typed lines, the wax broken."""
     img = d_img(16, 16)
     waxc = d_rgb(D_WAX[wax][0])
     x0, y0, w, h = 2, 4, 12, 8
     for y in range(h):
         for x in range(w):
-            t = abs(x + 0.5 - w / 2) / (w / 2)
-            base = D_P2 if y < 3 else D_P3 if y > 5 else D_P2
-            img[y0 + y][x0 + x] = d_rgba(base)
             if x in (0, w - 1) or y in (0, h - 1):
-                img[y0 + y][x0 + x] = d_rgba(D_PO)
-            elif not opened and abs(y - 4.2 * (1 - t)) < 0.6:
-                img[y0 + y][x0 + x] = d_rgba(D_P4)       # edge of the closed flap
+                c = D_PO
+            elif opened:
+                c = D_P4 if y == 3 else D_P1
+            else:
+                c = D_P1 if y < 4 else (222, 190, 112) if y == 4 else D_P3 if y == 5 else D_P2
+            img[y0 + y][x0 + x] = d_rgba(c)
     if opened:
-        # Notch open: the card inside shows, the wax broken in two
-        for x in range(4, 10):
-            img[y0 + 1][x0 + x] = d_rgba((252, 250, 242))
-            img[y0 + 2][x0 + x] = d_rgba((252, 250, 242)) if 5 <= x <= 8 else img[y0 + 2][x0 + x]
-        for (x, y) in ((5, 4), (8, 4)):
+        for (x, y) in ((3, 5), (4, 5), (5, 5), (6, 5), (7, 5), (8, 5), (3, 6), (4, 6), (5, 6), (6, 6)):
+            img[y0 + y][x0 + x] = d_rgba((96, 88, 80))
+        for (x, y) in ((5, 1), (7, 1)):
             img[y0 + y][x0 + x] = d_rgba(waxc)
     else:
-        for (x, y, k) in ((5, 3, 1.15), (6, 3, 1.0), (5, 4, 0.9), (6, 4, 0.75)):
+        for (x, y, k) in ((5, 3, 1.15), (6, 3, 1.0), (5, 4, 0.9), (6, 4, 0.75), (5, 5, 0.7), (6, 5, 0.6)):
             img[y0 + y][x0 + x] = d_rgba(d_shade(waxc, k))
     return img
 
@@ -1900,6 +1901,22 @@ gen_furniture.generate(sys.modules[__name__])
 # and masks (docs/wiki/Effets.md) — everything in scripts/gen_fx.py
 import gen_fx  # noqa: E402
 gen_fx.generate(sys.modules[__name__])
+# --- chantier D, the task letter (seal torn off, letter unfolded) ------------------------------------------------
+en.update({
+    "paper.craftmaster.signature": "The CraftMaster",
+    "paper.craftmaster.letter_duration": "Time: %s",
+    "paper.craftmaster.tear": "Tear the seal off",
+    "paper.craftmaster.tear_hint": "Drag the seal with the mouse · or click it · or hold Space",
+    "paper.craftmaster.preview_ribbon": "PREVIEW: nothing is revealed to the players",
+})
+fr.update({
+    "paper.craftmaster.signature": "Le CraftMaster",
+    "paper.craftmaster.letter_duration": "Durée : %s",
+    "paper.craftmaster.tear": "Arrache le sceau",
+    "paper.craftmaster.tear_hint": "Tire le sceau avec la souris · ou clique dessus · ou maintiens Espace",
+    "paper.craftmaster.preview_ribbon": "APERÇU : rien n'est révélé aux joueurs",
+})
+# --- end chantier D, the task letter ------------------------------------------------------------------------------
 
 if SOUNDS:
     write_json(os.path.join(A, "sounds.json"), SOUNDS)

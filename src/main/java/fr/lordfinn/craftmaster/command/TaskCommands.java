@@ -116,7 +116,10 @@ public final class TaskCommands {
                         .executes(c -> editor(c, 0, null))
                         .then(argument("manche", word()).suggests(MANCHES).executes(c -> editor(c, 0, str(c, "manche")))))
                 .then(literal("seal").requires(ADMIN).executes(c -> editor(c, 1, null)))
-                .then(literal("view").requires(ADMIN).then(argument("manche", word()).suggests(MANCHES).executes(TaskCommands::view)))
+                .then(literal("view").requires(ADMIN).then(argument("manche", word()).suggests(MANCHES).executes(c -> view(c, false))))
+                // The letter played on the organiser's screen only (seal, opening): nothing is revealed
+                .then(literal("apercu").requires(ADMIN).then(argument("manche", word()).suggests(MANCHES).executes(c -> view(c, true))))
+                .then(literal("preview").requires(ADMIN).then(argument("manche", word()).suggests(MANCHES).executes(c -> view(c, true))))
                 .then(literal("set").requires(ADMIN).then(argument("manche", word()).suggests(MANCHES)
                         .then(literal("title").then(argument("text", StringArgumentType.greedyString())
                                 .executes(c -> run(c, action("task.set", "manche", str(c, "manche"), "title", str(c, "text"))))))
@@ -139,6 +142,10 @@ public final class TaskCommands {
                 .then(literal("reveal").requires(ADMIN)
                         .executes(c -> run(c, action("task.reveal")))
                         .then(argument("manche", word()).suggests(MANCHES_OR_CURRENT).executes(c -> run(c, action("task.reveal", "manche", str(c, "manche"))))))
+                // The next [secret] part of the text ("révèle la suite")
+                .then(literal("suite").requires(ADMIN)
+                        .executes(c -> run(c, action("task.reveal_more")))
+                        .then(argument("manche", word()).suggests(MANCHES_OR_CURRENT).executes(c -> run(c, action("task.reveal_more", "manche", str(c, "manche"))))))
                 .then(literal("hide").requires(ADMIN)
                         .executes(c -> run(c, action("task.hide")))
                         .then(argument("manche", word()).suggests(MANCHES_OR_CURRENT).executes(c -> run(c, action("task.hide", "manche", str(c, "manche"))))))
@@ -186,7 +193,7 @@ public final class TaskCommands {
         return 1;
     }
 
-    private static int view(CommandContext<CommandSourceStack> c) {
+    private static int view(CommandContext<CommandSourceStack> c, boolean preview) {
         ServerPlayer p = player(c);
         if (p == null) return 0;
         Tasks.Located l = Tasks.locateActive(str(c, "manche"));
@@ -194,7 +201,12 @@ public final class TaskCommands {
             fail(c, l == null ? "Manche « " + str(c, "manche") + " » introuvable." : "« " + l.manche().name + " » n'a pas de tâche écrite.");
             return 0;
         }
-        Tasks.openFor(p, l);
+        if (preview) {
+            Tasks.preview(p, l);
+            info(c, "Aperçu de la lettre de « " + l.manche().name + " » (sur ton écran seulement, rien n'est révélé).");
+        } else {
+            Tasks.openFor(p, l);
+        }
         return 1;
     }
 

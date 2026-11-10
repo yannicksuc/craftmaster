@@ -616,5 +616,10 @@
   "fx.craftmaster.jumelles": "binoculars",
   "fx.craftmaster.masque_rond": "round mask",
   "item.craftmaster.screen_fx.effect": "Worn: %s",
-  "item.craftmaster.screen_fx.hint": "Wear it on your head to see the world through it"
+  "item.craftmaster.screen_fx.hint": "Wear it on your head to see the world through it",
+  "paper.craftmaster.signature": "The CraftMaster",
+  "paper.craftmaster.letter_duration": "Time: %s",
+  "paper.craftmaster.tear": "Tear the seal off",
+  "paper.craftmaster.tear_hint": "Drag the seal with the mouse · or click it · or hold Space",
+  "paper.craftmaster.preview_ribbon": "PREVIEW: nothing is revealed to the players"
 }

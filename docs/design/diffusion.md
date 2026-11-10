@@ -352,6 +352,20 @@ sont dans `config/craftmaster/tasks.json` (`fr.lordfinn.craftmaster.task.TaskSto
 - Touche `key.craftmaster.task` (J, catégorie CraftMaster). Twitch : `config/craftmaster-client.json`
   (`twitch.enabled/channel/commands/cooldownSeconds/showSeconds`), `/craftMasterTwitch [reload|test]`.
 
+**Lettre de tâche (v4.1)** : l'écran de lecture d'une tâche / d'un texte libre est `client.task.LetterScreen`
+(lettre pliée en trois scellée à la cire : sceau à arracher à la souris, au clic ou Espace maintenu ; dépliage haut
+puis bas puis volets en plus, zoom arrière ; pixel art à l'échelle entière ; police `craftmaster:typewriter`).
+Logique pure testée : `task.LetterMotion` (géométrie, calendrier, échelle, sceau), `task.TaskMarkup` (mise en
+forme : `#`, `---`, `**`, `__`, `~~`, `{rouge}…{/}`, `>`, `!règle`, `[tampon: …]`, `[signature: …]`, variables,
+`[secret]…[/secret]`). La révélation et l'annonce d'une enveloppe attendent maintenant le paquet `task_seal_broken`
+(client → serveur, quand le sceau saute ; 45 s au plus) ; `onEnvelopeOpened` reste appelé au clic droit (la caméra
+coupe sur le lecteur pendant qu'il arrache le sceau). Nouveautés : action `task.reveal_more {manche?}` (effet
+`TaskSecretShown`, outil vocal `task_reveal_more`, « révèle la suite »), `/tache suite [manche]`,
+`/tache apercu <manche>` (`Tasks.preview`), drapeau `TaskNetwork.PREVIEW`, paquet `task_paper_update` (une lettre
+ouverte prend le nouveau texte). Les parties `[secret]` sont caviardées côté serveur (`Tasks.shown`,
+`TaskMarkup.redact`) dans `task_paper` et `task_state` : `CurrentTask.get().text()` peut contenir `[secret:N]`
+(non-admin) ou `[secret]…[/secret]` (admin) ; `TaskMarkup.parse` / `plain` les traitent.
+
 **Contenu** : objets `craftmaster:envelope` (composant `craftmaster:envelope`), `wax_seal`, `note` / `note_bottle`
 (composant `craftmaster:note`), `uv_lamp` ; blocs `envelope_block` (+ entité de bloc), `pinned_note`.
 

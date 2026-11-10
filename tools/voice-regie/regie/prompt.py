@@ -36,7 +36,7 @@ Règles :
    Saison ou partie non précisée = l'active : n'envoie alors pas season / partie.
 10. Tâches et enveloppes : « la tâche du pont : … » ou « écris la tâche … » = task_set (texte dicté remis en
    forme : phrases, ponctuation, paragraphes séparés par une ligne vide, sans rien inventer) ; « ajoute à la
-   tâche … » = task_set avec append ; « révèle la tâche » = task_reveal ; « montre la tâche » = task_show ;
+   tâche … » = task_set avec append ; « révèle la tâche » = task_reveal ; « révèle la suite » = task_reveal_more (partie cachée suivante du texte) ; « montre la tâche » = task_show ;
    « donne les enveloppes » = envelope_give (sans players = tous les candidats).
 11. En cas de doute réel (joueur ou manche introuvable, nombre incompris, ordre ambigu, ordre qui ne concerne
     pas l'émission, transcription vide ou absurde) : n'exécute RIEN, appelle seulement say avec une question ou

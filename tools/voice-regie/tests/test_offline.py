@@ -40,6 +40,7 @@ CASES = [
     ("Montre la tâche.", [{"type": "task.show"}]),
     ("Montre les scores.", [{"type": "broadcast.scores", "mode": "show"}]),
     ("Révèle la tâche.", [{"type": "task.reveal"}]),
+    ("Révèle la suite.", [{"type": "task.reveal_more"}]),
     ("Montre la tâche à tout le monde.", [{"type": "task.show"}]),
     ("Donne les enveloppes.", [{"type": "envelope.give"}]),
     # Studio spotlights (chantier F)

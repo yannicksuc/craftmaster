@@ -616,5 +616,10 @@
   "fx.craftmaster.jumelles": "jumelles",
   "fx.craftmaster.masque_rond": "masque rond",
   "item.craftmaster.screen_fx.effect": "Porté : %s",
-  "item.craftmaster.screen_fx.hint": "À porter sur la tête : on voit le monde à travers"
+  "item.craftmaster.screen_fx.hint": "À porter sur la tête : on voit le monde à travers",
+  "paper.craftmaster.signature": "Le CraftMaster",
+  "paper.craftmaster.letter_duration": "Durée : %s",
+  "paper.craftmaster.tear": "Arrache le sceau",
+  "paper.craftmaster.tear_hint": "Tire le sceau avec la souris · ou clique dessus · ou maintiens Espace",
+  "paper.craftmaster.preview_ribbon": "APERÇU : rien n'est révélé aux joueurs"
 }

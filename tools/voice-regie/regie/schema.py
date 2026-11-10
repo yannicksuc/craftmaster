@@ -179,6 +179,8 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
     "task.clear": ("Efface la tâche d'une manche.", [f("manche", MANCHE, True, MANCHE_DOC)]),
     "task.reveal": ("Révèle la tâche à tout le monde (spectateurs, diffusion), annoncé à tous.",
                     [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours.")]),
+    "task.reveal_more": ("Révèle la partie cachée suivante ([secret]…[/secret]) du texte de la tâche (« révèle la suite »).",
+                         [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours.")]),
     "task.hide": ("Rend une tâche de nouveau secrète.", [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours.")]),
     "task.show": ("Affiche la carte de la tâche sur tous les écrans quelques secondes (« montre la tâche »).",
                   [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),

@@ -57,6 +57,10 @@ public final class Tasks {
 
     /** Length of the envelope's opening animation: the reveal is announced when the card comes out. */
     static final int ENVELOPE_ANIMATION_TICKS = 50;
+    /** A letter left sealed this long (seconds × 20) is revealed anyway. */
+    static final int SEAL_TIMEOUT_TICKS = 45 * 20;
+    /** Per reader: the reveal waiting for their seal to pop. */
+    private static final Map<UUID, Runnable> PENDING = new HashMap<>();
 
     private static final Gson GSON = new Gson();
     private static TaskStore store;
@@ -79,18 +83,24 @@ public final class Tasks {
             if (store != null) store.save();
             SENT.clear();
             SCHEDULED.clear();
+            PENDING.clear();
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             SENT.remove(handler.getPlayer().getUUID());
             server.execute(() -> sync(handler.getPlayer()));
         });
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> SENT.remove(handler.getPlayer().getUUID()));
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            SENT.remove(handler.getPlayer().getUUID());
+            Runnable r = PENDING.remove(handler.getPlayer().getUUID());
+            if (r != null) server.execute(r);
+        });
         ServerTickEvents.END_SERVER_TICK.register(Tasks::tick);
         UseBlockCallback.EVENT.register(Notes::onUseBlock);
         UseEntityCallback.EVENT.register(Notes::onUseEntity);
         AttackBlockCallback.EVENT.register(Notes::onAttackBlock);
 
         ServerPlayNetworking.registerGlobalReceiver(TaskNetwork.RequestTask.TYPE, (p, ctx) -> openCurrent(ctx.player()));
+        ServerPlayNetworking.registerGlobalReceiver(TaskNetwork.SealBroken.TYPE, (p, ctx) -> sealBroken(ctx.player()));
         ServerPlayNetworking.registerGlobalReceiver(TaskNetwork.RunActions.TYPE, (p, ctx) -> runActions(ctx.player(), p.json()));
         ServerPlayNetworking.registerGlobalReceiver(TaskNetwork.Seal.TYPE, (p, ctx) -> seal(ctx.player(), p));
         ServerPlayNetworking.registerGlobalReceiver(TaskNetwork.SaveNote.TYPE, (p, ctx) -> Notes.save(ctx.player(), p.note()));
@@ -177,6 +187,20 @@ public final class Tasks {
         return store != null && store.isRevealed(l.season().id, l.manche().id);
     }
 
+    /**
+     * The card as a reader may receive it: {@link #card} with the task's [secret] parts redacted
+     * ({@link TaskMarkup#redact}); {@code readable}: an organiser, who still reads the hidden parts (tagged).
+     */
+    static TaskNetwork.Card shown(Located l, boolean full, boolean readable) {
+        TaskNetwork.Card c = card(l, full);
+        if (c.text().isEmpty() && c.rules().isEmpty()) return c;
+        int n = store == null ? 0 : store.secretsShown(l.season().id, l.manche().id);
+        List<String> rules = new ArrayList<>();
+        for (String r : c.rules()) rules.add(TaskMarkup.redact(r, Integer.MAX_VALUE, readable));
+        return new TaskNetwork.Card(c.season(), c.mancheId(), c.mancheName(), c.number(), c.title(), TaskMarkup.redact(c.text(), n, readable),
+                rules, c.seconds(), c.wax(), c.revealed());
+    }
+
     /** The card of a round; {@code full}: with its text even if secret (organisers, the envelope's opener). */
     static TaskNetwork.Card card(Located l, boolean full) {
         boolean revealed = isRevealed(l);
@@ -235,13 +259,13 @@ public final class Tasks {
         // A vanilla game: the card in the chat
         player.sendSystemMessage(Component.literal("— ").append(paper.title().isEmpty() ? paper.header() : Component.literal(paper.title()))
                 .append(" —").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
-        if (!paper.text().isEmpty()) player.sendSystemMessage(Component.literal(paper.text()).withStyle(ChatFormatting.WHITE));
-        for (String r : paper.rules()) player.sendSystemMessage(Component.literal(" • " + r).withStyle(ChatFormatting.GRAY));
+        if (!paper.text().isEmpty()) player.sendSystemMessage(Component.literal(TaskMarkup.plain(paper.text())).withStyle(ChatFormatting.WHITE));
+        for (String r : paper.rules()) player.sendSystemMessage(Component.literal(" • " + TaskMarkup.plain(r)).withStyle(ChatFormatting.GRAY));
     }
 
     /** The paper of a round's task; {@code flags} adds ENVELOPE, CAN_REVEAL, CAN_EDIT... */
-    static TaskNetwork.Paper paper(Located l, boolean full, int flags) {
-        TaskNetwork.Card c = card(l, full);
+    static TaskNetwork.Paper paper(Located l, boolean full, boolean readable, int flags) {
+        TaskNetwork.Card c = shown(l, full, readable);
         Component header = Component.translatable("paper.craftmaster.round", l.number(), l.manche().name);
         boolean secret = !full && !c.revealed();
         return new TaskNetwork.Paper("task", header, c.title(), c.text(), c.rules(), c.seconds(), c.wax(), "paper",
@@ -257,12 +281,20 @@ public final class Tasks {
             return;
         }
         int flags = admin ? TaskNetwork.CAN_EDIT | (isRevealed(l) ? 0 : TaskNetwork.CAN_REVEAL) : 0;
-        send(player, paper(l, admin, flags));
+        send(player, paper(l, admin, admin, flags));
     }
 
     /** An organiser looks at a given round's task (secret or not). */
     public static void openFor(ServerPlayer player, Located l) {
-        send(player, paper(l, true, TaskNetwork.CAN_EDIT | (isRevealed(l) ? 0 : TaskNetwork.CAN_REVEAL)));
+        send(player, paper(l, true, true, TaskNetwork.CAN_EDIT | (isRevealed(l) ? 0 : TaskNetwork.CAN_REVEAL)));
+    }
+
+    /**
+     * An organiser plays a round's letter on their own screen (seal, opening, the final layout), to check how it
+     * looks before the show: nothing is revealed, nobody else sees it.
+     */
+    public static void preview(ServerPlayer player, Located l) {
+        send(player, paper(l, true, true, TaskNetwork.ENVELOPE | TaskNetwork.PREVIEW));
     }
 
     // ---------------------------------------------------------------- envelopes
@@ -284,7 +316,7 @@ public final class Tasks {
                 player.sendOverlayMessage(Component.translatable("message.craftmaster.envelope_empty").withStyle(ChatFormatting.GRAY));
                 return;
             }
-            paper = paper(l, true, flags);
+            paper = paper(l, true, Permissions.isAdmin(player), flags);
         } else {
             Component header = env.to().isBlank() ? Component.empty() : Component.translatable("paper.craftmaster.to", env.to());
             paper = new TaskNetwork.Paper("text", header, env.title(), env.text(), List.of(), 0, env.wax(), "paper", flags, List.of(), "", 0, "");
@@ -298,7 +330,7 @@ public final class Tasks {
         player.level().playSound(player, player.blockPosition(), SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 0.7f, 1f);
         ShowEvents.onEnvelopeOpened(server, player, env.season(), env.manche());
         final Located located = l;
-        later(server, ENVELOPE_ANIMATION_TICKS, () -> {
+        Runnable torn = () -> {
             if (env.announce()) {
                 Component msg = Component.translatable("message.craftmaster.envelope_opened", player.getGameProfile().name()).withStyle(ChatFormatting.GOLD);
                 for (ServerPlayer p : server.getPlayerList().getPlayers()) {
@@ -308,7 +340,45 @@ public final class Tasks {
                 }
             }
             if (located != null) reveal(server, located, player, false);
-        });
+        };
+        if (ServerPlayNetworking.canSend(player, TaskNetwork.Paper.TYPE)) {
+            // The reader tears the seal off: the task is revealed (and announced) when it pops (SealBroken), or
+            // after a while if they leave the letter closed
+            UUID id = player.getUUID();
+            Runnable old = PENDING.put(id, torn);
+            if (old != null) old.run();
+            later(server, SEAL_TIMEOUT_TICKS, () -> {
+                if (PENDING.remove(id, torn)) torn.run();
+            });
+        } else {
+            later(server, ENVELOPE_ANIMATION_TICKS, torn);
+        }
+    }
+
+    /** The reader's seal popped: what waited for it (reveal, announce) happens now. */
+    static void sealBroken(ServerPlayer player) {
+        Runnable r = PENDING.remove(player.getUUID());
+        if (r != null) r.run();
+    }
+
+    /**
+     * Reveals the next [secret] part of a round's text: every organiser and, if the task is revealed, every
+     * reader gets the new text (an open letter updates in place) and the cards follow.
+     */
+    static int showNextSecret(MinecraftServer server, Located l) {
+        int count = TaskMarkup.secretCount(l.manche().task == null ? "" : l.manche().task.text);
+        int n = store.showNextSecret(l.season().id, l.manche().id, count);
+        if (n < 0) return -1;
+        boolean revealed = isRevealed(l);
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            boolean admin = Permissions.isAdmin(p);
+            if (!(admin || revealed) || !ServerPlayNetworking.canSend(p, TaskNetwork.PaperUpdate.TYPE)) continue;
+            TaskNetwork.Card c = shown(l, true, admin);
+            ServerPlayNetworking.send(p, new TaskNetwork.PaperUpdate(l.season().id, l.manche().id, c.text(), c.rules()));
+            Show.sound(p, Show.holder(SoundEvents.BOOK_PAGE_TURN), 0.8f, 1.3f);
+        }
+        sync(server);
+        return n;
     }
 
     /** A sealed envelope of a round, addressed to {@code to} (may be empty). */
@@ -437,6 +507,15 @@ public final class Tasks {
                 sync(server);
                 lines.add(was ? "Tâche de « " + l.manche().name + " » de nouveau secrète." : "La tâche de « " + l.manche().name + " » n'était pas révélée.");
             }
+            case Actions.TaskSecretShown t -> {
+                Located l = locate(t.season(), t.manche());
+                if (l == null) return;
+                int n = showNextSecret(server, l);
+                int count = TaskMarkup.secretCount(l.manche().task.text);
+                lines.add(n < 0 ? "Toutes les parties cachées de « " + l.manche().name + " » sont déjà révélées."
+                        : "Partie cachée " + n + "/" + count + " de « " + l.manche().name + " » révélée"
+                        + (isRevealed(l) ? "." : " (les joueurs la verront quand la tâche sera révélée)."));
+            }
             case Actions.TaskShown s -> {
                 Located l = locate(s.season(), s.manche());
                 if (l == null) return;
@@ -475,7 +554,7 @@ public final class Tasks {
         if (store == null || CraftMaster.data() == null || !ServerPlayNetworking.canSend(p, TaskNetwork.State.TYPE)) return;
         boolean admin = Permissions.isAdmin(p);
         Located l = taskOfTheMoment(admin);
-        TaskNetwork.State state = new TaskNetwork.State(l == null ? TaskNetwork.Card.NONE : card(l, admin), admin);
+        TaskNetwork.State state = new TaskNetwork.State(l == null ? TaskNetwork.Card.NONE : shown(l, admin, admin), admin);
         if (state.equals(SENT.get(p.getUUID()))) return;
         SENT.put(p.getUUID(), state);
         ServerPlayNetworking.send(p, state);
