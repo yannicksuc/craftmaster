@@ -129,7 +129,7 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
             poseStack.rotate(Axis.XP.rotationDegrees(s.pitch));
             // On the side face (x = ±3 px), turned to face outward, centred on the body
             poseStack.translate(side * 3.02f / 16f, -2 / 16f, 0.5f / 16f);
-            poseStack.rotate(Axis.YP.rotationDegrees(side * 90));
+            poseStack.rotate(Axis.YP.rotationDegrees(-side * 90));
             float scale = 0.45f / 16f;
             poseStack.scale(scale, scale, scale);
             collector.submitText(poseStack, -w / 2, -4, text.getVisualOrderText(), false, Font.DisplayMode.POLYGON_OFFSET,

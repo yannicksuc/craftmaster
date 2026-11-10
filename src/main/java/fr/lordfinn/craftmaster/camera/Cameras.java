@@ -122,8 +122,9 @@ public final class Cameras {
             props.remove(spot.number());
             if (level != null) {
                 CameraEntity e = CameraEntity.create(level, spot);
-                level.addFreshEntity(e);
+                // Known before it is added: adding it fires ENTITY_LOAD, which removes unknown tripods
                 props.put(spot.number(), e.getUUID());
+                level.addFreshEntity(e);
             }
         }
         changed(server);

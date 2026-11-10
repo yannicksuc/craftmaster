@@ -76,6 +76,8 @@ public final class Broadcast {
             if (Cues.THEME.equals(payload.kind())) {
                 if ("stop".equals(payload.title())) ThemeSound.stop();
                 else ThemeSound.play();
+            } else if (Cues.BROADCAST.equals(payload.kind())) {
+                set("on".equals(payload.title()));
             } else {
                 BroadcastOverlay.cue(payload);
             }

@@ -6,13 +6,14 @@
   - windowed, sound muted (run/options.txt);
   - the window opens without the focus (SDL hint, see build.gradle.kts) and is pushed behind the other windows;
   - joins localhost:25691 (start the server first: .\gradlew.bat runServer);
-  - -Second starts the second player (Joueur2, run2/) instead of LordFinn (run/).
+  - -Second starts the second player (Joueur2, run2/) instead of LordFinn (run/);
+  - -Size 1920x1080 opens the second player's window at that size (the broadcast picture at Twitch's size).
   The game is then seen and driven through MCP Fabric (docs/wiki/Tests.md).
 
 .EXAMPLE
   powershell -File scripts\dev-client.ps1
 #>
-param([string]$Server = 'localhost:25691', [switch]$Second, [switch]$Foreground)
+param([string]$Server = 'localhost:25691', [switch]$Second, [switch]$Foreground, [string]$Size = '')
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -42,6 +43,7 @@ $started = Get-Date
 $log = Join-Path $runDir 'client-launch.log'
 $gradleArgs = @($(if ($Second) { 'runClient2' } else { 'runClient' }), '--console=plain', "-PquickPlayMultiplayer=$Server")
 if (-not $Foreground) { $gradleArgs += '-PbackgroundClient' }
+if ($Size) { $gradleArgs += "-PwindowSize=$Size" }
 Start-Process -FilePath (Join-Path $root 'gradlew.bat') -ArgumentList $gradleArgs -WorkingDirectory $root `
     -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError "$log.err"
 Write-Host "Client starting (log: $log)"

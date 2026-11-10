@@ -18,6 +18,19 @@ CASES = [
     ("Mettez à jour les scores.", [{"type": "scores.publish"}]),
     ("Annule.", [{"type": "undo", "count": 1}]),
     ("Lance la révélation.", [{"type": "reveal.start"}]),
+    # TV direction (chantier E)
+    ("Caméra 2.", [{"type": "camera.cut", "camera": "2"}]),
+    ("Caméra deux.", [{"type": "camera.cut", "camera": "2"}]),
+    ("Plan large.", [{"type": "camera.cut", "camera": "large"}]),
+    ("Plan sur le trône.", [{"type": "camera.cut", "camera": "trone"}]),
+    ("Le podium.", [{"type": "camera.cut", "camera": "podium"}]),
+    ("Suis Ensuri.", [{"type": "camera.follow", "player": "Ensuri"}]),
+    ("Suis Cycy.", [{"type": "camera.follow", "player": "Cyllu"}]),
+    ("Générique.", [{"type": "show.intro"}]),
+    ("Lance le générique de fin.", [{"type": "show.outro"}]),
+    ("Réalisation automatique.", [{"type": "camera.auto", "enabled": True}]),
+    ("Montre la tâche.", [{"type": "broadcast.task"}]),
+    ("Montre les scores.", [{"type": "broadcast.scores", "mode": "show"}]),
 ]
 
 

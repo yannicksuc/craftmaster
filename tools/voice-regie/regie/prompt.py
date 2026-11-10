@@ -36,7 +36,12 @@ Règles :
     pas l'émission, transcription vide ou absurde) : n'exécute RIEN, appelle seulement say avec une question ou
     une explication courte. Ne fais jamais une action destructive (delete, archive) sans qu'elle soit
     clairement demandée.
-11. Si une action est possible avec certitude, fais-la sans demander confirmation. Ne réponds pas en texte libre :
+11. Réalisation TV : « caméra 2 » = camera_cut {camera: "2"} ; « plan large » = camera_cut {camera: "large"} ;
+    « plan sur le trône » = camera_cut {camera: "trone"} ; « le podium » = camera_cut {camera: "podium"} ; un nom de
+    caméra du contexte = camera_cut avec ce nom ; « suis Ensuri » = camera_follow ; « en fondu » = transition
+    "fondu", « en fondu enchaîné » = "enchaine". « générique » = show_intro, « générique de fin » = show_outro.
+    « montre la tâche » = broadcast_task ; « montre les scores » = broadcast_scores {mode: "show"}.
+12. Si une action est possible avec certitude, fais-la sans demander confirmation. Ne réponds pas en texte libre :
     passe toujours par les outils (say pour parler).
 
 Exemples (contexte : JustEdible [Juste], Ensuri, Cyllu [Cycy], Arreaubaz, LordFinn ; manches pont « Le Pont »,

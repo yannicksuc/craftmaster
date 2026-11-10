@@ -2,7 +2,9 @@
 for tests without an API key, or as an emergency mode without internet. Deliberately narrow — anything else
 answers "not understood" and does nothing.
 
-Understood: "annule" · "ouvrez / fermez les rideaux" · "manche suivante" · "mettez à jour les scores" / "publie" ·
+Understood: "caméra <N>" · "plan large" · "plan sur le trône" · "le podium" · "suis <joueur>" · "générique" /
+"générique de fin" · "réalisation automatique" · "montre la tâche" · "montre les scores" ·
+"annule" · "ouvrez / fermez les rideaux" · "manche suivante" · "mettez à jour les scores" / "publie" ·
 "la révélation" · "<N> point(s) pour|à <joueur> [pour|sur <manche>]" · "<joueur> prend <N> point(s) [sur <manche>]".
 """
 from __future__ import annotations
@@ -54,6 +56,30 @@ class OfflineUnderstander:
             return [{"type": "scores.publish"}]
         if re.search(r"\brévélation\b", text):
             return [{"type": "reveal.start"}]
+        # TV direction (chantier E)
+        m = re.fullmatch(r"(?:la |sur la )?cam[ée]ra " + NUM, text)
+        if m:
+            n = m.group("n")
+            return [{"type": "camera.cut", "camera": str(FRENCH_NUMBERS.get(n, n))}]
+        if re.fullmatch(r"(?:un |le )?plan (?:large|général|general)", text):
+            return [{"type": "camera.cut", "camera": "large"}]
+        if re.fullmatch(r"(?:un |le )?plan (?:sur le |du )?tr[ôo]ne", text):
+            return [{"type": "camera.cut", "camera": "trone"}]
+        if re.fullmatch(r"(?:plan (?:sur le |du )?|caméra (?:sur le )?|le )?podium", text):
+            return [{"type": "camera.cut", "camera": "podium"}]
+        m = re.fullmatch(r"(?:suis|suivez|on suit|caméra sur) (?P<player>.+)", text)
+        if m:
+            return [{"type": "camera.follow", "player": m.group("player")}]
+        if re.fullmatch(r"(?:lance )?(?:le )?générique de fin", text):
+            return [{"type": "show.outro"}]
+        if re.fullmatch(r"(?:lance )?(?:le )?générique(?: d'ouverture| de début)?", text):
+            return [{"type": "show.intro"}]
+        if re.fullmatch(r"réalisation auto(?:matique)?", text):
+            return [{"type": "camera.auto", "enabled": True}]
+        if re.fullmatch(r"(?:montre|affiche) la tâche", text):
+            return [{"type": "broadcast.task"}]
+        if re.fullmatch(r"(?:montre|affiche) (?:les scores|le classement)", text):
+            return [{"type": "broadcast.scores", "mode": "show"}]
         for pat in SCORE_PATTERNS:
             m = pat.match(text)
             if m:

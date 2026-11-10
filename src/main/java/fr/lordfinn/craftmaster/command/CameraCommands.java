@@ -198,7 +198,7 @@ public final class CameraCommands {
                 : new CameraSpot(n, null, "", Busts.worldId(p.level()), p.getX(), p.getEyeY(), p.getZ(), p.getYRot(), p.getXRot(), 0, CameraSpot.BREATHING);
         if (newName != null) spot = spot.withName(newName);
         Cameras.place(c.getSource().getServer(), spot);
-        ok(c, "🎥 Caméra " + spot.label() + (old == null ? " posée" : " déplacée") + " à ta place, elle regarde là où tu regardes.");
+        ok(c, "Caméra " + spot.label() + (old == null ? " posée" : " déplacée") + " à ta place, elle regarde là où tu regardes.");
         return 1;
     }
 
@@ -244,6 +244,14 @@ public final class CameraCommands {
         return run(c, action("camera.cut", "camera", String.valueOf(s.number())));
     }
 
+    /** All eyes on a player: what chantier D's envelopes fire ({@code ShowEvents.spotlight}), by hand. */
+    private static int spotlight(CommandContext<CommandSourceStack> c, String reason) {
+        String player = str(c, "player");
+        fr.lordfinn.craftmaster.show.ShowEvents.spotlight(c.getSource().getServer(), player, reason == null ? "" : reason);
+        ok(c, "Projecteur sur " + player + (Director.autoDirection() ? "." : " (la réalisation automatique est désactivée : /cam auto on)."));
+        return 1;
+    }
+
     // ---------------------------------------------------------------- /craftMasterTv
 
     private static LiteralArgumentBuilder<CommandSourceStack> tv(String name) {
@@ -265,6 +273,23 @@ public final class CameraCommands {
                         .then(argument("mode", word()).suggests(SCORE_MODES).executes(c -> run(c, action("broadcast.scores", "mode", str(c, "mode"))))))
                 .then(literal("letterbox").then(argument("enabled", word()).suggests(ON_OFF)
                         .executes(c -> run(c, action("broadcast.letterbox", "enabled", onOff(c, "enabled"))))))
+                .then(literal("broadcast").then(argument("player", word()).suggests(ONLINE)
+                        .then(argument("enabled", word()).suggests(ON_OFF).executes(c -> {
+                            // Switches a game's broadcast mode from here (the camera account's PC may be out of reach)
+                            ServerPlayer target = c.getSource().getServer().getPlayerList().getPlayerByName(str(c, "player"));
+                            if (target == null || !net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(target, BroadcastNetwork.ShowCue.TYPE)) {
+                                fail(c, str(c, "player") + " n'est pas connecté avec le mod.");
+                                return 0;
+                            }
+                            boolean on = onOff(c, "enabled");
+                            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(target,
+                                    new BroadcastNetwork.ShowCue(BroadcastNetwork.Cues.BROADCAST, on ? "on" : "off", "", "", 0));
+                            ok(c, "Mode diffusion " + (on ? "activé" : "désactivé") + " pour " + target.getGameProfile().name() + ".");
+                            return 1;
+                        }))))
+                .then(literal("spotlight").then(argument("player", word()).suggests(ONLINE)
+                        .executes(c -> spotlight(c, null))
+                        .then(argument("reason", StringArgumentType.greedyString()).executes(c -> spotlight(c, str(c, "reason"))))))
                 .then(literal("intro").executes(c -> run(c, action("show.intro"))))
                 .then(literal("outro").executes(c -> run(c, action("show.outro"))))
                 .then(literal("stop").executes(c -> run(c, action("show.stop"))));

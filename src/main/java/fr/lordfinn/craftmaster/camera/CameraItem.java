@@ -45,7 +45,7 @@ public class CameraItem extends Item {
                 player.getYRot(), player.getXRot(), 0, CameraSpot.BREATHING);
         Cameras.place(level.getServer(), spot);
         level.playSound(null, at.x, at.y, at.z, SoundEvents.ARMOR_STAND_PLACE, SoundSource.BLOCKS, 1f, 1.2f);
-        player.sendSystemMessage(Component.literal("🎥 Caméra " + number + " posée. ").withStyle(ChatFormatting.GOLD)
+        player.sendSystemMessage(Component.literal("Caméra " + number + " posée. ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal("Clic droit dessus pour la régler, /cam aim " + number + " pour la viser.")
                         .withStyle(ChatFormatting.GRAY)));
         ItemStack stack = ctx.getItemInHand();

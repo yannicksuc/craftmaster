@@ -88,7 +88,7 @@ public class CameraEntity extends Entity {
         if (player instanceof ServerPlayer sp) {
             if (!Permissions.canDriveCameras(sp)) return InteractionResult.PASS;
             CameraSpot spot = Cameras.get(number());
-            sp.sendSystemMessage(Component.literal("🎥 " + (spot != null ? spot.label() : number() + " · " + cameraName()))
+            sp.sendSystemMessage(Component.literal("" + (spot != null ? spot.label() : number() + " · " + cameraName()))
                     .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
             if (spot != null) sp.sendSystemMessage(Component.literal("   " + spot.describe()).withStyle(ChatFormatting.GRAY));
             sp.sendSystemMessage(Component.literal("   ")

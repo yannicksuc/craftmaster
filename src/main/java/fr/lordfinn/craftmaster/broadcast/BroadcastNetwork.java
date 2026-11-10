@@ -144,7 +144,8 @@ public final class BroadcastNetwork {
      * (title, subtitle, player), {@code scores} (show the score strip), {@code task} (show the task card),
      * {@code title_card} (big centred card: title, subtitle), {@code contestant} (opening credits: player, title =
      * "1/4"), {@code credits} (closing credits roll), {@code theme} (play the theme; title "stop" stops it),
-     * {@code clear} (removes every card).
+     * {@code clear} (removes every card), {@code broadcast} (title "on" / "off": switches that game's broadcast mode,
+     * sent to one player by {@code /tv broadcast}).
      */
     public record ShowCue(String kind, String title, String subtitle, String player, int ticks) implements CustomPacketPayload {
         public static final Type<ShowCue> TYPE = new Type<>(CraftMaster.id("show_cue"));
@@ -164,7 +165,8 @@ public final class BroadcastNetwork {
 
     public static final class Cues {
         public static final String POINTS = "points", LOWER_THIRD = "lower_third", SCORES = "scores", TASK = "task",
-                TITLE_CARD = "title_card", CONTESTANT = "contestant", CREDITS = "credits", THEME = "theme", CLEAR = "clear";
+                TITLE_CARD = "title_card", CONTESTANT = "contestant", CREDITS = "credits", THEME = "theme", CLEAR = "clear",
+                BROADCAST = "broadcast";
 
         private Cues() {}
     }

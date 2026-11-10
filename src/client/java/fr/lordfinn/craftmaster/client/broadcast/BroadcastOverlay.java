@@ -383,7 +383,7 @@ public final class BroadcastOverlay {
         fill(g, x0 - 4, y0, x0 - 1, y1, alpha(GOLD, in));
         if (shown > 1) {
             velvet(g, x0, y0, x0 + shown, y1 - 9, 1, false);
-            gradient(g, x0, y1 - 9, x0 + shown * Math.min(1, (subW + 18 + faceS + 8) / plateW + 0.05f), y1, GOLD_LIGHT, GOLD);
+            gradient(g, x0, y1 - 9, x0 + shown, y1, GOLD_LIGHT, GOLD);
             fill(g, x0, y0, x0 + shown, y0 + 0.75f, GOLD_LIGHT);
         }
         float textA = (float) DirectorCamera.smooth((e - 0.6) / 0.4);
@@ -412,8 +412,14 @@ public final class BroadcastOverlay {
         scoresK = approach(scoresK, want ? 1 : 0, dt, 0.2);
         if (scoresK < 0.01f) return;
         float e = (float) DirectorCamera.smooth(scoresK);
-        float chipW = 78, gap = 4, hgt = 18;
+        float gap = 4, hgt = 18;
         int n = Math.min(ranked.size(), 6);
+        // Wide enough for the longest name and score, all chips the same width, the strip within the screen
+        float longest = 0;
+        for (int i = 0; i < n; i++)
+            longest = Math.max(longest, width(font, Component.literal(ranked.get(i).name()), 0.7f)
+                    + width(font, bold(String.valueOf(ranked.get(i).points())), 0.85f));
+        float chipW = Math.min(Math.max(78, longest + 40), (w - 40 - (n - 1) * gap) / Math.max(1, n));
         float total = n * chipW + (n - 1) * gap;
         float x = (w - total) / 2, y = bottom - 26 + (1 - e) * 40;
         for (int i = 0; i < n; i++) {

@@ -66,6 +66,8 @@ loom {
             client()
             programArgs("--username", "Joueur2")
             (findProperty("quickPlayMultiplayer") as String?)?.let { programArgs("--quickPlayMultiplayer", it) }
+            // -PwindowSize=1920x1080: the broadcast picture at Twitch's size (scripts/dev-client.ps1 -Size)
+            (findProperty("windowSize") as String?)?.split("x")?.let { programArgs("--width", it[0], "--height", it[1]) }
             if (hasProperty("backgroundClient")) environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
             runDir = "run2"
         }
