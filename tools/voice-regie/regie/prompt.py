@@ -32,11 +32,15 @@ Règles :
 8. « annule », « annule ça », « oups non » = undo (count 1 ; « annule les deux dernières » = count 2).
 9. Créer, renommer, archiver, supprimer : saisons, parties, manches, joueurs (player_add avec ses surnoms).
    Saison ou partie non précisée = l'active : n'envoie alors pas season / partie.
-10. En cas de doute réel (joueur ou manche introuvable, nombre incompris, ordre ambigu, ordre qui ne concerne
+10. Tâches et enveloppes : « la tâche du pont : … » ou « écris la tâche … » = task_set (texte dicté remis en
+   forme : phrases, ponctuation, paragraphes séparés par une ligne vide, sans rien inventer) ; « ajoute à la
+   tâche … » = task_set avec append ; « révèle la tâche » = task_reveal ; « montre la tâche » = task_show ;
+   « donne les enveloppes » = envelope_give (sans players = tous les candidats).
+11. En cas de doute réel (joueur ou manche introuvable, nombre incompris, ordre ambigu, ordre qui ne concerne
     pas l'émission, transcription vide ou absurde) : n'exécute RIEN, appelle seulement say avec une question ou
     une explication courte. Ne fais jamais une action destructive (delete, archive) sans qu'elle soit
     clairement demandée.
-11. Si une action est possible avec certitude, fais-la sans demander confirmation. Ne réponds pas en texte libre :
+12. Si une action est possible avec certitude, fais-la sans demander confirmation. Ne réponds pas en texte libre :
     passe toujours par les outils (say pour parler).
 
 Exemples (contexte : JustEdible [Juste], Ensuri, Cyllu [Cycy], Arreaubaz, LordFinn ; manches pont « Le Pont »,
@@ -47,6 +51,7 @@ tour « La Tour » en cours) :
 - « ouvrez les rideaux » → curtain_open {}
 - « renomme l'épreuve 2 en Tour infernale » → manche_update {manche: "tour", name: "Tour infernale"}
 - « ajoute Cyllu comme joueur, surnom Cycy » → player_add {pseudo: "Cyllu", aliases: ["Cycy"]}
+- « la tâche du pont : construisez le pont le plus long. Pas de TNT. » → task_set {manche: "pont", text: "Construisez le pont le plus long.", rules: ["Pas de TNT"]}
 - « cinq points pour Machin » (inconnu) → say {text: "Je ne trouve pas de joueur « Machin »."}
 """
 

@@ -33,6 +33,13 @@ seasons:
           timer: 180
           tp: [{world: minecraft:overworld, x: 10.5, y: 64, z: -3.5, yaw: 90, pitch: 0}]
           archived: true       # facultatif
+          task:                # facultatif (v4) : la tâche lue sur la carte de l'enveloppe
+            title: Le pont le plus élégant
+            text: "Construisez un pont…\n\nLe plus élégant gagne."
+            rules: [Pas de TNT]
+            seconds: 0         # durée affichée, 0 = le chrono de la manche
+            wax: red           # red gold black white blue green purple pink orange cyan brown gray
+            revealOnStart: false   # écrit seulement si false
         scores:                # manche → joueur → points (en direct)
           le-pont: {LordFinn: 3, Ensuri: 5}
     published:                 # copie figée à la dernière publication
@@ -65,3 +72,10 @@ gardés et les scores sont publiés.
   `config.yml`, puis `/craftMasterReloadScores`.
 - Le journal d'annulation n'est pas dans le fichier (mémoire seulement).
 - Sauvegarde : copier ce fichier (et les structures des décors).
+
+## Tâches révélées et notes cachées (`tasks.json`)
+`config/craftmaster/tasks.json` (JSON) : `revealed` (`"<saison>:<id manche>": {at, by}`), `lastRevealed`, et
+`notes` (`id → {title, text, look, readers, players, once, ink, pieces, spots[], finds[]}` ; une cachette :
+`{world, x, y, z, entity?, method, piece, takenBy?, face?}` ; une trouvaille : `{player, at, piece, method}`).
+Séparé de `config.yml` exprès : une révélation ou une trouvaille est un événement du direct, `/craftMasterUndo`
+ne l'annule pas. Un fichier illisible est gardé en `tasks.json.broken`.

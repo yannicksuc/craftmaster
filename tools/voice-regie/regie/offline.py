@@ -3,7 +3,8 @@ for tests without an API key, or as an emergency mode without internet. Delibera
 answers "not understood" and does nothing.
 
 Understood: "annule" · "ouvrez / fermez les rideaux" · "manche suivante" · "mettez à jour les scores" / "publie" ·
-"la révélation" · "<N> point(s) pour|à <joueur> [pour|sur <manche>]" · "<joueur> prend <N> point(s) [sur <manche>]".
+"la révélation" · "<N> point(s) pour|à <joueur> [pour|sur <manche>]" · "<joueur> prend <N> point(s) [sur <manche>]" ·
+"révèle la tâche" · "montre la tâche" · "donne les enveloppes".
 """
 from __future__ import annotations
 
@@ -52,6 +53,12 @@ class OfflineUnderstander:
             return [{"type": "manche.start", "manche": "next"}]
         if re.search(r"(mett?\w* à jour (les scores|le classement)|^publie)", text):
             return [{"type": "scores.publish"}]
+        if re.search(r"\b(révèle|révéler|dévoile)\w* (la )?tâche\b", text):
+            return [{"type": "task.reveal"}]
+        if re.search(r"\b(montre|affiche)\w* (la )?tâche\b", text):
+            return [{"type": "task.show"}]
+        if re.search(r"\b(donne|distribue)\w* (les )?enveloppes?\b", text):
+            return [{"type": "envelope.give"}]
         if re.search(r"\brévélation\b", text):
             return [{"type": "reveal.start"}]
         for pat in SCORE_PATTERNS:

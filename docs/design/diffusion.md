@@ -137,3 +137,62 @@ pas été révélée (enveloppe ouverte, ou manche lancée, ou révélation forc
   (Dépôt principal : 25691 / 25692 / 25731 / 25732 ; régie vocale : 25790.)
 
 ## Interfaces livrées (à remplir par chaque chantier)
+
+### D. Tâches, enveloppes, notes cachées (livré)
+
+**Données** : `Manche.task` (`fr.lordfinn.craftmaster.data.Task` : `title`, `text` — paragraphes séparés par
+`\n\n` —, `rules`, `seconds` — 0 = `Manche.timer`, voir `shownSeconds(Manche)` —, `wax`, `revealOnStart`), clé
+`task` dans `config.yml`, absente = pas de tâche (fichiers v3 lus tels quels). Les **révélations** et les **notes**
+sont dans `config/craftmaster/tasks.json` (`fr.lordfinn.craftmaster.task.TaskStore`), hors journal d'annulation.
+
+**Actions** (`Actions`, effets `Actions.TaskEffect` joués par `Tasks.play`) :
+- `task.set {manche, title?, text?, append?, rules?, seconds?, wax?, revealOnStart?}` — seuls les champs donnés
+  changent ; `append: true` ajoute `text` en nouveau paragraphe ; `rules` liste ou texte « a | b » ; `wax` en anglais
+  ou en français (rouge, or…).
+- `task.clear {manche}`.
+- `task.reveal {manche?}` (annoncé à tous) · `task.hide {manche?}` · `task.show {manche?, seconds?=12}` (révèle
+  puis la carte sur tous les écrans) · `envelope.give {manche?, players?, wax?}` (`players` absent ou `tous` = les
+  candidats connectés). `manche` absent = manche en cours.
+- `manche.start` révèle la tâche de la manche si elle en a une et `revealOnStart` (effet `TaskRevealed`).
+- Régie vocale : outils `task_set`, `task_clear`, `task_reveal`, `task_hide`, `task_show`, `envelope_give` ; hors
+  ligne : « révèle la tâche », « montre la tâche », « donne les enveloppes ».
+- Contexte (`ShowContext`) : `manches[].task {title, wax, revealed}` (seulement si une tâche est écrite).
+
+**Serveur** (`fr.lordfinn.craftmaster.task`) :
+- `Tasks.reveal(MinecraftServer, String mancheId, ServerPlayer by)` → `boolean` (false : pas de telle manche avec une
+  tâche dans la saison active, ou déjà révélée). `mancheId` : id, nom ou surnom. Synchronise tous les clients.
+- `Tasks.openPaper(ServerPlayer, String title, String text)` : ouvre la carte papier (sans sceau de manche) chez le
+  joueur ; dans le chat si son jeu n'a pas le mod. Pour les objets d'épreuve de H.
+- `Notes.open(ServerPlayer, String noteId)` → `boolean` : ouvre une note comme trouvée (lecteurs respectés,
+  trouvaille notée « avec un objet d'épreuve », admins prévenus). Pour H aussi.
+- `Tasks.openCurrent(ServerPlayer)` (touche J / `/tache`), `Tasks.locateActive(String)`, `Tasks.isRevealed(Located)`.
+- `ShowEvents.Listener` : `onTaskRevealed(server, season, mancheId, ServerPlayer by)` (by = l'ouvreur de
+  l'enveloppe, ou null : lancement de manche, organisateur) et `onEnvelopeOpened(server, player, season, mancheId)`
+  (`mancheId` vide = enveloppe de texte libre), appelé à chaque ouverture d'une enveloppe scellée — pour la
+  réalisation automatique de E (couper sur celui qui ouvre).
+
+**Client** (`fr.lordfinn.craftmaster.client.task`) :
+- `CurrentTask.get()` → `Optional<Info>`, `record Info(String mancheId, String mancheName, int mancheNumber,
+  String title, String text, List<String> rules, int seconds, boolean revealed)`. « Tâche du moment » = la manche en
+  cours si elle a une tâche, sinon la dernière révélée (les admins : entre deux manches, la prochaine qui a une
+  tâche). Pour un non-admin, une tâche secrète arrive **sans texte** (`revealed=false`, titre / texte / règles vides).
+  En plus : `CurrentTask.wax()`, `CurrentTask.admin()`, `CurrentTask.cardShown()`, `CurrentTask.hideCard()`.
+- `CurrentTask.showCard(int ticks)` : la carte glisse depuis la droite (≈ 220 px de large, centrée verticalement,
+  défilement lent si longue), reste `ticks`, ressort. **Ne montre jamais un texte secret**, même chez un admin
+  (« Tâche encore secrète »). Dessinée par `HudElementRegistry` (`craftmaster:task_card`) : E peut la masquer en mode
+  diffusion et la redessiner dans son habillage via `PaperView` (`new PaperView(font, paper, 1.5f)`, `layout(w)`,
+  `draw(g, x, y, w, h, scroll, alpha, textAlpha)`).
+- Paquets (`TaskNetwork`) : `task_state` (tâche du moment), `task_paper`, `task_show_card`, `task_close_card`,
+  `task_open_editor`, `task_open_note` (serveur → client) ; `task_request`, `task_run_actions`, `task_save_note`,
+  `task_note_order`, `task_seal` (client → serveur, admin vérifié).
+- Touche `key.craftmaster.task` (J, catégorie CraftMaster). Twitch : `config/craftmaster-client.json`
+  (`twitch.enabled/channel/commands/cooldownSeconds/showSeconds`), `/craftMasterTwitch [reload|test]`.
+
+**Contenu** : objets `craftmaster:envelope` (composant `craftmaster:envelope`), `wax_seal`, `note` / `note_bottle`
+(composant `craftmaster:note`), `uv_lamp` ; blocs `envelope_block` (+ entité de bloc), `pinned_note`.
+
+**Écarts / choix** : révélations et trouvailles hors annulation (événements du direct) ; la carte de surimpression
+respecte toujours le secret ; « tâche du moment » définie ci-dessus ; les notes ne passent pas par `ActionExecutor`
+(objets du monde, comme les tableaux) mais par leurs commandes et leur éditeur ; cachettes : sous un tapis / une
+dalle, dans un livre, derrière un tableau ou un cadre, double fond, dedans, feuille épinglée, bouteille, plus encre
+invisible (lampe UV) et morceaux déchirés.

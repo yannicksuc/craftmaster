@@ -29,6 +29,8 @@ besoin de rien).
 | « ajoute Cyllu comme joueur, surnom Cycy » | nouveau joueur avec surnom |
 | « crée une manche Parkour sur scène avec un chrono de deux minutes » | nouvelle manche |
 | « archive la partie 1 », « crée la saison 5 », « cache le classement » | saisons / parties |
+| « la tâche du pont : construisez le pont le plus long… » / « ajoute à la tâche : … » | dicter la tâche ([Tâches](Taches.md)) |
+| « révèle la tâche » / « montre la tâche » / « donne les enveloppes » | révéler, carte à l'écran, enveloppes aux candidats |
 
 ## Ce qu'elle comprend
 - **Pseudos approximatifs** : surnoms (définis par joueur), fautes de transcription (« l'or fine » → LordFinn,

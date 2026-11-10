@@ -26,7 +26,8 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
     CraftMasterData       chargement / migration / sauvegarde, point unique de modification (change) et
                           journal d'annulation, API « tâches » du plugin, busts
     Season, Partie,       saison (joueurs, parties, scores publiés), partie (manches, scores en direct),
-    Manche, SeasonPlayer  manche (id stable, chrono, TP, scène), joueur de la saison (surnoms)
+    Manche, SeasonPlayer  manche (id stable, chrono, TP, scène, tâche), joueur de la saison (surnoms)
+    Task                  texte de tâche d'une manche (titre, texte, règles, durée, cire)
     Stage, Live           plateau (rideaux nommés, ancre, décors, durées de révélation), état du direct
     Migration             format 1 (plugin, mod 2.0) → 2
   show/                   l'émission
@@ -44,6 +45,14 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
                           PortraitRanking (seule source des scores), GalleryPlanner (colonnes, plans, sans croisement),
                           PortraitGeometry (proportions bébé, centre de gravité, nœud), PortraitAnimation, Pose,
                           PoseLibrary (poses.json), PortraitNetwork, PortraitCommands (/cfpt), PortraitItem
+  task/                   tâches, enveloppes, notes cachées (chantier D, docs/wiki/Taches.md)
+    Tasks                 règle du secret, révélation, tâche du moment envoyée à chacun, cartes, enveloppes,
+                          effets des actions task.* / envelope.give ; contrat openPaper / reveal
+    Notes                 cachettes (clic droit / accroupi selon le bloc, entités), trouvailles, éditeur, outil
+    TaskStore             tasks.json : révélations, notes (Note : cachettes, trouvailles, morceaux)
+    TaskNetwork           paquets (État, Carte, ShowCard, éditeurs, actions des écrans, sceau)
+    TaskContent, -Components  objets / blocs / composants (enveloppe, sceau, note, bouteille, lampe UV,
+                          EnvelopeBlock + entité de bloc, PinnedNoteBlock), WaxColor, TwitchIrc (lecture du chat)
   curtain/Curtains        animation d'ouverture / fermeture (file d'attente par tick)
   block/                  ChairBlock, CurtainBlock, Shapes4 (formes tournées dans les 4 sens)
   entity/SeatEntity       l'entité invisible sur laquelle on s'assoit
@@ -59,6 +68,9 @@ src/client/java/…/client/                   client uniquement (jamais chargé 
   RankingScreen           l'écran de classement
   regie/VoiceRegie        touche N, enregistrement, envoi au service puis au serveur ; Recorder (micro / WAV) ;
   regie/RegieHud          le panneau « ● Régie à l'écoute » / résultat (HudElementRegistry)
+  task/                   CurrentTask (contrat : tâche du moment, carte en surimpression), PaperView (la carte :
+                          papier, typographie, cire), PaperScreen (lecture + ouverture animée de l'enveloppe),
+                          TaskEditorScreen, SealScreen, NoteEditorScreen, TwitchChat (!tache), TaskClient (touche J)
   portrait/               PortraitRenderer, PortraitClipper (coupe par la toile, fenêtre Antichamber), PortraitSkins
                           (skin du joueur ou image téléchargée), PortraitScreen (réglages), PoseEditorScreen
 src/main/resources/                         fabric.mod.json, mixins, assets et data (générés)

@@ -7,7 +7,8 @@ from regie.validate import check
 SPEC_ACTIONS = """score.set score.add score.remove scores.publish reveal.start undo player.add player.update
 player.remove season.create season.update season.archive season.delete season.activate partie.create partie.update
 partie.archive partie.delete partie.activate manche.create manche.update manche.archive manche.delete manche.start
-manche.end timer.stop curtain.open curtain.close scene.set say""".split()
+manche.end timer.stop curtain.open curtain.close scene.set say
+task.set task.clear task.reveal task.hide task.show envelope.give""".split()
 
 
 def test_schema_matches_the_spec():
@@ -106,3 +107,16 @@ def test_undo_is_never_combined_with_the_idle_rule():
     c = ShowContext(make_context(lastScoreAt=NOW - 5 * 60000))
     r = check([{"type": "undo"}], c)
     assert r.actions == [{"type": "undo", "count": 1}]
+
+
+def test_task_dictation_is_kept_and_normalized(ctx):
+    """Chantier D: a dictated task keeps its text, its manche is resolved, rules stay a list."""
+    out = check([{"type": "task.set", "manche": "le pont", "title": "Le pont", "text": "Construisez.\n\nVite.",
+                  "rules": "Pas de TNT", "seconds": "90", "append": "oui"},
+                 {"type": "envelope.give", "players": ["JustEdible"]}, {"type": "task.show"}], ctx)
+    assert out.warnings == []
+    a = out.actions[0]
+    assert a["manche"] == "pont" and a["text"] == "Construisez.\n\nVite." and a["rules"] == ["Pas de TNT"]
+    assert a["seconds"] == 90 and a["append"] is True
+    assert out.actions[1]["players"] == ["JustEdible"]
+    assert out.actions[2] == {"type": "task.show"}

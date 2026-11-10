@@ -18,6 +18,9 @@ CASES = [
     ("Mettez à jour les scores.", [{"type": "scores.publish"}]),
     ("Annule.", [{"type": "undo", "count": 1}]),
     ("Lance la révélation.", [{"type": "reveal.start"}]),
+    ("Révèle la tâche.", [{"type": "task.reveal"}]),
+    ("Montre la tâche à tout le monde.", [{"type": "task.show"}]),
+    ("Donne les enveloppes.", [{"type": "envelope.give"}]),
 ]
 
 

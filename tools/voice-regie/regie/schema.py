@@ -79,6 +79,28 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
     "curtain.open": ("Ouvre un rideau (« ouvrez les rideaux »).", [f("name", STR, doc="Nom du rideau ; absent = rideau de scène.")]),
     "curtain.close": ("Ferme un rideau.", [f("name", STR, doc="Nom du rideau ; absent = rideau de scène.")]),
     "scene.set": ("Pose un décor enregistré à l'ancre de scène.", [f("name", STR, True, "Nom du décor (du contexte).")]),
+    # Tasks and envelopes (chantier D, docs/design/diffusion.md)
+    "task.set": ("Écrit ou modifie la tâche d'une manche (lue sur la carte de l'enveloppe) : titre, texte dicté, règles, "
+                 "durée affichée, couleur de cire. Seuls les champs donnés changent.",
+                 [f("manche", MANCHE, True, MANCHE_DOC), f("title", STR, doc="Titre court de la tâche."),
+                  f("text", STR, doc="Texte de la tâche, mis en forme : phrases complètes, ponctuation, paragraphes "
+                                    "séparés par une ligne vide (\\n\\n). Reprendre fidèlement la dictée."),
+                  f("append", BOOL, doc="true = ajoute text en nouveau paragraphe au texte existant (« ajoute à la tâche »)."),
+                  f("rules", STR_LIST, doc="Règles en puces, liste COMPLÈTE (remplace les anciennes)."),
+                  f("seconds", INT, doc="Durée affichée sur la carte en secondes (0 = chrono de la manche)."),
+                  f("wax", STR, doc="Couleur de cire : rouge, or, noir, blanc, bleu, vert, violet, rose, orange, cyan, marron, gris."),
+                  f("revealOnStart", BOOL, doc="false = seule l'ouverture d'une enveloppe révèle la tâche.")]),
+    "task.clear": ("Efface la tâche d'une manche.", [f("manche", MANCHE, True, MANCHE_DOC)]),
+    "task.reveal": ("Révèle la tâche à tout le monde (spectateurs, diffusion), annoncé à tous.",
+                    [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours.")]),
+    "task.hide": ("Rend une tâche de nouveau secrète.", [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours.")]),
+    "task.show": ("Affiche la carte de la tâche sur tous les écrans quelques secondes (« montre la tâche »).",
+                  [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
+                   f("seconds", INT, doc="Durée d'affichage, 12 par défaut (1 à 120).")]),
+    "envelope.give": ("Donne des enveloppes scellées de la tâche d'une manche (« donne les enveloppes »).",
+                      [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
+                       f("players", STR_LIST, doc="Pseudos EXACTS des destinataires ; absent = tous les candidats connectés."),
+                       f("wax", STR, doc="Couleur de cire ; absent = celle de la tâche.")]),
     "say": ("Répond à LordFinn sans rien modifier : question, doute réel, ordre impossible ou incompris. "
             "Texte court en français.", [f("text", STR, True, "Réponse courte.")]),
 }
