@@ -45,6 +45,7 @@ public final class Credits {
     /** Starts the opening ({@code intro}) or closing credits; returns the line for the organiser. */
     static String start(MinecraftServer server, boolean intro) {
         stop(server);
+        MancheIntros.stop(server);
         running = intro ? "intro" : "outro";
         ShowState state = Director.build(server);
         Director.cue(server, new ShowCue(Cues.CLEAR, "", "", "", 0));
@@ -102,8 +103,9 @@ public final class Credits {
 
     /** The cameras for the studio shots: the wide shot first, then the others in number order. */
     private static List<CameraSpot> studioShots() {
-        List<CameraSpot> all = CameraList.sorted(Cameras.list().all());
-        CameraSpot wide = Cameras.list().wide();
+        CameraList studio = Cameras.list().group(CameraSpot.STUDIO);
+        List<CameraSpot> all = CameraList.sorted(studio.all());
+        CameraSpot wide = studio.wide();
         if (wide != null) {
             all.remove(wide);
             all.addFirst(wide);

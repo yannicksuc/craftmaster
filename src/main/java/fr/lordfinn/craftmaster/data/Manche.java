@@ -28,6 +28,8 @@ public final class Manche {
     public fr.lordfinn.craftmaster.trial.ResultSheet results = new fr.lordfinn.craftmaster.trial.ResultSheet();
     /** Text of the task read on the envelope's card (chantier D), or null if none was written. */
     public Task task;
+    /** Animated intro of the round on the broadcast (chantier E, TV direction); empty = none. */
+    public MancheIntro intro = new MancheIntro();
 
     public Manche(String id, String name) {
         this.id = id;
@@ -48,6 +50,7 @@ public final class Manche {
         Maps.putIf(m, "archived", archived);
         if (!results.isEmpty()) m.put("results", results.toYaml()); // chantier H
         if (task != null) m.put("task", task.toYaml());
+        if (!intro.isEmpty()) m.put("intro", intro.toYaml()); // chantier E: intro of the round
         return m;
     }
 
@@ -64,6 +67,7 @@ public final class Manche {
         }
         r.archived = Maps.bool(m.get("archived"));
         r.results = fr.lordfinn.craftmaster.trial.ResultSheet.fromYaml(m.get("results")); // chantier H
+        r.intro = MancheIntro.fromYaml(m.get("intro")); // chantier E: absent = no intro
         // Files written before v4 have no task: the round simply has none
         if (m.get("task") instanceof Map<?, ?>) r.task = Task.fromYaml(Maps.map(m.get("task")));
         return r;

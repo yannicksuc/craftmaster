@@ -34,7 +34,8 @@ public abstract class CameraMixin {
     @Inject(method = "update", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;alignWithEntity(F)V", shift = At.Shift.AFTER))
     private void craftmaster$directorShot(DeltaTracker delta, CallbackInfo ci) {
         craftmaster$pose = null;
-        if (!Broadcast.active()) return;
+        // Broadcast mode, or a travelling preview on an organiser's own screen
+        if (!Broadcast.active() && !DirectorCamera.previewing()) return;
         DirectorCamera.Pose pose = DirectorCamera.pose(delta.getGameTimeDeltaPartialTick(true));
         if (pose == null) return;
         craftmaster$pose = pose;
@@ -46,7 +47,7 @@ public abstract class CameraMixin {
     @Inject(method = "calculateFov", at = @At("RETURN"), cancellable = true)
     private void craftmaster$directorFov(float partialTick, CallbackInfoReturnable<Float> cir) {
         DirectorCamera.Pose pose = craftmaster$pose;
-        if (pose == null || !Broadcast.active()) return;
+        if (pose == null) return;
         cir.setReturnValue(pose.fov() > 0 ? pose.fov() : (float) Minecraft.getInstance().options.fov().get().intValue());
     }
 }

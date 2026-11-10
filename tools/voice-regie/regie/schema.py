@@ -110,12 +110,49 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
     "stopwatch.reset": ("Remet à zéro le chrono d'un candidat (ou tous si aucun joueur).", [f("player", PLAYER, doc=PLAYER_DOC)]),
     "buzzer.reset": ("Remet les buzzers à zéro (« remets les buzzers »).", []),
     # TV direction (chantier E): no data change, nothing to undo
-    "camera.cut": ("Passe à l'antenne sur une caméra du studio (« caméra 2 », « plan large », « plan sur le trône », "
-                   "« le podium »).",
-                   [f("camera", STR, True, "Numéro, nom exact (du contexte) ou rôle : large, trone, podium."),
-                    f("transition", STR, doc="coupe (défaut), fondu ou enchaine.")]),
-    "camera.follow": ("Plan qui suit un joueur (« suis Ensuri », « caméra sur Cycy »).",
+    "camera.cut": ("Passe à l'antenne sur une caméra (« caméra 2 », « plan large », « plan sur le trône », "
+                   "« le podium », « caméra 2 du studio », « caméra 1 d'Ensuri »).",
+                   [f("camera", STR, True, "Numéro, nom exact (du contexte) ou rôle : large, trone, podium — dans le lieu "
+                                           "et la zone actifs (cameraFocus). Ailleurs : clé du contexte (studio:2, "
+                                           "pont:ensuri:1) ou la phrase telle quelle (« caméra 2 du studio »)."),
+                    f("transition", STR, doc="coupe (défaut), fondu ou enchaine."),
+                    f("effect", STR, doc="Effet d'image si demandé : noir_blanc, sepia, pixel, fisheye, vignette, masque_rond, citrouille.")]),
+    "camera.follow": ("Plan qui suit un joueur (« suis Ensuri », « caméra sur Cycy ») ; pendant une manche, les touches "
+                      "passent aussi aux caméras de sa zone.",
                       [f("player", PLAYER, True, PLAYER_DOC), f("transition", STR, doc="coupe, fondu ou enchaine.")]),
+    # TV direction, lieux / travellings / intros (chantier E): no data change except intro.*
+    "camera.path": ("Lance un travelling enregistré à l'antenne (« lance le travelling du pont »).",
+                    [f("path", STR, True, "Nom du trajet (contexte : paths)."), f("transition", STR, doc="coupe, fondu ou enchaine."),
+                     f("effect", STR, doc="Effet d'image si demandé.")]),
+    "camera.focus": ("Change les caméras que visent « caméra 2 » et les touches 1–9 : une zone (« zone d'Ensuri », "
+                     "« caméras de l'équipe bleue »), un lieu (« caméras du studio », « caméras du pont ») ou auto "
+                     "(suivre l'émission).",
+                     [f("lieu", STR, doc="studio, id de manche, ou auto."), f("zone", STR, doc="Nom de zone (équipe…)."),
+                      f("player", PLAYER, doc="Candidat dont on veut la zone. " + PLAYER_DOC),
+                      f("cut", BOOL, doc="true = montre aussi le plan large de cette zone (« zone d'Ensuri »).")]),
+    "camera.lieu": ("Range une caméra dans un lieu (« la caméra 3 est sur le pont », « la 2 est dans la salle d'Ensuri »).",
+                    [f("camera", STR, True, "La caméra (numéro dans le lieu actif, ou clé)."),
+                     f("lieu", STR, True, "studio ou id de manche."), f("zone", STR, doc="Zone (nom ou candidat), si dite.")]),
+    "camera.mosaic": ("Écran partagé : les zones de la manche côte à côte (« écran partagé », « mosaïque »).",
+                      [f("enabled", BOOL, doc="false = retirer l'écran partagé."), f("lieu", STR, doc="studio ou id de manche.")]),
+    "camera.pov": ("Montre la vue d'un joueur, à travers ses yeux (« vue d'Ensuri »).", [f("player", PLAYER, True, PLAYER_DOC)]),
+    "intro.play": ("Lance l'intro animée d'une manche (« lance l'intro du pont »).",
+                   [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours.")]),
+    "intro.set": ("Réglages de l'intro d'une manche : jouée seule au lancement, musique, titre automatique.",
+                  [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
+                   f("auto", BOOL, doc="true = jouée au lancement de la manche."),
+                   f("music", STR, doc="theme, aucune, ou un id de son."), f("titleCard", BOOL, doc="Titre automatique sur le dernier plan.")]),
+    "intro.shot.add": ("Ajoute un plan à l'intro d'une manche : une caméra, un trajet ou un joueur suivi.",
+                       [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
+                        f("camera", STR, doc="Caméra (relative au lieu de la manche : « 2 », « large », « ensuri:1 »)."),
+                        f("path", STR, doc="Nom du trajet."), f("follow", PLAYER, doc="Joueur à suivre. " + PLAYER_DOC),
+                        f("seconds", INT, doc="Durée en secondes (absent = 4 s, ou la durée du trajet)."),
+                        f("transition", STR, doc="coupe, fondu ou enchaine (défaut)."),
+                        f("effect", STR, doc="Effet d'image."), f("card", STR, doc="titre ou synthe."),
+                        f("text", STR, doc="Texte de la carte (absent = nom de la manche).")]),
+    "intro.shot.remove": ("Retire un plan de l'intro d'une manche.",
+                          [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
+                           f("index", INT, True, "Numéro du plan (1 = premier).")]),
     "camera.auto": ("Réalisation automatique (coupe sur qui marque, qui ouvre son enveloppe, le podium à la révélation).",
                     [f("enabled", BOOL, True, "true = activer.")]),
     "broadcast.lowerthird": ("Affiche un synthé (nom en bas de l'écran) sur la diffusion : un joueur, ou un texte libre.",
@@ -163,6 +200,7 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
 NO_SCOPE = {"say", "undo", "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset", "camera.cut", "camera.follow", "camera.auto", "broadcast.lowerthird", "broadcast.task",
             "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop"}
 NO_SCOPE |= {"spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off"}
+NO_SCOPE |= {"camera.path", "camera.focus", "camera.lieu", "camera.mosaic", "camera.pov"}
 SCOPE_FIELDS = [f("season", SCOPE, doc="Saison (id ou nom). Absent = saison active."),
                 f("partie", SCOPE, doc="Partie (id ou nom). Absent = partie active.")]
 

@@ -13,7 +13,34 @@ stopwatch.reset buzzer.reset
 camera.cut camera.follow camera.auto broadcast.lowerthird broadcast.task broadcast.scores broadcast.letterbox
 show.intro show.outro show.stop
 task.set task.clear task.reveal task.hide task.show envelope.give
-spotlight.follow spotlight.stop spotlight.on spotlight.off""".split()
+spotlight.follow spotlight.stop spotlight.on spotlight.off
+camera.path camera.focus camera.lieu camera.mosaic camera.pov intro.play intro.set intro.shot.add intro.shot.remove""".split()
+
+
+def test_lieux_and_intro_actions_are_normalized(ctx):
+    r = check([
+        {"type": "camera.focus", "player": "cycy", "cut": "oui"},
+        {"type": "camera.path", "path": "pont"},
+        {"type": "intro.play", "manche": "Le Pont"},
+        {"type": "intro.shot.add", "manche": "tour", "path": "survol", "seconds": "6"},
+        {"type": "camera.lieu", "camera": "3"},
+    ], ctx)
+    assert r.actions[0] == {"type": "camera.focus", "player": "Cyllu", "cut": True}
+    assert r.actions[1] == {"type": "camera.path", "path": "pont"}
+    assert r.actions[2] == {"type": "intro.play", "manche": "pont"}
+    assert r.actions[3] == {"type": "intro.shot.add", "manche": "tour", "path": "survol", "seconds": 6}
+    assert len(r.actions) == 4 and any("lieu" in w for w in r.warnings)
+
+
+def test_context_lists_cameras_by_lieu():
+    c = ShowContext(make_context(cameras=[
+        {"number": 1, "name": "Plan large", "role": "large", "key": "studio:1", "lieu": "studio"},
+        {"number": 1, "name": "Caméra 1", "role": "", "key": "pont:ensuri:1", "lieu": "pont", "zone": "ensuri"},
+    ], cameraFocus="pont:ensuri", paths=[{"name": "survol", "lieu": "pont", "seconds": 9.5}]))
+    text = c.summary()
+    assert "Caméras (pont:ensuri" in text and "1 « Caméra 1 »" in text
+    assert "studio:1 « Plan large »" in text
+    assert "survol (pont, 9.5 s)" in text
 
 
 def test_schema_matches_the_spec():

@@ -18,6 +18,6 @@ public abstract class HandsRendererMixin {
     @Inject(method = "submitHandsWithItems", at = @At("HEAD"), cancellable = true)
     private void craftmaster$noHands(float partialTick, PoseStack poseStack, SubmitNodeCollector collector, PlayerRenderState player,
                                      FirstPersonHandsAndItemsRenderState state, CallbackInfo ci) {
-        if (Broadcast.active()) ci.cancel();
+        if (Broadcast.active() || fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.previewing()) ci.cancel();
     }
 }

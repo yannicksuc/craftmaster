@@ -49,6 +49,14 @@ phrases synthétisées (voix Windows française) : avec les pseudos en vocabulai
   l'autre, travelling qui avance puis s'arrête, panoramique des deux côtés, angles, plan qui suit devant le joueur.
   `BroadcastActionsTest` : actions `camera.*` / `broadcast.*` / `show.*` (transitions, champs manquants ou faux,
   valeurs par défaut), effets sans modifier les données ni le journal, une action fausse annule toute la liste.
+- Lieux, travellings, intros (chantier E, suite) — `CameraLieuxTest` : groupes et clés (studio, manche, zone),
+  numéros par groupe, références relatives au lieu actif (jamais le n° d'un autre lieu, rôle de la manche puis du
+  studio), clés explicites, lieux dits en mots (« caméra 2 du studio », « caméra 1 d'Ensuri », « de l'équipe
+  bleue »), molette dans une zone, changement de lieu. `CameraPathTest` : durée et arrivées, étapes atteintes,
+  pauses immobiles, départ / arrivée adoucis, pas de saut (échantillons à 120 i/s), vitesse continue aux étapes,
+  yaw par le plus court, zoom, points répétés. `MancheIntroTest` : minutage (durée des trajets), titre automatique,
+  actions `intro.*` (fichier, annulation, refus), `intro.play` en effet, nouvelles actions `camera.*`.
+  Serveur : bloc « TV direction » de `scripts/server_smoke_test.py <hôte> <port rcon>` (avec LordFinn connecté).
 - `StudioLogicTest` (décor du studio) : angles des projecteurs (conventions de Minecraft, aller-retour direction ↔
   angles, plus court chemin à travers ±180°, approche douce sans dépassement), chiffres à 7 segments et format du
   chrono, arguments de `/image` (5 × 3 par défaut, hauteur en 5:3, limites 16 × 9, adresses refusées), balancement

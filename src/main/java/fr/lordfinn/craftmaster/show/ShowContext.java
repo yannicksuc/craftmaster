@@ -121,13 +121,32 @@ public final class ShowContext {
             c.put("number", cam.number());
             c.put("name", cam.name());
             c.put("role", cam.role());
+            // Lieux (chantier E): "studio" or a round id, zone "" = the whole round; key = unique reference
+            c.put("key", cam.key());
+            c.put("lieu", cam.lieu());
+            if (!cam.zone().isEmpty()) c.put("zone", cam.zone());
             cameras.add(c);
         }
         out.put("cameras", cameras);
+        // The group the keys and "caméra 2" address now, and the recorded travellings
+        out.put("cameraFocus", fr.lordfinn.craftmaster.broadcast.Director.focus());
+        List<Object> paths = new ArrayList<>();
+        for (fr.lordfinn.craftmaster.camera.CameraPath p : fr.lordfinn.craftmaster.camera.CameraPaths.all()) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("name", p.name());
+            m.put("lieu", p.lieu());
+            m.put("seconds", Math.round(p.duration() * 10) / 10.0);
+            paths.add(m);
+        }
+        out.put("paths", paths);
         fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Shot shot = fr.lordfinn.craftmaster.broadcast.Director.shot();
         out.put("onAir", switch (shot.kind()) {
             case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_CAMERA -> "camera " + shot.camera();
             case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_FOLLOW -> "follow " + shot.player();
+            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_PATH -> "path " + shot.camera();
+            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_MOSAIC -> "mosaic " + shot.camera();
+            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_POV -> "pov " + shot.player();
+            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_FREE -> "free";
             default -> "none";
         });
         out.put("autoDirection", fr.lordfinn.craftmaster.broadcast.Director.autoDirection());
@@ -200,6 +219,15 @@ public final class ShowContext {
                     tm.put("revealed", fr.lordfinn.craftmaster.task.Tasks.store() != null
                             && fr.lordfinn.craftmaster.task.Tasks.store().isRevealed(s.id, r.id));
                     rm.put("task", tm);
+                }
+                // Intro of the round (chantier E): its shots, numbered from 1 like the commands
+                if (!r.intro.shots.isEmpty()) {
+                    Map<String, Object> im = new LinkedHashMap<>();
+                    im.put("auto", r.intro.auto);
+                    List<Object> shots = new ArrayList<>();
+                    for (fr.lordfinn.craftmaster.data.MancheIntro.Shot sh : r.intro.shots) shots.add(sh.describe());
+                    im.put("shots", shots);
+                    rm.put("intro", im);
                 }
                 manches.add(rm);
             }

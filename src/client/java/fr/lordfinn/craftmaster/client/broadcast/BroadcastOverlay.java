@@ -118,23 +118,36 @@ public final class BroadcastOverlay {
 
     /** HUD element: the whole overlay, only in broadcast mode. */
     public static void extract(GuiGraphicsExtractor g, DeltaTracker delta) {
-        if (!Broadcast.active()) return;
+        if (!Broadcast.active()) {
+            drawPreviewCaption(g, Minecraft.getInstance().font);
+            return;
+        }
         Minecraft mc = Minecraft.getInstance();
         Font font = mc.font;
         long now = System.currentTimeMillis();
         double dt = lastFrame == 0 ? 0 : Math.min(0.1, (now - lastFrame) / 1000.0);
         lastFrame = now;
         ShowState st = ShowStateClient.get();
+        float k = g.guiHeight() / CANVAS_H;
+        float w = g.guiWidth() / k, h = CANVAS_H;
+
+        // Split screen: the tiles' pictures over the whole frame (labels below, with the other graphics)
+        List<float[]> tiles = DirectorCamera.shown().kind() == BroadcastNetwork.SHOT_MOSAIC ? mosaicLayout(DirectorCamera.shown().tiles().size(), w, h) : List.of();
+        if (!tiles.isEmpty()) drawMosaicTiles(g, tiles, k);
 
         // Old frame dissolving, dip to black: under the graphics, which stay steady through the cut
         Transition.draw(g);
         float black = DirectorCamera.blackAlpha();
         if (black > 0) g.fill(0, 0, g.guiWidth(), g.guiHeight(), ((int) (black * 255) << 24));
 
-        float k = g.guiHeight() / CANVAS_H;
-        float w = g.guiWidth() / k, h = CANVAS_H;
         Matrix3x2fStack pose = g.pose();
         pose.pushMatrix();
+        if (!tiles.isEmpty()) {
+            pose.scale(k, k);
+            drawMosaicLabels(g, font, tiles);
+            pose.popMatrix();
+            pose.pushMatrix();
+        }
         pose.scale(k, k);
 
         letterboxK = approach(letterboxK, st.letterbox() ? 1 : 0, dt, 0.35);
@@ -157,6 +170,77 @@ public final class BroadcastOverlay {
         drawTitleCard(g, font, w, h);
         drawCredits(g, font, st, w, h);
         pose.popMatrix();
+    }
+
+    // ---- split screen
+
+    /**
+     * Tile rectangles {x0, y0, x1, y1} in canvas units: two side by side, three or four in a 2 × 2 grid (the third
+     * centred on the second row); each keeps the screen's proportions.
+     */
+    static List<float[]> mosaicLayout(int n, float w, float h) {
+        List<float[]> out = new ArrayList<>();
+        n = Math.min(n, Mosaic.MAX);
+        if (n < 2) return out;
+        float margin = 12, gap = 6;
+        if (n == 2) {
+            float tw = (w - 2 * margin - gap) / 2, th = tw * h / w, y0 = (h - th) / 2;
+            out.add(new float[]{margin, y0, margin + tw, y0 + th});
+            out.add(new float[]{margin + tw + gap, y0, margin + 2 * tw + gap, y0 + th});
+            return out;
+        }
+        float th = (h - 2 * margin - gap) / 2, tw = th * w / h, x0 = (w - 2 * tw - gap) / 2;
+        for (int i = 0; i < n; i++) {
+            int row = i / 2, col = i % 2;
+            float x = n == 3 && i == 2 ? (w - tw) / 2 : x0 + col * (tw + gap);
+            float y = margin + row * (th + gap);
+            out.add(new float[]{x, y, x + tw, y + th});
+        }
+        return out;
+    }
+
+    /** Velvet background, then every tile's last picture (placeholder while it has none yet). */
+    private static void drawMosaicTiles(GuiGraphicsExtractor g, List<float[]> tiles, float k) {
+        Matrix3x2fStack pose = g.pose();
+        pose.pushMatrix();
+        pose.scale(k, k);
+        float w = g.guiWidth() / k;
+        gradient(g, 0, 0, w, CANVAS_H, VELVET_DARK, 0xFF1A0306);
+        for (float[] r : tiles) fill(g, r[0] - 1.5f, r[1] - 1.5f, r[2] + 1.5f, r[3] + 1.5f, GOLD_DARK);
+        pose.popMatrix();
+        for (int i = 0; i < tiles.size(); i++) {
+            float[] r = tiles.get(i);
+            if (Mosaic.ready(i)) Mosaic.draw(g, i, r[0] * k, r[1] * k, r[2] * k, r[3] * k);
+            else g.fill(Math.round(r[0] * k), Math.round(r[1] * k), Math.round(r[2] * k), Math.round(r[3] * k), 0xFF120306);
+        }
+    }
+
+    /** Each tile's name (the zone's players) in a small velvet strip, bottom left, and a thin gold frame. */
+    private static void drawMosaicLabels(GuiGraphicsExtractor g, Font font, List<float[]> tiles) {
+        List<BroadcastNetwork.Tile> shot = DirectorCamera.shown().tiles();
+        for (int i = 0; i < tiles.size() && i < shot.size(); i++) {
+            float[] r = tiles.get(i);
+            goldFrame(g, r[0], r[1], r[2], r[3], 1);
+            String label = shot.get(i).label();
+            if (label.isEmpty()) continue;
+            Component c = bold(label.toUpperCase(Locale.ROOT));
+            float s = 0.75f, tw = width(font, c, s);
+            float x0 = r[0] + 4, y1 = r[3] - 4, y0 = y1 - 11;
+            velvet(g, x0, y0, x0 + tw + 10, y1, 0.92f, true);
+            text(g, font, c, x0 + 5, y0 + 2.2f, s, CREAM, true);
+        }
+    }
+
+    /** Organiser's own screen during a travelling preview: a small caption at the top. */
+    private static void drawPreviewCaption(GuiGraphicsExtractor g, Font font) {
+        String caption = DirectorCamera.previewCaption();
+        if (caption == null) return;
+        Component c = Component.literal(caption);
+        int tw = font.width(c);
+        int x = (g.guiWidth() - tw) / 2, y = 8;
+        g.fill(x - 6, y - 4, x + tw + 6, y + 12, 0xC0200408);
+        g.fill(x - 6, y + 12, x + tw + 6, y + 13, GOLD);
+        g.text(font, c, x, y, CREAM, true);
     }
 
     private static float approach(float v, float target, double dt, double tau) {

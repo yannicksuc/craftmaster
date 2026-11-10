@@ -19,7 +19,7 @@ import sys
 import time
 
 HOST = sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1"
-PORT, PASSWORD = 25692, "cmtest"
+PORT, PASSWORD = int(sys.argv[2]) if len(sys.argv) > 2 else 25692, "cmtest"
 
 
 class Rcon:
@@ -233,6 +233,45 @@ check("reveal published", "non publié" not in cmd(f"cfrk chat {smoke}"))
 check("curtain open after the reveal", "passed" in cmd("execute if block 103 -59 106 craftmaster:red_curtain[open=true]"))
 check("reveal stop when none", "Aucune révélation" in cmd("cfrv stop"))
 cmd("cfrv timing 3 4 3 5")
+
+# ---------------------------------------------------------------- TV direction: lieux, zones, travellings, intros
+# (chantier E). Placing cameras and recording steps uses a player's eyes: only with LordFinn connected.
+check("keys address the studio", "le studio" in cmd("cam focus"))
+check("unknown lieu", "inconnu" in cmd("cam focus nullepart"))
+if "LordFinn" in cmd("list"):
+    P = "execute as LordFinn at @s run "
+    cmd("tp LordFinn 110 -58 110 0 0")
+    check("camera in a round's zone", "posée" in cmd(P + "cam here pont:smoke-zone:1 Salle test"))
+    check("camera in the studio", "posée" in cmd(P + "cam here studio:17 Test"))
+    out = cmd("cam lieu studio:17 Pont")
+    check("camera moved to the round", "pont:17" in out, out)
+    cmd("tp LordFinn 112 -58 110 90 10")
+    check("path created", "créé" in cmd(P + "cam trajet smoke point"))
+    cmd("tp LordFinn 116 -57 114 45 5")
+    check("path second step", "étape 2" in cmd(P + "cam trajet smoke point 2"))
+    check("path hold", "pause de 1 s" in cmd("cam trajet smoke pause 1 1"))
+    check("path listed", "smoke" in cmd("cam trajets"))
+    check("path on air", "trajet « smoke »" in cmd("cam jouer smoke"))
+    check("intro shot (path)", "plan 1" in cmd("tv intro Pont ajouter trajet smoke"))
+    check("intro shot (zone camera)", "plan 2" in cmd("tv intro Pont ajouter camera smoke-zone:1 2 enchaine sepia"))
+    check("intro plays at start", "lancement" in cmd("tv intro Pont auto on"))
+    cmd("cfma start Pont")
+    out = cmd("cam list")
+    check("intro running", "intro en cours" in out, out)
+    out = cmd("cam focus")
+    check("keys follow the round", "Pont" in out, out)
+    out = cmd("cam cut studio:1")
+    check("explicit studio camera", "studio" in out or "Aucune" in out, out)
+    check("zone focus", "smoke-zone" in cmd("cam zone smoke-zone"))
+    check("show stop", "arrêté" in cmd("tv stop"))
+    cmd("cfma end")
+    check("keys back to the studio", "le studio" in cmd("cam focus"))
+    check("undo intro change", "Annulé" in (cmd("tv intro Pont auto off"), cmd("craftMasterUndo"))[1])
+    cmd("cam remove pont:smoke-zone:1")
+    cmd("cam remove pont:17")
+    check("path deleted", "effacé" in cmd("cam trajet smoke effacer"))
+else:
+    print("(TV direction: connect LordFinn to also check cameras in lieux, travellings and intros)")
 
 # Cleanup: the test season goes, the previous active season comes back
 cmd("cfsg curtain remove stage")

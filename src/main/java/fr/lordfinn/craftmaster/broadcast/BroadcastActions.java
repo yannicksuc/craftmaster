@@ -12,8 +12,15 @@ import java.util.Map;
  * to undo), they become an {@link Actions.Broadcast} effect that {@link Director} plays. Which camera or player a
  * name means is only known in the world, so the director resolves it (and says so when it cannot).
  * <pre>
- * camera.cut        {camera, transition?}       camera: number, name or role ("2", "Plan large", "large", "trone")
- * camera.follow     {player, transition?}       follow shot on a player
+ * camera.cut        {camera, transition?, effect?}  camera: number, name or role ("2", "Plan large", "large", "trone"),
+ *                                                in the focus; or elsewhere: "studio:2", "ensuri:1", "caméra 2 du studio"
+ * camera.follow     {player, transition?, effect?}  follow shot on a player (in a round: selects their zone too)
+ * camera.pov        {player, transition?, effect?}  through a player's eyes
+ * camera.path       {path, transition?, effect?}    plays a recorded travelling
+ * camera.mosaic     {lieu?, enabled?}            split screen of the zones (or cameras) of a lieu; enabled false = off
+ * camera.focus      {lieu?, zone?, player?, cut?}   lieu / zone the keys address: lieu "auto" = follow the show,
+ *                                                zone "next" / "prev"; player = their zone; cut = show its wide camera
+ * camera.lieu       {camera, lieu, zone?}        moves a camera to the studio or a round (and a zone of it)
  * camera.auto       {enabled}                   automatic direction on / off
  * camera.transition {transition}                default transition: coupe | fondu | enchaine
  * broadcast.lowerthird {player? | text?, subtitle?, seconds?}
@@ -28,7 +35,8 @@ public final class BroadcastActions {
     private BroadcastActions() {}
 
     public static final List<String> TYPES = List.of("camera.cut", "camera.follow", "camera.auto", "camera.transition",
-            "broadcast.lowerthird", "broadcast.task", "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop");
+            "broadcast.lowerthird", "broadcast.task", "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop",
+            "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu");
 
     public static boolean handles(String type) {
         return TYPES.contains(type);
@@ -40,12 +48,40 @@ public final class BroadcastActions {
         out.put("type", type);
         switch (type) {
             case "camera.cut" -> {
-                out.put("camera", required(a, "camera"));
+                out.put("camera", cameraRef(a));
                 transition(a, out, false);
+                effect(a, out);
             }
-            case "camera.follow" -> {
+            case "camera.follow", "camera.pov" -> {
                 out.put("player", required(a, "player"));
                 transition(a, out, false);
+                effect(a, out);
+            }
+            case "camera.path" -> {
+                out.put("path", required(a, "path"));
+                transition(a, out, false);
+                effect(a, out);
+            }
+            case "camera.mosaic" -> {
+                String lieu = str(a, "lieu");
+                if (lieu != null) out.put("lieu", lieu);
+                if (a.get("enabled") != null) out.put("enabled", bool(a, "enabled", false));
+                transition(a, out, false);
+            }
+            case "camera.focus" -> {
+                String lieu = str(a, "lieu"), zone = str(a, "zone"), player = str(a, "player");
+                if (lieu == null && zone == null && player == null)
+                    throw new Actions.Invalid("donnez un lieu (« lieu » : studio, une manche ou auto), une zone ou un joueur.");
+                if (lieu != null) out.put("lieu", lieu);
+                if (zone != null) out.put("zone", zone);
+                if (player != null) out.put("player", player);
+                if (a.get("cut") != null) out.put("cut", bool(a, "cut", false));
+            }
+            case "camera.lieu" -> {
+                out.put("camera", cameraRef(a));
+                out.put("lieu", required(a, "lieu"));
+                String zone = str(a, "zone");
+                if (zone != null) out.put("zone", zone);
             }
             case "camera.auto" -> out.put("enabled", bool(a, "enabled", true));
             case "camera.transition" -> transition(a, out, true);
@@ -97,6 +133,32 @@ public final class BroadcastActions {
             case "off", "jamais", "non", "false", "never", "cache" -> "off";
             case "show", "montre", "affiche", "maintenant", "now" -> "show";
             default -> throw new Actions.Invalid("mode « " + s + " » inconnu (auto, on, off ou show).");
+        };
+    }
+
+    /** A camera reference; a JSON number (2.0) becomes "2". */
+    private static String cameraRef(Map<String, Object> a) {
+        Object v = a.get("camera");
+        if (v instanceof Number n && n.doubleValue() == Math.rint(n.doubleValue())) return String.valueOf(n.longValue());
+        return required(a, "camera");
+    }
+
+    private static void effect(Map<String, Object> a, Map<String, Object> out) {
+        String e = effectId(str(a, "effect"));
+        if (!e.isEmpty()) out.put("effect", e);
+    }
+
+    /**
+     * A screen effect id as the client's effects know them ("Noir et blanc" → "noir_blanc"): lower case, no accents,
+     * underscores; "", "aucun", "none" → "". Unknown ids are kept (the client ignores what it does not have).
+     */
+    public static String effectId(String e) {
+        if (e == null) return "";
+        String k = CameraList.fold(e).replaceAll("[^a-z0-9]+", "_").replaceAll("^_+|_+$", "");
+        return switch (k) {
+            case "", "aucun", "aucune", "none", "non", "off", "sans", "normal" -> "";
+            case "noir_et_blanc", "nb", "black_and_white", "grayscale", "gris" -> "noir_blanc";
+            default -> k;
         };
     }
 

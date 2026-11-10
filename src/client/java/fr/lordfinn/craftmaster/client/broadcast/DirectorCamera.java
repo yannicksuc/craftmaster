@@ -1,9 +1,12 @@
 package fr.lordfinn.craftmaster.client.broadcast;
 
 import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork;
+import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.FreeCamera;
 import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Shot;
 import fr.lordfinn.craftmaster.camera.CameraMotion;
+import fr.lordfinn.craftmaster.camera.CameraPath;
 import fr.lordfinn.craftmaster.camera.CameraSpot;
+import fr.lordfinn.craftmaster.client.fx.ScreenEffects;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -12,13 +15,16 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Where the broadcast game looks from, frame by frame: the director's shot (camera with its motion, or a follow
- * shot) and the transition between two shots. Read by the camera mixin when the broadcast mode is on.
+ * Where the broadcast game looks from, frame by frame: the director's shot (camera with its motion, follow shot,
+ * recorded travelling, a player's eyes, the free camera, or the tiles of a split screen in turn) and the transition
+ * between two shots. Read by the camera mixin when the broadcast mode is on, or during a travelling preview.
  * <ul>
  *   <li>cut: the new shot right away;</li>
  *   <li>fade: the picture dips to black, the shot changes in the dark, the picture comes back;</li>
  *   <li>cross-fade: the last frame of the old shot is kept and dissolves over the new one ({@link Transition}).</li>
  * </ul>
+ * A travelling is sampled at frame rate from the real time since its shot started ({@link CameraPath#sample}): no
+ * tick stepping, no jitter.
  */
 public final class DirectorCamera {
 
@@ -40,6 +46,16 @@ public final class DirectorCamera {
     private static float followYaw, followPitch;
     private static long lastFrame;
     private static String followed = "";
+    /** Free camera: the target sent by the server, and the smoothed pose. */
+    private static FreeCamera freeTarget;
+    private static Vec3 freePos;
+    private static float freeYaw, freePitch, freeFov;
+    /** Travelling preview on an organiser's own screen: the path, when it started (ms), -1 = none. */
+    private static String previewPath;
+    private static long previewStart = -1;
+    private static long previewMs;
+    /** Split screen: frame counter for the tiles in turn. */
+    private static long mosaicFrame;
 
     private DirectorCamera() {}
 
@@ -50,6 +66,10 @@ public final class DirectorCamera {
         pending = null;
         followPos = null;
         followed = "";
+        freeTarget = null;
+        freePos = null;
+        previewStart = -1;
+        Mosaic.rendering = -1;
     }
 
     /** The shot on screen now. */
@@ -76,6 +96,37 @@ public final class DirectorCamera {
         return x * x * (3 - 2 * x);
     }
 
+    /** The server moved the free camera. */
+    static void freeCamera(FreeCamera f) {
+        freeTarget = f;
+    }
+
+    /** Plays travelling {@code path} on this game's own screen (not the broadcast) for {@code ticks}. */
+    static void preview(String path, int ticks) {
+        previewPath = path;
+        previewStart = System.currentTimeMillis();
+        previewMs = ticks * 50L + 600;
+    }
+
+    /** A travelling preview is playing on this screen. */
+    public static boolean previewing() {
+        if (previewStart < 0) return false;
+        if (System.currentTimeMillis() - previewStart > previewMs) {
+            previewStart = -1;
+            return false;
+        }
+        return true;
+    }
+
+    /** "Aperçu : pont · 3,2 / 9 s" for the preview's caption, or null. */
+    static String previewCaption() {
+        if (!previewing()) return null;
+        CameraPath p = ShowStateClient.path(previewPath);
+        double t = Math.min((System.currentTimeMillis() - previewStart) / 1000.0, p == null ? 0 : p.duration());
+        return "Aperçu du trajet « " + previewPath + " » · " + String.format(java.util.Locale.ROOT, "%.1f", t).replace('.', ',')
+                + " / " + CameraPath.seconds(p == null ? 0 : Math.round(p.duration() * 10) / 10.0);
+    }
+
     /** Called every frame before the view is computed: notices a new shot and runs the transition. */
     private static void update() {
         Shot target = ShowStateClient.get().shot();
@@ -95,9 +146,10 @@ public final class DirectorCamera {
                 }
                 default -> show(target, now);
             }
-        } else if (target.kind() != shown.kind() || target.camera() != shown.camera() || !target.player().equals(shown.player())) {
-            // Same serial, other content (state lost and resent): follow it without a transition
-            if (pending == null) show(target, now);
+        } else if (pending == null && (!target.sameContent(shown) || !target.effect().equals(shown.effect()))) {
+            // Same serial, other content (state lost and resent, camera moved to another lieu): follow it without a
+            // transition, keeping the motion's clock when it is still the same kind of shot
+            show(target, target.kind() == shown.kind() ? shownSince : now);
         }
         if (pending != null && now - fadeStart >= FADE_HALF * 1000) {
             show(pending, now);
@@ -106,41 +158,120 @@ public final class DirectorCamera {
         if (fadeStart >= 0 && now - fadeStart > 2 * FADE_HALF * 1000) fadeStart = -1;
     }
 
-    private static void show(Shot s, long now) {
+    private static void show(Shot s, long since) {
         if (s.kind() == BroadcastNetwork.SHOT_FOLLOW && !s.player().equals(followed)) followPos = null;
         followed = s.kind() == BroadcastNetwork.SHOT_FOLLOW ? s.player() : "";
+        if (s.kind() != BroadcastNetwork.SHOT_FREE) freePos = null;
+        boolean effectChanged = !s.effect().equals(shown.effect());
         shown = s;
-        shownSince = now;
+        shownSince = since;
+        if (s.kind() != BroadcastNetwork.SHOT_MOSAIC) Mosaic.rendering = -1;
+        if (effectChanged || s.effect().isEmpty()) applyEffect();
         BroadcastOverlay.onShotChanged(s);
+    }
+
+    /** Tells the screen effects (another chantier) which effect the shot on screen asks for. */
+    static void applyEffect() {
+        try {
+            ScreenEffects.setBroadcastEffect(Broadcast.active() && !shown.effect().isEmpty() ? shown.effect() : null);
+        } catch (RuntimeException | LinkageError e) {
+            // The effects are optional: a broken one never stops the broadcast
+        }
     }
 
     /** The view of the shot on screen, or null to keep the player's own view. */
     public static Pose pose(float partialTick) {
-        update();
         Minecraft mc = Minecraft.getInstance();
         long now = System.currentTimeMillis();
         double dt = lastFrame == 0 ? 0 : (now - lastFrame) / 1000.0;
         lastFrame = now;
+        if (!Broadcast.active()) {
+            // Only a travelling preview on an organiser's screen
+            if (!previewing()) return null;
+            CameraPath p = ShowStateClient.path(previewPath);
+            return p == null ? null : path(mc, p, (now - previewStart) / 1000.0);
+        }
+        update();
+        Mosaic.prepare(shown.kind() == BroadcastNetwork.SHOT_MOSAIC);
         return switch (shown.kind()) {
-            case BroadcastNetwork.SHOT_CAMERA -> camera(mc, ShowStateClient.cameras().get(shown.camera()));
+            case BroadcastNetwork.SHOT_CAMERA -> camera(mc, ShowStateClient.cameras().get(shown.camera()), shotSeconds());
             case BroadcastNetwork.SHOT_FOLLOW -> follow(mc, shown.player(), partialTick, dt);
+            case BroadcastNetwork.SHOT_PATH -> {
+                CameraPath p = ShowStateClient.path(shown.camera());
+                yield p == null ? null : path(mc, p, shotSeconds());
+            }
+            case BroadcastNetwork.SHOT_POV -> pov(mc, shown.player(), partialTick);
+            case BroadcastNetwork.SHOT_FREE -> free(dt);
+            case BroadcastNetwork.SHOT_MOSAIC -> mosaic(mc);
             default -> null;
         };
     }
 
-    private static Pose camera(Minecraft mc, CameraSpot spot) {
+    private static Pose camera(Minecraft mc, CameraSpot spot, double seconds) {
         if (spot == null || !spot.world().equals(ShowStateClient.world(mc))) return null;
-        CameraMotion.View v = CameraMotion.view(spot, shotSeconds());
+        CameraMotion.View v = CameraMotion.view(spot, seconds);
         return new Pose(new Vec3(v.x(), v.y(), v.z()), v.yaw(), v.pitch(), spot.fov());
+    }
+
+    private static Pose path(Minecraft mc, CameraPath p, double seconds) {
+        if (p.isEmpty() || !p.world().equals(ShowStateClient.world(mc))) return null;
+        CameraPath.Pose v = p.sample(seconds);
+        return new Pose(new Vec3(v.x(), v.y(), v.z()), v.yaw(), v.pitch(), v.fov());
+    }
+
+    /** The tiles of the split screen in turn, one per frame (each tile is refreshed every n frames). */
+    private static Pose mosaic(Minecraft mc) {
+        int n = Math.min(shown.tiles().size(), Mosaic.MAX);
+        if (n == 0) return null;
+        int i = (int) (mosaicFrame++ % n);
+        Pose p = camera(mc, ShowStateClient.cameras().get(shown.tiles().get(i).camera()), shotSeconds());
+        Mosaic.rendering = p == null ? -1 : i;
+        return p;
+    }
+
+    private static Player player(Minecraft mc, String name) {
+        if (mc.level != null) for (Player p : mc.level.players()) if (p.getGameProfile().name().equalsIgnoreCase(name)) return p;
+        return null;
+    }
+
+    /** Through a player's eyes (their own view, smoothed by the game's interpolation). */
+    private static Pose pov(Minecraft mc, String name, float partialTick) {
+        Player target = player(mc, name);
+        if (target == null) {
+            CameraSpot wide = ShowStateClient.focused().wide();
+            return wide == null ? null : camera(mc, wide, shotSeconds());
+        }
+        Vec3 eye = target.getEyePosition(partialTick);
+        return new Pose(eye, target.getViewYRot(partialTick), target.getViewXRot(partialTick), 0);
+    }
+
+    /** The free camera glides to the last pose the server sent. */
+    private static Pose free(double dt) {
+        FreeCamera f = freeTarget;
+        if (f == null) return null;
+        Vec3 want = new Vec3(f.x(), f.y(), f.z());
+        if (freePos == null || f.smoothing() <= 0) {
+            freePos = want;
+            freeYaw = f.yaw();
+            freePitch = f.pitch();
+            freeFov = f.fov();
+        } else {
+            double k = CameraMotion.smoothing(dt, f.smoothing());
+            freePos = freePos.lerp(want, k);
+            freeYaw = CameraMotion.lerpAngle(freeYaw, f.yaw(), k);
+            freePitch = freePitch + (float) ((f.pitch() - freePitch) * k);
+            freeFov = freeFov + (float) ((f.fov() - freeFov) * k);
+        }
+        return new Pose(freePos, freeYaw, freePitch, freeFov);
     }
 
     /** Front three-quarter shot on a player, smoothed, pulled in front of walls. Falls back on the wide shot. */
     private static Pose follow(Minecraft mc, String name, float partialTick, double dt) {
-        Player target = null;
-        if (mc.level != null) for (Player p : mc.level.players()) if (p.getGameProfile().name().equalsIgnoreCase(name)) target = p;
+        Player target = player(mc, name);
         if (target == null) {
-            CameraSpot wide = ShowStateClient.cameras().wide();
-            return wide == null ? null : camera(mc, wide);
+            CameraSpot wide = ShowStateClient.focused().wide();
+            if (wide == null) wide = ShowStateClient.cameras().group(CameraSpot.STUDIO).wide();
+            return wide == null ? null : camera(mc, wide, shotSeconds());
         }
         Vec3 feet = target.getPosition(partialTick);
         float bodyYaw = target instanceof LivingEntity le ? le.yBodyRot : target.getYRot();

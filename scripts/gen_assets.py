@@ -905,6 +905,48 @@ fr.update({
     "subtitles.craftmaster.show.theme": "Générique CraftMaster",
 })
 
+# ---- TV direction, lieux / travellings / intros (chantier E, second part): the "Repère de travelling" item, a
+# film clapperboard (striped clapper stick lifted on its hinge, slate with chalk lines, a red "step" mark)
+write_json(os.path.join(A, "models/item/path_marker.json"),
+           {"parent": "minecraft:item/generated", "textures": {"layer0": "craftmaster:item/path_marker"}})
+write_json(os.path.join(A, "items/path_marker.json"), {"model": {"type": "minecraft:model", "model": "craftmaster:item/path_marker"}})
+art = [
+    "................",
+    "..........ss....",
+    "......ssWWkk....",
+    "..ssWWkkWWs.....",
+    ".hkkWWkkss......",
+    ".hss............",
+    ".hDDDDDDDDDDDDd.",
+    ".hWWkkWWkkWWkkd.",
+    ".dDDDDDDDDDDDDd.",
+    ".dSSSSSSSSSSSSd.",
+    ".dSccccSSccccSd.",
+    ".dSSSSSSSSSSSSd.",
+    ".dSccSSSSSSrrSd.",
+    ".dSSSSSSSSSrrSd.",
+    ".ddddddddddddddd",
+    "................",
+]
+pal = {".": T, "s": (40, 38, 44, 255), "k": (40, 38, 44, 255), "W": (236, 228, 208, 255), "h": (206, 156, 52, 255),
+       "D": (58, 56, 64, 255), "d": (30, 28, 34, 255), "S": (64, 70, 66, 255), "c": (196, 204, 196, 255),
+       "r": (224, 44, 46, 255)}
+write_png(os.path.join(A, "textures/item/path_marker.png"), 16, 16, [[pal[c] for c in row] for row in art])
+en.update({
+    "item.craftmaster.path_marker": "Travelling Marker",
+    "item.craftmaster.path_marker.hint": "Path \"%s\": right click = a step at your eyes, sneak = remove the last one",
+    "item.craftmaster.path_marker.unbound": "Bind it to a path: /cam trajet <name> objet",
+    "key.craftmaster.broadcast_zone": "Broadcast: next zone of the round (Shift: previous)",
+    "key.craftmaster.broadcast_mosaic": "Broadcast: split screen on / off",
+})
+fr.update({
+    "item.craftmaster.path_marker": "Repère de travelling",
+    "item.craftmaster.path_marker.hint": "Trajet « %s » : clic droit = une étape à tes yeux, accroupi = retirer la dernière",
+    "item.craftmaster.path_marker.unbound": "À lier à un trajet : /cam trajet <nom> objet",
+    "key.craftmaster.broadcast_zone": "Diffusion : zone suivante de la manche (Maj : précédente)",
+    "key.craftmaster.broadcast_mosaic": "Diffusion : écran partagé oui / non",
+})
+
 
 # ==================================================================== chantier D: tasks, envelopes, hidden notes
 # Items (envelope sealed / opened with a tinted wax layer, wax seal, note, bottle, UV lamp), the envelope lying on

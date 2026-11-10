@@ -41,6 +41,8 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
 
     public static class State extends EntityRenderState {
         int number;
+        /** Lieu / zone written under the number outside the studio ("PONT ENSURI"), "" in the studio. */
+        String place = "";
         float yaw, pitch;
         boolean onAir;
         // LordFinn's tripod and rod (the server's ItemsAdder models) under the camera body
@@ -101,7 +103,11 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         s.yaw = e.lensYaw();
         s.pitch = e.lensPitch();
         BroadcastNetwork.Shot shot = ShowStateClient.get().shot();
-        s.onAir = shot.kind() == BroadcastNetwork.SHOT_CAMERA && shot.camera() == e.number();
+        String key = e.cameraKey();
+        s.onAir = shot.kind() == BroadcastNetwork.SHOT_CAMERA && shot.camera().equals(key)
+                || shot.kind() == BroadcastNetwork.SHOT_MOSAIC && shot.tiles().stream().anyMatch(t -> t.camera().equals(key));
+        String group = e.group();
+        s.place = fr.lordfinn.craftmaster.camera.CameraSpot.STUDIO.equals(group) ? "" : group.replace(':', ' ').toUpperCase(java.util.Locale.ROOT);
         items.updateForNonLiving(s.tripod, FurnitureRenderer.stack(CraftMaster.id("furniture/tripod")), ItemDisplayContext.NONE, e);
         items.updateForNonLiving(s.rod, FurnitureRenderer.stack(CraftMaster.id("furniture/tripod_rod")), ItemDisplayContext.NONE, e);
     }
@@ -168,6 +174,16 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
             poseStack.scale(scale, scale, scale);
             collector.submitText(poseStack, -w / 2, -4, text.getVisualOrderText(), false, Font.DisplayMode.POLYGON_OFFSET,
                     LightCoordsUtil.FULL_BRIGHT, 0xFFFFE39A, 0, 0);
+            if (!s.place.isEmpty()) {
+                // Outside the studio: the lieu (and zone) in small letters under the number
+                Component place = Component.literal(s.place);
+                float pw = font.width(place);
+                float k = Math.min(0.42f, 17f / Math.max(1, pw));
+                poseStack.translate(0, 5.5f, 0);
+                poseStack.scale(k, k, k);
+                collector.submitText(poseStack, -pw / 2, 0, place.getVisualOrderText(), false, Font.DisplayMode.POLYGON_OFFSET,
+                        LightCoordsUtil.FULL_BRIGHT, 0xFFE8D9B8, 0, 0);
+            }
             poseStack.popPose();
         }
     }

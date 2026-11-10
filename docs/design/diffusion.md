@@ -225,6 +225,83 @@ ajoutent leurs sons) ; mixins client dans `craftmaster.client.mixins.json` (nouv
 (connecté) ou le plan large, plus son visage sur la carte (pas les tableaux suspendus) ; le plan « réaction sur le
 trône » est la caméra de rôle `trone` (ou `/cam follow LordFinn`).
 
+### E (suite). Lieux et zones des caméras, travellings, intros de manche, écran partagé (livré)
+
+Guide : `docs/wiki/Realisation.md` (« Les lieux », « Les travellings », « L'intro animée d'une manche »).
+
+**Données** :
+- `CameraSpot` gagne `lieu` ("studio" ou id de manche) et `zone` ("" ou nom de zone d'épreuve, toujours "" au
+  studio). **Numérotation par groupe** (`group()` = "studio" | "pont" | "pont:ensuri") ; clé unique `key()` =
+  "studio:2", "pont:ensuri:1". `cameras.json` : `version: 2`, champs `lieu` / `zone` ; un fichier sans eux = tout
+  au studio ; une entrée illisible est sautée. Trépied (`CameraEntity`) : donnée synchronisée `Group` (NBT
+  "Group", absent = studio), `cameraKey()`.
+- Zones : **source de vérité = `trial.TrialZones`** (chantier H). Une zone de caméra est un nom de zone d'épreuve ;
+  la « zone d'un joueur » = la zone d'épreuve où il se tient, sinon celle dont la liste `players` le contient, sinon
+  l'étiquette à son nom (un nom sans zone d'épreuve reste accepté comme étiquette libre, signalé).
+- Trajets : `camera.CameraPath(name, lieu, world, steps[Step(x,y,z,yaw,pitch,fov,travel,hold,curve)])`, échantillonné
+  par `sample(t)` (Catmull-Rom centripète sur la position, Catmull-Rom sur yaw déroulé / pitch / fov, temps adouci
+  par « course » entre deux pauses). `config/craftmaster/trajets.json` (`version: 1`, `paths[]`, champs manquants =
+  défauts) via `camera.CameraPaths` ; hors journal d'annulation (comme les caméras).
+- Intro : `data.MancheIntro` (`auto`, `music`, `titleCard`, `shots[Shot(kind camera|trajet|suivi, ref, seconds,
+  transition, effect, card titre|synthe, text)]`) dans `Manche.intro`, YAML `intro:` sous la manche (absent si
+  vide) : **annulable** avec le reste.
+
+**Paquets** (`broadcast.BroadcastNetwork`) :
+- `Shot` devient `Shot(kind, camera: String, player, transition, serial, effect, tiles[Tile(camera, label)])` —
+  `camera` = clé de caméra (SHOT_CAMERA), nom de trajet (SHOT_PATH), lieu (SHOT_MOSAIC). Nouveaux genres :
+  `SHOT_PATH 3`, `SHOT_MOSAIC 4`, `SHOT_POV 5` (yeux de `player`), `SHOT_FREE 6` (caméra libre).
+- `ShowState` gagne `focus` (groupe visé par les touches) et `paths[]` ; `sequence` peut valoir "manche" (intro).
+- `FreeCamera(x, y, z, yaw, pitch, fov, smoothing)` (`craftmaster:free_camera`, S→C, aux jeux en diffusion) : pose
+  cible de la caméra libre, lissée côté client.
+- `ShowCue` : `theme` porte en `subtitle` un id de son (vide = le thème) ; nouveau `path_preview` (title = trajet,
+  ticks) envoyé à un seul organisateur (aperçu sur son écran).
+
+**Actions** (`BroadcastActions`, sans données, jouées par `Director`) : `camera.cut {camera, transition?, effect?}`
+(références : voir `CameraList.resolve(ref, focus, places)`), `camera.follow {player, transition?, effect?}` (choisit
+aussi la zone du joueur), `camera.pov {player, …}`, `camera.path {path, transition?, effect?}`,
+`camera.mosaic {lieu?, enabled?}`, `camera.focus {lieu? (studio | manche | auto), zone? (nom | joueur | next |
+prev | tout), player?, cut?}`, `camera.lieu {camera, lieu, zone?}` (registre, non annulable).
+**Actions de données** (`show/Actions`, bloc « round intros », annulables) : `intro.set {manche?, auto?, music?,
+titleCard?}`, `intro.shot.add {manche?, camera | path | follow, seconds?, transition?, effect?, card?, text?, at?}`,
+`intro.shot.set {manche?, index, …}`, `intro.shot.remove {manche?, index}`, `intro.clear {manche?}` ;
+`intro.play {manche?}` → effet `Broadcast {type: intro.play, manche: id}` joué par `broadcast.MancheIntros`.
+Régie vocale : outils `camera_path`, `camera_focus`, `camera_lieu`, `camera_mosaic`, `camera_pov`, `intro_play`,
+`intro_set`, `intro_shot_add`, `intro_shot_remove` ; hors ligne : « caméra 2 du studio », « caméra 1 d'Ensuri »,
+« zone d'Ensuri », « caméras de l'équipe bleue / du studio / du pont », « la caméra 3 est sur le pont »,
+« lance le travelling du pont », « lance l'intro [du pont] », « écran partagé ». Contexte (`ShowContext`) :
+`cameras[].key/lieu/zone`, `cameraFocus`, `paths[] {name, lieu, seconds}`, `manches[].intro {auto, shots[]}`.
+
+**Foyer (focus)** : `Director.focus()` = groupe visé ; suit `Director.phaseLieu()` (intro de manche → sa manche ;
+générique, révélation → studio ; manche en cours qui a des caméras → elle ; sinon studio) sauf choix de l'opérateur
+(`setFocus`), oublié au changement de phase. Touches du client : 1–9 (focus), molette, **Tab** / Maj+Tab / Maj+molette
+(zone suivante / précédente, `key.craftmaster.broadcast_zone`), **0** (écran partagé, `key.craftmaster.broadcast_mosaic`).
+
+**Point d'entrée pour une réalisation automatique plus intelligente (chantier à venir)** :
+- tout plan passe par `Director.take(server, ShotRequest(kind, camera, player, transition, effect, tiles, source))`
+  (`Source.MANUAL | AUTO | SEQUENCE` ; une demande AUTO est ignorée pendant un générique / une intro) ;
+- le choix automatique est un `Director.Planner` (un `ShowEvents.Listener` + `tick(server)` appelé chaque tick
+  quand la réalisation auto est active) ; `Director.setPlanner(p)` remplace le planificateur par défaut ;
+- requêtes : `camera.Lieux.zoneOf(server, player, lieu)` (groupe de caméras qui filme ce joueur),
+  `Lieux.camerasFor(server, player, lieu)` (ses caméras, la plus proche d'abord), `Lieux.playersOf(zone)`,
+  `Director.focus() / focusLieu() / phaseLieu() / wideSpot() / mosaicTiles(lieu)`, `Director.shot()` ;
+- plans dynamiques : `SHOT_POV` (vue d'un joueur), `SHOT_FREE` + `Director.moveFree(server, FreeCamera)` (caméra
+  libre lissée côté client : quelques mises à jour par seconde suffisent).
+
+**Effets d'image (autre chantier)** : chaque plan porte un id d'effet ; le client appelle
+`fr.lordfinn.craftmaster.client.fx.ScreenEffects.setBroadcastEffect(idOuNull)` à chaque changement de plan (et null
+hors diffusion). **Ce chantier livre un bouchon** de cette classe (ne fait rien) : à remplacer par la vraie classe à
+la fusion.
+
+**Écarts / choix** : numérotation par groupe plutôt que globale (une touche = un numéro peint sur un trépied de la
+salle choisie ; au-delà de 9 caméras par salle il faut une clé) ; pas de zone au studio ; les trajets et le registre
+des caméras restent hors annulation (réglages du monde) ; l'écran partagé rend une vignette par image à tour de rôle
+(pas de second rendu du monde par image), le « smart cull » du client est coupé pendant l'écran partagé.
+**Fichiers hors de camera/ et broadcast/** : `Manche` (champ `intro`), `data/MancheIntro` (nouveau), `show/Actions`
+(types + bloc intros), `show/ShowContext`, `command/CameraCommands`, `registry/ModContent` (`PATH_MARKER`),
+`CraftMaster` (chargement de `trajets.json`, tick des lignes de trajet), mixins client `CameraMixin`,
+`GameRendererMixin`, `HandsRendererMixin`, `client/fx/ScreenEffects` (bouchon), `scripts/gen_assets.py` (bloc
+« chantier E, second part »), `scripts/server_smoke_test.py` (port RCON en 2e argument, bloc TV), `tools/voice-regie`.
+
 ### D. Tâches, enveloppes, notes cachées (livré)
 
 **Données** : `Manche.task` (`fr.lordfinn.craftmaster.data.Task` : `title`, `text` — paragraphes séparés par
