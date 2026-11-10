@@ -20,7 +20,7 @@
   actions (entiers gardés entiers), retrait des `say`, réponses du service (dont malformées, service absent),
   aller-retour des 5 paquets (contexte de 100 000 caractères accentués).
 
-Service de la régie vocale (`tools/voice-regie`, Python) : `python -m pytest tests` — 50 tests, faux client
+Service de la régie vocale (`tools/voice-regie`, Python) : `python -m pytest tests` — 62 tests (dont les phrases de réalisation TV du chantier E), faux client
 Claude, aucun réseau : contexte (pseudos approchés et phonétiques, ambiguïté, manches par nom / numéro, règle
 d'inactivité, contexte absent ou faux), validation des actions, forme de la requête Claude (préfixe mis en cache
 identique quel que soit le contexte, outils stricts, repli), erreurs (pas de clé, Claude injoignable, refus),
@@ -35,6 +35,12 @@ phrases synthétisées (voix Windows française) : avec les pseudos en vocabulai
 - `PoseLibraryTest` : poses fournies, aller-retour JSON, lecture tolérante, fichier créé puis conservé, fichier
   illisible mis de côté.
 - `PortraitAnimationTest` : les trois phases du réarrangement, progression monotone, durée bornée.
+- Réalisation TV (chantier E) — `CameraListTest` : « 2 », « caméra deux », « cam 3 », noms, rôles (« plan large »,
+  « plan sur le trône », « podium »), plan large par défaut, molette (suivante / précédente en boucle), numéro libre,
+  champs normalisés. `CameraMotionTest` : caméra fixe immobile, respiration discrète et continue d'une image à
+  l'autre, travelling qui avance puis s'arrête, panoramique des deux côtés, angles, plan qui suit devant le joueur.
+  `BroadcastActionsTest` : actions `camera.*` / `broadcast.*` / `show.*` (transitions, champs manquants ou faux,
+  valeurs par défaut), effets sans modifier les données ni le journal, une action fausse annule toute la liste.
 
 ## 2. Test de bout en bout sur serveur (script)
 Serveur de dev (`run-server/server.properties`) : `online-mode=false`, `enable-rcon=true`, `rcon.port=25692`,
@@ -130,6 +136,30 @@ vrai Claude tant que `ANTHROPIC_API_KEY` n'est pas définie sur la machine de te
 Non vérifiable avec les outils actuels (pas de clic dans un écran) : modifier un réglage ou une pose à la souris,
 enregistrer / écraser / supprimer depuis l'éditeur, le clic droit et le coup qui casse le tableau, le skin par
 adresse (pas de serveur d'images de test). À vérifier à la main.
+
+### Réalisation TV (chantier E, vérifié en jeu : 2 clients, le 2e en 1920 × 1080 et en mode diffusion)
+Client de diffusion = `Joueur2` en spectateur, non admin (`dev-client.ps1 -Second -Size 1920x1080`), mode diffusion
+activé à distance (`/tv broadcast Joueur2 on`) ; LordFinn admin pose les caméras par `/cam here` (via RCON
+`execute as LordFinn`). Les captures sont exactement l'image envoyée à OBS.
+
+| Fonction | Résultat |
+|---|---|
+| Trépieds (bois, laiton, corps noir, objectif, viseur, voyant rouge allumé à l'antenne, numéro sur les flancs) | ✔ |
+| Mode diffusion : plus de main, barre, viseur, chat, toasts ; trépieds, joueur caméra et spectateurs invisibles | ✔ |
+| Coupe sèche, fondu (noir), fondu enchaîné (ancienne image qui se dissout, captures image par image) | ✔ |
+| Mouvement « travelling » / respiration | ✔ (sur plusieurs images) |
+| Plan qui suit LordFinn, synthé automatique « LordFinn — Maître du jeu » avec visage | ✔ |
+| Bandeau de manche (n°, nom, chrono, ligne d'or), rouge dans les 10 dernières secondes, retiré sans manche | ✔ |
+| Points en direct « Ensuri +3 », bandeau des scores publiés (visages, rangs or / argent / bronze), bandes cinéma, synthé texte | ✔ |
+| Générique d'ouverture (titre + sceau, saison et partie, fondus entre caméras, carte « CANDIDAT 1/4 ») et de fin (crédits, classement publié) | ✔ |
+| Réalisation auto : coupe sur le marqueur puis retour au plan large, projecteur (« ouvre son enveloppe »), plan large au lancement de manche, caméra podium pendant toute la révélation | ✔ |
+| `/diffusion camera 3` refusé à un non-admin, accepté une fois op | ✔ |
+| Joueur caméra spectateur téléporté près du plan (envoyé à 200 blocs, ramené sous la caméra) | ✔ |
+
+Non vérifié (outils sans touches ni clics, jeu muet) : touche F8, touches 1–9 et molette (même chemin que
+`/diffusion camera`, vérifié), clic droit et coup sur un trépied, pose avec l'objet Caméra de studio (même code que
+`/cam here`), le thème à l'oreille (fichier généré, durée 37 s vérifiée), la carte de la tâche (bouchon du chantier D :
+l'appel `CurrentTask.showCard` est fait, la carte est dessinée par D).
 
 ## 5. Test d'ensemble après fusion des trois chantiers (v3)
 Serveur et client de dev avec la version fusionnée (données + direct, tableaux, régie vocale) :

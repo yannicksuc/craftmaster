@@ -110,3 +110,32 @@ Les scores changés ici sont en direct : les joueurs les voient après `/craftMa
 | `/cfpt poses` | Liste les poses |
 | `/cfpt publish <saison>` | Réarrange les galeries de la saison selon le classement |
 | `/cfpt highlight <saison> <rang>` | Illumine le tableau de ce rang (5 s) |
+
+## Réalisation TV (organisateur ou permission `craftmaster:camera`)
+Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`large`, `trone`, `podium`) ;
+`[transition]` = `coupe`, `fondu` ou `enchaine`.
+| Commande | Alias | Effet |
+|---|---|---|
+| `/craftMasterCamera [list]` | cam | Les caméras (● à l'antenne), le plan en cours, la réalisation auto |
+| `/cam here <n> [nom]` | | Pose (ou déplace) la caméra n à la place de tes yeux, regardant là où tu regardes |
+| `/cam add [nom]` | | Idem avec le numéro libre suivant |
+| `/cam aim <n>` · `/cam goto <n>` | | Elle regarde là où tu regardes · tu vois ce qu'elle voit |
+| `/cam name <n> <nom>` · `/cam role <n> <rôle\|aucun>` | | Renomme · rôle (un seul par rôle) |
+| `/cam zoom <n> <15..110\|reset>` · `/cam motion <n> <fixe\|respiration\|travelling\|panoramique>` | | Champ de vision · mouvement à l'antenne |
+| `/cam remove <n>` | | Retire la caméra et son trépied |
+| `/cam cut <caméra> [transition]` · `/cam wide` · `/cam next` · `/cam prev` | | Change de plan |
+| `/cam follow <joueur> [transition]` | | Plan qui suit un joueur |
+| `/cam auto <on\|off>` · `/cam transition <transition>` | | Réalisation automatique · transition par défaut |
+| `/craftMasterTv lowerthird player <joueur>` | tv | Synthé avec le nom (et le rang publié) d'un joueur |
+| `/tv lowerthird text <titre> [\| sous-titre]` | | Synthé libre |
+| `/tv task [secondes]` · `/tv scores [show\|auto\|on\|off]` · `/tv letterbox <on\|off>` | | Carte de la tâche · bandeau des scores · bandes cinéma |
+| `/tv intro` · `/tv outro` · `/tv stop` | | Générique d'ouverture · de fin · l'arrêter |
+| `/tv spotlight <joueur> [raison]` | | « Tous les yeux sur lui » : la réalisation auto coupe dessus |
+| `/tv broadcast <joueur> <on\|off>` | | Active / coupe le mode diffusion de ce jeu à distance |
+
+## Mode diffusion (tous, commande du jeu)
+| Commande | Effet |
+|---|---|
+| `/craftMasterBroadcast [on\|off]` (alias `/diffusion`) ou **F8** | Mode diffusion (image TV) |
+| `/diffusion chat <on\|off>` · `/diffusion status` | Chat visible en diffusion · état |
+| `/diffusion camera <n ou nom>` (ou touches 1–9, molette) | Demande ce plan (réalisation seulement) |

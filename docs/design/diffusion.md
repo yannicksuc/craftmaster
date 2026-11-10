@@ -137,3 +137,57 @@ pas été révélée (enveloppe ouverte, ou manche lancée, ou révélation forc
   (Dépôt principal : 25691 / 25692 / 25731 / 25732 ; régie vocale : 25790.)
 
 ## Interfaces livrées (à remplir par chaque chantier)
+
+### E. Réalisation TV (livré)
+
+Guide organisateur : `docs/wiki/Realisation.md`. Paquets : `fr.lordfinn.craftmaster.broadcast.BroadcastNetwork`.
+
+**Paquet « état de l'émission »** `craftmaster:show_state` (serveur → tout client qui a le mod, renvoyé dès que
+quelque chose change, vérifié tous les 10 ticks, et à la connexion) — record `BroadcastNetwork.ShowState` :
+`serverTick` (tick serveur à l'envoi), `season` (0 = aucune), `seasonName`, `seasonHidden`, `partie`, `partieName`,
+`mancheId` ("" = aucune manche en cours), `mancheNumber`, `mancheName`, `timerName`, `timerEnd` (tick serveur de fin
+du chrono, -1 sans chrono), `timerTotal` (ticks), `contestants[]` = `Contestant(name, points, rank, online)` (joueurs
+non archivés de la saison active, **scores publiés uniquement**, rang 0 = non classé, tout à 0 si la saison est
+cachée), `cameras[]` = `CameraSpot(number, name, role, world, x, y, z, yaw, pitch, fov, motion)` (position = objectif),
+`shot` = `Shot(kind 0 aucun / 1 caméra / 2 suivi, camera, player, transition 0 coupe / 1 fondu / 2 enchaîné,
+serial)`, `auto` (réalisation auto), `letterbox`, `scores` (bandeau 0 auto / 1 toujours / 2 jamais ; forcé à 2
+pendant la révélation), `master` (présentateur pour les crédits), `sequence` ("" / "intro" / "outro").
+Côté client : `fr.lordfinn.craftmaster.client.broadcast.ShowStateClient.get()` (+ `timerSeconds()`, `cameras()`).
+
+**Événements ponctuels** `craftmaster:show_cue` — `ShowCue(kind, title, subtitle, player, ticks)` ; kinds dans
+`BroadcastNetwork.Cues` : `points` (player, title « +3 », subtitle = manche), `lower_third`, `scores`, `task`
+(→ `CurrentTask.showCard(ticks)` sur les jeux en diffusion), `title_card`, `contestant`, `credits`, `theme`
+(title "play" / "stop"), `clear`, `broadcast` (title "on" / "off", envoyé à un seul joueur par `/tv broadcast`).
+Client → serveur : `craftmaster:broadcast_mode {on}` (le jeu passe en diffusion) et `craftmaster:camera_request
+{json}` (une action `camera.*` / `broadcast.*` / `show.*`, exécutée si le joueur a `Permissions.CAMERA`).
+
+**Actions ajoutées au schéma** (aucune ne modifie les données → rien à annuler ; vérifiées par
+`broadcast.BroadcastActions`, jouées par `broadcast.Director` via l'effet `Actions.Broadcast`) :
+`camera.cut {camera, transition?}` (camera = numéro, nom ou rôle `large` / `trone` / `podium`),
+`camera.follow {player, transition?}`, `camera.auto {enabled}`, `camera.transition {transition}`
+(`coupe` | `fondu` | `enchaine`), `broadcast.lowerthird {player? | text?, subtitle?, seconds?}`,
+`broadcast.task {seconds?}`, `broadcast.scores {mode: show | auto | on | off, seconds?}`,
+`broadcast.letterbox {enabled}`, `show.intro {}`, `show.outro {}`, `show.stop {}`. Toutes dans
+`tools/voice-regie` (outils Claude ; hors ligne : « caméra 2 », « plan large », « plan sur le trône », « le podium »,
+« suis X », « générique (de fin) », « réalisation automatique », « montre la tâche / les scores »), sauf
+`camera.transition` (commande seulement). Le contexte de la régie gagne `cameras[] {number, name, role}`, `onAir`
+("camera 2" / "follow Ensuri" / "none") et `autoDirection`.
+
+**`ShowEvents`** (méthodes par défaut ajoutées à `Listener`) : `onScoreGiven(server, season, player, delta, manche)`,
+`onMancheStarted(server, season, number, name)`, `onRevealStarted(server, season)` (appelés par `ActionExecutor`),
+et le crochet générique **`ShowEvents.spotlight(MinecraftServer, String player, String reason)`** →
+`onSpotlight(...)` : « tous les yeux sur ce joueur ». **Chantier D : à appeler quand un candidat ouvre son
+enveloppe, avec `reason = "envelope"`** (la réalisation auto coupe sur lui avec le synthé « ouvre son enveloppe »).
+`/tv spotlight <joueur> [raison]` le déclenche à la main.
+
+**Contrat D utilisé** : `client.task.CurrentTask.get()` (titre de la tâche révélée dans le bandeau de manche) et
+`CurrentTask.showCard(ticks)` (`/tv task`, « montre la tâche »). Le chantier E livre un **bouchon** de cette classe
+(même API, `get()` vide, `showCard` journalise) : **à remplacer par la classe du chantier D à la fusion.**
+
+**Autres points pour la fusion** : permission `craftmaster:camera` (`Permissions.CAMERA` = admin ou elle) ;
+son `craftmaster:show.theme` (`sounds.json` généré par gen_assets.py, dictionnaire `SOUNDS` où les autres chantiers
+ajoutent leurs sons) ; mixins client dans `craftmaster.client.mixins.json` (nouveau fichier) ; `Show` expose
+`timerName()`, `timerEndTick()`, `timerTotalTicks()` ; le panneau de la régie vocale est masqué en diffusion.
+Écarts avec la section E : la « présentation de chaque candidat avec son portrait » utilise le plan qui le suit
+(connecté) ou le plan large, plus son visage sur la carte (pas les tableaux suspendus) ; le plan « réaction sur le
+trône » est la caméra de rôle `trone` (ou `/cam follow LordFinn`).

@@ -379,7 +379,7 @@ public final class Director {
     private static void request(ServerPlayer player, String json) {
         MinecraftServer server = player.level().getServer();
         if (!Permissions.canDriveCameras(player)) {
-            player.sendOverlayMessage(Component.literal("Piloter les caméras est réservé à la réalisation (craftmaster.camera).")
+            player.sendOverlayMessage(Component.literal("Piloter les caméras est réservé à la réalisation (permission craftmaster:camera).")
                     .withStyle(ChatFormatting.RED));
             return;
         }

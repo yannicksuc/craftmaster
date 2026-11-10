@@ -29,6 +29,9 @@ besoin de rien).
 | « ajoute Cyllu comme joueur, surnom Cycy » | nouveau joueur avec surnom |
 | « crée une manche Parkour sur scène avec un chrono de deux minutes » | nouvelle manche |
 | « archive la partie 1 », « crée la saison 5 », « cache le classement » | saisons / parties |
+| « caméra 2 », « plan large », « plan sur le trône », « le podium », « caméra 3 en fondu » | réalisation TV : plan à l'antenne ([Réalisation](Realisation.md)) |
+| « suis Ensuri », « réalisation automatique » | plan qui suit un joueur, réalisation auto |
+| « générique », « générique de fin », « montre la tâche », « montre les scores » | générique, habillage de la diffusion |
 
 ## Ce qu'elle comprend
 - **Pseudos approximatifs** : surnoms (définis par joueur), fautes de transcription (« l'or fine » → LordFinn,

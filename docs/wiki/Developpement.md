@@ -44,6 +44,14 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
                           PortraitRanking (seule source des scores), GalleryPlanner (colonnes, plans, sans croisement),
                           PortraitGeometry (proportions bébé, centre de gravité, nœud), PortraitAnimation, Pose,
                           PoseLibrary (poses.json), PortraitNetwork, PortraitCommands (/cfpt), PortraitItem
+  camera/                 réalisation TV (chantier E) : CameraSpot (une caméra : numéro, nom, rôle, objectif, zoom,
+                          mouvement), CameraList (recherche « caméra 2 » / « plan large » / « trône »…, pur),
+                          CameraMotion (respiration, travelling, panoramique, plan qui suit : maths pures),
+                          Cameras (registre cameras.json + trépieds), CameraEntity (trépied), CameraItem
+  broadcast/              réalisation TV : Director (plan à l'antenne, réalisation auto, état envoyé aux clients,
+                          spectateurs gardés près du plan), BroadcastNetwork (paquets show_state, show_cue,
+                          broadcast_mode, camera_request), BroadcastActions (actions camera.* / broadcast.* /
+                          show.*, vérifiées sans serveur), Credits (génériques d'ouverture et de fin)
   curtain/Curtains        animation d'ouverture / fermeture (file d'attente par tick)
   block/                  ChairBlock, CurtainBlock, Shapes4 (formes tournées dans les 4 sens)
   entity/SeatEntity       l'entité invisible sur laquelle on s'assoit
@@ -61,6 +69,14 @@ src/client/java/…/client/                   client uniquement (jamais chargé 
   regie/RegieHud          le panneau « ● Régie à l'écoute » / résultat (HudElementRegistry)
   portrait/               PortraitRenderer, PortraitClipper (coupe par la toile, fenêtre Antichamber), PortraitSkins
                           (skin du joueur ou image téléchargée), PortraitScreen (réglages), PoseEditorScreen
+  broadcast/              mode diffusion (chantier E) : Broadcast (F8, /diffusion, touches 1–9 et molette, HUD
+                          vanilla masqué), ShowStateClient (état reçu, chrono lissé), DirectorCamera (vue du plan,
+                          transitions), Transition (fondu enchaîné : copie de la dernière image), BroadcastOverlay
+                          (habillage TV), ThemeSound, CameraRenderer (trépied, voyant rouge, numéro)
+  task/CurrentTask        BOUCHON du contrat du chantier D (remplacé par la vraie classe à la fusion)
+  mixin/                  CameraMixin (vue du plan, champ), GameRendererMixin (pas de balancement), HandsRendererMixin,
+                          EntityRenderDispatcherMixin (trépieds, joueur caméra et spectateurs cachés), MouseHandlerMixin
+                          (molette), ToastManagerMixin, GuiGraphicsExtractorAccessor — craftmaster.client.mixins.json
 src/main/resources/                         fabric.mod.json, mixins, assets et data (générés)
 src/test/java/                              tests unitaires JUnit 5
 scripts/                                    générateur de ressources, test serveur, lanceur de client
@@ -98,6 +114,21 @@ tools/voice-regie/                          service local de la régie vocale (P
   long du regard sur le plan de la toile). Le réarrangement n'envoie qu'un état (colonnes de départ et d'arrivée,
   plan, heure de début) que chaque client anime.
 - **Permissions** : Fabric Permission API (`craftmaster:admin`), repli sur le niveau d'opérateur 2.
+  Réalisation : `Permissions.CAMERA` = admin **ou** `craftmaster:camera`.
+- **Réalisation TV** (chantier E) : le serveur décide du plan (`Director`) et l'envoie à tous dans l'état de
+  l'émission (`craftmaster:show_state`, renvoyé dès qu'il change, vérifié tous les 10 ticks) ; chaque jeu en mode
+  diffusion calcule sa vue lui-même, image par image (`DirectorCamera` : mouvement de la caméra en temps réel, plan
+  qui suit lissé, transitions). La vue remplace position et rotation de `Camera` juste après `alignWithEntity`
+  (mixin) : la caméra reste « attachée » au joueur pour les chunks et le tri, n'est pas « détachée » (le corps du
+  joueur n'est pas dessiné). Le **fondu enchaîné** copie l'image à l'écran (`RenderTarget#copyColorFrom`, au moment
+  où le plan change, avant le rendu de la nouvelle image) et la dessine au-dessus avec une opacité décroissante
+  (`BlitRenderState` ajouté au `GuiRenderState`, V inversé). L'habillage est un élément HUD Fabric dessiné sur un
+  canevas de 270 unités de haut (480 de large en 16:9) mis à l'échelle de la fenêtre : même rendu quelle que soit la
+  résolution et l'échelle d'interface. Les éléments vanilla sont remplacés par des enveloppes qui ne dessinent rien
+  en diffusion (`HudElementRegistry.replaceElement`). Le joueur caméra en spectateur est téléporté près du plan
+  (sinon le serveur ne lui envoie ni chunks ni entités) ; les trépieds suivent le registre `cameras.json` (un trépied
+  inconnu ou remplacé se retire à son chargement). Les génériques sont planifiés côté serveur (même image partout)
+  avec des « cues » (`craftmaster:show_cue`) que les clients animent.
 - **Régie vocale** : la compréhension tourne sur le PC de celui qui parle (service local `tools/voice-regie`),
   jamais sur le serveur. Le client demande le contexte au serveur dès l'appui (il arrive pendant qu'on parle),
   envoie WAV + contexte au service au relâchement (fil à part), puis les actions au serveur qui revérifie le
@@ -112,3 +143,5 @@ Tout ce qui est dans `src/main/resources/assets` et `data` vient de `scripts/gen
 dépendance, les PNG sont écrits à la main). Modifier le script puis le relancer, ne pas éditer les JSON générés.
 Formats 26.x à respecter : définitions d'objet dans `assets/<mod>/items/`, loot tables avec `"condition"` unique,
 catégories de recette `building | redstone | equipment | misc`.
+Exception (chantier E) : `assets/craftmaster/sounds/show/theme.ogg`, le thème provisoire, est fabriqué par
+`scripts/gen_theme.py` (Python Windows avec numpy, et ffmpeg dans le PATH) ; `sounds.json` vient de gen_assets.py.
