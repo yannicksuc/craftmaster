@@ -53,6 +53,11 @@ FRENCH_NUMBERS = {w: i for i, w in enumerate(
     "zéro un deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize".split())}
 FRENCH_NUMBERS["une"] = 1
 
+# Screen effect targets that are not players (fx.set / fx.clear)
+FX_TARGETS = {"diffusion": "diffusion", "la diffusion": "diffusion", "stream": "diffusion", "le stream": "diffusion",
+              "live": "diffusion", "antenne": "diffusion", "tous": "tous", "tout le monde": "tous", "joueurs": "tous",
+              "les joueurs": "tous", "candidats": "candidats", "les candidats": "candidats", "tout": "tout"}
+
 
 def check(raw_actions: list, ctx: ShowContext) -> Checked:
     out = Checked()
@@ -140,6 +145,17 @@ def _check_one(raw: dict, ctx: ShowContext, warnings: list[str]) -> dict | None:
         elif fl.kind == STR:
             v = str(v).strip()
         action[fl.name] = v
+    if kind in ("fx.set", "fx.clear") and "target" in action:
+        t = action["target"]
+        word = FX_TARGETS.get(t.lower().replace("é", "e"))
+        if word:
+            action["target"] = word
+        else:
+            p = ctx.player(t)
+            if p is None:
+                warnings.append(f"{kind} : joueur « {t} » introuvable, action ignorée")
+                return None
+            action["target"] = p.pseudo
     if kind == "undo":
         action["count"] = max(1, min(int(action.get("count", 1)), 50))
     if kind in SCORE_ACTIONS and "manche" not in action:

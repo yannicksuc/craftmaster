@@ -286,6 +286,21 @@ d'outil MCP pour s'accroupir), les clics dans l'écran de réglages (Enregistrer
 de 2,5 Mo), le cache disque entre deux sessions.
 
 
+### Effets d'écran (vérifié en jeu : serveur 25821, LordFinn + Joueur2 dont un en 1920 × 1080 en mode diffusion)
+- Les 16 effets un par un sur la vue de LordFinn (`/fx LordFinn <effet>`), puis des combinaisons (`judas`,
+  `negatif+vignette`, six effets à la fois) : rendus, fondus (captures pendant le fondu : iris qui se ferme).
+- Diffusion : `/fx diffusion fisheye+masque_rond+sepia`, `citrouille`, `vhs+vignette` sur le plan d'une caméra, avec
+  un synthé et le logo : l'habillage reste net par-dessus.
+- `citrouille` = la superposition vanille `textures/misc/pumpkinblur.png` (même chemin de rendu que la citrouille
+  portée) ; le masque citrouille porté l'affiche par le jeu lui-même.
+- Objets portés : les 12 sur des porte-armures et sur LordFinn vus par Joueur2 (face, côté, trois-quarts) ;
+  `/fx porter … verrouille` (malédiction du lien sans reflet), `/fx retirer`.
+- Images par seconde (`/essaifx`) : 30 / s avec ou sans six effets sur la fenêtre 1080p (fenêtre en arrière-plan,
+  limitée à 30), 60 / s (vsync) avec sept effets sur le client 854 × 480.
+- `scripts/server_smoke_test.py <hôte> [port RCON]` : section « fx » (commandes, refus, objets, composant).
+- Non vérifié en jeu : clic droit pour mettre les lunettes (pas de clic par MCP ; testé par `/fx porter` et
+  l'équipement), la régie vocale de bout en bout (pytest seulement), les recettes à l'établi.
+
 ## 6. Test d'ensemble après fusion des cinq chantiers (v4)
 Serveur de dev + LordFinn (admin, créatif) + Joueur2 en spectateur et **en mode diffusion à 1920 × 1080** (l'image
 que capte OBS), plateau monté par RCON : trône, canapés, pupitres, table des prix, trophée, lampadaire, chrono géant,

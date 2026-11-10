@@ -127,6 +127,20 @@ tools/voice-regie/                          service local de la régie vocale (P
 - `task/Tasks.java` : **bouchon** de `Tasks.openPaper` (chantier D le remplace à la fusion).
 - Ressources : `scripts/gen_trials.py`, appelé par `gen_assets.py`.
 
+### Effets d'écran (fx/)
+- `fx/ScreenFx` (ids, ordre de dessin, alias français, combinaisons), `fx/FxMixer` (fondus) : logique pure, testée.
+- `fx/FxContent` (composant `craftmaster:screen_fx`, objets à porter), `fx/ScreenEffectsServer` (ordres, mémoire
+  pour les reconnexions, `/fx porter`), `fx/FxNetwork` (`craftmaster:screen_fx`), `command/FxCommands`.
+- Client `client/fx/` : `ScreenEffects` (couches diffusion / imposé / porté / essai, API `setBroadcastEffect`),
+  `FxUniforms` (uniformes vivants), `FxOverlay` (citrouille vanille), `FxClient`.
+- Rendu : chaque effet est un post effect vanille `assets/craftmaster/post_effect/fx/<id>.json` (généré par
+  `scripts/gen_fx.py`) avec des shaders écrits à la main dans `assets/craftmaster/shaders/post/fx_*.fsh`
+  (`include/fx_common.glsl`). `FxGameRendererMixin` les ajoute à `GameRenderer.requestedPostEffects` à chaque image
+  (ils passent avant le HUD, donc l'habillage reste net) ; `FxPostChainMixin` écrit le bloc `FxConfig { vec4 Fx; }`
+  (intensité, temps) juste avant chaque chaîne — vanilla crée ces tampons sans droit d'écriture, ils sont remplacés
+  la première fois par un tampon modifiable de même taille. `FxCameraMixin` élargit le champ (fish-eye) ou zoome
+  (jumelles).
+
 ## Choix techniques
 - **Données** : un seul objet en mémoire (le plugin en avait deux qui s'écrasaient), YAML via SnakeYAML embarqué
   dans le jar (`include`), écriture atomique, clés toujours en texte comme Bukkit. Modèle objet (Season → Partie →

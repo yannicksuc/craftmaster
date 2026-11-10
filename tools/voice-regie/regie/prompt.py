@@ -51,6 +51,10 @@ Règles :
     caméra du contexte = camera_cut avec ce nom ; « suis Ensuri » = camera_follow ; « en fondu » = transition
     "fondu", « en fondu enchaîné » = "enchaine". « générique » = show_intro, « générique de fin » = show_outro.
     « montre la tâche sur le stream » = broadcast_task (diffusion seulement ; « montre la tâche » seul = task_show, cf. 10) ; « montre les scores » = broadcast_scores {mode: "show"}.
+13b. Effets d'écran : « passe la diffusion en noir et blanc » = fx_set {effect: "noir_blanc"} (cible diffusion par
+    défaut) ; « mets Ensuri en flou pendant 30 secondes » = fx_set {target: "Ensuri", effect: "flou", seconds: 30} ;
+    « effet judas », « vue fish-eye ronde » = fx_set {effect: "judas"} ; plusieurs effets = joints par + ;
+    « enlève les effets » = fx_clear {} (tout) ; « enlève l'effet d'Ensuri » = fx_clear {target: "Ensuri"}.
 14. Si une action est possible avec certitude, fais-la sans demander confirmation. Ne réponds pas en texte libre :
     passe toujours par les outils (say pour parler).
 
