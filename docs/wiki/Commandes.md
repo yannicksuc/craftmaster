@@ -88,7 +88,7 @@ Elles agissent sur la partie active de la saison donnée ; « tâche » = manche
 | `/craftMasterReloadScores` | cfrs | Relit `config/craftmaster/config.yml` (vide le journal d'annulation) |
 | `/craftMasterAddBust <saison> <rang>` | cfab | En regardant une tête de joueur : en fait le bust de ce rang |
 | `/craftMasterRemoveBust <saison> <rang>` | cfdb | Oublie le bust |
-| `/craftMasterCurtain <open\|close\|toggle> <x y z>` | cfcu | Ouvre / ferme le rideau qui contient ce bloc |
+| `/craftMasterCurtain <open\|close\|toggle> <x y z>` | cfcu | Ouvre / ferme le rideau qui contient ce bloc (le tissu glisse en continu chez tous les joueurs, [Rideaux](Rideaux.md)) |
 
 Un score sur une tâche qui n'est pas dans la liste est accepté avec un avertissement (la manche est créée archivée).
 Les scores changés ici sont en direct : les joueurs les voient après `/craftMasterPublish` ([Classement](Classement.md)).

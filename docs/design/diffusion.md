@@ -137,3 +137,21 @@ pas été révélée (enveloppe ouverte, ou manche lancée, ou révélation forc
   (Dépôt principal : 25691 / 25692 / 25731 / 25732 ; régie vocale : 25790.)
 
 ## Interfaces livrées (à remplir par chaque chantier)
+
+### G. Finitions (rideau fluide, éditeur de poses, skins HD)
+
+- **Rideaux** : aucun changement d'API. `Curtains.animate(ServerLevel, BlockPos, Boolean)` fait la même chose
+  (états des blocs colonne par colonne, sons) et envoie en plus `CurtainNetwork.Slide(pos, open, ticks)`
+  (`craftmaster:curtain_slide`, serveur → joueurs qui suivent le tronçon). Nouveau : `Curtains.group(BlockGetter,
+  BlockPos)` (les blocs d'un rideau, même règle des deux côtés), `Curtains.column`, `STEP_TICKS` et `MAX_BLOCKS`
+  publics. `CurtainBlock` est un `EntityBlock` (`ModContent.CURTAIN_BLOCK_ENTITY`, `craftmaster:curtain`, sans
+  données) au rendu `INVISIBLE` : le tissu est dessiné par `client/curtain/CurtainRenderer`. Un décor (chantier F)
+  qui pose des rideaux par `setBlock` n'a rien à faire de plus. `PortraitClock` (horloge lisse du client) est public.
+- **Éditeur de poses** : pas de nouvelle action (une pose s'enregistre toujours par `PortraitNetwork.SavePose`).
+  Logique pure réutilisable : `portrait/PoseEditing` (miroir, copie symétrique, remise à zéro, rotation par
+  glisser), `PoseHistory` (annuler / refaire avec fusion des gestes), `PoseHitTest` (`View` orthographique et
+  `pick`). `PortraitRenderer.previewState(pose, skin)` + `GuiGraphicsExtractor.entity(...)` dessinent un tableau
+  dans un écran.
+- **Skins** : `PortraitSkins.Skin(texture, slim, cape)` (cape nullable) ; `portrait/SkinFormat` (64·k, k ≤ 16).
+- **Tests d'écrans** : `client/DevInput` (dev uniquement) et l'étape `!input` de `scripts/mcp_session.py` ; utile
+  aux autres chantiers pour tester leurs écrans sans souris.

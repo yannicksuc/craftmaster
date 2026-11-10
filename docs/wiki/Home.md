@@ -12,6 +12,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Busts](Busts.md)
 - [Tableaux suspendus (galeries, poses, éditeur)](Tableaux.md)
 - [Rideaux de scène](Rideaux.md)
+- [Finitions v4 : rideau fluide, éditeur de poses, skins HD](Finitions.md)
 - [Chaises](Chaises.md)
 - [Régie vocale (piloter à la voix)](RegieVocale.md)
 - [Fichier de données](Donnees.md)

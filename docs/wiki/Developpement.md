@@ -43,8 +43,12 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
   portrait/               tableaux suspendus : PortraitEntity, Portraits (galeries, publication, illumination),
                           PortraitRanking (seule source des scores), GalleryPlanner (colonnes, plans, sans croisement),
                           PortraitGeometry (proportions bébé, centre de gravité, nœud), PortraitAnimation, Pose,
-                          PoseLibrary (poses.json), PortraitNetwork, PortraitCommands (/cfpt), PortraitItem
-  curtain/Curtains        animation d'ouverture / fermeture (file d'attente par tick)
+                          PoseLibrary (poses.json), PortraitNetwork, PortraitCommands (/cfpt), PortraitItem,
+                          PoseEditing (miroir, copie, remise à zéro, glissers), PoseHistory (annuler / refaire),
+                          PoseHitTest (partie sous la souris dans l'aperçu), SkinFormat (tailles de skins HD)
+  curtain/Curtains        animation d'ouverture / fermeture (file d'attente par tick), paquet de glissement
+  curtain/CurtainCloth    forme du tissu pendant le glissement (plis, paquets sur les côtés, adoucissement), pur
+  curtain/CurtainBlockEntity  bloc-entité vide : le client dessine le tissu (CurtainNetwork : paquet curtain_slide)
   block/                  ChairBlock, CurtainBlock, Shapes4 (formes tournées dans les 4 sens)
   entity/SeatEntity       l'entité invisible sur laquelle on s'assoit
   item/CurtainRemoteItem  la télécommande
@@ -60,7 +64,10 @@ src/client/java/…/client/                   client uniquement (jamais chargé 
   regie/VoiceRegie        touche N, enregistrement, envoi au service puis au serveur ; Recorder (micro / WAV) ;
   regie/RegieHud          le panneau « ● Régie à l'écoute » / résultat (HudElementRegistry)
   portrait/               PortraitRenderer, PortraitClipper (coupe par la toile, fenêtre Antichamber), PortraitSkins
-                          (skin du joueur ou image téléchargée), PortraitScreen (réglages), PoseEditorScreen
+                          (skin du joueur ou image téléchargée, HD, cape), PortraitScreen (réglages),
+                          PoseEditorScreen (aperçu 3D dessiné par PortraitRenderer, gestes, raccourcis)
+  curtain/                CurtainClient (forme de chaque rideau, glissements en cours), CurtainRenderer (le tissu)
+  DevInput                dev uniquement : clics / touches lus dans run/dev-input.txt pour tester les écrans
 src/main/resources/                         fabric.mod.json, mixins, assets et data (générés)
 src/test/java/                              tests unitaires JUnit 5
 scripts/                                    générateur de ressources, test serveur, lanceur de client

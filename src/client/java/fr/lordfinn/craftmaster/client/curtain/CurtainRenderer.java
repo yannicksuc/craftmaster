@@ -39,15 +39,18 @@ public class CurtainRenderer implements BlockEntityRenderer<CurtainBlockEntity, 
         Identifier texture;
         boolean alongX;
         /**
-         * Per pleat, at the top then at the bottom of the block: x0, x1 (along the curtain), z0, z1 (across it), in
-         * blocks, relative to this block. Top and bottom differ while the lower fabric trails behind.
+         * Per pleat, at the top then at the bottom of the block: x0, x1 (along the curtain), z0, z1 (across it), then
+         * the billow's shift across at x0 and at x1, in blocks, relative to this block. Top and bottom differ while
+         * the lower fabric trails behind; the shift is taken at the pleat's edges so neighbours stay joined.
          */
-        final float[] pleats = new float[CurtainCloth.PLEATS_PER_BLOCK * 8];
+        final float[] pleats = new float[CurtainCloth.PLEATS_PER_BLOCK * 12];
         final int[] slices = new int[CurtainCloth.PLEATS_PER_BLOCK];
         boolean top, bottom;
     }
 
     private static final Map<Block, Identifier[]> TEXTURES = new HashMap<>();
+    /** Overlap between neighbouring pieces of fabric (blocks). */
+    private static final float SEAM = 0.002f, Y0 = -SEAM, Y1 = 1 + SEAM;
 
     public CurtainRenderer(BlockEntityRendererProvider.Context ctx) {}
 
@@ -98,12 +101,13 @@ public class CurtainRenderer implements BlockEntityRenderer<CurtainBlockEntity, 
             for (int k = 0; k < CurtainCloth.PLEATS_PER_BLOCK; k++) {
                 int j = column * CurtainCloth.PLEATS_PER_BLOCK + k;
                 CurtainCloth.Pleat p = CurtainCloth.pleat(j, layout.columns(), open);
-                double wave = amp * Math.sin((p.x0() + p.x1()) * 0.09 + now * 0.45);
-                int o = k * 8 + edge * 4;
+                int o = k * 12 + edge * 6;
                 s.pleats[o] = (float) (p.x0() / 16 - column);
                 s.pleats[o + 1] = (float) (p.x1() / 16 - column);
-                s.pleats[o + 2] = (float) ((p.z0() + wave) / 16);
-                s.pleats[o + 3] = (float) ((p.z1() + wave) / 16);
+                s.pleats[o + 2] = (float) (p.z0() / 16);
+                s.pleats[o + 3] = (float) (p.z1() / 16);
+                s.pleats[o + 4] = (float) (amp * Math.sin(p.x0() * 0.18 + now * 0.45) / 16);
+                s.pleats[o + 5] = (float) (amp * Math.sin(p.x1() * 0.18 + now * 0.45) / 16);
                 s.slices[k] = k;
             }
         }
@@ -114,7 +118,7 @@ public class CurtainRenderer implements BlockEntityRenderer<CurtainBlockEntity, 
         if (s.texture == null) return;
         int light = s.lightCoords;
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(s.texture), (p, c) -> {
-            for (int k = 0; k < CurtainCloth.PLEATS_PER_BLOCK; k++) pleat(c, p, s, k * 8, s.slices[k], light);
+            for (int k = 0; k < CurtainCloth.PLEATS_PER_BLOCK; k++) pleat(c, p, s, k * 12, s.slices[k], light);
         });
     }
 
@@ -124,20 +128,26 @@ public class CurtainRenderer implements BlockEntityRenderer<CurtainBlockEntity, 
      */
     private static void pleat(VertexConsumer c, PoseStack.Pose p, State s, int o, int slice, int light) {
         float[] q = s.pleats;
-        float a0 = q[o], a1 = q[o + 1], n0 = q[o + 2], n1 = q[o + 3];          // top
-        float b0 = q[o + 4], b1 = q[o + 5], m0 = q[o + 6], m1 = q[o + 7];      // bottom
+        // Corners: a = top, b = bottom; 0 / 1 = the pleat's two edges; n = across (back / front face), shifted
+        float a0 = q[o], a1 = q[o + 1], ta0 = q[o + 2] + q[o + 4], tf0 = q[o + 3] + q[o + 4], ta1 = q[o + 2] + q[o + 5], tf1 = q[o + 3] + q[o + 5];
+        float b0 = q[o + 6], b1 = q[o + 7], ba0 = q[o + 8] + q[o + 10], bf0 = q[o + 9] + q[o + 10], ba1 = q[o + 8] + q[o + 11], bf1 = q[o + 9] + q[o + 11];
         if (a1 - a0 < 1e-4f && b1 - b0 < 1e-4f) return;
         float u0 = slice * 4 / 16f, u1 = u0 + 4 / 16f, us = u0 + 2 / 16f;
         boolean x = s.alongX;
+        // A hair beyond the block and wider (fronts): no hairline cracks with the neighbouring blocks' fabric
+        a0 -= SEAM;
+        a1 += SEAM;
+        b0 -= SEAM;
+        b1 += SEAM;
         // Front and back (facing across the curtain)
-        quad(c, p, x, a0, 1, n1, a1, 1, n1, b1, 0, m1, b0, 0, m1, u0, 0, u1, 1, 0, 0, 1, light);
-        quad(c, p, x, a1, 1, n0, a0, 1, n0, b0, 0, m0, b1, 0, m0, u0, 0, u1, 1, 0, 0, -1, light);
+        quad(c, p, x, a0, Y1, tf0, a1, Y1, tf1, b1, Y0, bf1, b0, Y0, bf0, u0, 0, u1, 1, 0, 0, 1, light);
+        quad(c, p, x, a1, Y1, ta1, a0, Y1, ta0, b0, Y0, ba0, b1, Y0, ba1, u0, 0, u1, 1, 0, 0, -1, light);
         // Sides of the fold (facing along the curtain)
-        quad(c, p, x, a0, 1, n0, a0, 1, n1, b0, 0, m1, b0, 0, m0, u0, 0, us, 1, -1, 0, 0, light);
-        quad(c, p, x, a1, 1, n1, a1, 1, n0, b1, 0, m0, b1, 0, m1, u0, 0, us, 1, 1, 0, 0, light);
+        quad(c, p, x, a0, Y1, ta0, a0, Y1, tf0, b0, Y0, bf0, b0, Y0, ba0, u0, 0, us, 1, -1, 0, 0, light);
+        quad(c, p, x, a1, Y1, tf1, a1, Y1, ta1, b1, Y0, ba1, b1, Y0, bf1, u0, 0, us, 1, 1, 0, 0, light);
         // Top and bottom edges, only where the curtain ends
-        if (s.top) quad(c, p, x, a0, 1, n0, a1, 1, n0, a1, 1, n1, a0, 1, n1, u0, 0, u1, 2 / 16f, 0, 1, 0, light);
-        if (s.bottom) quad(c, p, x, b0, 0, m1, b1, 0, m1, b1, 0, m0, b0, 0, m0, u0, 14 / 16f, u1, 1, 0, -1, 0, light);
+        if (s.top) quad(c, p, x, a0, Y1, ta0, a1, Y1, ta1, a1, Y1, tf1, a0, Y1, tf0, u0, 0, u1, 2 / 16f, 0, 1, 0, light);
+        if (s.bottom) quad(c, p, x, b0, Y0, bf0, b1, Y0, bf1, b1, Y0, ba1, b0, Y0, ba0, u0, 14 / 16f, u1, 1, 0, -1, 0, light);
     }
 
     /**

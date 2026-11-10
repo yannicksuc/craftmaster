@@ -55,11 +55,11 @@ public final class CurtainCloth {
         return new Pleat(x0, x1, 8 + offset - depth / 2, 8 + offset + depth / 2);
     }
 
-    /** Ease in and out (smoothstep of smoothstep's cousin): the fabric starts and stops softly. */
+    /** Ease in and out (smoothstep): the fabric starts and stops softly, without a long dead start. */
     public static double ease(double t) {
         if (t <= 0) return 0;
         if (t >= 1) return 1;
-        return t * t * t * (t * (6 * t - 15) + 10);
+        return t * t * (3 - 2 * t);
     }
 
     /**
