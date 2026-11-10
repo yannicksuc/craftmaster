@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.Set;
@@ -39,7 +38,9 @@ public final class Furniture {
 
     public static FurnitureSeatBlock CANDIDATE_CHAIR;
     public static FurnitureBlock STUDIO_LIGHT, SOFTBOX, DECOR_FRAME;
-    public static DecorBlock TRIPOD, TRIPOD_ROD;
+    public static DecorBlock TRIPOD;
+    /** The tripod's rod, which links into rigs (towers, beams, junctions) on all 6 sides. */
+    public static RigRodBlock TRIPOD_ROD;
     public static Block CHECKER_TILE;
     public static TransparentBlock GLOBE_PANEL;
     public static BlockEntityType<FurnitureBlockEntity> BE;
@@ -50,8 +51,10 @@ public final class Furniture {
         CANDIDATE_CHAIR = ModContent.block("candidate_chair", p -> new FurnitureSeatBlock(p, 12, Shapes4.of(
                         new double[]{1.5, 0, 1.5, 14.5, 12, 14.5}, new double[]{1.5, 12, 13.5, 14.5, 16, 15})),
                 props(MapColor.COLOR_ORANGE, 2f).sound(SoundType.WOOD).noOcclusion());
-        STUDIO_LIGHT = ModContent.block("studio_light", p -> new FurnitureBlock(p, 5, false,
-                        Block.box(4, 0, 4, 12, 8, 12), Shapes.block(), Shapes.block()),
+        // On the floor, hung under a ceiling or a rig rod, or on a wall / a rod's side (rig: see RigRodBlock)
+        STUDIO_LIGHT = ModContent.block("studio_light", p -> new FurnitureBlock(p, 5, true,
+                        Block.box(4, 0, 4, 12, 8, 12), Block.box(3, 3, 3, 13, 13, 13), Block.box(4, 8, 4, 12, 16, 12))
+                        .turnsInPlaceOnWalls(),
                 light(MapColor.COLOR_BLACK));
         VoxelShape soft = Block.box(1, 0, 1, 15, 16, 15);
         SOFTBOX = ModContent.block("softbox", p -> new FurnitureBlock(p, 4, true, soft, soft, soft), light(MapColor.COLOR_BLACK));
@@ -60,7 +63,7 @@ public final class Furniture {
                 props(MapColor.WOOD, 1f).sound(SoundType.WOOD).noOcclusion().noCollision());
         TRIPOD = ModContent.block("tripod", p -> new DecorBlock(p, Shapes4.of(new double[]{1, 0, 1, 15, 16, 15})),
                 props(MapColor.COLOR_BLACK, 1.5f).sound(SoundType.METAL).noOcclusion());
-        TRIPOD_ROD = ModContent.block("tripod_rod", p -> new DecorBlock(p, Shapes4.of(new double[]{6, 0, 6, 10, 16, 10})),
+        TRIPOD_ROD = ModContent.block("tripod_rod", RigRodBlock::new,
                 props(MapColor.COLOR_BLACK, 1.5f).sound(SoundType.METAL).noOcclusion());
         CHECKER_TILE = ModContent.block("checker_tile", Block::new,
                 props(MapColor.QUARTZ, 1.5f).sound(SoundType.STONE).requiresCorrectToolForDrops());

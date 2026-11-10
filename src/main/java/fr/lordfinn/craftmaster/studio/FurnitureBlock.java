@@ -45,6 +45,8 @@ public class FurnitureBlock extends BaseEntityBlock {
 
     private final int tilts;
     private final boolean anyFace;
+    /** On a wall, sneak + right-click turns it by 45° in place (studio light) instead of to the next wall. */
+    private boolean wallTurnsInPlace;
     private final VoxelShape floor, wall, ceiling;
 
     public FurnitureBlock(Properties props, int tilts, boolean anyFace, VoxelShape floor, VoxelShape wall, VoxelShape ceiling) {
@@ -58,6 +60,11 @@ public class FurnitureBlock extends BaseEntityBlock {
                 .setValue(ROTATION, 0).setValue(TILT, Math.min(tilts, (tilts + 1) / 2)));
     }
 
+    public FurnitureBlock turnsInPlaceOnWalls() {
+        wallTurnsInPlace = true;
+        return this;
+    }
+
     public int tilts() {
         return tilts;
     }
@@ -65,6 +72,21 @@ public class FurnitureBlock extends BaseEntityBlock {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> b) {
         b.add(FACE, FACING, ROTATION, TILT);
+    }
+
+    /** The side of the block it is fixed to: below on the floor, above on the ceiling, behind it on a wall. */
+    public static Direction support(BlockState state) {
+        return switch (state.getValue(FACE)) {
+            case FLOOR -> Direction.DOWN;
+            case CEILING -> Direction.UP;
+            case WALL -> state.getValue(FACING).getOpposite();
+        };
+    }
+
+    /** Fixed on the side of a rig rod: it stands on the rod's arm (see client FurnitureRenderer). */
+    public static boolean onRodSide(BlockGetter level, BlockPos pos, BlockState state) {
+        return state.getValue(FACE) == AttachFace.WALL
+                && level.getBlockState(pos.relative(support(state))).getBlock() instanceof RigRodBlock;
     }
 
     /** The yaw a piece faces when it was placed by a player looking with {@code playerYaw}: toward that player. */
@@ -88,7 +110,9 @@ public class FurnitureBlock extends BaseEntityBlock {
         BlockState next;
         Component msg;
         if (player.isShiftKeyDown()) {
-            next = state.getValue(FACE) == AttachFace.WALL
+            // On a wall the softbox turns to the next wall (as before); on a rod's side, or a studio light on its
+            // wall bracket, it turns by 45° where it is
+            next = state.getValue(FACE) == AttachFace.WALL && !wallTurnsInPlace && !onRodSide(level, pos, state)
                     ? state.setValue(FACING, state.getValue(FACING).getClockWise())
                     : state.setValue(ROTATION, (state.getValue(ROTATION) + 1) % 8);
             msg = Component.translatable("message.craftmaster.furniture_turned");
