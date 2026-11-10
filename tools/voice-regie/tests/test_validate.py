@@ -7,7 +7,8 @@ from regie.validate import check
 SPEC_ACTIONS = """score.set score.add score.remove scores.publish reveal.start undo player.add player.update
 player.remove season.create season.update season.archive season.delete season.activate partie.create partie.update
 partie.archive partie.delete partie.activate manche.create manche.update manche.archive manche.delete manche.start
-manche.end timer.stop curtain.open curtain.close scene.set say""".split()
+manche.end timer.stop curtain.open curtain.close scene.set say
+spotlight.follow spotlight.stop spotlight.on spotlight.off""".split()
 
 
 def test_schema_matches_the_spec():

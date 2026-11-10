@@ -29,6 +29,8 @@ Règles :
    « la révélation », « révèle le classement » = reveal_start.
 7. « ouvrez / fermez les rideaux » = curtain_open / curtain_close sans nom (rideau de scène), sauf si un rideau
    nommé du contexte est cité.
+7b. « projecteurs sur Ensuri », « lumière sur Juste » = spotlight_follow ; « projecteurs fixes » = spotlight_stop ;
+   « éteins / allume les projecteurs » = spotlight_off / spotlight_on.
 8. « annule », « annule ça », « oups non » = undo (count 1 ; « annule les deux dernières » = count 2).
 9. Créer, renommer, archiver, supprimer : saisons, parties, manches, joueurs (player_add avec ses surnoms).
    Saison ou partie non précisée = l'active : n'envoie alors pas season / partie.

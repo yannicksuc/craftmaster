@@ -18,6 +18,12 @@ CASES = [
     ("Mettez à jour les scores.", [{"type": "scores.publish"}]),
     ("Annule.", [{"type": "undo", "count": 1}]),
     ("Lance la révélation.", [{"type": "reveal.start"}]),
+    # Studio spotlights (chantier F)
+    ("Projecteurs sur Ensuri.", [{"type": "spotlight.follow", "player": "Ensuri"}]),
+    ("Lumière sur Cycy !", [{"type": "spotlight.follow", "player": "Cyllu"}]),
+    ("Éteins les projecteurs.", [{"type": "spotlight.off"}]),
+    ("Allumez les projecteurs.", [{"type": "spotlight.on"}]),
+    ("Projecteurs fixes.", [{"type": "spotlight.stop"}]),
 ]
 
 

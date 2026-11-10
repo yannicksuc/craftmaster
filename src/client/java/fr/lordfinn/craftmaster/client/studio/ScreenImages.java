@@ -111,7 +111,7 @@ public final class ScreenImages {
             // Unreadable cache: download again
         }
         HttpRequest req = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(20))
-                .header("User-Agent", "CraftMaster-StudioScreen").header("Accept", "image/*").GET().build();
+                .header("User-Agent", "CraftMaster-StudioScreen/1.0 (Minecraft mod; image screens)").header("Accept", "image/*").GET().build();
         HttpResponse<InputStream> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofInputStream());
         if (resp.statusCode() / 100 != 2) throw new IOException("HTTP " + resp.statusCode());
         byte[] data;

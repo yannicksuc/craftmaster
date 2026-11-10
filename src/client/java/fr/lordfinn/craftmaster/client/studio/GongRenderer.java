@@ -17,7 +17,7 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * The gong's disc (the wooden frame is the block model): a golden disc hung by two cords under the beam, swinging
- * after a strike ({@link GongBlockEntity#swing}).
+ * after a strike ({@link fr.lordfinn.craftmaster.studio.GongSwing}).
  */
 public class GongRenderer implements BlockEntityRenderer<GongBlockEntity, GongRenderer.State> {
 
@@ -40,7 +40,7 @@ public class GongRenderer implements BlockEntityRenderer<GongBlockEntity, GongRe
         BlockEntityRenderer.super.extractRenderState(be, s, partialTick, camera, crumbling);
         s.yaw = be.getBlockState().getValue(GongBlock.FACING).toYRot();
         long time = be.getLevel() == null ? 0 : be.getLevel().getGameTime();
-        s.swing = GongBlockEntity.swing(time - be.struckAt() + partialTick);
+        s.swing = fr.lordfinn.craftmaster.studio.GongSwing.angle(time - be.struckAt() + partialTick);
     }
 
     @Override
@@ -50,8 +50,8 @@ public class GongRenderer implements BlockEntityRenderer<GongBlockEntity, GongRe
         poseStack.translate(0.5, 0, 0.5);
         poseStack.rotate(Axis.YP.rotationDegrees(-s.yaw));
         poseStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
-        // Hangs from the beam's underside (y = 13 px), swings around the x axis
-        poseStack.translate(0, 13, 0);
+        // Hangs from the beam's underside (y = 14 px), swings around the x axis
+        poseStack.translate(0, 14, 0);
         poseStack.rotate(Axis.XP.rotationDegrees(s.swing));
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (p, c) -> {
             int white = 0xFFFFFFFF;

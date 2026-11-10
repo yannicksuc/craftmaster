@@ -51,6 +51,10 @@ public final class Actions {
 
     public record ScenePlaced(String name) implements Effect {}
 
+    // Studio set (chantier F)
+    /** Every loaded spotlight: {@code order} = follow (then {@code player}), stop, on or off. */
+    public record SpotlightOrder(String order, String player) implements Effect {}
+
     /** The result: one French line per action (or the error), the effects to play, and whether it worked. */
     public record Outcome(List<String> lines, List<Effect> effects, boolean ok, boolean changed) {}
 
@@ -67,7 +71,9 @@ public final class Actions {
             "season.create", "season.update", "season.archive", "season.delete", "season.activate",
             "partie.create", "partie.update", "partie.archive", "partie.delete", "partie.activate",
             "manche.create", "manche.update", "manche.archive", "manche.delete", "manche.tp.add", "manche.tp.clear",
-            "manche.start", "manche.end", "timer.stop", "curtain.open", "curtain.close", "scene.set", "say");
+            "manche.start", "manche.end", "timer.stop", "curtain.open", "curtain.close", "scene.set", "say",
+            // Studio set (chantier F)
+            "spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off");
 
     /**
      * Applies the actions. {@code undo} is only accepted as the first action (it is done, then the rest is applied
@@ -271,6 +277,9 @@ public final class Actions {
                 case "curtain.close" -> curtain(a, false);
                 case "scene.set" -> sceneSet(a);
                 case "say" -> line(required(a, "text"));
+                // Studio set (chantier F): world only, nothing in the data changes
+                case "spotlight.follow" -> spotlightFollow(a);
+                case "spotlight.stop", "spotlight.on", "spotlight.off" -> effects.add(new SpotlightOrder(type.substring("spotlight.".length()), null));
                 default -> throw new Invalid("action inconnue « " + type + " ».");
             }
         }
@@ -848,6 +857,14 @@ public final class Actions {
             for (String n : data.stage().curtains.keySet()) if (n.equalsIgnoreCase(name)) return n;
             throw new Invalid("rideau « " + name + " » inconnu (rideaux : "
                     + (data.stage().curtains.isEmpty() ? "aucun" : String.join(", ", data.stage().curtains.keySet())) + ").");
+        }
+
+        /** Spotlights on a player: a cast member by name or nickname, or any exact pseudo (a guest, the master). */
+        private void spotlightFollow(Map<String, Object> a) {
+            String pseudo = required(a, "player");
+            Season s = data.activeSeason();
+            SeasonPlayer p = s == null ? null : castMember(s, pseudo);
+            effects.add(new SpotlightOrder("follow", p != null ? p.name : pseudo));
         }
 
         private void curtain(Map<String, Object> a, boolean open) {

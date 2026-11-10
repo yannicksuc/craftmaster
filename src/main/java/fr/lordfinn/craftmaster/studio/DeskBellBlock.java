@@ -54,7 +54,7 @@ public class DeskBellBlock extends DecorBlock {
         return InteractionResult.SUCCESS_SERVER;
     }
 
-    /** "🔔 Ensuri a sonné (1:42 restantes)" in the organisers' chat. */
+    /** "♪ Ensuri a sonné (1:42 restantes)" in the organisers' chat. */
     private static void announce(ServerLevel level, Player player) {
         int left = Show.timerRemaining(level.getServer());
         Component msg = Component.translatable(left >= 0 ? "message.craftmaster.bell_rung_timer" : "message.craftmaster.bell_rung",

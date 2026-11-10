@@ -31,7 +31,9 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
     public static final Identifier TEXTURE = CraftMaster.id("textures/entity/spotlight.png");
     private static final Geo.Tex TEX = new Geo.Tex(32, 32);
     /** Half-angle of the cone (degrees) and radius of the beam at the lens (blocks). */
-    private static final double SPREAD = 6.5, LENS_RADIUS = 3.2 / 16;
+    private static final double SPREAD = 3.2, LENS_RADIUS = 3.2 / 16, MAX_RADIUS = 1.1;
+    /** A beam that hits nothing fades out over this length (blocks). */
+    private static final double OPEN_LENGTH = 26;
     private static final int SIDES = 20;
 
     public static class State extends BlockEntityRenderState {
@@ -92,7 +94,7 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
 
         s.hit = null;
         s.face = null;
-        s.length = SpotlightBlockEntity.RANGE;
+        s.length = OPEN_LENGTH;
         if (s.lit && be.getLevel() != null) {
             BlockHitResult hit = SpotlightBlockEntity.trace(be.getLevel(), pivot, s.yaw, s.pitch);
             if (hit.getType() == HitResult.Type.BLOCK) {
@@ -161,7 +163,7 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         if (s.lit && s.hit != null) {
             Vec3 hit = s.hit;
             Direction face = s.face;
-            double radius = LENS_RADIUS + s.length * Math.tan(Math.toRadians(SPREAD));
+            double radius = endRadius(s.length);
             int color = s.color;
             collector.submitCustomGeometry(poseStack, RenderTypes.lightning(), (p, c) -> pool(c, p, hit, face, radius * 1.25, color));
         }
@@ -170,9 +172,14 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
     /** The cone, in head space (blocks): two layers, wide and soft, narrow and brighter, fading to nothing at the end. */
     private static void beam(VertexConsumer c, PoseStack.Pose p, double length, int rgb) {
         float z0 = 5.5f / 16, z1 = (float) length;
-        double tan = Math.tan(Math.toRadians(SPREAD));
-        cone(c, p, z0, z1, (float) LENS_RADIUS, (float) (LENS_RADIUS + length * tan), Geo.argb(70, rgb), Geo.argb(0, rgb));
-        cone(c, p, z0, z1, (float) (LENS_RADIUS * 0.55), (float) ((LENS_RADIUS + length * tan) * 0.45), Geo.argb(60, rgb), Geo.argb(0, rgb));
+        float r1 = (float) endRadius(length);
+        cone(c, p, z0, z1, (float) LENS_RADIUS, r1, Geo.argb(60, rgb), Geo.argb(0, rgb));
+        cone(c, p, z0, z1, (float) (LENS_RADIUS * 0.55), r1 * 0.45f, Geo.argb(55, rgb), Geo.argb(0, rgb));
+    }
+
+    /** Radius of the beam {@code length} blocks from the lens: a narrow stage beam, never wider than MAX_RADIUS. */
+    private static double endRadius(double length) {
+        return Math.min(MAX_RADIUS, LENS_RADIUS + length * Math.tan(Math.toRadians(SPREAD)));
     }
 
     private static void cone(VertexConsumer c, PoseStack.Pose p, float z0, float z1, float r0, float r1, int c0, int c1) {

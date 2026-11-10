@@ -92,7 +92,7 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
             case RUNNING -> v.seconds() <= 10 ? (int) (170 + 85 * s.pulse) : 255;
             case TIME_UP -> s.pulse > 0.5 ? 255 : 60;
             case READY -> 200;
-            case IDLE -> 90;
+            case IDLE -> 130;
         };
         int lit = blend(color, alpha);
         int unlit = 0xFF000000 | OFF;
@@ -104,7 +104,7 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
         int w = Math.max(1, font.width(text));
         float scale = Math.min(2.2f / font.lineHeight, 34f / w);
         poseStack.pushPose();
-        poseStack.translate(0, 13.6f + font.lineHeight * scale / 2 - 0.2f, 1.02f);
+        poseStack.translate(0, 13.6f + font.lineHeight * scale / 2 - 0.2f, 1.25f);
         poseStack.scale(scale, -scale, scale);
         collector.submitText(poseStack, -w / 2f, 0, text, false, Font.DisplayMode.POLYGON_OFFSET, light, 0xFFFFD86A, 0, 0);
         poseStack.popPose();
@@ -128,7 +128,8 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
         total -= gap;
         float scale = Math.min(1f, 37f / total);
         float x = -total * scale / 2, y0 = 1.5f + (10 - dh * scale) / 2;
-        float z = 1.01f;
+        // In front of the panel face (z = 1) by enough not to flicker from far away
+        float z = 1.25f;
         for (char ch : clock.toCharArray()) {
             if (ch == ':') {
                 float cx = x + colon * scale / 2, d = 0.7f * scale;
@@ -165,7 +166,7 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
             y0 += g;
             y1 -= g;
         }
-        rect(c, p, x0, y0, x1, y1, z + ((on & bit) != 0 ? 0.01f : 0), (on & bit) != 0 ? lit : unlit);
+        rect(c, p, x0, y0, x1, y1, z + ((on & bit) != 0 ? 0.1f : 0), (on & bit) != 0 ? lit : unlit);
     }
 
     /** A flat rectangle facing +z, sampling the white pixels of the texture (40..48, 0..8). */

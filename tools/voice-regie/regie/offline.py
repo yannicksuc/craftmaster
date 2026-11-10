@@ -3,7 +3,7 @@ for tests without an API key, or as an emergency mode without internet. Delibera
 answers "not understood" and does nothing.
 
 Understood: "annule" · "ouvrez / fermez les rideaux" · "manche suivante" · "mettez à jour les scores" / "publie" ·
-"la révélation" · "<N> point(s) pour|à <joueur> [pour|sur <manche>]" · "<joueur> prend <N> point(s) [sur <manche>]".
+"la révélation" · "projecteurs sur <joueur>" / "éteins | allume les projecteurs" / "projecteurs fixes" · "<N> point(s) pour|à <joueur> [pour|sur <manche>]" · "<joueur> prend <N> point(s) [sur <manche>]".
 """
 from __future__ import annotations
 
@@ -48,6 +48,16 @@ class OfflineUnderstander:
             return [{"type": "curtain.open"}]
         if re.search(r"\bferm\w* (les |le )?rideaux?\b", text):
             return [{"type": "curtain.close"}]
+        # Studio spotlights (chantier F)
+        m = re.fullmatch(r"(?:les )?(?:projecteurs?|lumières?|lumiere) sur (?P<player>.+)", text)
+        if m:
+            return [{"type": "spotlight.follow", "player": m.group("player")}]
+        if re.search(r"\b(éteins|eteins|éteignez|coupez?) (les |le )?projecteurs?\b", text):
+            return [{"type": "spotlight.off"}]
+        if re.search(r"\ballum\w* (les |le )?projecteurs?\b", text):
+            return [{"type": "spotlight.on"}]
+        if re.fullmatch(r"(?:les )?projecteurs? fixes?", text):
+            return [{"type": "spotlight.stop"}]
         if re.fullmatch(r"(on passe à la )?manches? suivantes?", text):
             return [{"type": "manche.start", "manche": "next"}]
         if re.search(r"(mett?\w* à jour (les scores|le classement)|^publie)", text):

@@ -82,6 +82,12 @@ public final class ActionExecutor {
                 String error = StageControl.moveCurtain(server, c.name(), c.open());
                 if (error != null) lines.add("⚠ " + error);
             }
+            // Studio set (chantier F)
+            case Actions.SpotlightOrder o -> lines.add(switch (o.order()) {
+                case "follow" -> fr.lordfinn.craftmaster.studio.Spotlights.follow(server, o.player());
+                case "stop" -> fr.lordfinn.craftmaster.studio.Spotlights.stop(server);
+                default -> fr.lordfinn.craftmaster.studio.Spotlights.setLit(server, o.order().equals("on"));
+            });
             case Actions.ScenePlaced s -> {
                 String error = StageControl.placeScene(server, s.name(), previousScene);
                 if (error != null) lines.add("⚠ " + error);
