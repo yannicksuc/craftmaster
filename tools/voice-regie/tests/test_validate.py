@@ -9,7 +9,9 @@ player.remove season.create season.update season.archive season.delete season.ac
 partie.archive partie.delete partie.activate manche.create manche.update manche.archive manche.delete manche.start
 manche.end timer.stop curtain.open curtain.close scene.set say
 result.set result.dq result.remove results.clear results.config results.apply stopwatch.start stopwatch.stop
-stopwatch.reset buzzer.reset""".split()
+stopwatch.reset buzzer.reset
+camera.cut camera.follow camera.auto broadcast.lowerthird broadcast.task broadcast.scores broadcast.letterbox
+show.intro show.outro show.stop""".split()
 
 
 def test_schema_matches_the_spec():

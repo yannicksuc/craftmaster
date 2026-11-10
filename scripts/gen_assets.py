@@ -408,6 +408,209 @@ for y in range(5, 12):
             pix[y][x] = (112, 26, 38, 255)
 write_png(os.path.join(A, "textures/item/portrait.png"), 16, 16, pix)
 
+# ==================================================================================================================
+# TV direction (chantier E): studio camera (entity texture, item), the CM wax seal of the broadcast overlay, the
+# show's theme sound event. Everything of chantier E is in this block (and its translations further down).
+# ==================================================================================================================
+# camera.png (64 x 32): box UVs of CameraRenderer.createLayer() — body (6,7,11) at 0,0; lens (4,4,3) at 34,0;
+# hood (3,2,4) at 48,0; hub (4,2,4) at 34,8; tally (1,1,1) at 50,8; pan bar (1,1,5) at 34,15; legs (1,22,1) at 56,8.
+# The model's front (lens side) is the box "front" face (u+d, v+d).
+CAM = [[(0, 0, 0, 0)] * 64 for _ in range(32)]
+cam_rnd = random.Random(31)
+CAM_METAL = [(28, 26, 32), (40, 38, 45), (52, 50, 58), (66, 64, 74), (86, 84, 96)]   # dark → light
+CAM_BRASS = [(110, 72, 22), (160, 110, 34), (206, 156, 52), (240, 196, 72), (255, 232, 150)]
+CAM_WOOD = [(58, 36, 22), (78, 50, 30), (96, 64, 38)]
+
+
+def cam_put(x, y, c):
+    CAM[y][x] = (c[0], c[1], c[2], 255)
+
+
+def cam_face(u, v, w, h, painter):
+    for y in range(h):
+        for x in range(w):
+            cam_put(u + x, v + y, painter(x, y, w, h))
+
+
+def cam_box(u, v, w, h, d, front, top, side, back, bottom=None):
+    cam_face(u + d, v, w, d, top)
+    cam_face(u + d + w, v, w, d, bottom or side)
+    cam_face(u, v + d, d, h, side)
+    cam_face(u + d, v + d, w, h, front)
+    cam_face(u + d + w, v + d, d, h, side)
+    cam_face(u + 2 * d + w, v + d, w, h, back)
+
+
+def metal(level):
+    def p(x, y, w, h):
+        # Light from the top: one step brighter on the first row, darker on the last
+        k = level + (1 if y == 0 else -1 if y == h - 1 else 0)
+        return CAM_METAL[max(0, min(4, k))]
+    return p
+
+
+def body_side(x, y, w, h):
+    # Black body, brass trim along the front and back edges, a brass plate in the middle (the number is drawn on it)
+    if x == 0 or x == w - 1:
+        return CAM_BRASS[2] if y % 3 else CAM_BRASS[1]
+    if 3 <= x <= w - 4 and 2 <= y <= h - 3:
+        edge = x == 3 or x == w - 4 or y == 2 or y == h - 3
+        return CAM_BRASS[1] if edge else CAM_METAL[0]
+    return metal(2)(x, y, w, h)
+
+
+def body_top(x, y, w, h):
+    if (x in (1, w - 2)) and y % 4 == 1:
+        return CAM_METAL[4]   # screws
+    return CAM_METAL[3] if y % 5 else CAM_METAL[2]
+
+
+def body_front(x, y, w, h):
+    # Around the lens: a brass bezel two pixels from the edge
+    if x in (0, w - 1) or y in (0, h - 1):
+        return CAM_BRASS[2]
+    return metal(1)(x, y, w, h)
+
+
+def body_back(x, y, w, h):
+    # Operator side: a small monitor and two knobs
+    if 1 <= x <= 4 and 1 <= y <= 3:
+        return (40, 70, 92) if (x, y) != (1, 1) else (120, 170, 200)
+    if y == 5 and x in (1, 4):
+        return CAM_BRASS[3]
+    return metal(1)(x, y, w, h)
+
+
+def lens_front(x, y, w, h):
+    # Square concentric rings: brass bezel, dark ring, glass with a highlight
+    ring = min(x, y, w - 1 - x, h - 1 - y)
+    if ring == 0:
+        return CAM_BRASS[3] if (x + y) % 2 else CAM_BRASS[2]
+    if (x, y) == (1, 1):
+        return (150, 190, 230)
+    return (24, 34, 58) if (x + y) % 3 else (36, 52, 86)
+
+
+def lens_side(x, y, w, h):
+    # Focus ring ridges across the barrel
+    return CAM_BRASS[3] if x % 2 == 0 else CAM_BRASS[1] if y == h - 1 else CAM_BRASS[2]
+
+
+def brass(x, y, w, h):
+    return CAM_BRASS[3] if y == 0 else CAM_BRASS[2] if (x + y) % 3 else CAM_BRASS[1]
+
+
+def hood(x, y, w, h):
+    return CAM_METAL[1] if y > 0 else CAM_METAL[2]
+
+
+def leg(x, y, w, h):
+    # Walnut leg, brass foot on the last two pixels (the leg's lower end)
+    if y >= h - 2:
+        return CAM_BRASS[2] if y == h - 2 else CAM_BRASS[1]
+    if y == 0:
+        return CAM_BRASS[2]
+    return CAM_WOOD[(x + y // 3) % 3] if y % 5 else CAM_WOOD[0]
+
+
+def tally(x, y, w, h):
+    return (236, 48, 44)
+
+
+def grip(x, y, w, h):
+    return CAM_BRASS[2] if x == w - 1 else (30, 28, 30) if (x + y) % 2 else (44, 40, 44)
+
+
+cam_box(0, 0, 6, 7, 11, body_front, body_top, body_side, body_back, bottom=metal(0))
+cam_box(34, 0, 4, 4, 3, lens_front, lens_side, lens_side, metal(0))
+cam_box(48, 0, 3, 2, 4, metal(0), hood, hood, metal(1))
+cam_box(34, 8, 4, 2, 4, brass, brass, brass, brass)
+cam_box(50, 8, 1, 1, 1, tally, tally, tally, tally)
+cam_box(34, 15, 1, 1, 5, grip, grip, grip, grip)
+cam_box(56, 8, 1, 22, 1, leg, brass, leg, leg, bottom=lambda *a: CAM_BRASS[1])
+write_png(os.path.join(A, "textures/entity/camera.png"), 64, 32, CAM)
+
+# Item: the camera on its tripod, side view (lens to the left)
+write_json(os.path.join(A, "models/item/camera.json"),
+           {"parent": "minecraft:item/generated", "textures": {"layer0": "craftmaster:item/camera"}})
+write_json(os.path.join(A, "items/camera.json"), {"model": {"type": "minecraft:model", "model": "craftmaster:item/camera"}})
+art = [
+    "................",
+    ".......kkk..r...",
+    "...kkkkKKKkkkk..",
+    ".YykMMMMMMMMMMk.",
+    "YgOkMmMMMMMMMMk.",
+    "YoOkMmmbbbbMMMkk",
+    "YgOkMmmbbbbMMMk.",
+    ".YykMMMMMMMMMMk.",
+    "...kkkkkYYkkkkk.",
+    "........YY......",
+    ".......wYYw.....",
+    "......w.ww.w....",
+    ".....w..ww..w...",
+    "....w...ww...w..",
+    "...Y....ww....Y.",
+    "........YY......",
+]
+pal = {".": T, "k": (28, 26, 32, 255), "K": (52, 50, 58, 255), "M": (52, 50, 58, 255), "m": (70, 68, 78, 255),
+       "b": (206, 156, 52, 255), "Y": (206, 156, 52, 255), "y": (160, 110, 34, 255), "g": (36, 52, 86, 255),
+       "o": (150, 190, 230, 255), "O": (24, 34, 58, 255), "r": (236, 48, 44, 255), "w": (96, 64, 38, 255)}
+write_png(os.path.join(A, "textures/item/camera.png"), 16, 16, [[pal[c] for c in row] for row in art])
+
+# The CM wax seal of the overlay (32 x 32): a round blob of red wax, uneven rim, embossed ring and letters
+SEAL = [[(0, 0, 0, 0)] * 32 for _ in range(32)]
+WAX = [(78, 8, 16), (112, 14, 24), (150, 24, 34), (186, 44, 50), (222, 92, 88)]
+LETTERS = [
+    "..XXXX...XX...XX",
+    ".XX..XX..XXX.XXX",
+    ".XX......XX.X.XX",
+    ".XX......XX...XX",
+    ".XX..XX..XX...XX",
+    "..XXXX...XX...XX",
+]
+seal_rnd = random.Random(5)
+def rim_at(angle):
+    # Wax spreads unevenly: a slow wobble of the edge (smooth, no stray pixels)
+    return 14.6 + 0.7 * math.sin(angle * 3 + 0.5) + 0.4 * math.sin(angle * 5 + 2)
+
+
+
+for y in range(32):
+    for x in range(32):
+        dx, dy = x - 15.5, y - 15.5
+        r = math.hypot(dx, dy)
+        edge = rim_at(math.atan2(dy, dx))
+        if r > edge:
+            continue
+        shade = 2
+        if r > edge - 1.5:                       # rolled rim: light top-left, dark bottom-right
+            shade = 3 if dx + dy < 0 else 1
+        elif 9.5 <= r <= 10.6:                      # embossed ring
+            shade = 1 if dx + dy < 0 else 3
+        if dx + dy < -14 and shade == 2:
+            shade = 3
+        SEAL[y][x] = WAX[shade] + (255,)
+lx0, ly0 = 8, 13
+for j, row in enumerate(LETTERS):
+    for i, ch in enumerate(row):
+        if ch == "X":
+            SEAL[ly0 + j + 1][lx0 + i + 1] = WAX[0] + (255,)    # pressed-in shadow
+for j, row in enumerate(LETTERS):
+    for i, ch in enumerate(row):
+        if ch == "X":
+            SEAL[ly0 + j][lx0 + i] = WAX[4] + (255,)
+write_png(os.path.join(A, "textures/gui/broadcast/seal.png"), 32, 32, SEAL)
+
+# Sound events: the theme (scripts/gen_theme.py makes the provisional sounds/show/theme.ogg; a resource pack with
+# assets/craftmaster/sounds/show/theme.ogg replaces it). Other chantiers: add their events to SOUNDS.
+SOUNDS = {
+    "show.theme": {"category": "record", "subtitle": "subtitles.craftmaster.show.theme",
+                   "sounds": [{"name": "craftmaster:show/theme", "stream": True}]},
+}
+write_json(os.path.join(A, "sounds.json"), SOUNDS)
+# ==================================================================================================================
+
+
 # ------------------------------------------------------------------ recipes
 def shaped(name, pattern, key, result, count=1, category="misc"):
     """category: building, redstone, equipment or misc (the crafting book tabs)."""
@@ -426,6 +629,8 @@ for color in COLORS:
            f"{color}_curtain", 2, "building")
 shaped("curtain_remote", ["R", "I", "I"], {"R": "minecraft:redstone", "I": "minecraft:iron_ingot"}, "curtain_remote", 1, "redstone")
 # A painting in a gold frame, with its string
+# TV direction (chantier E): a studio camera, iron body, glass lens, on a stick tripod
+shaped("camera", [" I ", "IGI", "S S"], {"I": "minecraft:iron_ingot", "G": "minecraft:glass", "S": "minecraft:stick"}, "camera")
 shaped("portrait", [" S ", "GPG", " G "], {"S": "minecraft:string", "G": "minecraft:gold_ingot", "P": "minecraft:painting"}, "portrait")
 
 # ------------------------------------------------------------------ translations
@@ -657,6 +862,21 @@ fr.update({
     "screen.craftmaster.pose.delete": "Supprimer",
     "screen.craftmaster.pose.load": "Partir de",
     "screen.craftmaster.pose.use": "Utiliser la pose",
+})
+# TV direction (chantier E)
+en.update({
+    "item.craftmaster.camera": "Studio Camera",
+    "item.craftmaster.camera.hint": "Use it on the floor to stand a camera (directors only)",
+    "entity.craftmaster.camera": "Studio Camera",
+    "key.craftmaster.broadcast": "Broadcast mode (TV picture)",
+    "subtitles.craftmaster.show.theme": "CraftMaster theme plays",
+})
+fr.update({
+    "item.craftmaster.camera": "Caméra de studio",
+    "item.craftmaster.camera.hint": "Pose une caméra au sol (réservé à la réalisation)",
+    "entity.craftmaster.camera": "Caméra de studio",
+    "key.craftmaster.broadcast": "Mode diffusion (image TV)",
+    "subtitles.craftmaster.show.theme": "Générique CraftMaster",
 })
 for wood, (_, en_name, fr_name) in WOODS.items():
     en[f"block.craftmaster.{wood}_chair"] = f"{en_name} Chair"

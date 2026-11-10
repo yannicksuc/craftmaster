@@ -18,4 +18,12 @@ public final class Permissions {
     public static boolean isAdmin(ServerPlayer player) {
         return ADMIN.test(player.createCommandSourceStack());
     }
+
+    /** TV direction (chantier E): organisers, or whoever has craftmaster:camera, drive the studio cameras. */
+    public static final Predicate<CommandSourceStack> CAMERA =
+            ADMIN.or(PermissionPredicates.require(CraftMaster.id("camera"), PermissionLevel.GAMEMASTERS));
+
+    public static boolean canDriveCameras(ServerPlayer player) {
+        return CAMERA.test(player.createCommandSourceStack());
+    }
 }

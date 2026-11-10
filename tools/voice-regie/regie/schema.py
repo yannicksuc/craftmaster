@@ -109,11 +109,31 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                        [f("player", PLAYER, True, PLAYER_DOC), f("record", BOOL, doc="false = ne pas noter le temps.")]),
     "stopwatch.reset": ("Remet à zéro le chrono d'un candidat (ou tous si aucun joueur).", [f("player", PLAYER, doc=PLAYER_DOC)]),
     "buzzer.reset": ("Remet les buzzers à zéro (« remets les buzzers »).", []),
+    # TV direction (chantier E): no data change, nothing to undo
+    "camera.cut": ("Passe à l'antenne sur une caméra du studio (« caméra 2 », « plan large », « plan sur le trône », "
+                   "« le podium »).",
+                   [f("camera", STR, True, "Numéro, nom exact (du contexte) ou rôle : large, trone, podium."),
+                    f("transition", STR, doc="coupe (défaut), fondu ou enchaine.")]),
+    "camera.follow": ("Plan qui suit un joueur (« suis Ensuri », « caméra sur Cycy »).",
+                      [f("player", PLAYER, True, PLAYER_DOC), f("transition", STR, doc="coupe, fondu ou enchaine.")]),
+    "camera.auto": ("Réalisation automatique (coupe sur qui marque, qui ouvre son enveloppe, le podium à la révélation).",
+                    [f("enabled", BOOL, True, "true = activer.")]),
+    "broadcast.lowerthird": ("Affiche un synthé (nom en bas de l'écran) sur la diffusion : un joueur, ou un texte libre.",
+                             [f("player", PLAYER, doc=PLAYER_DOC), f("text", STR, doc="Texte libre (si pas de joueur)."),
+                              f("subtitle", STR, doc="Deuxième ligne.")]),
+    "broadcast.task": ("Montre la carte de la tâche en cours sur la diffusion.", []),
+    "broadcast.scores": ("Bandeau des scores publiés sur la diffusion : show = le montrer maintenant, on = toujours, "
+                         "off = jamais, auto = après chaque publication.", [f("mode", STR, doc="show (défaut), on, off, auto.")]),
+    "broadcast.letterbox": ("Bandes cinéma sur la diffusion.", [f("enabled", BOOL, True, "true = afficher.")]),
+    "show.intro": ("Lance le générique d'ouverture (plans du studio, titre, présentation des candidats).", []),
+    "show.outro": ("Lance le générique de fin (crédits, classement publié).", []),
+    "show.stop": ("Arrête le générique en cours.", []),
     "say": ("Répond à LordFinn sans rien modifier : question, doute réel, ordre impossible ou incompris. "
             "Texte court en français.", [f("text", STR, True, "Réponse courte.")]),
 }
 
-NO_SCOPE = {"say", "undo", "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset"}
+NO_SCOPE = {"say", "undo", "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset", "camera.cut", "camera.follow", "camera.auto", "broadcast.lowerthird", "broadcast.task",
+            "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop"}
 SCOPE_FIELDS = [f("season", SCOPE, doc="Saison (id ou nom). Absent = saison active."),
                 f("partie", SCOPE, doc="Partie (id ou nom). Absent = partie active.")]
 

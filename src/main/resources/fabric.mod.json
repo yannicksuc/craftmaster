@@ -12,7 +12,7 @@
     "main": ["fr.lordfinn.craftmaster.CraftMaster"],
     "client": ["fr.lordfinn.craftmaster.client.CraftMasterClient"]
   },
-  "mixins": ["craftmaster.mixins.json"],
+  "mixins": ["craftmaster.mixins.json", {"config": "craftmaster.client.mixins.json", "environment": "client"}],
   "depends": {
     "fabricloader": ">=${loader_version}",
     "minecraft": "${minecraft_version}",

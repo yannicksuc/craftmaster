@@ -1,0 +1,12 @@
+{
+  "show.theme": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.show.theme",
+    "sounds": [
+      {
+        "name": "craftmaster:show/theme",
+        "stream": true
+      }
+    ]
+  }
+}

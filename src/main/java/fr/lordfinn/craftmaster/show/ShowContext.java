@@ -113,6 +113,23 @@ public final class ShowContext {
         out.put("curtains", new ArrayList<>(data.stage().curtains.keySet()));
         out.put("scenes", new ArrayList<>(data.stage().scenes.keySet()));
         out.put("currentScene", live.scene);
+        // TV direction (chantier E): studio cameras ({number, name, role}), the shot on air, automatic direction
+        List<Object> cameras = new ArrayList<>();
+        for (fr.lordfinn.craftmaster.camera.CameraSpot cam : fr.lordfinn.craftmaster.camera.Cameras.list().all()) {
+            Map<String, Object> c = new LinkedHashMap<>();
+            c.put("number", cam.number());
+            c.put("name", cam.name());
+            c.put("role", cam.role());
+            cameras.add(c);
+        }
+        out.put("cameras", cameras);
+        fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Shot shot = fr.lordfinn.craftmaster.broadcast.Director.shot();
+        out.put("onAir", switch (shot.kind()) {
+            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_CAMERA -> "camera " + shot.camera();
+            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_FOLLOW -> "follow " + shot.player();
+            default -> "none";
+        });
+        out.put("autoDirection", fr.lordfinn.craftmaster.broadcast.Director.autoDirection());
 
         List<Object> history = new ArrayList<>();
         for (CraftMasterData.Change c : data.history()) {

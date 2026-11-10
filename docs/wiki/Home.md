@@ -15,6 +15,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Rideaux de scène](Rideaux.md)
 - [Chaises](Chaises.md)
 - [Régie vocale (piloter à la voix)](RegieVocale.md)
+- [Réalisation TV : caméras, mode diffusion, habillage, générique](Realisation.md)
 - [Fichier de données](Donnees.md)
 
 ## Pour les développeurs
@@ -31,5 +32,8 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
    joueurs. Une erreur ? `/craftMasterUndo`.
 3. La révélation : `/craftMasterReveal start` — rideau fermé, roulement de tambour, révélation du dernier au premier,
    feux d'artifice sur le podium, rideau ouvert.
+
+Pour Twitch : un jeu « caméra » en mode diffusion (F8) montre les plans des caméras du studio et l'habillage TV,
+`/tv intro` lance le générique ([Réalisation](Realisation.md)).
 
 Le tout est aussi faisable à la voix (régie vocale). Le détail : [Émission](Emission.md).

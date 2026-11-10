@@ -88,6 +88,9 @@ class ShowContext:
         self.totals_published = totals.get("published") if isinstance(totals.get("published"), dict) else {}
         self.curtains = [str(c) for c in _as_list(r.get("curtains"))]
         self.scenes = [str(s) for s in _as_list(r.get("scenes"))]
+        # TV direction (chantier E): [{number, name, role}], what is on air
+        self.cameras = [c for c in _as_list(r.get("cameras")) if isinstance(c, dict)]
+        self.on_air = str(r.get("onAir") or "none")
         self.recent = [a if isinstance(a, str) else str(a.get("text", a)) for a in _as_list(r.get("recentActions"))][-10:]
 
     # ------------------------------------------------------------------ parsing helpers
@@ -261,6 +264,10 @@ class ShowContext:
             out.extend(others)
         out.append("Rideaux : " + (", ".join(self.curtains) if self.curtains else "stage (défaut)"))
         out.append("Décors : " + (", ".join(self.scenes) if self.scenes else "aucun"))
+        if self.cameras:
+            out.append("Caméras : " + ", ".join(f"{c.get('number')} « {c.get('name', '')} »"
+                                                 + (f" ({c.get('role')})" if c.get("role") else "") for c in self.cameras)
+                       + f" · à l'antenne : {self.on_air}")
         if self.recent:
             out.append("Dernières actions :")
             out.extend("  " + a for a in self.recent)

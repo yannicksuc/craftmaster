@@ -136,6 +136,20 @@ public final class Show {
         return bar != null;
     }
 
+    /** Name of the running timer's round, or null (TV overlay, chantier E). */
+    public static String timerName() {
+        return bar == null ? null : timerName;
+    }
+
+    /** Server tick when the running timer ends, or -1; and its total length in ticks (TV overlay, chantier E). */
+    public static long timerEndTick() {
+        return bar == null ? -1 : timerEnd;
+    }
+
+    public static int timerTotalTicks() {
+        return bar == null ? 0 : (int) timerTotal;
+    }
+
     /** Seconds left on the round timer, or -1 when none runs. */
     public static int timerRemaining(MinecraftServer server) {
         return bar == null ? -1 : (int) Math.ceil(Math.max(0, timerEnd - server.getTickCount()) / 20.0);

@@ -68,6 +68,8 @@ public final class Actions {
     public record StopwatchReset(String player) implements Effect {}
 
     public record BuzzersReset() implements Effect {}
+    /** TV direction (chantier E): a camera / overlay / credits action, fields checked by BroadcastActions. */
+    public record Broadcast(Map<String, Object> action) implements Effect {}
 
     /** The result: one French line per action (or the error), the effects to play, and whether it worked. */
     public record Outcome(List<String> lines, List<Effect> effects, boolean ok, boolean changed) {}
@@ -88,7 +90,10 @@ public final class Actions {
             "manche.start", "manche.end", "timer.stop", "curtain.open", "curtain.close", "scene.set", "say",
             // chantier H
             "result.set", "result.dq", "result.remove", "results.clear", "results.config", "results.apply",
-            "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset");
+            "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset",
+            // TV direction (chantier E): no data change, played by broadcast.Director
+            "camera.cut", "camera.follow", "camera.auto", "camera.transition", "broadcast.lowerthird", "broadcast.task",
+            "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop");
 
     /**
      * Applies the actions. {@code undo} is only accepted as the first action (it is done, then the rest is applied
@@ -306,6 +311,9 @@ public final class Actions {
                     effects.add(new BuzzersReset());
                     line("Buzzers remis à zéro.");
                 }
+                // TV direction (chantier E): checked here, resolved and played by broadcast.Director
+                case String t when fr.lordfinn.craftmaster.broadcast.BroadcastActions.handles(t) ->
+                        effects.add(new Broadcast(fr.lordfinn.craftmaster.broadcast.BroadcastActions.validate(t, a)));
                 default -> throw new Invalid("action inconnue « " + type + " ».");
             }
         }
