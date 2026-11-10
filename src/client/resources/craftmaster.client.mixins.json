@@ -1,0 +1,8 @@
+{
+  "required": true,
+  "package": "fr.lordfinn.craftmaster.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["CameraMixin", "EntityRenderDispatcherMixin", "GameRendererMixin", "GuiGraphicsExtractorAccessor", "HandsRendererMixin",
+    "MouseHandlerMixin"],
+  "injectors": { "defaultRequire": 1 }
+}

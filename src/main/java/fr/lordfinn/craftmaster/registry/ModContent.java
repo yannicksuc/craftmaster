@@ -2,6 +2,8 @@ package fr.lordfinn.craftmaster.registry;
 
 import fr.lordfinn.craftmaster.CraftMaster;
 import fr.lordfinn.craftmaster.block.ChairBlock;
+import fr.lordfinn.craftmaster.camera.CameraEntity;
+import fr.lordfinn.craftmaster.camera.CameraItem;
 import fr.lordfinn.craftmaster.block.CurtainBlock;
 import fr.lordfinn.craftmaster.entity.SeatEntity;
 import fr.lordfinn.craftmaster.item.CurtainRemoteItem;
@@ -13,6 +15,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.BlockItem;
@@ -45,6 +48,10 @@ public final class ModContent {
     /** Hanging portraits (chantier B, see portrait/). */
     public static Item PORTRAIT_ITEM;
     public static EntityType<PortraitEntity> PORTRAIT;
+    /** TV direction (chantier E, see camera/ and broadcast/): studio camera on its tripod, the show's theme. */
+    public static Item CAMERA_ITEM;
+    public static EntityType<CameraEntity> CAMERA;
+    public static SoundEvent SHOW_THEME;
 
     private static final List<Item> TAB_ITEMS = new ArrayList<>();
 
@@ -80,6 +87,15 @@ public final class ModContent {
         PORTRAIT = Registry.register(BuiltInRegistries.ENTITY_TYPE, portraitKey,
                 EntityType.Builder.<PortraitEntity>of(PortraitEntity::new, MobCategory.MISC)
                         .sized(1f, 1f).noLootTable().clientTrackingRange(10).updateInterval(2).build(portraitKey));
+
+        // TV direction (chantier E)
+        CAMERA_ITEM = item("camera", CameraItem::new, new Item.Properties().stacksTo(16));
+        ResourceKey<EntityType<?>> cameraKey = ResourceKey.create(Registries.ENTITY_TYPE, CraftMaster.id("camera"));
+        CAMERA = Registry.register(BuiltInRegistries.ENTITY_TYPE, cameraKey,
+                EntityType.Builder.<CameraEntity>of(CameraEntity::new, MobCategory.MISC)
+                        .sized(0.7f, 1.9f).noLootTable().clientTrackingRange(10).updateInterval(5).build(cameraKey));
+        SHOW_THEME = Registry.register(BuiltInRegistries.SOUND_EVENT, CraftMaster.id("show.theme"),
+                SoundEvent.createVariableRangeEvent(CraftMaster.id("show.theme")));
 
         ResourceKey<CreativeModeTab> tabKey = ResourceKey.create(Registries.CREATIVE_MODE_TAB, CraftMaster.id("craftmaster"));
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, tabKey, FabricCreativeModeTab.builder()

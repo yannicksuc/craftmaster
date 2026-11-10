@@ -65,9 +65,13 @@ public final class ActionExecutor {
 
     private static void play(MinecraftServer server, Actions.Effect effect, List<String> lines) {
         switch (effect) {
-            case Actions.ScoreGiven s -> Show.announceScore(server, s);
+            case Actions.ScoreGiven s -> {
+                Show.announceScore(server, s);
+                ShowEvents.onScoreGiven(server, s.season(), s.player(), s.delta(), s.manche());
+            }
             case Actions.MancheStarted m -> {
                 int moved = Show.startManche(server, m);
+                ShowEvents.onMancheStarted(server, m.season(), m.number(), m.name());
                 if (!m.tp().isEmpty()) lines.add(moved + " joueur(s) téléporté(s) sur " + m.tp().size() + " point(s).");
             }
             case Actions.MancheEnded m -> Show.endManche(server, m.name());
@@ -76,7 +80,10 @@ public final class ActionExecutor {
                 Show.announcePublished(server);
                 ShowEvents.onPublished(server, p.season());
             }
-            case Actions.RevealStarted r -> Reveal.start(server, r.season());
+            case Actions.RevealStarted r -> {
+                Reveal.start(server, r.season());
+                ShowEvents.onRevealStarted(server, r.season());
+            }
             case Actions.RevealStopped r -> lines.add(Reveal.stop(server, true) ? "Révélation interrompue." : "Aucune révélation en cours.");
             case Actions.CurtainMoved c -> {
                 String error = StageControl.moveCurtain(server, c.name(), c.open());
@@ -87,6 +94,8 @@ public final class ActionExecutor {
                 if (error != null) lines.add("⚠ " + error);
                 else previousScene = s.name();
             }
+            // TV direction (chantier E): cameras, overlay, credits
+            case Actions.Broadcast b -> fr.lordfinn.craftmaster.broadcast.Director.play(server, b.action(), lines);
         }
     }
 

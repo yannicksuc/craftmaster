@@ -1,6 +1,9 @@
 package fr.lordfinn.craftmaster;
 
+import fr.lordfinn.craftmaster.broadcast.Director;
 import fr.lordfinn.craftmaster.bust.Busts;
+import fr.lordfinn.craftmaster.camera.Cameras;
+import fr.lordfinn.craftmaster.command.CameraCommands;
 import fr.lordfinn.craftmaster.command.CraftMasterCommands;
 import fr.lordfinn.craftmaster.curtain.Curtains;
 import fr.lordfinn.craftmaster.data.CraftMasterData;
@@ -47,17 +50,21 @@ public final class CraftMaster implements ModInitializer {
         Network.register();
         RegieServer.register();
         Portraits.register();
+        // TV direction (chantier E): cameras, show state, overlay cues, credits
+        Director.register();
 
         // Synced to the players' game (the mod is on both sides), so it parses the same way there
         ArgumentTypeRegistry.registerArgumentType(id("word"), WordArgument.class, SingletonArgumentInfo.contextFree(WordArgument::word));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> CraftMasterCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> PortraitCommands.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> CameraCommands.register(dispatcher));
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             FabricLoader fl = FabricLoader.getInstance();
             data = new CraftMasterData(fl.getConfigDir().resolve("craftmaster/config.yml"), LOG);
             // A server coming from the Paper plugin keeps its seasons, scores and busts
             data.load(fl.getGameDir().resolve("plugins/CraftMaster/config.yml"));
+            Cameras.load(fl.getConfigDir().resolve("craftmaster/cameras.json"));
         });
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             Busts.updateAll(server);
@@ -71,6 +78,8 @@ public final class CraftMaster implements ModInitializer {
 
         // Labels above busts whose chunk was not loaded at the last score change get refreshed when it loads
         ServerEntityEvents.ENTITY_LOAD.register(Busts::onEntityLoad);
+        // Camera tripods follow the camera registry (a removed or replaced camera's tripod goes)
+        ServerEntityEvents.ENTITY_LOAD.register(Cameras::onEntityLoad);
         ServerTickEvents.END_SERVER_TICK.register(Curtains::tick);
         // Round timer, countdown and staged reveal
         ServerTickEvents.END_SERVER_TICK.register(Show::tick);

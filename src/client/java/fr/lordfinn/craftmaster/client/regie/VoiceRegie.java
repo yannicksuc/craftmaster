@@ -70,7 +70,11 @@ public final class VoiceRegie {
 
     public static void init() {
         KeyMappingHelper.registerKeyMapping(KEY);
-        HudElementRegistry.addLast(CraftMaster.id("regie"), new RegieHud());
+        RegieHud hud = new RegieHud();
+        // Not on the broadcast picture (chantier E): the voice control's feedback is for the organiser only
+        HudElementRegistry.addLast(CraftMaster.id("regie"), (g, delta) -> {
+            if (!fr.lordfinn.craftmaster.client.broadcast.Broadcast.active()) hud.extractRenderState(g, delta);
+        });
         ClientTickEvents.END_CLIENT_TICK.register(VoiceRegie::tick);
         ClientPlayConnectionEvents.DISCONNECT.register((handler, mc) -> reset());
 

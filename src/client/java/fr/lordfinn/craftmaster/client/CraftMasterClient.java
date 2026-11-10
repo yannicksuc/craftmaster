@@ -2,6 +2,8 @@ package fr.lordfinn.craftmaster.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import fr.lordfinn.craftmaster.CraftMaster;
+import fr.lordfinn.craftmaster.client.broadcast.Broadcast;
+import fr.lordfinn.craftmaster.client.broadcast.CameraRenderer;
 import fr.lordfinn.craftmaster.client.regie.VoiceRegie;
 import fr.lordfinn.craftmaster.client.portrait.PortraitClient;
 import fr.lordfinn.craftmaster.network.Network;
@@ -29,6 +31,9 @@ public final class CraftMasterClient implements ClientModInitializer {
         PortraitClient.init();
         KeyMappingHelper.registerKeyMapping(RANKING_KEY);
         VoiceRegie.init();
+        // TV direction (chantier E): broadcast mode, director's shots, overlay, camera tripods
+        Broadcast.init();
+        EntityRendererRegistry.register(ModContent.CAMERA, CameraRenderer::new);
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (RANKING_KEY.consumeClick()) openRanking(mc, -1);

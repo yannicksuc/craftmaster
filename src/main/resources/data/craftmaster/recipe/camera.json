@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " I ",
+    "IGI",
+    "S S"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "G": "minecraft:glass",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "craftmaster:camera",
+    "count": 1
+  }
+}
