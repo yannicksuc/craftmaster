@@ -347,21 +347,22 @@ public class LetterScreen extends Screen {
 
     @Override
     public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
-        // The room dims around the letter (no blur: the paper stays sharp)
-        g.fillGradient(0, 0, width, height / 2, 0xA0100808, 0x80100808);
-        g.fillGradient(0, height / 2, width, height, 0x80100808, 0xB0100808);
+        // Drawn in extractRenderState (no blur: the paper stays sharp)
     }
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
         long now = System.nanoTime();
-        float dt = Math.min(0.05f, (now - lastFrame) / 1e9f) * DevInput.timeScale();
+        float dt = Math.min(0.1f, (now - lastFrame) / 1e9f) * DevInput.timeScale();
         lastFrame = now;
         tick(dt);
         float t = since();
         float zoom = popped() ? LetterMotion.zoom(t) : 0;
         updateView(zoom);
         int rgb = WaxColor.of(paper.wax()).rgb;
+        // The room dims around the letter
+        g.fillGradient(0, 0, width, height / 2, 0xB0100808, 0x90100808);
+        g.fillGradient(0, height / 2, width, height, 0x90100808, 0xC0100808);
 
         g.pose().pushMatrix();
         g.pose().translate(originX / gui, originY / gui);
@@ -404,7 +405,8 @@ public class LetterScreen extends Screen {
             g.pose().translate(cx, cy);
             float lift = 1 + 0.06f * k;    // lifted toward the reader as it gives way
             g.pose().scale(lift, lift);
-            fillF(g, -20, 3, 22, 23, (int) (0x40 * (1 - k * 0.5f)) << 24);
+            // Its shadow on the paper grows as it is pulled away
+            LetterView.seal(g, LetterView.SEAL, 2 + Math.round(2 * k), 2 + Math.round(3 * k), 0, (int) (90 - 40 * k));
             LetterView.seal(g, LetterView.SEAL, 0, 0, rgb, 255);
             g.pose().popMatrix();
         } else if (popped() && sealed && t < 1.0f) {
@@ -430,17 +432,24 @@ public class LetterScreen extends Screen {
 
     private void drawPanel(GuiGraphicsExtractor g, int k, LetterMotion.Projection p, float t, int n, int rgb) {
         float h = LetterMotion.panelHeight(k);
-        float drawnH = p.y1() - p.y0();
+        float y0 = p.y0(), y1 = p.y1();
+        // Moving, a panel overlaps its hinge by a pixel so no gap opens between two panels
+        if (p.light() < 0.999f) {
+            if (p.front() == (k == 0)) y1 += 1;
+            else y0 -= 1;
+        }
+        float drawnH = y1 - y0;
         if (drawnH < 0.05f) return;
         int top = LetterMotion.panelTop(k);
         g.pose().pushMatrix();
-        g.pose().translate(0, p.y0());
+        g.pose().translate(0, y0);
         g.pose().scale(1, drawnH / h);
         // A folded extra panel lies on this one's front: we see its outside
         boolean covered = p.front() && k >= 2 && k + 1 < n && openOf(k + 1, t) <= 0;
         if (p.front() && !covered) {
             g.pose().translate(0, -top);
-            g.enableScissor(0, top, LetterMotion.WIDTH, top + (int) h);
+            // The clip is rounded to whole GUI units: give it two pixels on the hinge side so no gap shows there
+            g.enableScissor(0, top - (k >= 2 ? 2 : 0), LetterMotion.WIDTH, top + (int) h + (k == 0 ? 2 : 0));
             LetterView.paper(g, LetterView.PAPER, top, top, top + (int) h, 0xFFFFFFFF);
             edges(g, top, (int) h);
             view.drawContent(g, top, top + (int) h);
@@ -452,6 +461,12 @@ public class LetterScreen extends Screen {
             edges(g, 0, (int) h);
             if (k == 0) {
                 view.drawOutside(g);
+                // The edge of the folded panel: a warm line, its shadow on the panel under it
+                int e = (int) h;
+                g.fill(1, e - 1, LetterMotion.WIDTH - 1, e, 0xFFDCC28A);
+                g.fill(0, e, LetterMotion.WIDTH, e + 1, 0x48302010);
+                g.fill(0, e + 1, LetterMotion.WIDTH, e + 2, 0x24302010);
+                g.fill(0, e + 2, LetterMotion.WIDTH, e + 3, 0x10302010);
                 // The torn seal leaves its mark across the edge
                 if (popped() && sealed) LetterView.seal(g, LetterView.RESIDUE, LetterMotion.SEAL_X, (int) h, rgb, 255);
             }

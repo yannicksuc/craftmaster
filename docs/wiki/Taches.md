@@ -1,19 +1,72 @@
 # Tâches, enveloppes et notes cachées
 
-Chaque manche peut avoir une **tâche** : le texte que les candidats lisent sur la carte de leur **enveloppe
-scellée**. On ouvre l'enveloppe comme à la télé : elle arrive, la cire tremble et craque, le rabat s'ouvre sur sa
-doublure de velours, la carte sort et se déplie. Dans la salle, des **notes cachées** attendent les plus curieux.
+Chaque manche peut avoir une **tâche** : le texte que les candidats lisent sur leur **lettre scellée** (l'objet
+« enveloppe ») : une feuille crème pliée en trois, fermée par un gros sceau de cire « CM » posé sur le bord du
+rabat. Dans la salle, des **notes cachées** attendent les plus curieux.
 
 ## La règle du secret
 Une tâche reste **secrète pour tous les non-admins** (candidats, spectateurs, client de diffusion) tant qu'elle
 n'est pas révélée :
-- un candidat **ouvre une enveloppe** de la manche (révélée quand la carte sort, ~2,5 s) ;
+- un candidat **ouvre une enveloppe** de la manche (révélée quand il arrache le sceau ; s'il laisse la lettre
+  fermée, au bout de 45 s) ;
 - la **manche est lancée** (`/craftMasterManche start`), sauf si la tâche est réglée sur « Enveloppe seulement » ;
 - l'organisateur la **révèle** (bouton « Révéler à tous », `/tache reveal`, voix « révèle la tâche »).
 
 Le texte d'une tâche secrète ne quitte jamais le serveur pour un non-admin. Une révélation n'est **pas annulée**
 par `/craftMasterUndo` (c'est un événement du direct, comme un TP) : pour la remettre au secret,
 `/tache hide <manche>` ; avant une nouvelle répétition, `/tache resetReveals`.
+
+## Ouvrir la lettre
+1. La lettre pliée arrive en gros plan, le sceau à la couleur de la cire de la tâche.
+2. **Arracher le sceau** : clic sur le sceau puis **tirer** (glisser la souris) : il suit la main en résistant, tremble,
+   puis saute avec un craquement et des éclats de cire. Sans souris (manette, clavier) : **maintenir Espace** (ou
+   Entrée) ; un simple **clic** sur le sceau l'arrache aussi tout seul. Lâché trop tôt, il se recolle.
+3. La lettre se déplie : le rabat du haut se lève, celui du bas descend (puis les volets en plus d'une longue tâche,
+   un par un), et la vue recule pour montrer toute la largeur. Clic, Espace ou Entrée passe l'animation.
+4. Lecture : la feuille est en pixel art net (comme un livre du jeu), le texte à la machine à écrire. Une longue
+   lettre défile : molette, glisser la feuille, flèches, Page préc./suiv., Début/Fin (une petite flèche ▼ le
+   signale ; le jeu de diffusion la fait défiler tout seul, lentement). Échap ou J ferme.
+
+Relire (touche J, `/tache`, lettre déjà ouverte) : elle se déplie toute seule. Tâche encore secrète : la lettre reste
+scellée, le sceau résiste (« Tâche encore secrète »).
+
+**Aperçu organisateur** : `/tache apercu <manche>` joue la lettre sur ton écran seulement (sceau, ouverture, mise en
+page) : rien n'est révélé, rien n'est annoncé. Le bouton « Aperçu » de l'éditeur fait pareil avec le texte tapé.
+
+## Mise en forme du texte
+Quelques signes simples dans le texte de la tâche :
+
+| Écrire | Donne |
+|---|---|
+| `# Tâche 4 : physique` | un titre en capitales rouges |
+| une ligne vide | un nouveau paragraphe |
+| `---` | un petit séparateur centré |
+| `**gras**`, `__souligné__`, `~~barré~~` | gras, souligné, barré (pour les « corrections ») |
+| `{rouge}…{/}` | encre de couleur : rouge, bleu, vert, gris, noir |
+| `> Psst…` | une note manuscrite à l'encre bleue (pour un rebondissement) |
+| `!règle Le plus rapide gagne.` | la règle finale, centrée, en gras |
+| `[tampon: URGENT]` | un tampon rouge |
+| `[signature: La Régie]` | la signature en bas à droite (sinon « LE CRAFTMASTER ») |
+| `{joueur}`, `{equipe}`, `{temps}` | le nom du lecteur (celui de l'enveloppe), son équipe (pour l'instant son nom), la durée |
+| `[secret]…[/secret]` | une **partie cachée** : une barre noire tant que l'organisateur ne l'a pas révélée |
+
+Exemple :
+```
+# Tâche 4 : le pont
+Construisez le pont le plus long.
+Vous avez {temps}.
+
+~~Interdit~~ {rouge}Autorisé{/} : la laine.
+> Regarde sous la table…
+[secret]Mais il doit porter un cochon.[/secret]
+!règle Le plus long gagne.
+```
+**Parties cachées** : le texte d'une partie cachée ne quitte jamais le serveur avant d'être révélé (les joueurs
+reçoivent seulement sa longueur). « Révèle la suite » (voix), `/tache suite [manche]` ou l'action
+`task.reveal_more` révèle la partie suivante : les lettres ouvertes se mettent à jour sous les yeux des
+candidats. L'organisateur voit les parties encore cachées en violet souligné. `/tache hide` et
+`/tache resetReveals` les recachent. La carte à l'écran (TV, `!tache`) montre la même mise en forme, simplifiée,
+et toujours les barres noires.
 
 ## Écrire une tâche
 - **Écran** : `/tache edit [manche]` (ou le bouton « Modifier » sur la carte). À gauche les manches de la partie
@@ -37,13 +90,12 @@ s'annulent avec `/craftMasterUndo`.
   d'une manche, ou un texte libre), la cire, le nom écrit dessus, combien (ou **une par candidat**, chacune à son
   nom), ouverture annoncée ou discrète → « Sceller ». Le sceau garde la dernière couleur.
 - `/tache envelope <manche> [joueurs|tous]` : enveloppes données directement (aux candidats connectés par défaut).
-- **Ouvrir** : clic droit avec l'enveloppe en main. L'enveloppe devient « ouverte » (rabat levé, cire brisée) et se
-  relit d'un clic droit. Une enveloppe liée à une manche lit toujours la dernière version de la tâche.
-  Annonce à tous (barre d'action + son) : « ✉ Ensuri ouvre sa tâche ».
+- **Ouvrir** : clic droit avec l'enveloppe en main, puis arracher le sceau (voir « Ouvrir la lettre »). L'enveloppe
+  devient « ouverte » (lettre dépliée, cire brisée) et se relit d'un clic droit. Une enveloppe liée à une manche lit toujours la dernière version de la tâche.
+  Annonce à tous (barre d'action + son) quand le sceau saute : « ✉ Ensuri ouvre sa tâche ».
 - **Sur la table** : accroupi + clic droit sur le dessus d'un bloc pose l'enveloppe (bloc plat, cire de sa couleur).
   Clic droit dessus = la ramasser (elle va dans la main) ; accroupi, main vide = l'ouvrir sur place.
-- **Lecture** : molette ou flèches pour faire défiler une longue carte ; clic / Espace passe l'animation ;
-  Échap ou J ferme. `/tache close [joueurs]` ferme les cartes ouvertes (tout le monde lève les yeux).
+- `/tache close [joueurs]` ferme les lettres ouvertes (tout le monde lève les yeux).
 
 ## Consulter la tâche (tout le monde)
 Touche **J** (catégorie CraftMaster) ou `/tache` (`/craftMasterTask`) : la tâche du moment — celle de la manche en
@@ -97,7 +149,14 @@ puis `/craftMasterTwitch reload` (état : `/craftMasterTwitch` ; essai sans Twit
 Un spectateur qui tape `!tache` fait glisser la carte de la tâche à l'écran 12 s, au plus une fois toutes les 30 s.
 La carte ne montre jamais une tâche secrète, même sur le jeu d'un organisateur (elle dit « Tâche encore secrète »).
 
+## Police et dessins
+- La police machine à écrire `craftmaster:typewriter` est une conversion pixel à pixel de **Cairopixel** de
+  GGBotNet (licence SIL OFL 1.1, voir `assets/craftmaster/font/OFL.txt`) ; les caractères qu'elle n'a pas viennent
+  de la police du jeu. Refaire la conversion : `python scripts/convert_typewriter_font.py <Cairopixel.ttf>`.
+- Papier, sceau et cire arrachée : `python scripts/gen_letter_art.py` (outils de textures de l'atelier SteveParty) ;
+  objets et bloc : `scripts/gen_assets.py`.
+
 ## Fichiers
 - Textes des tâches : dans `config/craftmaster/config.yml`, clé `task` de chaque manche ([Données](Donnees.md)).
-- Révélations et notes (cachettes, trouvailles) : `config/craftmaster/tasks.json`.
+- Révélations, parties cachées révélées et notes (cachettes, trouvailles) : `config/craftmaster/tasks.json`.
 - Twitch : `config/craftmaster-client.json` (côté client).

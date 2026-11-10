@@ -23,8 +23,9 @@ import java.util.Locale;
  * drag x y dx dy [button] [mods]
  * release x y [button]
  * scroll x y amount
- * key NAME [mods]                NAME: a letter, a digit, LEFT, RIGHT, UP, DOWN, HOME, ESCAPE, ENTER, SPACE
+ * key NAME [mods]                NAME: a letter, a digit, LEFT, RIGHT, UP, DOWN, HOME, END, PAGEUP, PAGEDOWN, ESCAPE, ENTER, SPACE
  * hold NAME seconds              the key reads as held down ({@link #held}) for that long (pressed once too)
+ * quit                           closes the game (stops a test client cleanly)
  * slowmo factor                  animations that ask {@link #timeScale} run this many times slower (1 = normal)
  * </pre>
  */
@@ -60,6 +61,10 @@ public final class DevInput {
             }
             Screen screen = mc.gui.screen();
             for (String line : lines) {
+                if (line.strip().equalsIgnoreCase("quit")) {
+                    mc.stop();
+                    return;
+                }
                 if (line.strip().toLowerCase(Locale.ROOT).startsWith("slowmo")) {
                     slow = Math.max(0.01f, Float.parseFloat(line.strip().split("\\s+")[1]));
                     continue;
@@ -136,6 +141,8 @@ public final class DevInput {
             case "ENTER" -> InputConstants.KEY_RETURN;
             case "SPACE" -> InputConstants.KEY_SPACE;
             case "PAGEDOWN" -> InputConstants.KEY_PAGEDOWN;
+            case "PAGEUP" -> InputConstants.KEY_PAGEUP;
+            case "END" -> InputConstants.KEY_END;
             default -> throw new IllegalArgumentException("key " + name);
         };
         return new int[]{code, code};

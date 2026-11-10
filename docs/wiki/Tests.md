@@ -129,7 +129,13 @@ lit `run/dev-input.txt` (ou `run2/`) à chaque tick et envoie à l'écran ouvert
 [mods]`, `drag x y dx dy [bouton] [mods]`, `release x y`, `scroll x y n`, `key NOM [mods]` (coordonnées de
 l'interface, bouton 0 gauche / 1 droit, mods 1 Maj, 2 Ctrl, 4 Alt ; `DevInput`). `scripts/mcp_session.py` a l'étape
 `["!input", "click 351 106\nkey Z 2", délai]`. Hors dev, rien n'est lu. Le survol (infobulles) suit la vraie
-souris et reste à voir à la main.
+souris et reste à voir à la main. Aussi : `hold NOM secondes` (touche tenue, ex. `hold SPACE 2` pour arracher le
+sceau d'une lettre), `slowmo 4` (animations 4 fois plus lentes, pour capturer chaque phase ; `slowmo 1` remet),
+`quit` (ferme le client de test proprement).
+
+**Lettre de tâche** : `/tache apercu <manche>` puis, pour le sceau, `click` dessus puis `drag` vers le haut (il saute
+au-delà de 26 pixels de lettre), ou `hold SPACE 2` ; captures avec `slowmo 3`. Tests JUnit : `TaskMarkupTest`,
+`LetterMotionTest`.
 
 ### Chantier G : rideau fluide, éditeur de poses, skins HD (vérifié en jeu, captures MCP)
 

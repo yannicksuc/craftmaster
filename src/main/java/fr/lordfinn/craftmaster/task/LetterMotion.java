@@ -101,7 +101,7 @@ public final class LetterMotion {
 
     /** Scale while closed: the folded letter (the middle panel) filling most of the width. */
     public static int closedScale(int screenW, int screenH) {
-        return pixelScale(screenW, screenH, WIDTH + 24, PANEL + 64, 0.92f);
+        return pixelScale(screenW, screenH, WIDTH + 24, PANEL + 36, 0.92f);
     }
 
     /** Scale once open: the width and the first three panels (a longer letter scrolls). */

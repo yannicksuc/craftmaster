@@ -28,3 +28,8 @@ Anciennement un plugin Paper : mêmes commandes, mêmes données (importées aut
 
 ## Build
 `.\gradlew.bat build` (Java 25) → `build/libs/craftmaster-<version>.jar` (lance aussi les tests unitaires).
+
+## Crédits
+- Police machine à écrire des lettres de tâche (`craftmaster:typewriter`) : conversion bitmap de **Cairopixel** de
+  GGBotNet, sous licence SIL Open Font License 1.1 (version modifiée renommée « CraftMaster Typewriter », licence
+  dans `src/main/resources/assets/craftmaster/font/OFL.txt`).

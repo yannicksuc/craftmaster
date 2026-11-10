@@ -168,22 +168,24 @@ inside, h, mono, d, R, disc = seal_mask_and_height(12)
 seal_idx = shade(inside, h, mono, d, R)
 save(to_img(seal_idx), "letter_seal.png")
 
-# ---------------------------------------------------------------- residue: ragged pieces of the rim stay stuck
+# ---------------------------------------------------------------- residue: a matte stain, a few torn bits of the rim
 n = pt.Perlin3(77)
 y, x = np.mgrid[0:SEAL, 0:SEAL].astype(float)
 c = SEAL / 2 - 0.5
 ang = np.arctan2(y - c, x - c)
-keep_ang = n.fbm(np.cos(ang) * 1.4, np.sin(ang) * 1.4, np.zeros_like(ang) + 9.0, octaves=2) > -0.12
-ring = inside & (d > disc + 1.5) & keep_ang
-# A few flakes inside the disc, where the wax tore unevenly
-flakes = inside & (d <= disc) & (n.fbm(x * 0.35, y * 0.35, np.zeros_like(x) + 3.0, octaves=2) > 0.38)
-res = ring | flakes
-# Torn surface is matte and flat: middle tones, a lit top-left lip, a dark outline
-v = np.full(res.shape, 0.42)
-lip = res & ~pt.shift(res, 1, 1)
-v = np.where(lip, 0.66, v)
-out_edge = res & ~(pt.shift(res, 1, 0) & pt.shift(res, -1, 0) & pt.shift(res, 0, 1) & pt.shift(res, 0, -1))
-v = np.where(out_edge & ~lip, 0.18, v)
+stain = inside & (d <= R - 2)
+keep_ang = n.fbm(np.cos(ang) * 1.4, np.sin(ang) * 1.4, np.zeros_like(ang) + 9.0, octaves=2) > -0.02
+ring = inside & (d > R - 4.5) & keep_ang
+ring = ring & pt.cleanup(ring.astype(int)).astype(bool)
+v = np.where(ring, 0.5, 0.45)
+lip = ring & ~pt.shift(ring, 1, 1)
+v = np.where(lip, 0.72, v)
+out_edge = ring & ~(pt.shift(ring, 1, 0) & pt.shift(ring, -1, 0) & pt.shift(ring, 0, 1) & pt.shift(ring, 0, -1))
+v = np.where(out_edge & ~lip, 0.2, v)
 idx = pt.quantise(v, 0, len(RAMP) - 1, np.zeros_like(v))
-res = res & pt.cleanup(res.astype(int)).astype(bool)
-save(to_img(np.where(res, idx, -1), res), "letter_residue.png")
+img = np.zeros((SEAL, SEAL, 4), np.uint8)
+g = RAMP[idx]
+img[..., 0] = img[..., 1] = img[..., 2] = g
+# The stain is thin wax left on the paper: see-through; the torn bits are solid
+img[..., 3] = np.where(ring, 255, np.where(stain, 70, 0))
+save(Image.fromarray(img, "RGBA"), "letter_residue.png")

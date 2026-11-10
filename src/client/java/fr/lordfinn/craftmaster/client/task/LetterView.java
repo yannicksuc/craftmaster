@@ -47,7 +47,7 @@ final class LetterView {
     private TaskNetwork.Paper paper;
     private final List<Item> items = new ArrayList<>();
     private int bottom, panels = 3;
-    private FormattedCharSequence signature, outsideHeader, outsideTo;
+    private FormattedCharSequence signature, outsideHeader, outsideTo, insideHeader;
 
     LetterView(Font font, TaskNetwork.Paper paper) {
         this.font = font;
@@ -79,6 +79,7 @@ final class LetterView {
         // Outside of the folded letter: the round and the addressee, like an envelope
         String header = p.header().getString().toUpperCase(Locale.ROOT);
         outsideHeader = header.isEmpty() ? null : Component.literal(header).withStyle(type().withColor(GREY)).getVisualOrderText();
+        insideHeader = outsideHeader;
         outsideTo = p.from().isEmpty() ? null
                 : Component.translatable("paper.craftmaster.to", p.from()).withStyle(type().withColor(INK)).getVisualOrderText();
 
@@ -176,7 +177,7 @@ final class LetterView {
             String text = caps ? s.text().toUpperCase(Locale.ROOT) : s.text();
             switch (s.secret()) {
                 // Redacted: a black bar about as long as the hidden words (the text itself never came here)
-                case TaskMarkup.HIDDEN -> out.append(Component.literal("█".repeat(Math.max(1, (text.length() * 7 + 8) / 9)))
+                case TaskMarkup.HIDDEN -> out.append(Component.literal("█".repeat(Math.max(1, (text.length() * 7 + 9) / 10)))
                         .withStyle(Style.EMPTY.withColor(BAR & 0xFFFFFF)));
                 // An organiser reads it, marked as still hidden
                 case TaskMarkup.HIDDEN_READABLE -> out.append(Component.literal(text).withStyle(st.withColor(READABLE_SECRET & 0xFFFFFF).withUnderlined(true)));
@@ -214,6 +215,10 @@ final class LetterView {
                 case STAMP_BOX -> dashedBox(g, it.x(), it.y(), it.w(), 16, it.color());
                 default -> g.text(font, it.text(), it.x(), it.y(), it.color(), false);
             }
+        }
+        if (insideHeader != null && top < LetterMotion.TOP) {
+            // Inside the top panel, small: the round
+            g.text(font, insideHeader, (LetterMotion.WIDTH - font.width(insideHeader)) / 2, LetterMotion.TOP - 22, GREY, false);
         }
         if (signature != null) {
             int sy = height() - 20;
