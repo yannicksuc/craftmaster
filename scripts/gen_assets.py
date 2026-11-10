@@ -165,21 +165,45 @@ for color, (rgb, _, _) in COLORS.items():
     write_json(os.path.join(A, f"items/{name}.json"), {"model": {"type": "minecraft:model", "model": f"craftmaster:block/{name}"}})
     write_json(os.path.join(D, f"craftmaster/loot_table/blocks/{name}.json"), self_drop(name))
 
-    # Velvet texture: vertical folds (light in the middle of each pleat); the hem version adds a darker bottom band
+    # --- chantier G: deeper velvet folds -------------------------------------------------------------------
+    # Each 4 px pleat (the model's and the sliding renderer's pleats are 4 px wide) is painted as a fold: a dark
+    # crease, the turning side, a bright crest, a softer return. A handful of tones per colour, no random grain;
+    # a few 2-3 px vertical strokes one tone off break the stripes without isolated pixels. Rows 0 and 15 of the
+    # plain texture match, so stacked blocks join seamlessly. The hem version adds a stitched, darker bottom band.
     r0, g0, b0 = (rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255
+    # Light colours need darker shadows to show their folds, dark ones brighter crests
+    lum = (0.3 * r0 + 0.59 * g0 + 0.11 * b0) / 255
+    deep = 0.50 + 0.12 * (1 - lum)
+    tones = [deep, 0.80, 1.12 + 0.18 * (1 - lum), 0.96]       # crease, side, crest, return (x % 4)
+
+    def velvet(shade, lift=0.0):
+        def c(v):
+            v = v * shade + 255 * lift * max(0.0, shade - 1)  # very dark colours: crests lift toward white a bit
+            return max(0, min(255, int(round(v))))
+        return (c(r0), c(g0), c(b0), 255)
+
+    # Vertical strokes: (x, first row, length, tone step): one tone darker/lighter, never a lone pixel
+    strokes = [(2, 3, 3, -1), (6, 9, 2, -1), (10, 1, 3, -1), (14, 7, 3, -1), (3, 12, 2, 1), (11, 10, 2, 1)]
     for suffix, hem in (("", True), ("_plain", False)):
-        rnd = random.Random(color)  # same velvet grain on both, so stacked blocks match
         rows = []
         for y in range(16):
             row = []
             for x in range(16):
-                fold = 0.78 + 0.30 * math.sin((x % 4 + 0.5) / 4 * math.pi)
-                shade = fold * (0.97 + rnd.random() * 0.06)
-                if hem and y >= 14:
-                    shade *= 0.78
-                row.append((min(255, int(r0 * shade)), min(255, int(g0 * shade)), min(255, int(b0 * shade)), 255))
+                t = tones[x % 4]
+                for sx, sy, sl, step in strokes:
+                    if x == sx and sy <= y < sy + sl:
+                        t *= 0.88 if step < 0 else 1.08
+                if hem:
+                    if y == 13:
+                        t *= 0.86                                       # shadow above the hem
+                    elif y >= 14:
+                        t *= 0.70 if y == 15 else 0.78                  # the folded-back hem band
+                        if y == 14 and x % 2 == 0:
+                            t *= 1.12                                   # its stitches
+                row.append(velvet(t, 0.25 if lum < 0.15 else 0.0))
             rows.append(row)
         write_png(os.path.join(A, f"textures/block/{name}{suffix}.png"), 16, 16, rows)
+    # --- end chantier G ---------------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------ remote
 write_json(os.path.join(A, "models/item/curtain_remote.json"),
@@ -664,6 +688,76 @@ for wood, (_, en_name, fr_name) in WOODS.items():
 for color, (_, en_name, fr_name) in COLORS.items():
     en[f"block.craftmaster.{color}_curtain"] = f"{en_name} Curtain"
     fr[f"block.craftmaster.{color}_curtain"] = f"Rideau {fr_name}"
+# --- chantier G: pose editor (3D preview, undo, mirror, shortcuts), portrait settings -------------------------
+en.update({
+    "screen.craftmaster.pose.pick_tip": "Edit: %s (key %s)\nor click it on the preview",
+    "screen.craftmaster.pose.hide_tip": "Show or hide this part (H)",
+    "screen.craftmaster.pose.save_tip": "Saves the pose under this name in the server's library (every player gets it)",
+    "screen.craftmaster.pose.load_tip": "Starts from a saved pose (Ctrl+Z to come back)",
+    "screen.craftmaster.pose.use_tip": "Saves the pose and gives it to this portrait",
+    "screen.craftmaster.pose.tool.undo": "Undo (Ctrl+Z)",
+    "screen.craftmaster.pose.tool.redo": "Redo (Ctrl+Y or Ctrl+Shift+Z)",
+    "screen.craftmaster.pose.tool.mirror": "Mirror the whole pose, left ↔ right (M)",
+    "screen.craftmaster.pose.tool.copy_side": "Copy this arm / leg onto the other side, mirrored (C)",
+    "screen.craftmaster.pose.tool.reset": "Reset this part: straight again (R)",
+    "screen.craftmaster.pose.tool.hide": "Show / hide this part (H)",
+    "screen.craftmaster.pose.tool.view": "Turn the preview back to the front (Home)",
+    "screen.craftmaster.pose.preview_head": "%s · wheel: %s",
+    "screen.craftmaster.pose.help_short": "[?]",
+    "screen.craftmaster.pose.help.1": "Click a part (or the frame) to edit it",
+    "screen.craftmaster.pose.help.2": "Drag it: turn it (Shift: the third axis)",
+    "screen.craftmaster.pose.help.3": "Ctrl + drag: move the whole figure",
+    "screen.craftmaster.pose.help.4": "Right drag / drag the background: turn the view",
+    "screen.craftmaster.pose.help.5": "Wheel or arrows: 1° on the axis shown (Shift: 5°), X Y Z: choose it",
+    "screen.craftmaster.pose.help.6": "Ctrl + wheel: zoom, Home: front view",
+    "screen.craftmaster.pose.help.7": "1-8: pick a part, R: reset it, H: hide it",
+    "screen.craftmaster.pose.help.8": "M: mirror the pose, C: copy a limb to the other side",
+    "screen.craftmaster.pose.help.9": "Ctrl+Z: undo, Ctrl+Y: redo",
+    "screen.craftmaster.pose.hover": "%s: click to edit, drag to turn",
+    "screen.craftmaster.portrait.skin_tip": "Address of a skin PNG: 64×64, 64×32 or HD (128, 256, 512, 1024 px). Empty: the player's own skin (and cape)",
+    "screen.craftmaster.portrait.follow_tip": "Rank: shows whoever holds this rank in the season. Player: always this player",
+    "screen.craftmaster.portrait.name_tip": "Name on the plaque. Empty: the player's name",
+    "screen.craftmaster.portrait.pose_tip": "Click to try the poses on the portrait (live)",
+    "screen.craftmaster.portrait.edit_pose_tip": "Open the pose editor",
+    "screen.craftmaster.portrait.hang_tip": "Length of the string in blocks; auto = each portrait its own, so a row is not too regular",
+    "screen.craftmaster.portrait.window_tip": "Window look: the figure stands in a room behind the frame",
+    "screen.craftmaster.portrait.season_tip": "Season whose ranking this portrait shows",
+})
+fr.update({
+    "screen.craftmaster.pose.pick_tip": "Éditer : %s (touche %s)\nou clic dessus dans l'aperçu",
+    "screen.craftmaster.pose.hide_tip": "Montrer ou cacher cette partie (H)",
+    "screen.craftmaster.pose.save_tip": "Enregistre la pose sous ce nom dans la bibliothèque du serveur (tous les joueurs la reçoivent)",
+    "screen.craftmaster.pose.load_tip": "Part d'une pose enregistrée (Ctrl+Z pour revenir)",
+    "screen.craftmaster.pose.use_tip": "Enregistre la pose et la donne à ce tableau",
+    "screen.craftmaster.pose.tool.undo": "Annuler (Ctrl+Z)",
+    "screen.craftmaster.pose.tool.redo": "Refaire (Ctrl+Y ou Ctrl+Maj+Z)",
+    "screen.craftmaster.pose.tool.mirror": "Miroir de toute la pose, gauche ↔ droite (M)",
+    "screen.craftmaster.pose.tool.copy_side": "Copier ce bras / cette jambe de l'autre côté, en miroir (C)",
+    "screen.craftmaster.pose.tool.reset": "Remettre cette partie droite (R)",
+    "screen.craftmaster.pose.tool.hide": "Montrer / cacher cette partie (H)",
+    "screen.craftmaster.pose.tool.view": "Remettre l'aperçu de face (Origine)",
+    "screen.craftmaster.pose.preview_head": "%s · molette : %s",
+    "screen.craftmaster.pose.help_short": "[?]",
+    "screen.craftmaster.pose.help.1": "Clic sur une partie (ou le cadre) pour l'éditer",
+    "screen.craftmaster.pose.help.2": "La tirer : la tourner (Maj : le troisième axe)",
+    "screen.craftmaster.pose.help.3": "Ctrl + tirer : déplacer tout le personnage",
+    "screen.craftmaster.pose.help.4": "Clic droit tiré / tirer le fond : tourner la vue",
+    "screen.craftmaster.pose.help.5": "Molette ou flèches : 1° sur l'axe affiché (Maj : 5°), X Y Z : le choisir",
+    "screen.craftmaster.pose.help.6": "Ctrl + molette : zoom, Origine : vue de face",
+    "screen.craftmaster.pose.help.7": "1-8 : choisir une partie, R : la remettre droite, H : la cacher",
+    "screen.craftmaster.pose.help.8": "M : miroir de la pose, C : copier un membre de l'autre côté",
+    "screen.craftmaster.pose.help.9": "Ctrl+Z : annuler, Ctrl+Y : refaire",
+    "screen.craftmaster.pose.hover": "%s : clic pour l'éditer, tirer pour la tourner",
+    "screen.craftmaster.portrait.skin_tip": "Adresse d'un PNG de skin : 64×64, 64×32 ou HD (128, 256, 512, 1024 px). Vide : le skin du joueur (et sa cape)",
+    "screen.craftmaster.portrait.follow_tip": "Rang : montre celui qui a ce rang dans la saison. Joueur : toujours ce joueur",
+    "screen.craftmaster.portrait.name_tip": "Nom sur la plaque. Vide : le pseudo du joueur",
+    "screen.craftmaster.portrait.pose_tip": "Clic pour essayer les poses sur le tableau (en direct)",
+    "screen.craftmaster.portrait.edit_pose_tip": "Ouvrir l'éditeur de poses",
+    "screen.craftmaster.portrait.hang_tip": "Longueur de la ficelle en blocs ; auto = chaque tableau la sienne, pour une rangée moins régulière",
+    "screen.craftmaster.portrait.window_tip": "Effet fenêtre : le personnage est dans une pièce derrière le cadre",
+    "screen.craftmaster.portrait.season_tip": "Saison dont ce tableau montre le classement",
+})
+# --- end chantier G -----------------------------------------------------------------------------------------
 write_json(os.path.join(A, "lang/en_us.json"), en)
 write_json(os.path.join(A, "lang/fr_fr.json"), fr)
 print("ok")

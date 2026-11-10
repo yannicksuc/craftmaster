@@ -2,6 +2,7 @@ package fr.lordfinn.craftmaster.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import fr.lordfinn.craftmaster.CraftMaster;
+import fr.lordfinn.craftmaster.client.curtain.CurtainClient;
 import fr.lordfinn.craftmaster.client.regie.VoiceRegie;
 import fr.lordfinn.craftmaster.client.portrait.PortraitClient;
 import fr.lordfinn.craftmaster.network.Network;
@@ -27,6 +28,7 @@ public final class CraftMasterClient implements ClientModInitializer {
     public void onInitializeClient() {
         EntityRendererRegistry.register(ModContent.SEAT, NoopRenderer::new);
         PortraitClient.init();
+        CurtainClient.init();
         KeyMappingHelper.registerKeyMapping(RANKING_KEY);
         VoiceRegie.init();
 
