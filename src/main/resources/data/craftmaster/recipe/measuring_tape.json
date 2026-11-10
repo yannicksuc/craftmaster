@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "YI",
+    "S "
+  ],
+  "key": {
+    "Y": "minecraft:yellow_dye",
+    "I": "minecraft:iron_ingot",
+    "S": "minecraft:string"
+  },
+  "result": {
+    "id": "craftmaster:measuring_tape",
+    "count": 1
+  }
+}

@@ -3,7 +3,8 @@ for tests without an API key, or as an emergency mode without internet. Delibera
 answers "not understood" and does nothing.
 
 Understood: "annule" · "ouvrez / fermez les rideaux" · "manche suivante" · "mettez à jour les scores" / "publie" ·
-"la révélation" · "<N> point(s) pour|à <joueur> [pour|sur <manche>]" · "<joueur> prend <N> point(s) [sur <manche>]".
+"la révélation" · "<N> point(s) pour|à <joueur> [pour|sur <manche>]" · "<joueur> prend <N> point(s) [sur <manche>]" · "<joueur> a fait <N> secondes|minutes|blocs|mètres" ·
+"<joueur> est disqualifié" · "applique le barème" · "remets les buzzers".
 """
 from __future__ import annotations
 
@@ -16,6 +17,12 @@ from .validate import FRENCH_NUMBERS, check
 
 NUM = r"(?P<n>\d+|" + "|".join(sorted(FRENCH_NUMBERS, key=len, reverse=True)) + r")"
 MANCHE_TAIL = r"(?:\s+(?:pour|sur|dans)\s+(?:le |la |les |l'|l’)?(?P<manche>.+?))?"
+UNITS = {"seconde": "time", "secondes": "time", "s": "time", "minute": "time", "minutes": "time",
+         "bloc": "count", "blocs": "count", "point": None, "mètre": "distance", "mètres": "distance", "metres": "distance",
+         "kilo": "weight", "kilos": "weight", "kg": "weight"}
+RESULT_PATTERN = re.compile(rf"^(?P<player>.+?)\s+(?:a fait|fait|a mis|a)\s+(?P<v>\d+(?:[,.]\d+)?|"
+                            + "|".join(sorted(FRENCH_NUMBERS, key=len, reverse=True)) + r")\s+(?P<unit>"
+                            + "|".join(sorted((u for u in UNITS if u != "point"), key=len, reverse=True)) + r")$")
 SCORE_PATTERNS = [
     re.compile(rf"^(?:et )?{NUM}\s+points?\s+(?:pour|à|a)\s+(?P<player>.+?){MANCHE_TAIL}$"),
     re.compile(rf"^(?P<player>.+?)\s+(?:prend|gagne|a)\s+{NUM}\s+points?{MANCHE_TAIL}$"),
@@ -54,6 +61,24 @@ class OfflineUnderstander:
             return [{"type": "scores.publish"}]
         if re.search(r"\brévélation\b", text):
             return [{"type": "reveal.start"}]
+        if re.search(r"\bappliqu\w* (le |les )?barèmes?\b", text):
+            return [{"type": "results.apply"}]
+        if re.search(r"\b(remets?|réinitialise|reset)\w* (les )?buzzers?\b", text):
+            return [{"type": "buzzer.reset"}]
+        m = re.match(r"^(?P<player>.+?)\s+est\s+disqualifiée?$", text)
+        if m:
+            return [{"type": "result.dq", "player": m.group("player")}]
+        m = RESULT_PATTERN.match(text)
+        if m:
+            v = m.group("v")
+            v = str(FRENCH_NUMBERS[v]) if v in FRENCH_NUMBERS else v
+            unit = m.group("unit")
+            if unit.startswith("minute"):
+                v = str(float(v.replace(",", ".")) * 60).rstrip("0").rstrip(".")
+            action = {"type": "result.set", "player": m.group("player"), "value": v}
+            if UNITS.get(unit):
+                action["kind"] = UNITS[unit]
+            return [action]
         for pat in SCORE_PATTERNS:
             m = pat.match(text)
             if m:

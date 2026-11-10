@@ -664,6 +664,11 @@ for wood, (_, en_name, fr_name) in WOODS.items():
 for color, (_, en_name, fr_name) in COLORS.items():
     en[f"block.craftmaster.{color}_curtain"] = f"{en_name} Curtain"
     fr[f"block.craftmaster.{color}_curtain"] = f"Rideau {fr_name}"
+# ------------------------------------------------------------------ chantier H: tasks (props, buzzers, judging tools,
+# drawing boards, plinth, costume trunk) — everything in scripts/gen_trials.py
+import gen_trials  # noqa: E402
+gen_trials.generate(A, D, en, fr, write_json, write_png, self_drop, shaped, COLORS)
+
 write_json(os.path.join(A, "lang/en_us.json"), en)
 write_json(os.path.join(A, "lang/fr_fr.json"), fr)
 print("ok")

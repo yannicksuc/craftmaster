@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "WGW",
+    "WCW",
+    "WWW"
+  ],
+  "key": {
+    "W": "minecraft:red_wool",
+    "G": "minecraft:gold_ingot",
+    "C": "minecraft:chest"
+  },
+  "result": {
+    "id": "craftmaster:costume_chest",
+    "count": 1
+  }
+}

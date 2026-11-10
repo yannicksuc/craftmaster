@@ -79,11 +79,41 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
     "curtain.open": ("Ouvre un rideau (« ouvrez les rideaux »).", [f("name", STR, doc="Nom du rideau ; absent = rideau de scène.")]),
     "curtain.close": ("Ferme un rideau.", [f("name", STR, doc="Nom du rideau ; absent = rideau de scène.")]),
     "scene.set": ("Pose un décor enregistré à l'ancre de scène.", [f("name", STR, True, "Nom du décor (du contexte).")]),
+    # ---- chantier H: the judge's results sheet, stopwatches, buzzers
+    "result.set": ("Note le résultat d'un candidat sur la feuille de résultats de la manche (« Ensuri a fait 42 "
+                   "secondes », « Cyllu : 12 blocs », « note de 8 pour Juste »). Ne donne pas de points : c'est "
+                   "results_apply qui les calcule.",
+                   [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."), f("player", PLAYER, True, PLAYER_DOC),
+                    f("value", STR, True, "La valeur telle que dite, en chiffres : « 42 », « 1:05 » (1 min 5 s), « 12,5 »."),
+                    f("kind", STR, doc="Ce qui est mesuré si c'est dit : time (secondes, minutes), count (nombre), "
+                                       "distance (mètres, blocs de distance), mark (note du jury), weight (kilos).")]),
+    "result.dq": ("Disqualifie un candidat de la manche (« Arreaubaz est disqualifié ») ; dq false = lève la disqualification.",
+                  [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."), f("player", PLAYER, True, PLAYER_DOC),
+                   f("dq", BOOL, doc="false pour lever la disqualification ; absent = disqualifier.")]),
+    "result.remove": ("Efface le résultat d'un candidat sur la feuille de la manche.",
+                      [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."), f("player", PLAYER, True, PLAYER_DOC)]),
+    "results.clear": ("Vide la feuille de résultats de la manche.", [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours.")]),
+    "results.config": ("Règle la feuille de résultats : ce qui est mesuré, le sens du classement, le barème "
+                       "(« le plus petit gagne », « barème 3 2 1 »).",
+                       [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
+                        f("kind", STR, doc="time | count | distance | mark | weight"),
+                        f("order", STR, doc="lower (le plus petit gagne) | higher (le plus grand gagne) | auto"),
+                        f("scale", STR, doc="Points par place, ex. « 5,4,3,2,1 ».")]),
+    "results.apply": ("Applique le barème (« applique le barème », « donne les points de la feuille ») : classe la "
+                      "feuille de résultats et fixe le score de chaque candidat dans la manche (ex-aequo = même place).",
+                      [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
+                       f("scale", STR, doc="Barème si LordFinn en dit un, ex. « 3,2,1 » ; absent = celui de la feuille.")]),
+    "stopwatch.start": ("Lance le chrono d'un candidat (essai en solo : « top chrono pour Ensuri »).",
+                        [f("player", PLAYER, True, PLAYER_DOC)]),
+    "stopwatch.stop": ("Arrête le chrono d'un candidat ; son temps est noté sur la feuille de résultats.",
+                       [f("player", PLAYER, True, PLAYER_DOC), f("record", BOOL, doc="false = ne pas noter le temps.")]),
+    "stopwatch.reset": ("Remet à zéro le chrono d'un candidat (ou tous si aucun joueur).", [f("player", PLAYER, doc=PLAYER_DOC)]),
+    "buzzer.reset": ("Remet les buzzers à zéro (« remets les buzzers »).", []),
     "say": ("Répond à LordFinn sans rien modifier : question, doute réel, ordre impossible ou incompris. "
             "Texte court en français.", [f("text", STR, True, "Réponse courte.")]),
 }
 
-NO_SCOPE = {"say", "undo"}
+NO_SCOPE = {"say", "undo", "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset"}
 SCOPE_FIELDS = [f("season", SCOPE, doc="Saison (id ou nom). Absent = saison active."),
                 f("partie", SCOPE, doc="Partie (id ou nom). Absent = partie active.")]
 

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "III",
+    "IQI",
+    "III"
+  ],
+  "key": {
+    "I": "minecraft:iron_nugget",
+    "Q": "minecraft:white_concrete"
+  },
+  "result": {
+    "id": "craftmaster:whiteboard",
+    "count": 1
+  }
+}

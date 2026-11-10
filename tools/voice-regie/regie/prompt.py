@@ -36,7 +36,11 @@ Règles :
     pas l'émission, transcription vide ou absurde) : n'exécute RIEN, appelle seulement say avec une question ou
     une explication courte. Ne fais jamais une action destructive (delete, archive) sans qu'elle soit
     clairement demandée.
-11. Si une action est possible avec certitude, fais-la sans demander confirmation. Ne réponds pas en texte libre :
+11. Arbitrage : « X a fait 42 secondes », « X : 12 blocs », « note de 8 pour X » = result_set (la valeur sur la
+    feuille de résultats, pas des points ; kind si l'unité est dite). « X est disqualifié » = result_dq.
+    « applique le barème » = results_apply. « top chrono pour X » = stopwatch_start, « stop X » = stopwatch_stop.
+    « remets les buzzers » = buzzer_reset.
+12. Si une action est possible avec certitude, fais-la sans demander confirmation. Ne réponds pas en texte libre :
     passe toujours par les outils (say pour parler).
 
 Exemples (contexte : JustEdible [Juste], Ensuri, Cyllu [Cycy], Arreaubaz, LordFinn ; manches pont « Le Pont »,
@@ -47,6 +51,8 @@ tour « La Tour » en cours) :
 - « ouvrez les rideaux » → curtain_open {}
 - « renomme l'épreuve 2 en Tour infernale » → manche_update {manche: "tour", name: "Tour infernale"}
 - « ajoute Cyllu comme joueur, surnom Cycy » → player_add {pseudo: "Cyllu", aliases: ["Cycy"]}
+- « Ensuri a fait 42 secondes » → result_set {player: "Ensuri", value: "42", kind: "time"}
+- « applique le barème » → results_apply {}
 - « cinq points pour Machin » (inconnu) → say {text: "Je ne trouve pas de joueur « Machin »."}
 """
 

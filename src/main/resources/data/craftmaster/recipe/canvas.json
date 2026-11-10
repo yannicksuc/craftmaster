@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GGG",
+    "GWG",
+    "GGG"
+  ],
+  "key": {
+    "G": "minecraft:gold_nugget",
+    "W": "minecraft:white_wool"
+  },
+  "result": {
+    "id": "craftmaster:canvas",
+    "count": 1
+  }
+}

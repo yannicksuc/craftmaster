@@ -24,6 +24,8 @@ public final class Manche {
     public final List<Spot> tp = new ArrayList<>();
     /** Put away: no longer listed nor "next", its points still count. */
     public boolean archived;
+    // ---- chantier H: the judge's results sheet of this round (times, counts... → proposed points), undoable
+    public fr.lordfinn.craftmaster.trial.ResultSheet results = new fr.lordfinn.craftmaster.trial.ResultSheet();
 
     public Manche(String id, String name) {
         this.id = id;
@@ -42,6 +44,7 @@ public final class Manche {
         for (Spot s : tp) spots.add(s.toYaml());
         Maps.putIf(m, "tp", spots);
         Maps.putIf(m, "archived", archived);
+        if (!results.isEmpty()) m.put("results", results.toYaml()); // chantier H
         return m;
     }
 
@@ -57,6 +60,7 @@ public final class Manche {
             if (s != null) r.tp.add(s);
         }
         r.archived = Maps.bool(m.get("archived"));
+        r.results = fr.lordfinn.craftmaster.trial.ResultSheet.fromYaml(m.get("results")); // chantier H
         return r;
     }
 

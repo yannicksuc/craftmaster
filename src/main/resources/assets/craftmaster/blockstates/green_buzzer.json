@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "craftmaster:block/green_buzzer"
+    },
+    "lit=true": {
+      "model": "craftmaster:block/green_buzzer_lit"
+    }
+  }
+}

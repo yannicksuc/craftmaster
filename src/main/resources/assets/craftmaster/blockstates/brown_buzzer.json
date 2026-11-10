@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "craftmaster:block/brown_buzzer"
+    },
+    "lit=true": {
+      "model": "craftmaster:block/brown_buzzer_lit"
+    }
+  }
+}

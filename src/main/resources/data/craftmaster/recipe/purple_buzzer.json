@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "D",
+    "B",
+    "I"
+  ],
+  "key": {
+    "D": "minecraft:purple_dye",
+    "B": "minecraft:stone_button",
+    "I": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "craftmaster:purple_buzzer",
+    "count": 1
+  }
+}

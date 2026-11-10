@@ -29,6 +29,8 @@ public final class CraftMasterClient implements ClientModInitializer {
         PortraitClient.init();
         KeyMappingHelper.registerKeyMapping(RANKING_KEY);
         VoiceRegie.init();
+        // Chantier H: task props, results sheet, drawing boards, plinth
+        fr.lordfinn.craftmaster.client.trial.TrialClient.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (RANKING_KEY.consumeClick()) openRanking(mc, -1);

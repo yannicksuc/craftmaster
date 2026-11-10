@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GGG",
+    " G ",
+    "PGP"
+  ],
+  "key": {
+    "G": "minecraft:gold_ingot",
+    "P": "minecraft:heavy_weighted_pressure_plate"
+  },
+  "result": {
+    "id": "craftmaster:balance",
+    "count": 1
+  }
+}

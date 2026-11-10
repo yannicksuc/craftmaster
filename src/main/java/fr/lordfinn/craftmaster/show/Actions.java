@@ -8,6 +8,9 @@ import fr.lordfinn.craftmaster.data.Season;
 import fr.lordfinn.craftmaster.data.SeasonPlayer;
 import fr.lordfinn.craftmaster.data.Spot;
 import fr.lordfinn.craftmaster.data.Stage;
+import fr.lordfinn.craftmaster.trial.ResultSheet;
+import fr.lordfinn.craftmaster.trial.Scale;
+import fr.lordfinn.craftmaster.trial.Stopwatch;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -51,6 +54,21 @@ public final class Actions {
 
     public record ScenePlaced(String name) implements Effect {}
 
+    // ---- chantier H: judging (results sheet, stopwatches, buzzers)
+
+    /** A value was written on a results sheet (or a disqualification): announced to everyone. */
+    public record ResultRecorded(String player, String text, boolean dq, String manche) implements Effect {}
+
+    public record StopwatchStarted(String player) implements Effect {}
+
+    /** {@code ms}: the time measured (also written on the sheet when recorded). */
+    public record StopwatchStopped(String player, long ms) implements Effect {}
+
+    /** {@code player} null = every stopwatch. */
+    public record StopwatchReset(String player) implements Effect {}
+
+    public record BuzzersReset() implements Effect {}
+
     /** The result: one French line per action (or the error), the effects to play, and whether it worked. */
     public record Outcome(List<String> lines, List<Effect> effects, boolean ok, boolean changed) {}
 
@@ -67,7 +85,10 @@ public final class Actions {
             "season.create", "season.update", "season.archive", "season.delete", "season.activate",
             "partie.create", "partie.update", "partie.archive", "partie.delete", "partie.activate",
             "manche.create", "manche.update", "manche.archive", "manche.delete", "manche.tp.add", "manche.tp.clear",
-            "manche.start", "manche.end", "timer.stop", "curtain.open", "curtain.close", "scene.set", "say");
+            "manche.start", "manche.end", "timer.stop", "curtain.open", "curtain.close", "scene.set", "say",
+            // chantier H
+            "result.set", "result.dq", "result.remove", "results.clear", "results.config", "results.apply",
+            "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset");
 
     /**
      * Applies the actions. {@code undo} is only accepted as the first action (it is done, then the rest is applied
@@ -271,6 +292,20 @@ public final class Actions {
                 case "curtain.close" -> curtain(a, false);
                 case "scene.set" -> sceneSet(a);
                 case "say" -> line(required(a, "text"));
+                // ---- chantier H: judging
+                case "result.set" -> resultSet(a);
+                case "result.dq" -> resultDq(a);
+                case "result.remove" -> resultRemove(a);
+                case "results.clear" -> resultsClear(a);
+                case "results.config" -> resultsConfig(a);
+                case "results.apply" -> resultsApply(a);
+                case "stopwatch.start" -> stopwatchStart(a);
+                case "stopwatch.stop" -> stopwatchStop(a);
+                case "stopwatch.reset" -> stopwatchReset(a);
+                case "buzzer.reset" -> {
+                    effects.add(new BuzzersReset());
+                    line("Buzzers remis à zéro.");
+                }
                 default -> throw new Invalid("action inconnue « " + type + " ».");
             }
         }
@@ -516,6 +551,8 @@ public final class Actions {
             });
             for (Partie p : s.parties.values())
                 for (Map<String, Integer> per : p.scores.values()) renameKey(per, old, newName);
+            // chantier H: the results sheets follow
+            for (Partie p : s.parties.values()) for (Manche m : p.manches) renameKey(m.results.entries, old, newName);
             if (s.published != null) renameKey(s.published.scores(), old, newName);
         }
 
@@ -864,5 +901,188 @@ public final class Actions {
             effects.add(new ScenePlaced(name));
             line("Décor « " + name + " » posé sur la scène.");
         }
+
+        // ------------------------------------------------------------ chantier H: results sheet, stopwatches
+
+        /** The cast in show order (not archived): the lines of a results sheet. */
+        private static List<String> cast(Season s) {
+            List<String> out = new ArrayList<>();
+            for (SeasonPlayer p : s.players.values()) if (!p.archived) out.add(p.name);
+            return out;
+        }
+
+        /** Season, round (current by default) and its game, all writable. */
+        private record Sheet(Season season, Found found) {
+            ResultSheet sheet() {
+                return found.manche().results;
+            }
+        }
+
+        private Sheet sheet(Map<String, Object> a) {
+            Season s = season(a, false);
+            writable(s);
+            if (s.parties.isEmpty()) throw new Invalid(s.name + " n'a encore aucune manche.");
+            Found f = mancheOrCurrent(s, a);
+            writable(f.partie());
+            return new Sheet(s, f);
+        }
+
+        private static ResultSheet.Kind kindField(Map<String, Object> a) {
+            String k = str(a, "kind");
+            if (k == null) return null;
+            ResultSheet.Kind kind = ResultSheet.Kind.parse(k);
+            if (kind == null) throw new Invalid("type de résultat « " + k + " » inconnu (temps, nombre, distance, note, poids).");
+            return kind;
+        }
+
+        private void resultSet(Map<String, Object> a) {
+            Sheet sh = sheet(a);
+            ResultSheet r = sh.sheet();
+            ResultSheet.Kind kind = kindField(a);
+            // The first value of a sheet can choose its kind ("42 secondes" makes it a time sheet)
+            if (kind != null && kind != r.kind) {
+                if (r.entries.values().stream().anyMatch(e -> e.value() != null))
+                    throw new Invalid("la feuille de « " + sh.found().manche().name + " » est en " + r.kind.fr.toLowerCase(Locale.ROOT)
+                            + " : changez son type d'abord (results.config).");
+                r.kind = kind;
+            }
+            Object raw = a.get("value");
+            if (raw == null || String.valueOf(raw).isBlank()) throw new Invalid("champ « value » manquant.");
+            Double value = raw instanceof Number n ? n.doubleValue() : ResultSheet.parse(r.kind, String.valueOf(raw));
+            if (value == null || !Double.isFinite(value)) throw new Invalid("« " + raw + " » n'est pas une valeur (ex. 42, 1:05, 12,5).");
+            String player = scoredPlayer(sh.season(), required(a, "player"));
+            r.set(player, value);
+            String text = r.format(r.entries.get(player).value());
+            line("✎ " + player + " : " + text + " (" + sh.found().manche().name + ")");
+            effects.add(new ResultRecorded(player, text, false, sh.found().manche().name));
+        }
+
+        private void resultDq(Map<String, Object> a) {
+            Sheet sh = sheet(a);
+            Boolean dq = bool(a, "dq");
+            boolean on = dq == null || dq;
+            String player = on ? scoredPlayer(sh.season(), required(a, "player")) : existingPlayer(sh.season(), required(a, "player")).name;
+            ResultSheet.Entry e = sh.sheet().entries.get(player);
+            if (!on && (e == null || !e.dq())) throw new Invalid(player + " n'est pas disqualifié dans « " + sh.found().manche().name + " ».");
+            sh.sheet().disqualify(player, on);
+            line((on ? "✖ " + player + " est disqualifié" : "✔ " + player + " n'est plus disqualifié") + " (" + sh.found().manche().name + ")");
+            effects.add(new ResultRecorded(player, on ? "disqualifié" : "réintégré", on, sh.found().manche().name));
+        }
+
+        private void resultRemove(Map<String, Object> a) {
+            Sheet sh = sheet(a);
+            SeasonPlayer cast = castMember(sh.season(), required(a, "player"));
+            String player = cast == null ? required(a, "player") : cast.name;
+            if (sh.sheet().entries.remove(player) == null)
+                throw new Invalid(player + " n'a pas de résultat pour « " + sh.found().manche().name + " ».");
+            line("Résultat effacé : " + player + " (" + sh.found().manche().name + ")");
+        }
+
+        private void resultsClear(Map<String, Object> a) {
+            Sheet sh = sheet(a);
+            int n = sh.sheet().entries.size();
+            sh.sheet().entries.clear();
+            line("Feuille de résultats de « " + sh.found().manche().name + " » vidée (" + n + " ligne(s)).");
+        }
+
+        private void resultsConfig(Map<String, Object> a) {
+            Sheet sh = sheet(a);
+            ResultSheet r = sh.sheet();
+            ResultSheet.Kind kind = kindField(a);
+            String order = str(a, "order");
+            String scale = str(a, "scale");
+            if (kind == null && order == null && scale == null) throw new Invalid("rien à changer (kind, order ou scale).");
+            List<String> what = new ArrayList<>();
+            if (kind != null) {
+                r.kind = kind;
+                what.add(kind.fr.toLowerCase(Locale.ROOT));
+            }
+            if (order != null) {
+                String o = order.toLowerCase(Locale.ROOT);
+                if (o.equals("auto") || o.equals("defaut") || o.equals("défaut")) r.lowerWins = null;
+                else if (o.startsWith("low") || o.contains("petit") || o.contains("moins") || o.equals("asc")) r.lowerWins = true;
+                else if (o.startsWith("high") || o.contains("grand") || o.contains("plus") || o.equals("desc")) r.lowerWins = false;
+                else throw new Invalid("ordre « " + order + " » inconnu (lower = le plus petit gagne, higher = le plus grand gagne).");
+            }
+            if (order != null || kind != null) what.add(r.lowerWins() ? "le plus petit gagne" : "le plus grand gagne");
+            if (scale != null) {
+                try {
+                    r.scale = Scale.normalize(scale);
+                } catch (IllegalArgumentException e) {
+                    throw new Invalid("barème invalide : " + e.getMessage() + ".");
+                }
+                what.add("barème " + r.scale.replace(",", "-"));
+            }
+            line("Feuille de « " + sh.found().manche().name + " » : " + String.join(", ", what) + ".");
+        }
+
+        private void resultsApply(Map<String, Object> a) {
+            Sheet sh = sheet(a);
+            ResultSheet r = sh.sheet();
+            String scale = str(a, "scale");
+            if (scale != null) {
+                try {
+                    r.scale = Scale.normalize(scale);
+                } catch (IllegalArgumentException e) {
+                    throw new Invalid("barème invalide : " + e.getMessage() + ".");
+                }
+            }
+            List<ResultSheet.Placed> ranking = r.rank(cast(sh.season()));
+            List<String> given = new ArrayList<>();
+            for (ResultSheet.Placed p : ranking) {
+                if (p.points() == null) continue;
+                Map<String, Object> set = new LinkedHashMap<>();
+                set.put("season", sh.season().id);
+                set.put("partie", sh.found().partie().id);
+                set.put("manche", sh.found().manche().id);
+                set.put("player", p.player());
+                set.put("value", p.points());
+                score(set, false);
+                given.add(p.player() + " " + p.points());
+            }
+            if (given.isEmpty()) throw new Invalid("la feuille de « " + sh.found().manche().name + " » est vide : notez d'abord des résultats.");
+            line("Barème " + r.scaleOrDefault().replace(",", "-") + " appliqué (" + sh.found().manche().name + ") : " + String.join(", ", given) + ".");
+        }
+
+        /** A stopwatch's player: the cast name if they are in it, else the name as given. */
+        private String watchPlayer(Map<String, Object> a) {
+            String raw = required(a, "player");
+            Season s = data.activeSeason();
+            SeasonPlayer p = s == null ? null : castMember(s, raw);
+            return p != null ? p.name : raw;
+        }
+
+        private void stopwatchStart(Map<String, Object> a) {
+            String player = watchPlayer(a);
+            effects.add(new StopwatchStarted(player));
+            line("⏱ Chrono de " + player + " lancé.");
+        }
+
+        private void stopwatchStop(Map<String, Object> a) {
+            String player = watchPlayer(a);
+            String known = Stopwatch.SHARED.find(player);
+            long ms = known == null ? -1 : Stopwatch.SHARED.peek(known, System.currentTimeMillis());
+            if (ms < 0) throw new Invalid("le chrono de " + player + " ne tourne pas.");
+            effects.add(new StopwatchStopped(known, ms));
+            Boolean record = bool(a, "record");
+            if (record == null || record) {
+                Map<String, Object> set = new LinkedHashMap<>(a);
+                set.put("player", known);
+                set.put("value", ms / 1000.0);
+                set.put("kind", "time");
+                set.remove("record");
+                resultSet(set);
+            } else {
+                line("⏱ " + known + " : " + Stopwatch.format(ms) + " (non noté).");
+            }
+        }
+
+        private void stopwatchReset(Map<String, Object> a) {
+            String raw = str(a, "player");
+            String player = raw == null ? null : watchPlayer(a);
+            effects.add(new StopwatchReset(player));
+            line(player == null ? "Tous les chronos remis à zéro." : "Chrono de " + player + " remis à zéro.");
+        }
     }
 }
+

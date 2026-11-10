@@ -67,6 +67,18 @@ scripts/                                    générateur de ressources, test ser
 tools/voice-regie/                          service local de la régie vocale (Python : Whisper + Claude)
 ```
 
+### Épreuves (chantier H)
+- `trial/` (serveur) : logique pure testée — `ResultSheet` (feuille + classement), `Scale`, `Stopwatch`, `Zone`,
+  `BuzzerLock`, `PropConfig`, `PropStats`, `CanvasPixels`, `Weights` ; monde — `Trials` (branchement),
+  `TrialContent` (registre), `TrialNetwork` (paquets), `Judging` (annonces, chronos en barre de boss, boutons
+  « Noter pour »), `TrialProps` / `TrialPropEntity`, `BoardEntity`, `Buzzers`, `TrialZones`, `TrialLog` ;
+  `trial/block/`, `trial/item/`. Commandes : `command/TrialCommands`.
+- `client/trial/` : `TrialClient`, rendus (`TrialPropRenderer`, `BoardRenderer` + `BoardTextures` dynamiques,
+  `PlinthRenderer`), écrans (`PropScreen`, `ResultsScreen`, `BoardTextScreen`).
+- La feuille de résultats vit dans `Manche.results` (fichier de données) : annulable comme les scores.
+- `task/Tasks.java` : **bouchon** de `Tasks.openPaper` (chantier D le remplace à la fusion).
+- Ressources : `scripts/gen_trials.py`, appelé par `gen_assets.py`.
+
 ## Choix techniques
 - **Données** : un seul objet en mémoire (le plugin en avait deux qui s'écrasaient), YAML via SnakeYAML embarqué
   dans le jar (`include`), écriture atomique, clés toujours en texte comme Bukkit. Modèle objet (Season → Partie →
