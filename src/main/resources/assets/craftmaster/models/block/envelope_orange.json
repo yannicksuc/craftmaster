@@ -1,0 +1,6 @@
+{
+  "parent": "craftmaster:block/envelope_template",
+  "textures": {
+    "top": "craftmaster:block/envelope_orange"
+  }
+}

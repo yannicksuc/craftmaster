@@ -81,11 +81,18 @@ public final class ModContent {
                 EntityType.Builder.<PortraitEntity>of(PortraitEntity::new, MobCategory.MISC)
                         .sized(1f, 1f).noLootTable().clientTrackingRange(10).updateInterval(2).build(portraitKey));
 
+        // Tasks, envelopes, hidden notes (chantier D)
+        List<ItemStack> taskItems = new ArrayList<>();
+        fr.lordfinn.craftmaster.task.TaskContent.register(taskItems::add);
+
         ResourceKey<CreativeModeTab> tabKey = ResourceKey.create(Registries.CREATIVE_MODE_TAB, CraftMaster.id("craftmaster"));
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, tabKey, FabricCreativeModeTab.builder()
                 .title(Component.translatable("itemGroup.craftmaster"))
                 .icon(() -> new ItemStack(CURTAINS.get(DyeColor.RED)))
-                .displayItems((params, out) -> TAB_ITEMS.forEach(out::accept))
+                .displayItems((params, out) -> {
+                    TAB_ITEMS.forEach(out::accept);
+                    taskItems.forEach(out::accept);
+                })
                 .build());
     }
 

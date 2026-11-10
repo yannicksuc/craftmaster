@@ -1,0 +1,98 @@
+package fr.lordfinn.craftmaster.client.task;
+
+import com.google.gson.Gson;
+import com.mojang.blaze3d.platform.InputConstants;
+import fr.lordfinn.craftmaster.CraftMaster;
+import fr.lordfinn.craftmaster.client.CraftMasterClient;
+import fr.lordfinn.craftmaster.task.TaskNetwork;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+
+import java.util.List;
+import java.util.Map;
+
+/** Client side of the tasks, envelopes and notes (chantier D): screens, the J key, the overlay card, Twitch. */
+public final class TaskClient {
+
+    private TaskClient() {}
+
+    /** Shows the task of the moment (organisers: even secret, with "reveal"). */
+    public static final KeyMapping TASK_KEY = new KeyMapping("key.craftmaster.task", InputConstants.Type.KEYBOARD, InputConstants.KEY_J,
+            CraftMasterClient.CATEGORY);
+
+    private static final Gson GSON = new Gson();
+
+    public static void init() {
+        KeyMappingHelper.registerKeyMapping(TASK_KEY);
+        HudElementRegistry.addLast(CraftMaster.id("task_card"), new CurrentTask.Hud());
+        ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+            while (TASK_KEY.consumeClick()) openTask(mc);
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(TaskNetwork.State.TYPE, (p, ctx) -> CurrentTask.set(p));
+        ClientPlayNetworking.registerGlobalReceiver(TaskNetwork.ShowCard.TYPE, (p, ctx) -> CurrentTask.showCard(p.ticks()));
+        ClientPlayNetworking.registerGlobalReceiver(TaskNetwork.Paper.TYPE, (p, ctx) -> {
+            Minecraft mc = ctx.client();
+            // Opened from an editor: closing the card goes back to it
+            Screen parent = mc.gui.screen() instanceof TaskEditorScreen || mc.gui.screen() instanceof NoteEditorScreen ? mc.gui.screen() : null;
+            mc.gui.setScreen(new PaperScreen(p, parent));
+        });
+        ClientPlayNetworking.registerGlobalReceiver(TaskNetwork.OpenEditor.TYPE, (p, ctx) ->
+                ctx.client().gui.setScreen(p.mode() == 1 ? new SealScreen(p) : new TaskEditorScreen(p)));
+        ClientPlayNetworking.registerGlobalReceiver(TaskNetwork.OpenNote.TYPE, (p, ctx) -> ctx.client().gui.setScreen(new NoteEditorScreen(p.note())));
+        ClientPlayConnectionEvents.DISCONNECT.register((h, mc) -> {
+            CurrentTask.set(new TaskNetwork.State(TaskNetwork.Card.NONE, false));
+            CurrentTask.hideCard();
+        });
+
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, access) -> {
+            for (String name : new String[]{"craftMasterTwitch", "craftmastertwitch"})
+                dispatcher.register(ClientCommands.literal(name)
+                        .executes(c -> {
+                            c.getSource().sendFeedback(Component.translatable("message.craftmaster.twitch_status", TwitchChat.status()).withStyle(ChatFormatting.GOLD));
+                            return 1;
+                        })
+                        .then(ClientCommands.literal("reload").executes(c -> {
+                            TwitchChat.reload();
+                            c.getSource().sendFeedback(Component.translatable("message.craftmaster.twitch_status", TwitchChat.status()).withStyle(ChatFormatting.GOLD));
+                            return 1;
+                        }))
+                        // Same as a viewer typing !tache (cooldown included): to check the broadcast set-up
+                        .then(ClientCommands.literal("test").executes(c -> {
+                            TwitchChat.trigger("test");
+                            return 1;
+                        })));
+        });
+        TwitchChat.reload();
+    }
+
+    static void openTask(Minecraft mc) {
+        if (ClientPlayNetworking.canSend(TaskNetwork.RequestTask.TYPE)) ClientPlayNetworking.send(new TaskNetwork.RequestTask());
+        else if (mc.player != null) mc.player.sendOverlayMessage(Component.translatable("message.craftmaster.no_server_mod"));
+    }
+
+    /** Organisers' screens: actions run on the server like the commands (answers in the chat). */
+    static void runActions(List<Map<String, Object>> actions) {
+        if (ClientPlayNetworking.canSend(TaskNetwork.RunActions.TYPE)) ClientPlayNetworking.send(new TaskNetwork.RunActions(GSON.toJson(actions)));
+    }
+
+    static void requestEditor(String mancheId) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        mc.player.connection.sendCommand(mancheId == null || mancheId.isEmpty() ? "craftMasterTask edit" : "craftMasterTask edit " + mancheId);
+    }
+
+    static void noteOrder(String id, String order) {
+        if (ClientPlayNetworking.canSend(TaskNetwork.NoteOrder.TYPE)) ClientPlayNetworking.send(new TaskNetwork.NoteOrder(id, order));
+    }
+}

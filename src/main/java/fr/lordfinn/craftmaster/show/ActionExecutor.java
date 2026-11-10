@@ -61,6 +61,8 @@ public final class ActionExecutor {
         // Labels only: which player a portrait shows changes on publish, with its animation (ShowEvents)
         fr.lordfinn.craftmaster.portrait.Portraits.refreshLabels(server);
         for (int s : CraftMaster.data().allSeasons()) Network.broadcast(server, s);
+        // Task cards and the J screen follow the task texts (chantier D)
+        fr.lordfinn.craftmaster.task.Tasks.sync(server);
     }
 
     private static void play(MinecraftServer server, Actions.Effect effect, List<String> lines) {
@@ -87,6 +89,8 @@ public final class ActionExecutor {
                 if (error != null) lines.add("⚠ " + error);
                 else previousScene = s.name();
             }
+            // Tasks, envelopes (chantier D)
+            case Actions.TaskEffect t -> fr.lordfinn.craftmaster.task.Tasks.play(server, t, lines);
         }
     }
 

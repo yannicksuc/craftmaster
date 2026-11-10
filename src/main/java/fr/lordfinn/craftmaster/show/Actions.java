@@ -8,6 +8,7 @@ import fr.lordfinn.craftmaster.data.Season;
 import fr.lordfinn.craftmaster.data.SeasonPlayer;
 import fr.lordfinn.craftmaster.data.Spot;
 import fr.lordfinn.craftmaster.data.Stage;
+import fr.lordfinn.craftmaster.data.Task;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -51,6 +52,22 @@ public final class Actions {
 
     public record ScenePlaced(String name) implements Effect {}
 
+    // ---- tasks, envelopes (chantier D): played by fr.lordfinn.craftmaster.task.Tasks#play
+
+    /** Effects of the task actions; ActionExecutor hands them all to {@code Tasks.play}. */
+    public sealed interface TaskEffect extends Effect {}
+
+    /** The task becomes visible to everyone; {@code announce}: say so to all (forced by the organiser). */
+    public record TaskRevealed(int season, String manche, boolean announce) implements TaskEffect {}
+
+    public record TaskHidden(int season, String manche) implements TaskEffect {}
+
+    /** The task's card shows on every screen for {@code seconds} (revealed first if it was not). */
+    public record TaskShown(int season, String manche, int seconds) implements TaskEffect {}
+
+    /** Sealed envelopes of the round for these players (empty = the online cast); {@code wax} null = the task's. */
+    public record EnvelopesGiven(int season, String manche, List<String> players, String wax) implements TaskEffect {}
+
     /** The result: one French line per action (or the error), the effects to play, and whether it worked. */
     public record Outcome(List<String> lines, List<Effect> effects, boolean ok, boolean changed) {}
 
@@ -67,7 +84,8 @@ public final class Actions {
             "season.create", "season.update", "season.archive", "season.delete", "season.activate",
             "partie.create", "partie.update", "partie.archive", "partie.delete", "partie.activate",
             "manche.create", "manche.update", "manche.archive", "manche.delete", "manche.tp.add", "manche.tp.clear",
-            "manche.start", "manche.end", "timer.stop", "curtain.open", "curtain.close", "scene.set", "say");
+            "manche.start", "manche.end", "timer.stop", "curtain.open", "curtain.close", "scene.set", "say",
+            "task.set", "task.clear", "task.reveal", "task.hide", "task.show", "envelope.give");
 
     /**
      * Applies the actions. {@code undo} is only accepted as the first action (it is done, then the rest is applied
@@ -271,6 +289,12 @@ public final class Actions {
                 case "curtain.close" -> curtain(a, false);
                 case "scene.set" -> sceneSet(a);
                 case "say" -> line(required(a, "text"));
+                case "task.set" -> taskSet(a);
+                case "task.clear" -> taskClear(a);
+                case "task.reveal" -> taskReveal(a);
+                case "task.hide" -> taskHide(a);
+                case "task.show" -> taskShow(a);
+                case "envelope.give" -> envelopeGive(a);
                 default -> throw new Invalid("action inconnue « " + type + " ».");
             }
         }
@@ -829,6 +853,8 @@ public final class Actions {
             if (p.status.equals(Partie.PREPARATION)) p.status = Partie.EN_COURS;
             List<String> cast = s.players.values().stream().filter(x -> !x.archived).map(x -> x.name).toList();
             effects.add(new MancheStarted(s.id, p.number(r), r.name, r.timer, List.copyOf(r.tp), cast));
+            // Starting the round reveals its task, unless only the envelopes may (chantier D)
+            if (r.task != null && r.task.revealOnStart && !r.task.isEmpty()) effects.add(new TaskRevealed(s.id, r.id, false));
             line("Manche " + p.number(r) + " — " + r.name + " lancée" + (r.timer > 0 ? " (chrono " + clock(r.timer) + ")" : "") + ".");
         }
 
@@ -863,6 +889,123 @@ public final class Actions {
             data.live().scene = name;
             effects.add(new ScenePlaced(name));
             line("Décor « " + name + " » posé sur la scène.");
+        }
+
+        // ------------------------------------------------------------ tasks (chantier D)
+
+        /** The round of a task action ("manche", else the round being played). */
+        private Found taskManche(Season s, Map<String, Object> a) {
+            return mancheOrCurrent(s, a);
+        }
+
+        private void taskSet(Map<String, Object> a) {
+            Season s = season(a, false);
+            writable(s);
+            Found f = manche(s, a, required(a, "manche"));
+            writable(f.partie());
+            Manche r = f.manche();
+            Task t = r.task == null ? new Task() : r.task;
+            List<String> changed = new ArrayList<>();
+            String title = a.containsKey("title") ? String.valueOf(a.get("title") == null ? "" : a.get("title")).strip() : null;
+            if (title != null) {
+                if (title.length() > 80) throw new Invalid("titre trop long (80 caractères au plus).");
+                t.title = title;
+                changed.add("titre « " + title + " »");
+            }
+            Object rawText = a.get("text");
+            if (rawText != null) {
+                String text = Task.cleanText(String.valueOf(rawText));
+                if (Boolean.TRUE.equals(bool(a, "append")) && !t.text.isBlank()) t.text = t.text + "\n\n" + text;
+                else t.text = text;
+                if (t.text.length() > 4000) throw new Invalid("texte trop long (4000 caractères au plus).");
+                changed.add(Boolean.TRUE.equals(bool(a, "append")) ? "paragraphe ajouté" : "texte (" + t.text.length() + " caractères)");
+            }
+            Object rawRules = a.get("rules");
+            if (rawRules != null) {
+                List<String> rules = rawRules instanceof List<?> l
+                        ? l.stream().filter(java.util.Objects::nonNull).map(x -> String.valueOf(x).strip()).filter(x -> !x.isEmpty()).toList()
+                        : Task.parseRules(String.valueOf(rawRules));
+                t.rules.clear();
+                t.rules.addAll(rules);
+                changed.add(rules.isEmpty() ? "aucune règle" : rules.size() + " règle(s)");
+            }
+            Integer seconds = integer(a, "seconds");
+            if (seconds != null) {
+                t.seconds = Math.max(0, seconds);
+                changed.add("durée affichée " + (t.seconds == 0 ? "celle du chrono" : clock(t.seconds)));
+            }
+            String wax = str(a, "wax");
+            if (wax != null) {
+                fr.lordfinn.craftmaster.task.WaxColor c = fr.lordfinn.craftmaster.task.WaxColor.parse(wax);
+                if (c == null) throw new Invalid("couleur de cire « " + wax + " » inconnue (rouge, or, noir, blanc, bleu, vert, violet, rose, orange, cyan, marron, gris).");
+                t.wax = c.id();
+                changed.add("cire " + c.french);
+            }
+            Boolean onStart = bool(a, "revealOnStart");
+            if (onStart != null) {
+                t.revealOnStart = onStart;
+                changed.add(onStart ? "révélée au lancement" : "révélée à l'ouverture d'une enveloppe seulement");
+            }
+            if (changed.isEmpty()) throw new Invalid("rien à changer dans la tâche de « " + r.name + " ».");
+            r.task = t;
+            line("Tâche de « " + r.name + " » : " + String.join(", ", changed) + ".");
+        }
+
+        private void taskClear(Map<String, Object> a) {
+            Season s = season(a, false);
+            writable(s);
+            Found f = manche(s, a, required(a, "manche"));
+            if (f.manche().task == null) throw new Invalid("« " + f.manche().name + " » n'a pas de tâche.");
+            f.manche().task = null;
+            line("Tâche de « " + f.manche().name + " » effacée.");
+        }
+
+        private Found withTask(Map<String, Object> a, Season s) {
+            Found f = taskManche(s, a);
+            if (f.manche().task == null || f.manche().task.isEmpty())
+                throw new Invalid("« " + f.manche().name + " » n'a pas encore de tâche écrite.");
+            return f;
+        }
+
+        private void taskReveal(Map<String, Object> a) {
+            Season s = season(a, false);
+            Found f = withTask(a, s);
+            effects.add(new TaskRevealed(s.id, f.manche().id, true));
+        }
+
+        private void taskHide(Map<String, Object> a) {
+            Season s = season(a, false);
+            Found f = taskManche(s, a);
+            effects.add(new TaskHidden(s.id, f.manche().id));
+        }
+
+        private void taskShow(Map<String, Object> a) {
+            Season s = season(a, false);
+            Found f = withTask(a, s);
+            int seconds = intOr(a, "seconds", 12);
+            if (seconds < 1 || seconds > 120) throw new Invalid("« seconds » : de 1 à 120 secondes.");
+            effects.add(new TaskShown(s.id, f.manche().id, seconds));
+            line("Carte de la tâche « " + f.manche().name + " » affichée " + seconds + " s.");
+        }
+
+        private void envelopeGive(Map<String, Object> a) {
+            Season s = season(a, false);
+            Found f = withTask(a, s);
+            String wax = str(a, "wax");
+            if (wax != null && fr.lordfinn.craftmaster.task.WaxColor.parse(wax) == null)
+                throw new Invalid("couleur de cire « " + wax + " » inconnue.");
+            List<String> players = strings(a, "players");
+            if (players == null) players = List.of();
+            List<String> out = new ArrayList<>();
+            for (String p : players) {
+                if (p.equalsIgnoreCase("all") || p.equalsIgnoreCase("tous") || p.equalsIgnoreCase("cast")) {
+                    out.clear();
+                    break;
+                }
+                SeasonPlayer cast = castMember(s, p);
+                out.add(cast == null ? p : cast.name);
+            }
+            effects.add(new EnvelopesGiven(s.id, f.manche().id, out, wax == null ? null : fr.lordfinn.craftmaster.task.WaxColor.parse(wax).id()));
         }
     }
 }

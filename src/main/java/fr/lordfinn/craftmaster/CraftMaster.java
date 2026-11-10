@@ -47,6 +47,8 @@ public final class CraftMaster implements ModInitializer {
         Network.register();
         RegieServer.register();
         Portraits.register();
+        // Tasks, envelopes, hidden notes (chantier D)
+        fr.lordfinn.craftmaster.task.Tasks.register();
 
         // Synced to the players' game (the mod is on both sides), so it parses the same way there
         ArgumentTypeRegistry.registerArgumentType(id("word"), WordArgument.class, SingletonArgumentInfo.contextFree(WordArgument::word));

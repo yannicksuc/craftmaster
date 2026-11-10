@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "  A",
+    " I ",
+    "I  "
+  ],
+  "key": {
+    "A": "minecraft:amethyst_shard",
+    "I": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "craftmaster:uv_lamp",
+    "count": 1
+  }
+}

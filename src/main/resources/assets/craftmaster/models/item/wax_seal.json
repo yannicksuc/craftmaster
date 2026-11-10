@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "craftmaster:item/wax_seal",
+    "layer1": "craftmaster:item/wax_seal_wax"
+  }
+}

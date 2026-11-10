@@ -24,6 +24,8 @@ public final class Manche {
     public final List<Spot> tp = new ArrayList<>();
     /** Put away: no longer listed nor "next", its points still count. */
     public boolean archived;
+    /** Text of the task read on the envelope's card (chantier D), or null if none was written. */
+    public Task task;
 
     public Manche(String id, String name) {
         this.id = id;
@@ -42,6 +44,7 @@ public final class Manche {
         for (Spot s : tp) spots.add(s.toYaml());
         Maps.putIf(m, "tp", spots);
         Maps.putIf(m, "archived", archived);
+        if (task != null) m.put("task", task.toYaml());
         return m;
     }
 
@@ -57,6 +60,8 @@ public final class Manche {
             if (s != null) r.tp.add(s);
         }
         r.archived = Maps.bool(m.get("archived"));
+        // Files written before v4 have no task: the round simply has none
+        if (m.get("task") instanceof Map<?, ?>) r.task = Task.fromYaml(Maps.map(m.get("task")));
         return r;
     }
 
