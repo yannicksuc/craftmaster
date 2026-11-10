@@ -61,6 +61,8 @@ public final class ActionExecutor {
         // Labels only: which player a portrait shows changes on publish, with its animation (ShowEvents)
         fr.lordfinn.craftmaster.portrait.Portraits.refreshLabels(server);
         for (int s : CraftMaster.data().allSeasons()) Network.broadcast(server, s);
+        // chantier H: open results sheets follow
+        fr.lordfinn.craftmaster.trial.TrialNetwork.refreshSheets(server);
     }
 
     private static void play(MinecraftServer server, Actions.Effect effect, List<String> lines) {
@@ -87,6 +89,9 @@ public final class ActionExecutor {
                 if (error != null) lines.add("⚠ " + error);
                 else previousScene = s.name();
             }
+            // chantier H: judging (announces, stopwatches, buzzers)
+            case Actions.ResultRecorded _, Actions.StopwatchStarted _, Actions.StopwatchStopped _, Actions.StopwatchReset _,
+                 Actions.BuzzersReset _ -> fr.lordfinn.craftmaster.trial.Judging.play(server, effect, lines);
         }
     }
 

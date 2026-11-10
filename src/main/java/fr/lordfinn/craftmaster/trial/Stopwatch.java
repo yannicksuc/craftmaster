@@ -12,6 +12,9 @@ import java.util.Map;
  */
 public final class Stopwatch {
 
+    /** The server's stopwatches (one per contestant), shared by the actions, commands, props and screens. */
+    public static final Stopwatch SHARED = new Stopwatch();
+
     /** Start time of each running stopwatch, by player, in start order. */
     private final Map<String, Long> running = new LinkedHashMap<>();
     /** Last time measured per player (kept after the stop, shown until the next start). */

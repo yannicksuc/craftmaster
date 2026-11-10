@@ -47,6 +47,8 @@ public final class CraftMaster implements ModInitializer {
         Network.register();
         RegieServer.register();
         Portraits.register();
+        // Chantier H: task props, judging tools, creative objects
+        fr.lordfinn.craftmaster.trial.Trials.register();
 
         // Synced to the players' game (the mod is on both sides), so it parses the same way there
         ArgumentTypeRegistry.registerArgumentType(id("word"), WordArgument.class, SingletonArgumentInfo.contextFree(WordArgument::word));
