@@ -138,7 +138,7 @@ prend le relais.
   joueurs, sous-titres, notifications (« toasts »), panneau de la régie vocale. Les **titres** (manche, décompte des
   10 dernières secondes, révélation) restent.
 - **Habillage** (or, velours rouge, crème, lisible à 1080p) :
-  - sceau CM + « CRAFTMASTER » en haut à gauche, « ● EN DIRECT » en haut à droite ;
+  - petit sceau CM discret en haut à gauche, petit « ● EN DIRECT » en haut à droite (habillage léger) ;
   - bandeau de la manche en haut au centre : « MANCHE 2 », son nom (ou le titre de la tâche révélée, chantier D),
     le chrono, une ligne d'or qui raccourcit, le tout rouge et clignotant dans les 10 dernières secondes ;
   - **synthé** en bas à gauche (visage, nom, « 2e · 14 pts » / « Candidat » / « Maître du jeu », ou texte libre :

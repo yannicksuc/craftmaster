@@ -9,7 +9,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -47,7 +46,6 @@ public final class FxContent {
         WEARABLES.put("noir_blanc_glasses", "noir_blanc");
         WEARABLES.put("pixel_glasses", "pixel");
         WEARABLES.put("peephole_glasses", "fisheye+masque_rond");
-        WEARABLES.put("pumpkin_mask", "citrouille");
         WEARABLES.put("vintage_glasses", "vieux_film+vignette");
         WEARABLES.put("vhs_headset", "vhs");
         WEARABLES.put("thermal_goggles", "infrarouge");
@@ -59,7 +57,6 @@ public final class FxContent {
         FRENCH.put("noir_blanc_glasses", "lunettes noir et blanc");
         FRENCH.put("pixel_glasses", "lunettes pixel");
         FRENCH.put("peephole_glasses", "lunettes judas");
-        FRENCH.put("pumpkin_mask", "masque citrouille");
         FRENCH.put("vintage_glasses", "lunettes vintage");
         FRENCH.put("vhs_headset", "casque VHS");
         FRENCH.put("thermal_goggles", "lunettes thermiques");
@@ -73,13 +70,9 @@ public final class FxContent {
                 DataComponentType.<String>builder().persistent(Codec.STRING).networkSynchronized(ByteBufCodecs.STRING_UTF8).build());
         for (Map.Entry<String, String> e : WEARABLES.entrySet()) {
             ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, CraftMaster.id(e.getKey()));
-            boolean pumpkin = e.getKey().equals("pumpkin_mask");
-            Equippable.Builder b = Equippable.builder(EquipmentSlot.HEAD)
-                    .setEquipSound(pumpkin ? SoundEvents.ARMOR_EQUIP_GENERIC : SoundEvents.ARMOR_EQUIP_LEATHER)
-                    .setSwappable(true).setDispensable(true).setDamageOnHurt(false);
-            // The pumpkin mask shows vanilla's own carved pumpkin view, drawn by vanilla like a worn carved pumpkin
-            if (pumpkin) b.setCameraOverlay(Identifier.withDefaultNamespace("misc/pumpkinblur"));
-            Equippable head = b.build();
+            // (No pumpkin mask: a vanilla carved pumpkin already gives that view)
+            Equippable head = Equippable.builder(EquipmentSlot.HEAD).setEquipSound(SoundEvents.ARMOR_EQUIP_LEATHER)
+                    .setSwappable(true).setDispensable(true).setDamageOnHurt(false).build();
             Item item = Registry.register(BuiltInRegistries.ITEM, key, new Item(new Item.Properties().setId(key).stacksTo(1)
                     .component(DataComponents.EQUIPPABLE, head).component(SCREEN_FX, e.getValue())));
             ITEMS.put(e.getKey(), item);

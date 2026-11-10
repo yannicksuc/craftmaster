@@ -972,9 +972,16 @@ public final class Actions {
                 throw new Invalid("« tout » ne sert qu'à retirer les effets (cibles : diffusion, tous, candidats, un joueur).");
             }
             java.util.List<String> fx;
-            if (clear) fx = List.of();
-            else try {
-                fx = fr.lordfinn.craftmaster.fx.ScreenFx.parse(required(a, "effect"));
+            String spec;
+            if (clear) {
+                fx = List.of();
+                spec = "";
+            } else try {
+                String raw = required(a, "effect").trim();
+                // "+sepia" adds to what is already on, "-flou" takes one off (merged on the server at play time)
+                boolean delta = fr.lordfinn.craftmaster.fx.ScreenEffectsServer.isDelta(raw);
+                fx = fr.lordfinn.craftmaster.fx.ScreenFx.parse(delta ? raw.replace('-', '+') : raw);
+                spec = delta ? fr.lordfinn.craftmaster.fx.ScreenEffectsServer.canonicalDelta(raw) : fr.lordfinn.craftmaster.fx.ScreenFx.join(fx);
             } catch (IllegalArgumentException e) {
                 throw new Invalid(e.getMessage());
             }
@@ -982,7 +989,7 @@ public final class Actions {
             if (seconds < 0 || seconds > 3600) throw new Invalid("« seconds » : de 0 à 3600.");
             double fade = a.get("fade") == null ? -1 : num(a, "fade");
             int fadeTicks = fade < 0 ? fr.lordfinn.craftmaster.fx.ScreenEffectsServer.DEFAULT_FADE_TICKS : (int) Math.round(Math.min(fade, 10) * 20);
-            effects.add(new ScreenEffect(target, fr.lordfinn.craftmaster.fx.ScreenFx.join(fx), seconds, fadeTicks));
+            effects.add(new ScreenEffect(target, spec, seconds, fadeTicks));
         }
 
         /** Spotlights on a player: a cast member by name or nickname, or any exact pseudo (a guest, the master). */

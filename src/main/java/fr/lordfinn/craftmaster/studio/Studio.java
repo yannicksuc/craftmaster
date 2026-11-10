@@ -68,8 +68,8 @@ public final class Studio {
         DESK_BELL_SOUND = sound("studio.desk_bell");
 
         // ------------------------------------------------------------ seats (facing north, backrest at south)
-        // LordFinn's own throne model (Furniture): 1.7 blocks wide, 4.5 tall, seat cushion top at 15 px
-        THRONE = ModContent.block("throne", p -> new FurnitureSeatBlock(p, 15, Shapes4.of(
+        // LordFinn's own throne model (Furniture): 1.7 blocks wide, 4.5 tall; the sitter sits at 20 px (on the cushion)
+        THRONE = ModContent.block("throne", p -> new FurnitureSeatBlock(p, 20, Shapes4.of(
                         new double[]{0, 0, 0, 16, 15, 16}, new double[]{0, 15, 14, 16, 16, 16})),
                 props(MapColor.GOLD, 3f).sound(SoundType.WOOD).noOcclusion());
         ASSISTANT_CHAIR = ModContent.block("assistant_chair", p -> new StudioSeatBlock(p, 10, Shapes4.of(

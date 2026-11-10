@@ -281,7 +281,7 @@ check("fx unknown effect refused", "inconnu" in cmd("fx diffusion arc-en-ciel"))
 check("fx player offline refused", "pas connecté" in cmd("fx Personne sepia"))
 check("fx everything off", "retirés" in cmd("fx aucun"))
 check("fx list", "masque_rond" in cmd("fx liste"))
-for item in ("blurry_glasses", "peephole_glasses", "pumpkin_mask", "vhs_headset", "binocular_goggles"):
+for item in ("blurry_glasses", "peephole_glasses", "vhs_headset", "binocular_goggles"):
     out = cmd(f"give @a craftmaster:{item}")
     check(f"wearable {item}", "Gave" in out or "No player" in out, out)
 out = cmd("give @a minecraft:carved_pumpkin[craftmaster:screen_fx=\"sepia+vignette\"]")

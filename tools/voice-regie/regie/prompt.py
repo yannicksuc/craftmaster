@@ -63,6 +63,8 @@ Règles :
     défaut) ; « mets Ensuri en flou pendant 30 secondes » = fx_set {target: "Ensuri", effect: "flou", seconds: 30} ;
     « effet judas », « vue fish-eye ronde » = fx_set {effect: "judas"} ; plusieurs effets = joints par + ;
     « enlève les effets » = fx_clear {} (tout) ; « enlève l'effet d'Ensuri » = fx_clear {target: "Ensuri"}.
+    Ajouter sans remplacer : « ajoute du sépia » = fx_set {effect: "+sepia"} ; retirer un seul effet en gardant
+    les autres : « enlève juste le flou » = fx_set {effect: "-flou"} (un + ou - devant = combiner avec l'existant).
 14. Si une action est possible avec certitude, fais-la sans demander confirmation. Ne réponds pas en texte libre :
     passe toujours par les outils (say pour parler).
 

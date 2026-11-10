@@ -199,7 +199,8 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
     "fx.set": ("Met un effet d'écran sur l'image de la diffusion (par défaut) ou sur la vue d'un joueur : noir_blanc, "
                "sepia, pixel, fisheye, vignette, masque_rond, citrouille, flou, vhs, vieux_film, infrarouge, reve, ondule, "
                "jumelles, bd, negatif ; combinables avec + (« fisheye+masque_rond+sepia ») ; combinaisons prêtes : judas "
-               "(fisheye+masque_rond), camera_cachee, souvenir, film_muet, cauchemar. Remplace l'effet précédent de la cible.",
+               "(fisheye+masque_rond), camera_cachee, souvenir, film_muet, cauchemar. Remplace l'effet précédent de la cible, "
+               "sauf avec un + ou - devant (« +sepia » ajoute, « -flou » retire un seul effet).",
                [f("target", STR, doc="« diffusion » (l'image du stream, défaut), « tous » (tous les joueurs), « candidats », "
                                      "ou le pseudo EXACT d'un joueur."),
                 f("effect", STR, True, "Effet(s) joints par + , ids ci-dessus."),

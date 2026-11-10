@@ -362,18 +362,17 @@ public final class BroadcastOverlay {
     // ---- top: seal + live bug
 
     private static void drawBug(GuiGraphicsExtractor g, Font font, float w, float top, long now) {
-        float y = top + 9;
-        seal(g, 12, y - 3, 22, 0.95f);
-        text(g, font, bold("CRAFTMASTER"), 37, y + 1, 0.85f, GOLD, true);
-        // "● EN DIRECT" pill, top right; the dot breathes
+        // Kept discreet (a small watermark seal, a small live tag): the picture is the show, not the branding
+        float y = top + 7;
+        seal(g, 9, y - 2, 13, 0.7f);
+        // "● EN DIRECT", top right, small; the dot breathes
         Component live = bold("EN DIRECT");
-        float tw = width(font, live, 0.7f);
-        float x1 = w - 12, x0 = x1 - tw - 17;
-        fill(g, x0, y - 1, x1, y + 10, 0xD0200408);
-        fill(g, x0, y - 1, x1, y - 0.5f, 0x60FFFFFF);
+        float tw = width(font, live, 0.5f);
+        float x1 = w - 9, x0 = x1 - tw - 11;
+        fill(g, x0, y - 1, x1, y + 6.5f, 0x90200408);
         float pulse = (float) (0.55 + 0.45 * Math.sin(now / 1000.0 * Math.PI * 1.2));
-        fill(g, x0 + 4, y + 2.5f, x0 + 8.5f, y + 7, alpha(LIVE_RED, 0.4f + 0.6f * pulse));
-        text(g, font, live, x0 + 12, y + 1.6f, 0.7f, CREAM, false);
+        fill(g, x0 + 2.5f, y + 1.5f, x0 + 5.5f, y + 4.5f, alpha(LIVE_RED, 0.4f + 0.6f * pulse));
+        text(g, font, live, x0 + 8, y + 1, 0.5f, alpha(CREAM, 0.9f), false);
     }
 
     // ---- top centre: round banner and timer

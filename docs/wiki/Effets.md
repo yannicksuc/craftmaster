@@ -37,6 +37,15 @@ d'abord les déformations, les couleurs, puis les masques) : `fisheye+masque_ron
 
 Les noms français marchent aussi : « noir et blanc », « sépia », « fish-eye », « thermique », « pixelisé »…
 
+## Combiner les effets
+- Plusieurs d'un coup : `/fx diffusion fisheye+masque_rond+sepia` (6 au plus).
+- **Ajouter sans rien enlever** : un `+` devant. `/fx diffusion +vignette` garde ce qui est déjà là et ajoute la
+  vignette. À la voix : « ajoute du sépia ».
+- **Retirer un seul effet** : un `-` devant. `/fx Ensuri -flou` enlève le flou et garde le reste. À la voix :
+  « enlève juste le flou ».
+- Tout se cumule : sur un joueur, l'effet imposé + celui de ses lunettes ; sur le stream, l'effet de la régie
+  (`/fx diffusion`) + celui du plan en cours (intro, travelling).
+
 ## Sur la diffusion (le stream)
 
 | Moyen | Exemple |
@@ -72,7 +81,7 @@ diffusion aussi.
 | Lunettes noir et blanc | noir et blanc |
 | Lunettes pixel | pixel |
 | Lunettes judas | judas (fish-eye + masque rond) |
-| Masque citrouille | la vue citrouille du jeu |
+| Citrouille sculptée (celle du jeu) | la vue citrouille du jeu, rien à ajouter |
 | Lunettes vintage | vieux film + vignette |
 | Casque VHS | VHS |
 | Lunettes thermiques | infrarouge |

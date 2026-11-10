@@ -174,7 +174,7 @@ y, x = np.mgrid[0:SEAL, 0:SEAL].astype(float)
 c = SEAL / 2 - 0.5
 ang = np.arctan2(y - c, x - c)
 stain = inside & (d <= R - 2)
-keep_ang = n.fbm(np.cos(ang) * 1.4, np.sin(ang) * 1.4, np.zeros_like(ang) + 9.0, octaves=2) > -0.02
+keep_ang = n.fbm(np.cos(ang) * 1.4, np.sin(ang) * 1.4, np.zeros_like(ang) + 9.0, octaves=2) > -0.35
 ring = inside & (d > R - 4.5) & keep_ang
 ring = ring & pt.cleanup(ring.astype(int)).astype(bool)
 v = np.where(ring, 0.5, 0.45)
@@ -187,5 +187,5 @@ img = np.zeros((SEAL, SEAL, 4), np.uint8)
 g = RAMP[idx]
 img[..., 0] = img[..., 1] = img[..., 2] = g
 # The stain is thin wax left on the paper: see-through; the torn bits are solid
-img[..., 3] = np.where(ring, 255, np.where(stain, 70, 0))
+img[..., 3] = np.where(ring, 255, np.where(stain, 45, 0))
 save(Image.fromarray(img, "RGBA"), "letter_residue.png")

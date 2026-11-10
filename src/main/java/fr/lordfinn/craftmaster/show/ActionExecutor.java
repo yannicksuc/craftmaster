@@ -112,8 +112,7 @@ public final class ActionExecutor {
             // Screen effects (fx/): the broadcast view, forced on players
             case Actions.ScreenEffect f -> {
                 try {
-                    lines.add(fr.lordfinn.craftmaster.fx.ScreenEffectsServer.set(server, f.target(),
-                            fr.lordfinn.craftmaster.fx.ScreenFx.parseLenient(f.effect()), f.seconds(), f.fadeTicks()));
+                    lines.add(fr.lordfinn.craftmaster.fx.ScreenEffectsServer.apply(server, f.target(), f.effect(), f.seconds(), f.fadeTicks()));
                 } catch (IllegalArgumentException e) {
                     lines.add("⚠ " + e.getMessage());
                 }

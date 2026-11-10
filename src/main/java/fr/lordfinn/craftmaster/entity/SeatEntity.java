@@ -40,7 +40,7 @@ public class SeatEntity extends Entity {
     }
 
     public static boolean occupied(ServerLevel level, BlockPos pos) {
-        return !level.getEntitiesOfClass(SeatEntity.class, new AABB(pos), Entity::isVehicle).isEmpty();
+        return !level.getEntitiesOfClass(SeatEntity.class, new AABB(pos).expandTowards(0, 1, 0), Entity::isVehicle).isEmpty();
     }
 
     public static void sit(ServerLevel level, BlockPos pos, Direction facing, Player player) {
@@ -54,7 +54,9 @@ public class SeatEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
-        if (level() instanceof ServerLevel && (!isVehicle() || !(level().getBlockState(blockPosition()).getBlock() instanceof ChairBlock)))
+        // A high seat (the throne's cushion is above its block) sits in the block over its chair
+        if (level() instanceof ServerLevel && (!isVehicle() || !(level().getBlockState(blockPosition()).getBlock() instanceof ChairBlock
+                || level().getBlockState(blockPosition().below()).getBlock() instanceof ChairBlock)))
             discard();
     }
 
@@ -66,13 +68,19 @@ public class SeatEntity extends Entity {
     /** Getting up: in front of the chair if there is room, else standing on it. */
     @Override
     public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
-        BlockPos pos = blockPosition();
+        BlockPos pos = chairPos();
         Direction facing = Direction.fromYRot(getYRot());
         Vec3 front = Vec3.atBottomCenterOf(pos.relative(facing));
         if (level().noCollision(passenger, passenger.getDimensions(Pose.STANDING).makeBoundingBox(front))
                 && !level().getBlockState(pos.relative(facing).below()).isAir())
             return front;
         return new Vec3(pos.getX() + 0.5, pos.getY() + seatTop(level(), pos), pos.getZ() + 0.5);
+    }
+
+    /** The chair's block: the seat's own block, or the one under it for a high seat (the throne). */
+    private BlockPos chairPos() {
+        BlockPos pos = blockPosition();
+        return level().getBlockState(pos).getBlock() instanceof ChairBlock ? pos : pos.below();
     }
 
     /** Seat height of the chair at {@code pos} (each kind of seat has its own: chairs, throne, sofa...). */

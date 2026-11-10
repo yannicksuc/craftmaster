@@ -453,8 +453,9 @@ public class LetterScreen extends Screen {
             LetterView.paper(g, LetterView.PAPER, top, top, top + (int) h, 0xFFFFFFFF);
             edges(g, top, (int) h);
             view.drawContent(g, top, top + (int) h);
-            // What is left of the wax, at the top edge of the open sheet
-            if (k == 0 && sealed) LetterView.seal(g, LetterView.RESIDUE, LetterMotion.SEAL_X, 0, rgb, 255);
+            // What is left of the wax: a whole small mark just inside the top of the open sheet (a mark cut in half
+            // by the sheet's edge read as stray red bits)
+            if (k == 0 && sealed) LetterView.seal(g, LetterView.RESIDUE, LetterMotion.SEAL_X, LetterView.SEAL_SIZE / 2 + 3, rgb, 255);
             g.disableScissor();
         } else {
             LetterView.paper(g, LetterView.BACK, 0, top, top + (int) h, 0xFFFFFFFF);

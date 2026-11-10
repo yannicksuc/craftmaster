@@ -27,7 +27,7 @@ import java.util.Set;
  * <p>What is shown:
  * <ul>
  *   <li>in broadcast mode: the <b>broadcast effect</b> ({@link #setBroadcastEffect}, or {@code /fx diffusion …}
- *       from the server — the last order wins), plus the local try-out ({@code /essaifx});</li>
+ *       from the server), the current shot's own effect (intros) added to it, plus the local try-out ({@code /essaifx});</li>
  *   <li>otherwise: the effect forced on this player by an organiser ({@code /fx <joueur> …}), the effect of what
  *       they wear on their head (glasses, masks: data component {@code craftmaster:screen_fx}) and the try-out,
  *       combined.</li>
@@ -47,7 +47,7 @@ public final class ScreenEffects {
     }
 
     private static final FxMixer MIXER = new FxMixer();
-    private static Slot broadcast = Slot.NONE, forced = Slot.NONE, tryout = Slot.NONE;
+    private static Slot broadcast = Slot.NONE, shot = Slot.NONE, forced = Slot.NONE, tryout = Slot.NONE;
     private static float fade = FxMixer.DEFAULT_FADE;
     private static long lastFrame = -1;
     private static final long START = System.nanoTime();
@@ -66,13 +66,17 @@ public final class ScreenEffects {
 
     /** Same, with the fade duration in seconds (0 = at once). */
     public static void setBroadcastEffect(String idOrNull, float fadeSeconds) {
-        broadcast = new Slot(ScreenFx.parseLenient(idOrNull), Long.MAX_VALUE);
+        // The shot's own effect (intros, camera moves): added to the operator's /fx diffusion, never replacing it
+        shot = new Slot(ScreenFx.parseLenient(idOrNull), Long.MAX_VALUE);
         fade = Math.max(0f, fadeSeconds);
     }
 
     /** The broadcast effect currently asked ("" = none), as a canonical combination. */
     public static String broadcastEffect() {
-        return ScreenFx.join(broadcast.now(System.nanoTime()));
+        long t = System.nanoTime();
+        Set<String> all = new LinkedHashSet<>(broadcast.now(t));
+        all.addAll(shot.now(t));
+        return ScreenFx.join(new ArrayList<>(all));
     }
 
     /** Local try-out on this game's own view ({@code /essaifx}), 0 seconds = until changed. */
@@ -90,7 +94,7 @@ public final class ScreenEffects {
     }
 
     static void reset() {
-        broadcast = forced = tryout = Slot.NONE;
+        broadcast = shot = forced = tryout = Slot.NONE;
         MIXER.clear();
         visible = List.of();
     }
@@ -121,6 +125,7 @@ public final class ScreenEffects {
         Minecraft mc = Minecraft.getInstance();
         if (Broadcast.active()) {
             wanted.addAll(broadcast.now(t));
+            wanted.addAll(shot.now(t));
         } else if (mc.player != null) {
             wanted.addAll(forced.now(t));
             ItemStack head = mc.player.getItemBySlot(EquipmentSlot.HEAD);

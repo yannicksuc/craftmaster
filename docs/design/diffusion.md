@@ -451,7 +451,7 @@ ticks)` ; le serveur garde l'ordre en cours et le renvoie à la connexion.
 
 **Objets** (`fx.FxContent`, onglet CraftMaster) : composant `craftmaster:screen_fx` (String, sur n'importe quel
 objet de tête) ; `blurry_glasses`, `sepia_glasses`, `noir_blanc_glasses`, `pixel_glasses`, `peephole_glasses`,
-`pumpkin_mask` (avec la `camera_overlay` vanille `misc/pumpkinblur`), `vintage_glasses`, `vhs_headset`,
+`vintage_glasses`, `vhs_headset`, (pas de masque citrouille : la citrouille sculptée vanille suffit),
 `thermal_goggles`, `heart_glasses`, `wobbly_glasses`, `binocular_goggles` (modèle 3D sur la tête par
 `select display_context = head`). Serveur : `ScreenEffectsServer.wear(player, item, lock)` / `takeOff(player)`
 (verrou = malédiction du lien, sans reflet).

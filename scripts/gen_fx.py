@@ -21,7 +21,6 @@ WEARABLES = {
     "noir_blanc_glasses": ("noir_blanc", "Black & White Glasses", "Lunettes noir et blanc"),
     "pixel_glasses": ("pixel", "Pixel Shades", "Lunettes pixel"),
     "peephole_glasses": ("fisheye+masque_rond", "Peephole Goggles", "Lunettes judas"),
-    "pumpkin_mask": ("citrouille", "Pumpkin Mask", "Masque citrouille"),
     "vintage_glasses": ("vieux_film+vignette", "Vintage Glasses", "Lunettes vintage"),
     "vhs_headset": ("vhs", "VHS Headset", "Casque VHS"),
     "thermal_goggles": ("infrarouge", "Thermal Goggles", "Lunettes thermiques"),
@@ -471,93 +470,7 @@ def generate(g):
     ], {"s": rgba(BLACK[2]), "o": rgba(BLACK[0]), "f": rgba(BLACK[2]), "F": rgba(BLACK[3]), "k": (34, 36, 42, 255),
         "b": (90, 160, 210, 255), "h": (230, 245, 255, 255)})
 
-    # ---------------------------------------------------------------- pumpkin mask (a carved head + its stem)
-    P = {"o": rgba(PUMPKIN[0]), "p": rgba(PUMPKIN[1]), "P": rgba(PUMPKIN[2]), "Q": rgba(PUMPKIN[3]),
-         "k": (40, 16, 4, 255), "y": (255, 214, 90, 255), "Y": (255, 168, 40, 255), "g": rgba(STEM[1]), "G": rgba(STEM[2]),
-         "d": rgba(STEM[0])}
-
-    def ribs(img, x0, y0, light_top=True):
-        # Vertical ribs: light band, mid, dark crease, every 4 px; lighter at the top
-        for y in range(16):
-            for x in range(16):
-                k = x % 4
-                c = "Q" if k == 1 else ("P" if k in (0, 2) else "p")
-                if y >= 12 and c == "Q":
-                    c = "P"
-                if y == 15 or (y >= 13 and k == 3):
-                    c = "o" if k == 3 else "p"
-                img.set(x0 + x, y0 + y, P[c])
-
-    side = Img(16, 16)
-    ribs(side, 0, 0)
-    save(side, "item/fx/pumpkin_mask_side")
-    front = Img(16, 16)
-    ribs(front, 0, 0)
-    front.art(0, 0, [
-        "................",
-        "................",
-        "................",
-        "...k........k...",
-        "..kyk......kyk..",
-        ".kYYYk....kYYYk.",
-        ".kkkkk....kkkkk.",
-        "................",
-        "................",
-        "..k..k....k..k..",
-        "..kkkkkkkkkkkk..",
-        "..kYYYYYYYYYYk..",
-        "...kkYkkkkYkk...",
-        "................",
-        "................",
-        "................",
-    ], P)
-    save(front, "item/fx/pumpkin_mask_front")
-    top = Img(16, 16)
-    for y in range(16):
-        for x in range(16):
-            d = max(abs(x - 7.5), abs(y - 7.5))
-            top.set(x, y, P["Q" if d < 3 else ("P" if d < 6 else "p")])
-    for (x, y) in [(7, 7), (8, 7), (7, 8), (8, 8)]:
-        top.set(x, y, P["d"])
-    save(top, "item/fx/pumpkin_mask_top")
-    stem = Img(16, 16)
-    stem.rect(0, 0, 16, 16, P["g"])
-    for y in range(16):
-        stem.set(0, y, P["G"])
-        stem.set(3, y, P["d"])
-    save(stem, "item/fx/pumpkin_mask_stem")
-    wj(os.path.join(A, "models/item/fx/pumpkin_mask_worn.json"), {
-        "textures": {"front": "craftmaster:item/fx/pumpkin_mask_front", "side": "craftmaster:item/fx/pumpkin_mask_side",
-                     "top": "craftmaster:item/fx/pumpkin_mask_top", "stem": "craftmaster:item/fx/pumpkin_mask_stem",
-                     "particle": "craftmaster:item/fx/pumpkin_mask_side"},
-        "elements": [
-            {"from": [0, 0, 0], "to": [16, 16, 16], "faces": {
-                "north": {"texture": "#front", "uv": [0, 0, 16, 16]}, "south": {"texture": "#side", "uv": [0, 0, 16, 16]},
-                "east": {"texture": "#side", "uv": [0, 0, 16, 16]}, "west": {"texture": "#side", "uv": [0, 0, 16, 16]},
-                "up": {"texture": "#top", "uv": [0, 0, 16, 16]}}},
-            {"from": [7, 16, 7], "to": [9, 19, 9], "rotation": {"angle": 22.5, "axis": "z", "origin": [8, 16, 8]}, "faces": {
-                "north": {"texture": "#stem", "uv": [0, 0, 2, 3]}, "south": {"texture": "#stem", "uv": [2, 0, 4, 3]},
-                "east": {"texture": "#stem", "uv": [0, 0, 2, 3]}, "west": {"texture": "#stem", "uv": [2, 0, 4, 3]},
-                "up": {"texture": "#stem", "uv": [0, 0, 2, 2]}}}]})
-    item_def("pumpkin_mask", "craftmaster:item/fx/pumpkin_mask_worn")
-    sprite("pumpkin_mask", [
-        "................",
-        ".......dg.......",
-        "........g.......",
-        "...oPPPPPPPPo...",
-        "..oPQPPQPPQPPo..",
-        ".oPkkPPQPPkkPPo.",
-        ".oPkykPQPkykPPo.",
-        ".oPPPPPQPPPPPPo.",
-        ".oPkPPkPkPPkPPo.",
-        ".oPkkkkkkkkkPPo.",
-        ".opPkYYYYYkPpPo.",
-        "..oppkkkkkppoo..",
-        "...oopppppoo....",
-        ".....oooooo.....",
-        "................",
-        "................",
-    ], P)
+    # (No pumpkin mask item: the vanilla carved pumpkin already gives the "citrouille" view)
 
     # ---------------------------------------------------------------- post effect chains
     def fx_uniforms(mode=None):
@@ -629,7 +542,6 @@ def generate(g):
     g.shaped("thermal_goggles", ["LIL", "RGR"], {"L": "minecraft:leather", "I": "minecraft:iron_ingot", "R": "minecraft:redstone", "G": "minecraft:glass_pane"}, "thermal_goggles", category="equipment")
     g.shaped("vhs_headset", ["LBL", "BRB"], {"L": "minecraft:leather", "B": "minecraft:black_dye", "R": "minecraft:redstone"}, "vhs_headset", category="equipment")
     g.shaped("binocular_goggles", ["LIL", "GIG"], {"L": "minecraft:leather", "I": "minecraft:iron_ingot", "G": "minecraft:glass"}, "binocular_goggles", category="equipment")
-    g.shaped("pumpkin_mask", ["S", "P"], {"S": "minecraft:string", "P": "minecraft:carved_pumpkin"}, "pumpkin_mask", category="equipment")
 
     # ---------------------------------------------------------------- texts
     for name, (effect, en_name, fr_name) in WEARABLES.items():

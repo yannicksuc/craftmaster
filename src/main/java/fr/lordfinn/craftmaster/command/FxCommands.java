@@ -114,14 +114,16 @@ public final class FxCommands {
             return 0;
         }
         List<String> parsed;
+        boolean delta = ScreenEffectsServer.isDelta(effect);
         try {
-            parsed = ScreenFx.parse(effect);
+            parsed = ScreenFx.parse(delta ? effect.replace('-', '+') : effect);
         } catch (IllegalArgumentException e) {
             fail(c, "Effet impossible : " + e.getMessage());
             return 0;
         }
-        if (parsed.isEmpty()) return run(c, action("fx.clear", "target", target));
-        Map<String, Object> a = action("fx.set", "target", target, "effect", ScreenFx.join(parsed));
+        if (parsed.isEmpty() && !delta) return run(c, action("fx.clear", "target", target));
+        // "+sepia" adds to what is on, "-flou" takes it off; otherwise the effect replaces what is on
+        Map<String, Object> a = action("fx.set", "target", target, "effect", delta ? effect : ScreenFx.join(parsed));
         if (seconds > 0) a.put("seconds", seconds);
         return run(c, a);
     }

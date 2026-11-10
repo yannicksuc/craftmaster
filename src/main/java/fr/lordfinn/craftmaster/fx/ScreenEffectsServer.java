@@ -128,6 +128,46 @@ public final class ScreenEffectsServer {
         return effect.isEmpty() ? "Effets retirés pour " + who + "." : who + " : " + what + time + ".";
     }
 
+    /** "+a+b-c": changes what is on instead of replacing it. */
+    public static boolean isDelta(String spec) {
+        String s = spec == null ? "" : spec.trim();
+        return s.startsWith("+") || s.startsWith("-");
+    }
+
+    /** A delta with canonical ids, e.g. "+ Sépia -flou" -> "+sepia-flou" (throws on an unknown effect). */
+    public static String canonicalDelta(String spec) {
+        StringBuilder out = new StringBuilder();
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("([+-])([^+-]*)").matcher(spec.trim());
+        while (m.find()) {
+            if (m.group(2).isBlank()) continue;
+            for (String id : ScreenFx.parse(m.group(2))) out.append(m.group(1)).append(id);
+        }
+        return out.toString();
+    }
+
+    /** The current effects with a delta applied (see {@link #isDelta}). */
+    static List<String> merge(String current, String delta) {
+        LinkedHashSet<String> cur = new LinkedHashSet<>(ScreenFx.parseLenient(current));
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("([+-])([^+-]*)").matcher(delta.trim());
+        while (m.find()) {
+            if (m.group(2).isBlank()) continue;
+            List<String> ids = ScreenFx.parse(m.group(2));
+            if (m.group(1).equals("+")) cur.addAll(ids);
+            else ids.forEach(cur::remove);
+        }
+        return ScreenFx.parse(String.join("+", cur));
+    }
+
+    /** Like {@link #set}, but a delta ("+sepia", "-flou") is merged with what each target already has. */
+    public static String apply(MinecraftServer server, String target, String spec, int seconds, int fadeTicks) {
+        if (!isDelta(spec)) return set(server, target, ScreenFx.parseLenient(spec), seconds, fadeTicks);
+        if (BROADCAST_WORDS.contains(norm(target))) return set(server, target, merge(broadcastEffect(), spec), seconds, fadeTicks);
+        List<String> lines = new ArrayList<>();
+        for (ServerPlayer p : players(server, target))
+            lines.add(set(server, p.getName().getString(), merge(forcedOn(p), spec), seconds, fadeTicks));
+        return String.join(" ", lines);
+    }
+
     /** Players named by a target (not the broadcast). */
     public static List<ServerPlayer> players(MinecraftServer server, String target) {
         String t = norm(target);
