@@ -29,6 +29,9 @@ on le retrouve en rouvrant, et le cadre du HUD rappelle « ✎ brouillon : Chât
   Un joueur laissé sur le banc garde son score (rien n'est envoyé pour lui).
 - **Glisser une carte** (ou une tête du banc) : un repère doré montre où elle va, les autres s'écartent ; lâcher
   entre deux cartes = l'insérer (les autres se décalent) ; lâcher sur le banc = la retirer du classement.
+- **Ex aequo** : lâcher une carte **sur** une autre (au centre, elle s'entoure d'or avec « = ») : même place, mêmes
+  points, et la place suivante est sautée (deux 1ers puis un 3e), comme la feuille de résultats. La marche dit
+  « = 1er ». Déplacer ensuite la carte la sort de l'ex aequo.
 - **±1** (ce joueur seulement) : **molette** sur la carte, **▲ ▼** au survol, **clic droit** = -1, **Maj+clic** = +1.
 - Clavier : ← → choisir une carte (cadre blanc), Maj+← → la déplacer, ↑ ↓ ±1, Espace = premier du banc sur la marche
   suivante, Suppr = renvoyer sur le banc, Page ↑ / ↓ = épreuve précédente / suivante, Entrée = valider.
@@ -57,11 +60,33 @@ Redémarrer le jeu après modification. `token` facultatif : s'il est rempli, aj
 | `/ranking` | Ouvre le classement (le ferme s'il est ouvert) |
 | `/undo` · `/redo` | Annule / refait la dernière modification (organisateurs : le serveur vérifie) |
 | `/season/next` · `/season/prev` | Saison suivante / précédente dans l'écran de saisie ou de classement ouvert |
+| `/points?player=Ensuri&delta=1` | Points pour l'épreuve en cours, **tout de suite** (pas de brouillon) ; plusieurs appuis rapides sur le même joueur partent en un seul « +3 » annoncé (0,8 s) ; `delta=-1` pour retirer |
+| `/round/next` · `/round/start?manche=pont` · `/round/end` · `/timer/stop` | Épreuve suivante (titre, TP, chrono) · une épreuve précise · fin · arrêter le chrono |
+| `/publish` · `/reveal/start` | Publier les scores · lancer la révélation : **deux appuis en 3 s** (le premier répond `"armed": true`) |
+| `/camera/cut?camera=2` · `/camera/auto` | Couper sur une caméra (numéro ou nom) · réalisation automatique (`?enabled=false` pour l'arrêter) |
 | `/tablet/start` · `/pause` · `/toggle` · `/reset` · `/restart` | Tablettes chrono (`?group=nom` : seulement ce groupe ; [Plateau](Plateau.md#tablette-chrono)) |
 | `/status` | JSON : connecté, organisateur, écran ouvert, saison affichée, annulations / refaire possibles |
 
 Réponse toujours en JSON `{"ok": true}` ou `{"ok": false, "error": "…"}` (409 : pas connecté ou aucun écran ouvert,
-403 : mauvais jeton, 404 : adresse inconnue).
+403 : mauvais jeton ou requête venue d'une page web, 404 : adresse inconnue). `/undo` et `/redo` disent ce qu'ils
+défont (`"did"`). Les requêtes d'une page web ouverte sur le PC (en-tête `Origin`) sont toujours refusées : seuls
+les outils locaux (StreamDeck, Companion, curl) passent.
+
+**Disposition conseillée (StreamDeck 15 touches, 5 × 3)** — une colonne par candidat :
+
+| | Colonne 1 … 5 (un candidat chacune) |
+|---|---|
+| Rangée 1 | `/points?player=<pseudo>&delta=1` (sa tête en image) |
+| Rangée 2 | `/points?player=<pseudo>&delta=-1` |
+| Rangée 3 | `/round/next` · `/timer/stop` · `/menu` · `/undo` · `/publish` |
+
+Une deuxième page pour la réalisation : `/camera/cut?camera=1` à `5`, `/camera/auto`, `/tablet/toggle`,
+`/reveal/start`, `/ranking`. Un StreamDeck XL (8 × 4) tient 8 candidats sur une seule page.
+
+**Choix pour le direct** : les points du StreamDeck (et de la voix) partent tout de suite, sans validation, parce
+qu'il n'y a pas d'écran pour valider ; l'écran de saisie, lui, fait un brouillon. Rien n'est caché si ta vue passe à
+l'antenne : les points donnés sont de toute façon annoncés à tous (« +3 » dans la barre d'action) ; seul le
+classement publié reste secret, et l'écran de saisie ne le montre pas.
 
 ## Cadre joueur (HUD)
 En haut à droite : sa propre tête et son total dessous (tête de chiffre de -10 à +10, nombre au-delà) pour **la
