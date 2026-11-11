@@ -49,14 +49,18 @@ class Rcon:
         self._packet(1, kind, body)
         if kind == 3:
             return self._reply()[1].decode("utf-8", "replace")
-        # Long replies come in several packets: a second, empty command marks the end of the first one's reply
-        self._packet(2, 2, "")
-        out = b""
-        while True:
-            rid, part = self._reply()
-            if rid == 2:
-                return out.decode("utf-8", "replace")
-            out += part
+        # Long replies come in several packets (4096 bytes each). The server of 26.3 closes the connection when an
+        # empty "end marker" command follows right behind, so the next packets are gathered with a short timeout.
+        rid, out = self._reply()
+        self.s.settimeout(0.3)
+        try:
+            while True:
+                out += self._reply()[1]
+        except (socket.timeout, TimeoutError):
+            pass
+        finally:
+            self.s.settimeout(10)
+        return out.decode("utf-8", "replace")
 
     def _read(self, n):
         out = b""
@@ -214,6 +218,11 @@ check("publish", "Scores publiés" in cmd("craftMasterPublish"))
 check("nothing unpublished after publish", "non publié" not in cmd(f"cfrk chat {smoke}"))
 check("give then undo", "Annulé : +2 pour Bob" in (cmd("cfg Bob 2"), cmd("craftMasterUndo"))[1])
 check("undo restored", "5 pts" in cmd("cfpl list"))
+check("redo", "Refait : +2 pour Bob" in cmd("craftMasterRedo"))
+check("redo restored", "7 pts" in cmd("cfpl list"))
+check("undo the redo", "Annulé : +2 pour Bob" in cmd("cfun"))
+check("nothing to redo after a new change", "Rien à refaire" in (cmd("cfg Bob 1"), cmd("cfrf"))[1])
+check("back to 5", "5 pts" in (cmd("cfun"), cmd("cfpl list"))[1])
 check("history", "Scores publiés" in cmd("craftMasterHistory"))
 out = cmd("cfma next")
 check("next round with timer", "Manche 2 — Tour lancée (chrono 0:05)" in out, out)
