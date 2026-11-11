@@ -52,6 +52,35 @@ class UndoJournalTest {
     }
 
     @Test
+    void redoPutsBackWhatWasUndoneInOrder() {
+        data.addTask(1, "A");
+        data.addTask(1, "B");
+        data.addTask(1, "C");
+        data.undo(2);
+        assertEquals(2, data.redoSize());
+        assertEquals(List.of("Manche ajoutée : B"), data.redo(1));
+        assertEquals(List.of("A", "B"), data.tasks(1));
+        assertEquals(List.of("Manche ajoutée : C"), data.redo(5), "only what is left");
+        assertEquals(List.of("A", "B", "C"), data.tasks(1));
+        assertEquals(List.of("A", "B", "C"), reloaded().tasks(1), "the redo is saved");
+        assertTrue(data.redo(1).isEmpty());
+        // Redone changes can be undone again
+        assertEquals(List.of("Manche ajoutée : C"), data.undo(1));
+        assertEquals(List.of("A", "B"), data.tasks(1));
+    }
+
+    @Test
+    void aNewChangeEmptiesTheRedo() {
+        data.setScore(1, "Pont", "Bob", 3);
+        data.setScore(1, "Pont", "Bob", 5);
+        data.undo(1);
+        data.setScore(1, "Pont", "Ann", 1);
+        assertEquals(0, data.redoSize());
+        assertTrue(data.redo(1).isEmpty());
+        assertEquals(3, data.total(1, "Bob"));
+    }
+
+    @Test
     void nestedChangesMakeOneEntry() {
         data.change("Préparation", () -> {
             data.addTask(1, "A");

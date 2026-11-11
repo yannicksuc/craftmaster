@@ -78,6 +78,7 @@ public final class ShowCommands {
         CraftMasterCommands.add(d, ShowCommands::timer, "craftMasterTimer", "cfti");
         CraftMasterCommands.add(d, ShowCommands::stage, "craftMasterStage", "cfsg");
         CraftMasterCommands.add(d, ShowCommands::undo, "craftMasterUndo", "cfun");
+        CraftMasterCommands.add(d, ShowCommands::redo, "craftMasterRedo", "cfrf");
         CraftMasterCommands.add(d, ShowCommands::history, "craftMasterHistory", "cfhi");
         CraftMasterCommands.add(d, ShowCommands::status, "craftMasterStatus", "cfst");
     }
@@ -520,6 +521,13 @@ public final class ShowCommands {
                 .executes(c -> run(c, action("undo", "count", 1)))
                 .then(argument("count", integer(1, CraftMasterData.JOURNAL_SIZE))
                         .executes(c -> run(c, action("undo", "count", getInteger(c, "count")))));
+    }
+
+    private static LiteralArgumentBuilder<CommandSourceStack> redo(String name) {
+        return literal(name).requires(ADMIN)
+                .executes(c -> run(c, action("redo", "count", 1)))
+                .then(argument("count", integer(1, CraftMasterData.JOURNAL_SIZE))
+                        .executes(c -> run(c, action("redo", "count", getInteger(c, "count")))));
     }
 
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());

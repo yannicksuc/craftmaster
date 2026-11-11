@@ -156,6 +156,21 @@ class ActionsTest {
     }
 
     @Test
+    void redoGivesBackWhatWasUndone() {
+        prepare();
+        run(a("manche.start", "manche", "pont"));
+        run(a("score.add", "player", "LordFinn", "points", 3));
+        assertTrue(run(a("undo")).ok());
+        assertEquals(0, data.total(S, "LordFinn"));
+        Actions.Outcome o = run(a("redo"));
+        assertTrue(o.ok(), o.lines().toString());
+        assertTrue(o.lines().getFirst().startsWith("Refait : +3 pour LordFinn"), o.lines().toString());
+        assertEquals(3, data.total(S, "LordFinn"));
+        assertEquals(List.of("Rien à refaire."), run(a("redo")).lines());
+        assertFalse(run(a("say", "text", "ok"), a("redo")).ok(), "redo only first");
+    }
+
+    @Test
     void sayChangesNothing() {
         Actions.Outcome o = run(a("say", "text", "Qui ça ? Ensuri ou Cyllu ?"));
         assertTrue(o.ok());

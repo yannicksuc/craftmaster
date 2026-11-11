@@ -112,7 +112,7 @@ public final class Actions {
     }
 
     public static final List<String> TYPES = List.of(
-            "score.set", "score.add", "score.remove", "scores.publish", "reveal.start", "reveal.stop", "undo",
+            "score.set", "score.add", "score.remove", "scores.publish", "reveal.start", "reveal.stop", "undo", "redo",
             "player.add", "player.update", "player.remove",
             "season.create", "season.update", "season.archive", "season.delete", "season.activate",
             "partie.create", "partie.update", "partie.archive", "partie.delete", "partie.activate",
@@ -148,6 +148,13 @@ public final class Actions {
             if (undone.isEmpty()) lines.add("Rien à annuler.");
             for (String d : undone) lines.add("Annulé : " + d);
             changed = !undone.isEmpty();
+            start = 1;
+        } else if ("redo".equals(type(actions.getFirst()))) {
+            int count = Math.max(1, intOr(actions.getFirst(), "count", 1));
+            List<String> redone = data.redo(count);
+            if (redone.isEmpty()) lines.add("Rien à refaire.");
+            for (String d : redone) lines.add("Refait : " + d);
+            changed = !redone.isEmpty();
             start = 1;
         }
         int kept = lines.size();
@@ -308,6 +315,7 @@ public final class Actions {
                 // What these two say depends on what runs in the world: ActionExecutor writes the line
                 case "reveal.stop" -> effects.add(new RevealStopped());
                 case "undo" -> throw new Invalid("« undo » doit être la première action de la liste.");
+                case "redo" -> throw new Invalid("« redo » doit être la première action de la liste.");
                 case "player.add" -> playerAdd(a);
                 case "player.update" -> playerUpdate(a);
                 case "player.remove" -> playerRemove(a);

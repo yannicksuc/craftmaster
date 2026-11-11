@@ -56,6 +56,8 @@ public final class CraftMasterData {
     private Live live = new Live();
 
     private final Deque<Change> journal = new ArrayDeque<>();
+    /** Undone changes that can be redone, most recent undo first; {@code before} is the state to put back. */
+    private final Deque<Change> redoJournal = new ArrayDeque<>();
     /** Nesting depth of {@link #change} calls and the state before the outermost one. */
     private int depth;
     private Map<String, Object> pendingBefore;
@@ -111,6 +113,7 @@ public final class CraftMasterData {
         }
         readYaml(root);
         journal.clear();
+        redoJournal.clear();
         if (migrate) save();
     }
 
@@ -227,6 +230,8 @@ public final class CraftMasterData {
         if (before.equals(toYaml())) return;
         journal.push(new Change(System.currentTimeMillis(), description, before));
         while (journal.size() > JOURNAL_SIZE) journal.removeLast();
+        // A new change makes the undone ones impossible to redo
+        redoJournal.clear();
         save();
     }
 
@@ -246,17 +251,48 @@ public final class CraftMasterData {
     public List<String> undo(int count) {
         if (depth > 0) throw new IllegalStateException("undo during a change");
         List<String> undone = new ArrayList<>();
-        Map<String, Object> before = null;
+        Map<String, Object> state = null;
         for (int i = 0; i < count && !journal.isEmpty(); i++) {
             Change c = journal.pop();
             undone.add(c.description());
-            before = c.before();
+            // To redo this change: the state just after it (the current one, or the one before the next undone)
+            redoJournal.push(new Change(c.at(), c.description(), state == null ? toYaml() : state));
+            state = c.before();
         }
-        if (before != null) {
-            readYaml(before);
+        if (state != null) {
+            readYaml(state);
             save();
         }
         return undone;
+    }
+
+    /**
+     * Redoes the last {@code count} undone changes (in the order they were made). Any new change after an undo
+     * empties what can be redone.
+     *
+     * @return the descriptions of the redone changes, oldest first (empty if there was nothing to redo)
+     */
+    public List<String> redo(int count) {
+        if (depth > 0) throw new IllegalStateException("redo during a change");
+        List<String> redone = new ArrayList<>();
+        Map<String, Object> state = null;
+        for (int i = 0; i < count && !redoJournal.isEmpty(); i++) {
+            Change r = redoJournal.pop();
+            redone.add(r.description());
+            journal.push(new Change(r.at(), r.description(), state == null ? toYaml() : state));
+            state = r.before();
+        }
+        while (journal.size() > JOURNAL_SIZE) journal.removeLast();
+        if (state != null) {
+            readYaml(state);
+            save();
+        }
+        return redone;
+    }
+
+    /** Number of undone changes that can be redone. */
+    public int redoSize() {
+        return redoJournal.size();
     }
 
     /** The undo journal, most recent change first. */
