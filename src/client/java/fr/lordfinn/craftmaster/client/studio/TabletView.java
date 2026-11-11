@@ -18,6 +18,14 @@ public final class TabletView {
     /** {@code bright}: 1 lit, lower = dimmed (blink / ready), {@code label} "" = none. */
     public record View(String text, int rgb, float bright, String label) {}
 
+    /** With a bell stop: the frozen time blinks quickly for 1.6 s. */
+    public static View of(TabletClock.Settings s, TabletClock clock, long overAt, long bellAt, long now) {
+        View v = of(s, clock, overAt, now);
+        long since = now - bellAt;
+        if (since >= 0 && since < 1600) return new View(v.text(), v.rgb(), (since / 130) % 2 == 0 ? 1f : 0.2f, v.label());
+        return v;
+    }
+
     public static View of(TabletClock.Settings s, TabletClock clock, long overAt, long now) {
         float pulse = (float) (0.5 + 0.5 * Math.sin(now / 1000.0 * Math.PI * 2));
         float blink = (now / 400) % 2 == 0 ? 1f : 0.25f;

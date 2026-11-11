@@ -86,7 +86,10 @@ public final class ActionExecutor {
                 Show.endManche(server, m.name());
                 fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundEnd(server);
             }
-            case Actions.TimerStopped t -> lines.add(Show.stopTimer(server) ? "Chrono arrêté." : "Aucun chrono ne tournait.");
+            case Actions.TimerStopped t -> {
+                lines.add(Show.stopTimer(server) ? "Chrono arrêté." : "Aucun chrono ne tournait.");
+                fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onTimerStopped(server);
+            }
             case Actions.Published p -> {
                 Show.announcePublished(server);
                 ShowEvents.onPublished(server, p.season());

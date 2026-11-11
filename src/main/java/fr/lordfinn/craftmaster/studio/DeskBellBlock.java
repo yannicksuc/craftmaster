@@ -50,14 +50,33 @@ public class DeskBellBlock extends DecorBlock {
         level.scheduleTick(pos, this, PRESS_TICKS);
         level.playSound(null, pos, Studio.DESK_BELL_SOUND.value(), SoundSource.BLOCKS, 1.5f, 1f);
         level.updateNeighborsAt(pos.below(), this);
-        announce(server, player);
+        String stopped = stopTablets(server, pos);
+        // A note flying up from the bell
+        server.sendParticles(net.minecraft.core.particles.ParticleTypes.NOTE, pos.getX() + 0.5, pos.getY() + 0.7, pos.getZ() + 0.5, 1, 0, 0, 0, 0.6);
+        announce(server, player, stopped);
         return InteractionResult.SUCCESS_SERVER;
     }
 
-    /** "♪ Ensuri a sonné (1:42 restantes)" in the organisers' chat. */
-    private static void announce(ServerLevel level, Player player) {
+    /** Stops the timer tablets within 2 blocks (like Taskmaster's bell); what the first one shows, or null. */
+    private static String stopTablets(ServerLevel level, BlockPos pos) {
+        String shown = null;
+        for (BlockPos p : BlockPos.betweenClosed(pos.offset(-2, -1, -2), pos.offset(2, 1, 2))) {
+            if (!(level.getBlockEntity(p) instanceof TimerTabletBlockEntity tablet)) continue;
+            String s = tablet.bell();
+            if (s != null && shown == null) {
+                shown = s;
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.END_ROD, p.getX() + 0.5, p.getY() + 0.6, p.getZ() + 0.5, 6, 0.3, 0.2, 0.3, 0.01);
+            }
+        }
+        return shown;
+    }
+
+    /** "♪ Ensuri a sonné (1:42 restantes)", or "— tablette arrêtée à 25.7", in the organisers' chat. */
+    private static void announce(ServerLevel level, Player player, String tablet) {
         int left = Show.timerRemaining(level.getServer());
-        Component msg = Component.translatable(left >= 0 ? "message.craftmaster.bell_rung_timer" : "message.craftmaster.bell_rung",
+        Component msg = tablet != null
+                ? Component.translatable("message.craftmaster.bell_rung_tablet", player.getName().getString(), tablet).withStyle(ChatFormatting.GOLD)
+                : Component.translatable(left >= 0 ? "message.craftmaster.bell_rung_timer" : "message.craftmaster.bell_rung",
                 player.getName().getString(), SevenSegment.clock(left)).withStyle(ChatFormatting.GOLD);
         for (ServerPlayer p : level.getServer().getPlayerList().getPlayers())
             if (Permissions.isAdmin(p) || p == player) p.sendSystemMessage(msg);

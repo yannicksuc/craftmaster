@@ -132,6 +132,7 @@ public class TabletScreen extends Screen {
                 r.cycle("redstone", TabletClock.Redstone.values(), () -> s.redstone, v -> s.redstone = v);
                 r.toggle("round_start", () -> s.startOnRound, v -> s.startOnRound = v);
                 r.toggle("round_end", () -> s.stopOnRoundEnd, v -> s.stopOnRoundEnd = v);
+                r.toggle("with_timer", () -> s.stopWithTimer, v -> s.stopWithTimer = v);
                 r.cycle("end_sound", TabletClock.EndSound.values(), () -> s.endSound, v -> s.endSound = v);
                 r.toggle("blink", () -> s.blinkWhenDone, v -> s.blinkWhenDone = v);
                 r.toggle("signal", () -> s.signalWhenDone, v -> s.signalWhenDone = v);
@@ -152,7 +153,7 @@ public class TabletScreen extends Screen {
                 r.note("pose_hint");
             }
         }
-        addRenderableWidget(UiButton.of(left + w - 66, top + h - 24, 60, 18, Component.translatable("gui.done"), this::onClose));
+        addRenderableWidget(UiButton.of(left + 8, top + h - 24, 124, 18, Component.translatable("gui.done"), this::onClose));
     }
 
     /** One setting per row: its name on the left, its value (button or text box) on the right. */
@@ -187,7 +188,7 @@ public class TabletScreen extends Screen {
             });
             if (I18nHas.tip(key)) b.setTooltip(Tooltip.create(t(key + ".tip")));
             addRenderableWidget(b);
-            y += 20;
+            y += 19;
         }
 
         void toggle(String key, Supplier<Boolean> get, Consumer<Boolean> set) {
@@ -198,7 +199,7 @@ public class TabletScreen extends Screen {
             });
             if (I18nHas.tip(key)) b.setTooltip(Tooltip.create(t(key + ".tip")));
             addRenderableWidget(b);
-            y += 20;
+            y += 19;
         }
 
         void steps(String key, int[] values, Supplier<Integer> get, Consumer<Integer> set, java.util.function.IntFunction<Component> show) {
@@ -212,7 +213,7 @@ public class TabletScreen extends Screen {
             });
             if (I18nHas.tip(key)) b.setTooltip(Tooltip.create(t(key + ".tip")));
             addRenderableWidget(b);
-            y += 20;
+            y += 19;
         }
 
         void text(String key, String value, int max, Consumer<String> onChange) {
@@ -223,7 +224,7 @@ public class TabletScreen extends Screen {
             e.setResponder(onChange);
             if (I18nHas.tip(key)) e.setTooltip(Tooltip.create(t(key + ".tip")));
             addRenderableWidget(e);
-            y += 20;
+            y += 19;
         }
 
         void note(String key) {

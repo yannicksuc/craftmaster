@@ -76,7 +76,7 @@ public class TimerTabletRenderer implements BlockEntityRenderer<TimerTabletBlock
         s.yaw = RotationSegment.convertToDegrees(be.getBlockState().getValue(TimerTabletBlock.ROTATION));
         s.pose = be.getBlockState().getValue(TimerTabletBlock.POSE);
         s.settings = be.settings();
-        s.view = TabletView.of(be.settings(), be.clock(), be.overAt(), System.currentTimeMillis());
+        s.view = TabletView.of(be.settings(), be.clock(), be.overAt(), be.bellAt(), System.currentTimeMillis());
     }
 
     /** UV rectangle {u0, v0, u1, v1} of a layer row at a size, w × h px from (x, y). */

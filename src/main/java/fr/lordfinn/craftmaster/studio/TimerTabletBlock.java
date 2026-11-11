@@ -122,6 +122,8 @@ public class TimerTabletBlock extends BaseEntityBlock {
 
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, Orientation orientation, boolean moving) {
+        // A desk bell next to it stops it on its own (DeskBellBlock): its pulse must not toggle it back on
+        if (block instanceof DeskBellBlock) return;
         if (level instanceof ServerLevel && level.getBlockEntity(pos) instanceof TimerTabletBlockEntity be) be.redstone(level.hasNeighborSignal(pos));
     }
 

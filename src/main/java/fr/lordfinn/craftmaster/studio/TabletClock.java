@@ -104,6 +104,8 @@ public final class TabletClock {
         public boolean startOnRound = false;
         /** Pauses when a round ends. */
         public boolean stopOnRoundEnd = false;
+        /** Pauses when the show's timer is stopped (/timer/stop, "arrête le chrono", /craftMasterTimer stop). */
+        public boolean stopWithTimer = true;
         /** Gives a redstone signal (comparator) once the timer is over. */
         public boolean signalWhenDone = true;
         public EndSound endSound = EndSound.BEEP;

@@ -31,6 +31,8 @@ public class TimerTabletBlockEntity extends SyncedBlockEntity {
     /** The timer was seen over (server: sound played once; both: "time's up" blink start). */
     private boolean over;
     private long overAt = Long.MIN_VALUE / 2;
+    /** When a bell stopped it (the frozen time flashes for a moment). */
+    private long bellAt = Long.MIN_VALUE / 2;
     private boolean powered;
 
     public TimerTabletBlockEntity(BlockPos pos, BlockState state) {
@@ -65,6 +67,10 @@ public class TimerTabletBlockEntity extends SyncedBlockEntity {
 
     public TabletClock clock() {
         return clock;
+    }
+
+    public long bellAt() {
+        return bellAt;
     }
 
     public long overAt() {
@@ -111,6 +117,26 @@ public class TimerTabletBlockEntity extends SyncedBlockEntity {
         overAt = Long.MIN_VALUE / 2;
         sync();
         updateSignal();
+    }
+
+    /**
+     * A bell rang next to it: the tablet (and its group) stops, the frozen time flashes. Returns what it shows, or
+     * null if it was not running.
+     */
+    public String bell() {
+        boolean wasRunning = clock.running();
+        long now = now();
+        for (TimerTabletBlockEntity t : settings.group.isEmpty() ? java.util.List.of(this) : loaded()) {
+            if (t.level != level || !(t == this || t.settings.group.equals(settings.group))) continue;
+            if (!t.clock.running()) continue;
+            t.clock.pause(now);
+            t.bellAt = now;
+            t.sync();
+            t.updateSignal();
+        }
+        if (!wasRunning) return null;
+        boolean countdown = settings.mode == TabletClock.Mode.TIMER;
+        return TabletClock.format(clock.shown(settings, now), settings.format, countdown);
     }
 
     /** Applies a control to this tablet and to every loaded one of its group. */
@@ -188,6 +214,8 @@ public class TimerTabletBlockEntity extends SyncedBlockEntity {
         over = overAgo >= 0;
         overAt = over ? now - overAgo : Long.MIN_VALUE / 2;
         powered = in.getBooleanOr("Powered", false);
+        long bellAgo = in.getLongOr("BellAgo", -1);
+        bellAt = bellAgo >= 0 ? now - bellAgo : Long.MIN_VALUE / 2;
     }
 
     @Override
@@ -201,6 +229,7 @@ public class TimerTabletBlockEntity extends SyncedBlockEntity {
         out.putLong("StartedAt", now - elapsed);
         if (over) out.putLong("OverAgo", Math.max(0, now - overAt));
         out.putBoolean("Powered", powered);
+        if (now - bellAt < 5000) out.putLong("BellAgo", now - bellAt);
     }
 
     @Override
@@ -216,6 +245,12 @@ public class TimerTabletBlockEntity extends SyncedBlockEntity {
     public static void onRoundStart(net.minecraft.server.MinecraftServer server) {
         for (TimerTabletBlockEntity t : loaded())
             if (t.level != null && !t.level.isClientSide() && t.settings.startOnRound) t.control("restart");
+    }
+
+    /** The show's timer was stopped: the tablets that follow it pause. */
+    public static void onTimerStopped(net.minecraft.server.MinecraftServer server) {
+        for (TimerTabletBlockEntity t : loaded())
+            if (t.level != null && !t.level.isClientSide() && t.settings.stopWithTimer && t.clock.running()) t.control("pause");
     }
 
     public static void onRoundEnd(net.minecraft.server.MinecraftServer server) {
