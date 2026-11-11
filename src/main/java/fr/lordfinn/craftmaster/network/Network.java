@@ -108,6 +108,14 @@ public final class Network {
         PayloadTypeRegistry.serverboundPlay().register(RequestRanking.TYPE, RequestRanking.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(Ranking.TYPE, Ranking.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(RequestRanking.TYPE, (payload, ctx) -> sendRanking(ctx.player(), payload.season(), true));
+        // The player frame (head + score) has the latest ranking from the start, without opening the screen
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            ServerPlayer p = handler.player;
+            if (CraftMaster.data() == null || !ServerPlayNetworking.canSend(p, Ranking.TYPE)) return;
+            boolean admin = Permissions.isAdmin(p);
+            int season = latestSeason(admin);
+            if (season >= 0) ServerPlayNetworking.send(p, build(season, admin, false));
+        });
     }
 
     /** Seasons the player may look at: all of them for admins, the ones not hidden for the others. */

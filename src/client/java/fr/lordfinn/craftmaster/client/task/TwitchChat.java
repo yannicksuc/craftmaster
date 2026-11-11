@@ -39,6 +39,8 @@ public final class TwitchChat {
         public Twitch twitch = new Twitch();
         /** Local HTTP API for a StreamDeck (score entry screen, undo / redo, seasons). */
         public fr.lordfinn.craftmaster.client.score.StreamDeckServer.Settings streamDeck = new fr.lordfinn.craftmaster.client.score.StreamDeckServer.Settings();
+        /** The player frame in the HUD (own face and score). */
+        public fr.lordfinn.craftmaster.client.score.PlayerFrameHud.Settings playerFrame = new fr.lordfinn.craftmaster.client.score.PlayerFrameHud.Settings();
     }
 
     public static final class Twitch {
@@ -87,6 +89,7 @@ public final class TwitchChat {
             }
             if (config.twitch == null) config.twitch = new Twitch();
             if (config.streamDeck == null) config.streamDeck = new fr.lordfinn.craftmaster.client.score.StreamDeckServer.Settings();
+            if (config.playerFrame == null) config.playerFrame = new fr.lordfinn.craftmaster.client.score.PlayerFrameHud.Settings();
             // Written back so new settings show up in the file
             Files.createDirectories(f.getParent());
             try (Writer w = Files.newBufferedWriter(f, StandardCharsets.UTF_8)) {
