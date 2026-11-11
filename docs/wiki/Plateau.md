@@ -93,7 +93,11 @@ comme des barrières, mais dans les **6 directions** : tours, poutres, angles, T
 Il suit le chrono de l'émission (barre de boss, `/craftMasterManche start`, la voix), il n'a rien à régler.
 
 ### Tablette chrono
-Un cadre (noir, noyer, doré, blanc ou rouge) avec passe-partout autour d'un écran noir à chiffres 7 segments.
+Un cadre photo autour d'un passe-partout et d'un verre sombre à chiffres 7 segments, au pixel près (une case de
+chiffre = 1 px en taille 1, 2 px en taille 2…). Cadres : **chêne** et **noyer** en vrai bois du jeu (montants en
+bûche écorcée, traverses en planches, dos en planches), **laque noire**, **laque rouge**, **blanc peint** (dos laqué
+avec fente d'accroche), **laiton** et **acier brossé** (dos en métal vissé). Passe-partout blanc, crème ou noir, en
+dégradé avec biseau. Chevalet de peintre en chêne : pieds derrière la tablette, auget devant, pied arrière.
 - **Poser** : contre un mur = accrochée ; au sol = debout sur son pied, tournée vers soi (16 directions, comme un
   panneau) ; accroupi = à plat (sur une table). Organisateurs : **accroupi + clic droit** = debout → chevalet → à plat.
 - **Clic droit (organisateurs)** : l'écran de réglages, avec un aperçu en direct et ▶ Démarrer, ⏸ Pause, Remettre,

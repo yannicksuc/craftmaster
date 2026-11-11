@@ -12,7 +12,8 @@
   modification), modifications imbriquées = une entrée, rien de changé
   = rien de journalisé, échec = données intactes, limite de 50, état du direct annulé aussi.
 - `ScoreBoardTest` : écran de saisie de l'arbitre — la place donne le score de base, le +1/-1 suit le joueur, échange,
-  en tête, joueur déplacé puis +1/-1 (placé d'abord), bornes -10..+10 sans réécrire un score déjà hors bornes,
+  en tête, joueur déplacé puis +1/-1 (placé d'abord), banc (ordre d'arrivée, insertion, ex aequo dernier, rien envoyé
+  pour le banc), défaire / refaire de chaque geste, bornes -10..+10 sans réécrire un score déjà hors bornes,
   barème d'une épreuve sans points, liste des changements à envoyer. `ScoreEntryBoardTest` : le JSON de l'écran.
 - `TabletClockTest` : tablette chrono — minuteur (pause, reprise, jamais sous 0), chrono, formats (25.7, 3:07, 1:07.42,
   dixièmes des 10 dernières secondes, arrondi vers le haut d'un compte à rebours), heure, durées tapées, réglages JSON.
@@ -360,4 +361,15 @@ Non vérifié : icônes dans l'inventaire / l'onglet créatif, softbox et cadre 
 | Mode Émission : suit le chrono de la manche (« 1:28 », « 3 · Château ») | ✔ |
 | Écran de réglages (clic droit) : aperçu en direct, Relancer, changement de cadre vu tout de suite | ✔ |
 | Redstone (front montant : relance un minuteur fini), `/craftMasterTablet`, StreamDeck `/tablet/start`, `?group=` | ✔ |
+| Matières (chêne, noyer, laque, laiton, acier), dos et pied par matière, chevalet, chiffres sur la grille de pixels | ✔ (captures de face et de dos) |
 | Sons de fin, comparateur, clic des joueurs non organisateurs | non vérifiés en jeu (jeu muet, pas de second client) |
+
+### Écran de saisie, phase 1 (vérifié en jeu, clics et touches simulés, captures)
+| Fonction | Résultat |
+|---|---|
+| Épreuve jamais notée : tout le monde sur le banc, marches au barème, rien en brouillon | ✔ |
+| 5 clics sur le banc dans l'ordre d'arrivée → 5 cartes sur les marches 5-4-3-2-1 | ✔ |
+| Glisser le 5e en 1er (repère, insertion), molette +1 (jeton sous la carte), Ctrl+Z / Ctrl+Y | ✔ |
+| Échap puis réouverture : brouillon retrouvé (cases hachurées) | ✔ |
+| Entrée : une seule modification « Steve 5 ; LordFinn 5 ; Notch 3 ; Alice 2 ; Bob 1 », bouton « Annuler : … » | ✔ |
+| Survol (▲ ▼, infobulle), sons | non vérifiés (la vraie souris, jeu muet) |

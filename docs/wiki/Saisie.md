@@ -2,38 +2,42 @@
 
 ## L'écran de saisie (organisateurs)
 Touche **U** (modifiable dans Options > Commandes > CraftMaster), `/craftMasterScores [saison]` (`/cfsc`) ou le
-bouton `/menu` du StreamDeck. S'ouvre sur l'épreuve en cours, sinon sur le tableau de toutes les épreuves. Saison
-active par défaut, ◀ ▶ en haut à gauche pour changer de saison (bloqué tant que des modifications ne sont pas
-envoyées).
+bouton `/menu` du StreamDeck. S'ouvre sur l'épreuve en cours, sinon sur « Toutes les épreuves ». Conception :
+[docs/design/saisie-ux.md](../design/saisie-ux.md) (phase 1 faite).
 
-Rien n'est envoyé tant qu'on n'a pas cliqué **Mettre à jour** : tous les scores modifiés partent alors d'un coup
-(une seule entrée du journal, donc un seul « Annuler »). L'écran reste ouvert et se met à jour sur place après
-chaque modification, la sienne comme celles des autres (commandes, voix, autre arbitre). **Annuler** / **Refaire**
-agissent sur le journal du serveur (comme `/cfun` et `/cfrf`).
+**Tout est un brouillon** (hachuré jaune) jusqu'à **✔ Valider la manche** (ou Entrée) : tous les scores du
+brouillon partent d'un coup, une seule entrée du journal. Le brouillon **reste quand on ferme l'écran** (Échap) :
+on le retrouve en rouvrant, et le cadre du HUD rappelle « ✎ brouillon : Château » tant qu'il n'est pas validé.
+✕ oublie le brouillon. Il est perdu seulement à la déconnexion.
+- **◁ ▷** (Ctrl+Z / Ctrl+Y) : défaire / refaire **le dernier geste** du brouillon.
+- **Annuler : …** dit ce qu'il va défaire sur le serveur (« Annuler : Steve : 5 pts (Château) ; … », l'infobulle
+  donne l'heure) ; ▷ à côté refait. C'est le même journal que `/cfun` et `/cfrf`.
+- L'écran se met à jour sur place après chaque modification (la sienne comme celles des autres). Changer de saison
+  avec un brouillon est refusé, avec la raison.
 
-### Vue « Épreuve »
-Les joueurs côte à côte, du premier au dernier (« #1 » or, « #2 » argent, « #3 » bronze) : leur tête en 2D, leur
-score dessous en **tête de chiffre** (de -10 à +10 ; positifs en tons froids, du cyan pâle au bleu-violet ;
-négatifs en tons chauds, du jaune au rouge sombre ; 0 en gris).
-- **Clic sur une tête** : le joueur est pris, sa tête suit la souris. **Clic sur une autre tête** : ils échangent
-  leurs places. Clic sur la même tête ou **clic droit** : on le repose.
-- **Maj-clic** sur une tête (ou pendant qu'un joueur est pris) : il passe en tête, les autres descendent d'un rang.
-- **+1 / -1** au-dessus / en dessous d'un joueur : ne change que lui.
-- Un joueur pris puis **+1 / -1 sur une autre place** : il y est d'abord placé (les autres se décalent), puis il
-  reçoit le +1 / -1.
+### Une épreuve : marches, cartes, jetons
+- Chaque **place** est une **marche** à la couleur de la place (or, argent, bronze, puis gris) avec sa **base**
+  peinte dessus (« 1er · 5 »). Sous la marche : le score du joueur (tête de chiffre, -10 à +10, tons froids pour les
+  positifs, chauds pour les négatifs).
+- Chaque **joueur** est une **carte** (sa tête, son nom) posée sur une marche. Son **bonus** est un **jeton** sous
+  la carte (« +1 ») : il le suit quand il change de marche. Survol : « LordFinn : 4 (2e place) +1 (bonus) = 5 ».
+- **Règle** (validée par LordFinn) : score = base de la marche + jeton du joueur. Exemple : A 5, B 3, C 1 ; +1 à A
+  (6) ; on échange A et C → C 5, B 3, A 1 + 1 = 2.
+- **Épreuve jamais notée** : les joueurs attendent sur le **banc**, les marches portent le barème de la feuille
+  de résultats (5-4-3-2-1 par défaut). **Clic sur une tête du banc** = elle monte sur la marche libre suivante :
+  cliquer dans l'ordre d'arrivée suffit. « Le reste ex aequo dernier » donne la marche suivante à tout le banc.
+  Un joueur laissé sur le banc garde son score (rien n'est envoyé pour lui).
+- **Glisser une carte** (ou une tête du banc) : un repère doré montre où elle va, les autres s'écartent ; lâcher
+  entre deux cartes = l'insérer (les autres se décalent) ; lâcher sur le banc = la retirer du classement.
+- **±1** (ce joueur seulement) : **molette** sur la carte, **▲ ▼** au survol, **clic droit** = -1, **Maj+clic** = +1.
+- Clavier : ← → choisir une carte (cadre blanc), Maj+← → la déplacer, ↑ ↓ ±1, Espace = premier du banc sur la marche
+  suivante, Suppr = renvoyer sur le banc, Page ↑ / ↓ = épreuve précédente / suivante, Entrée = valider.
 
-**La règle des places** (validée par LordFinn) : chaque place a un score de base (le score du joueur qui l'occupait
-à l'ouverture), et chaque joueur garde son propre bonus / malus. Exemple : A 5, B 3, C 1 ; +1 à A (6) ; on échange A
-et C → C 5, B 3, A 1 + 1 = 2. Le petit « +1 » doré au coin d'une tête est ce bonus personnel.
-
-Une épreuve sans aucun point part du **barème** de sa feuille de résultats (5-4-3-2-1 par défaut) : il suffit de
-mettre les joueurs dans l'ordre puis « Mettre à jour ». Une épreuve seulement regardée n'est pas envoyée.
-
-### Vue « Toutes les épreuves »
+### Toutes les épreuves
 Épreuves en lignes × joueurs en colonnes (8 joueurs au plus ; au-delà, « 8 joueurs max : N non affichés »).
-**Clic gauche** sur une case : +1, **clic droit** : -1 ; une case modifiée est entourée d'or, une case vide (« · »)
-n'a pas encore de score. Le **numéro** doré d'une épreuve ouvre sa vue « Épreuve ». Molette : défiler. L'épreuve en
-cours est surlignée en vert.
+**Clic gauche** sur une case : +1, **clic droit** : -1 (une case vide part de 0 ; pour le barème, ouvrir l'épreuve).
+Le **numéro** doré d'une épreuve l'ouvre. Molette : défiler. L'épreuve en cours est surlignée en vert, les cases du
+brouillon hachurées.
 
 ## API StreamDeck
 Une petite API HTTP dans le jeu de l'organisateur, sur **127.0.0.1** seulement (rien n'est accessible depuis un
