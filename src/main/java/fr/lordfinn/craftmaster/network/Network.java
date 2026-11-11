@@ -104,17 +104,43 @@ public final class Network {
         public Type<Ranking> type() { return TYPE; }
     }
 
+    /** Server → client: the active season (-1 if none), at join and after every change (the HUD player frame). */
+    public record ActiveSeason(int season) implements CustomPacketPayload {
+        public static final Type<ActiveSeason> TYPE = new Type<>(CraftMaster.id("active_season"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, ActiveSeason> CODEC = CustomPacketPayload.codec(
+                (p, buf) -> buf.writeVarInt(p.season + 1), buf -> new ActiveSeason(buf.readVarInt() - 1));
+
+        @Override
+        public Type<ActiveSeason> type() { return TYPE; }
+    }
+
+    private static ActiveSeason activeSeason() {
+        Season s = CraftMaster.data() == null ? null : CraftMaster.data().activeSeason();
+        return new ActiveSeason(s == null ? -1 : s.id);
+    }
+
+    /** Tells everyone the active season (cheap: one number). */
+    public static void broadcastActiveSeason(MinecraftServer server) {
+        ActiveSeason a = activeSeason();
+        for (ServerPlayer p : server.getPlayerList().getPlayers())
+            if (ServerPlayNetworking.canSend(p, ActiveSeason.TYPE)) ServerPlayNetworking.send(p, a);
+    }
+
     public static void register() {
         PayloadTypeRegistry.serverboundPlay().register(RequestRanking.TYPE, RequestRanking.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(Ranking.TYPE, Ranking.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(ActiveSeason.TYPE, ActiveSeason.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(RequestRanking.TYPE, (payload, ctx) -> sendRanking(ctx.player(), payload.season(), true));
         // The player frame (head + score) has the latest ranking from the start, without opening the screen
         net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayer p = handler.player;
             if (CraftMaster.data() == null || !ServerPlayNetworking.canSend(p, Ranking.TYPE)) return;
             boolean admin = Permissions.isAdmin(p);
-            int season = latestSeason(admin);
-            if (season >= 0) ServerPlayNetworking.send(p, build(season, admin, false));
+            // The active season (the frame's default) and the latest one the player may see
+            ActiveSeason active = activeSeason();
+            if (ServerPlayNetworking.canSend(p, ActiveSeason.TYPE)) ServerPlayNetworking.send(p, active);
+            for (int season : new java.util.LinkedHashSet<>(List.of(active.season(), latestSeason(admin))))
+                if (season >= 0 && (admin || !CraftMaster.data().isHidden(season))) ServerPlayNetworking.send(p, build(season, admin, false));
         });
     }
 

@@ -61,6 +61,7 @@ public final class ActionExecutor {
         // Labels only: which player a portrait shows changes on publish, with its animation (ShowEvents)
         fr.lordfinn.craftmaster.portrait.Portraits.refreshLabels(server);
         for (int s : CraftMaster.data().allSeasons()) Network.broadcast(server, s);
+        Network.broadcastActiveSeason(server);
         // chantier H: open results sheets follow
         fr.lordfinn.craftmaster.trial.TrialNetwork.refreshSheets(server);
         // Open score entry screens update in place

@@ -59,8 +59,15 @@ Réponse toujours en JSON `{"ok": true}` ou `{"ok": false, "error": "…"}` (409
 403 : mauvais jeton, 404 : adresse inconnue).
 
 ## Cadre joueur (HUD)
-En haut à droite : sa propre tête et son total de la saison dessous (tête de chiffre de -10 à +10, nombre au-delà),
+En haut à droite : sa propre tête et son total dessous (tête de chiffre de -10 à +10, nombre au-delà) pour **la
+saison active** du serveur (ou une saison choisie dans les réglages),
 mis à jour tout seul à chaque changement (les joueurs voient leur total **publié**, les organisateurs le direct) ;
 un « +3 » apparaît quelques secondes à côté quand il change. Caché sans score, dans un écran, en mode diffusion et
-avec F1. Réglages, section `playerFrame` de `config/craftmaster-client.json` : `enabled` (true par défaut),
-`corner` (`top_left`, `top_right`, `bottom_left`, `bottom_right`).
+avec F1, et pour les joueurs quand la saison est cachée. Réglages, section `playerFrame` de
+`config/craftmaster-client.json` : `enabled` (true par défaut), `corner` (`top_left`, `top_right`, `bottom_left`,
+`bottom_right`), `season` (`"active"` par défaut : suit la saison active, même quand elle change ; ou un numéro,
+ex. `"4"`, pour rester sur une saison).
+
+```json
+"playerFrame": {"enabled": true, "corner": "top_right", "season": "active"}
+```

@@ -18,7 +18,7 @@ import net.minecraft.network.chat.Component;
  * players see their published total, organisers the live one. Hidden when the player has no score, in broadcast
  * mode, with the HUD hidden (F1) or while a screen is open. Settings: {@code playerFrame} in
  * {@code config/craftmaster-client.json} ({@code enabled}, {@code corner}: top_left, top_right, bottom_left,
- * bottom_right).
+ * bottom_right, {@code season}: "active" by default — the server's active season — or a season number).
  */
 public final class PlayerFrameHud {
 
@@ -27,42 +27,74 @@ public final class PlayerFrameHud {
     public static final class Settings {
         public boolean enabled = true;
         public String corner = "top_right";
+        /** The season the frame shows: "active" (the server's active season) or a season number. */
+        public String season = "active";
     }
 
     private static final int FACE = 24;
-    /** Latest season seen in a ranking, and the local player's total in it (null: no score). */
-    private static int season = -1;
-    private static Integer total;
-    private static Integer previous;
+    /** The server's active season (-1: none / unknown). */
+    private static int active = -1;
+    /** The local player's total per season (absent: no score in it). */
+    private static final java.util.Map<Integer, Integer> TOTALS = new java.util.HashMap<>();
+    private static int shownSeason = -1;
+    private static Integer total, previous;
     private static long changedAt;
 
     public static void init() {
         HudElementRegistry.addLast(CraftMaster.id("player_frame"), PlayerFrameHud::extract);
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.registerGlobalReceiver(Network.ActiveSeason.TYPE, (p, ctx) -> {
+            active = p.season();
+            follow();
+        });
         ClientPlayConnectionEvents.DISCONNECT.register((h, mc) -> mc.execute(() -> {
-            season = -1;
-            total = null;
+            active = -1;
+            TOTALS.clear();
+            shownSeason = -1;
+            total = previous = null;
         }));
+    }
+
+    /** The season chosen in the settings: "active" (default) or a number. */
+    static int wantedSeason() {
+        Settings s = TwitchChat.config().playerFrame;
+        String v = s == null || s.season == null ? "active" : s.season.trim();
+        try {
+            return v.isEmpty() || v.equalsIgnoreCase("active") ? active : Integer.parseInt(v);
+        } catch (NumberFormatException e) {
+            return active;
+        }
     }
 
     /** Every ranking the client gets (the receiver of the ranking screen calls this first). */
     public static void accept(Network.Ranking r) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || r.season() < season) return;
-        season = r.season();
+        if (mc.player == null) return;
         String me = mc.player.getGameProfile().name();
-        Integer t = null;
-        for (Network.Row row : r.rows()) if (row.player().equalsIgnoreCase(me)) t = row.total();
-        if (t != null && total != null && !t.equals(total)) {
+        TOTALS.remove(r.season());
+        for (Network.Row row : r.rows()) if (row.player().equalsIgnoreCase(me)) TOTALS.put(r.season(), row.total());
+        follow();
+    }
+
+    /** Picks the total of the wanted season; a change of that same season's total flashes "+3". */
+    private static void follow() {
+        int season = wantedSeason();
+        Integer t = TOTALS.get(season);
+        if (season == shownSeason && t != null && total != null && !t.equals(total)) {
             previous = total;
             changedAt = System.currentTimeMillis();
         }
+        if (season != shownSeason) previous = null;
+        shownSeason = season;
         total = t;
     }
 
     private static void extract(GuiGraphicsExtractor g, net.minecraft.client.DeltaTracker delta) {
         Minecraft mc = Minecraft.getInstance();
         TwitchChat.Config config = TwitchChat.config();
-        if (config.playerFrame == null || !config.playerFrame.enabled || total == null || mc.player == null) return;
+        if (config.playerFrame == null || !config.playerFrame.enabled || mc.player == null) return;
+        // The setting may have changed (reload): follow it
+        if (wantedSeason() != shownSeason) follow();
+        if (total == null) return;
         if (mc.gui.screen() != null || Broadcast.active()) return;
         int w = FACE + 4, h = PlayerFrame.height(FACE, false);
         String c = config.playerFrame.corner == null ? "" : config.playerFrame.corner;
