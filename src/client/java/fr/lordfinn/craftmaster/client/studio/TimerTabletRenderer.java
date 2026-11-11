@@ -272,7 +272,9 @@ public class TimerTabletRenderer implements BlockEntityRenderer<TimerTabletBlock
         int sx0 = Math.round(-w / 2) + inset, sy0 = inset, sw = Math.round(w) - 2 * inset, sh = Math.round(h) - 2 * inset;
         // The label takes the bottom third of the glass
         int labelH = label ? Math.max(2, sh / 3) : 0;
-        int dx0 = sx0 + 1, dy0 = sy0 + labelH + (label ? 0 : 1), dw = sw - 2, dh = sh - labelH - (label ? 1 : 2);
+        // A 1 px black margin around the digits, except on the smallest tablet where every column counts
+        int side = sw >= 20 ? 1 : 0;
+        int dx0 = sx0 + side, dy0 = sy0 + labelH + (label ? 0 : 1), dw = sw - 2 * side, dh = sh - labelH - (label ? 1 : 2);
         collector.submitCustomGeometry(pose, RenderTypes.entityCutout(TimerDisplayRenderer.TEXTURE), (p, c) -> {
             if (!SegmentDraw.pixelText(c, p, v.text(), dx0, dy0, dw, dh, d + 0.06f, lit, ghost))
                 SegmentDraw.text(c, p, v.text(), dy0, dw, dh, d + 0.06f, lit, ghost);
