@@ -114,6 +114,11 @@ dégradé avec biseau. Chevalet de peintre en chêne : pieds derrière la tablet
   clignote à la fin, **comparateur** à 15 quand le minuteur est fini (portes, lampes…), **groupe** : les tablettes
   d'un même groupe démarrent et s'arrêtent ensemble.
 - **Position** : debout, sur chevalet (inclinaison 0 à 60°), à plat.
+- **La sonnette** (sonnette de comptoir posée à 2 blocs ou moins) : sonner **arrête** la tablette (et son groupe),
+  comme dans Taskmaster ; le temps figé clignote, une note s'envole de la sonnette, et les organisateurs lisent
+  « ♪ Ensuri a sonné — tablette arrêtée à 25.7 ». Son impulsion redstone ne relance jamais la tablette.
+- **S'arrête avec le chrono** (coché par défaut) : arrêter le chrono de l'émission (StreamDeck `/timer/stop`, la voix,
+  `/craftMasterTimer stop`) met aussi la tablette en pause.
 - Commande : `/craftMasterTablet start|pause|toggle|reset|restart [groupe]` (`/cftb`, organisateurs) ; StreamDeck :
   `http://127.0.0.1:25710/tablet/start?group=plateau` ([Saisie](Saisie.md)).
 - Tenue en main, c'est un petit cadre « 25.7 » fixe : les chiffres vivants ne s'affichent que posée (à venir).
