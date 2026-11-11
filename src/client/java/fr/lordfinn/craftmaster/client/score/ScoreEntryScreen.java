@@ -428,10 +428,10 @@ public class ScoreEntryScreen extends Screen {
         ScoreBoard b = roundBoard();
         List<String> list = new ArrayList<>();
         for (int i = 0; i < b.size(); i++) list.add(b.player(i));
-        if (dragging && dragged != null && inSteps(mouseY)) {
+        if (dragging && dragged != null && inSteps(mouseY) && tieTarget(mouseX, mouseY) == null) {
             list.remove(dragged);
             list.add(insertAt(mouseX, list.size()), dragged);
-        } else if (dragging && dragged != null) {
+        } else if (dragging && dragged != null && tieTarget(mouseX, mouseY) == null) {
             list.remove(dragged);
         }
         List<String> out = new ArrayList<>(list);
@@ -467,6 +467,14 @@ public class ScoreEntryScreen extends Screen {
             if (mx >= cx - FACE / 2 - 2 && mx <= cx + FACE / 2 + 2) return b.player(i);
         }
         return null;
+    }
+
+    /** While dragging: the card whose centre is under the mouse (dropping there = ex aequo), or null. */
+    private String tieTarget(double mx, double my) {
+        String c = cardAt(mx, my);
+        if (c == null || c.equals(dragged)) return null;
+        int cx = slotCenter(roundBoard().indexOf(c));
+        return Math.abs(mx - cx) <= FACE / 2f - 5 ? c : null;
     }
 
     /** A bench face under the mouse, or null. */
@@ -574,7 +582,14 @@ public class ScoreEntryScreen extends Screen {
         }
         dragging = false;
         double mx = e.x(), my = e.y();
-        if (inSteps(my)) {
+        String tie = tieTarget(mx, my);
+        if (tie != null) {
+            if (b.tieWith(p, tie)) {
+                UiSounds.confirm();
+                setStatus(t("tied", p, tie).copy().withStyle(ChatFormatting.GOLD));
+                gesture(shownRound());
+            } else UiSounds.error();
+        } else if (inSteps(my)) {
             int others = b.size() - (fromBench ? 0 : 1);
             int at = insertAt(mx, others);
             boolean done = fromBench ? b.fromBench(p, at) : moveIfNeeded(b, p, at);
@@ -831,18 +846,27 @@ public class ScoreEntryScreen extends Screen {
             g.fill(sx + 3, st, sx + col - 3, st + 14, Theme.shade(c, -0.35f));
             g.fill(sx + 4, st + 1, sx + col - 4, st + 13, c);
             g.horizontalLine(sx + 4, sx + col - 5, st + 1, Theme.shade(c, 0.35f));
-            Component label = place(i + 1).copy().append(" · " + b.stepBase(i));
-            g.centeredText(font, label, sx + col / 2, st + 3, Theme.textOn(c));
             String p = slots.get(i);
+            boolean tiedHere = p != null && !dragging && b.isTied(p);
+            int shared = tiedHere ? b.place(b.indexOf(p)) : i;
+            Component label = tiedHere ? Component.literal("= ").append(place(shared + 1))
+                    : place(i + 1).copy().append(" · " + b.stepBase(i));
+            g.centeredText(font, label, sx + col / 2, st + 3, Theme.textOn(c));
             if (p == null) {
                 g.centeredText(font, "?", sx + col / 2, ct + 10, 0x50FFFFFF);
                 continue;
             }
-            int score = b.stepBase(i) + b.modifier(p);
+            int score = b.stepBase(shared) + b.modifier(p);
             DigitHead.draw(g, font, score, sx + col / 2 - 8, st + 16, 16);
         }
         // Insertion marker
-        if (dragging && inSteps(my)) {
+        String tieAim = dragging ? tieTarget(mx, my) : null;
+        if (tieAim != null) {
+            int tx = slotCenter(b.indexOf(tieAim));
+            g.outline(tx - FACE / 2 - 4, ct - 4, FACE + 8, FACE + 8, Theme.GOLD);
+            g.outline(tx - FACE / 2 - 3, ct - 3, FACE + 6, FACE + 6, Theme.GOLD);
+            ScoreBadge.draw(g, font, "=", tx, ct - 12, Theme.GOLD);
+        } else if (dragging && inSteps(my)) {
             int at = insertAt(mx, b.size() - (fromBench ? 0 : 1));
             int x = x0() + at * col;
             g.fill(x - 1, ct - 4, x + 1, st + 32, Theme.GOLD);
