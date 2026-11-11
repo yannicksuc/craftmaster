@@ -29,7 +29,8 @@ public final class ScoreBoard {
     /** Rows in their order; each row's score becomes the base of its place (modifiers start at 0). */
     public ScoreBoard(List<Row> rows) {
         for (Row r : rows) {
-            int s = clamp(r.score());
+            // A score already outside [-10, 10] (given by a command) is kept as is: the screen must not rewrite it
+            int s = r.score();
             players.add(r.player());
             base.add(s);
             initial.put(r.player(), s);
@@ -75,7 +76,7 @@ public final class ScoreBoard {
 
     public int score(int index) {
         check(index);
-        return clamp(base.get(index) + modifiers.getOrDefault(players.get(index), 0));
+        return base.get(index) + modifiers.getOrDefault(players.get(index), 0);
     }
 
     public int modifier(String player) {
@@ -114,10 +115,13 @@ public final class ScoreBoard {
         players.add(to, players.remove(from));
     }
 
-    /** +1 / -1 on one player only (his modifier), the score kept in [-10, 10]; returns the new score. */
+    /**
+     * +1 / -1 on one player only (his modifier); returns the new score. It never leaves [-10, 10] (a score already
+     * outside only moves back towards it).
+     */
     public int bump(int index, int delta) {
         int now = score(index);
-        int next = clamp(now + delta);
+        int next = Math.max(Math.min(MIN, now), Math.min(Math.max(MAX, now), now + delta));
         String p = players.get(index);
         modifiers.put(p, modifiers.getOrDefault(p, 0) + (next - now));
         return next;

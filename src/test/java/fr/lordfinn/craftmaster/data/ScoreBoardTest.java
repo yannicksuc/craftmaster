@@ -65,8 +65,14 @@ class ScoreBoardTest {
     }
 
     @Test
-    void outOfRangeInitialScoresAreClamped() {
-        assertEquals(10, new ScoreBoard(List.of(r("A", 99))).score(0));
+    void outOfRangeScoresAreKeptAndOnlyGoBackTowardsTheRange() {
+        ScoreBoard b = new ScoreBoard(List.of(r("A", 65), r("B", -20)));
+        assertEquals(65, b.score(0), "a score given by a command is not rewritten");
+        assertFalse(b.dirty());
+        assertEquals(65, b.bump(0, 1), "+1 does not go further out");
+        assertEquals(64, b.bump(0, -1));
+        assertEquals(-20, b.bump(1, -1));
+        assertEquals(-19, b.bump(1, 1));
     }
 
     @Test
