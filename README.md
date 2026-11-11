@@ -11,6 +11,9 @@ Anciennement un plugin Paper : mêmes commandes, mêmes données (importées aut
   `ReloadScores` (+ alias `cfat`, `cfss`, `cfas`…). Accents acceptés sans guillemets.
 - **Classement** : touche **K** ou `/craftMasterRanking` — écran avec podium, têtes, détail par tâche, mis à jour
   en direct. `/craftMasterHideRanking <saison> true` garde le suspense jusqu'à la révélation.
+- **Saisie des points (arbitre)** : touche **U** ou `/craftMasterScores` — joueurs à réordonner, +1/-1, têtes de
+  chiffres, tableau épreuves × joueurs ; `/craftMasterRedo` refait ; API StreamDeck locale et cadre joueur dans le
+  HUD ([Saisie](docs/wiki/Saisie.md)).
 - **Busts** : `/craftMasterAddBust <saison> <rang>` en regardant une tête de joueur ; elle prend le skin du joueur
   à ce rang, avec une étiquette « #1 Pseudo / 16 pts ».
 - **Rideaux de scène** (16 couleurs) : s'ouvrent du milieu vers les côtés ; redstone, télécommande, clic en créatif

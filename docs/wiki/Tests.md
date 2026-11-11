@@ -8,9 +8,12 @@
 - `MigrationTest` : fichier du plugin et fichier du mod 2.0 → format 2 (Partie 1, ids, manches archivées pour les
   tâches retirées, joueurs, busts, saisons cachées, scores publiés identiques), copie `config.yml.v1`, pas de
   seconde conversion.
-- `UndoJournalTest` : annuler une / plusieurs modifications, modifications imbriquées = une entrée, rien de changé
-- `ScoreBoardTest`, `BoundedHistoryTest` : modèle pur de l'écran de saisie (échange, tête, +1/-1 borné -10..+10) et pile undo/redo de 50 pas
+- `UndoJournalTest` : annuler une / plusieurs modifications, refaire (dans l'ordre, vidé par une nouvelle
+  modification), modifications imbriquées = une entrée, rien de changé
   = rien de journalisé, échec = données intactes, limite de 50, état du direct annulé aussi.
+- `ScoreBoardTest` : écran de saisie de l'arbitre — la place donne le score de base, le +1/-1 suit le joueur, échange,
+  en tête, joueur déplacé puis +1/-1 (placé d'abord), bornes -10..+10 sans réécrire un score déjà hors bornes,
+  barème d'une épreuve sans points, liste des changements à envoyer. `ScoreEntryBoardTest` : le JSON de l'écran.
 - `PublishedScoresTest` : rien de publié avant la première publication, copie figée, écart non publié, plusieurs
   parties additionnées, persistance.
 - `ActionsTest` : le schéma d'actions de la régie (préparation, manche suivante / en cours, scores par surnom,

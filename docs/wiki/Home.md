@@ -9,6 +9,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Émission : déroulé du direct, plateau, révélation](Emission.md)
 - [Commandes et permissions](Commandes.md)
 - [Classement (écran K, saisons cachées)](Classement.md)
+- [Saisie des points de l'arbitre (touche U), API StreamDeck, cadre joueur](Saisie.md)
 - [Busts](Busts.md)
 - [Tableaux suspendus (galeries, poses, éditeur)](Tableaux.md)
 - [Épreuves : objets d'épreuve, buzzers, feuille de résultats, chrono, tableaux à dessiner](Epreuves.md)

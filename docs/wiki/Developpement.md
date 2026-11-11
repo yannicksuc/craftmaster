@@ -75,7 +75,9 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
   block/                  ChairBlock, CurtainBlock, Shapes4 (formes tournées dans les 4 sens)
   entity/SeatEntity       l'entité invisible sur laquelle on s'assoit
   item/CurtainRemoteItem  la télécommande
-  network/Network         paquets du classement (demande client → réponse serveur, mises à jour)
+  network/Network         paquets du classement (demande client → réponse serveur, mises à jour, envoi à la connexion)
+  network/ScoreEntryNetwork  écran de saisie : demande / tableau, renvoyé à chaque modification aux écrans ouverts
+  data/ScoreBoard, ScoreEntryBoard  règle des places de l'écran de saisie (pur, testé), JSON du tableau
   regie/                  régie vocale, côté serveur et commun : RegiePayloads (paquets), RegieServer (contrôle
                           admin, contexte, exécution), RegieJson, Wav (WAV 16 kHz), RegieService (client HTTP)
   show/                   ShowContext (contexte de la partie) et ActionExecutor (exécution du schéma d'actions)
@@ -90,6 +92,11 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
 src/client/java/…/client/                   client uniquement (jamais chargé par un serveur dédié)
   CraftMasterClient       touche K, rendu (vide) du siège, réception du classement
   RankingScreen           l'écran de classement
+  ui/                     kit d'interface réutilisable : Theme (couleurs, tons froids / chauds des scores), Ui
+                          (panneau, papier, texte mis à l'échelle, tête 2D plate), UiButton, UiTabs, ScoreBadge,
+                          DigitHead (têtes de chiffres -10..+10), PlayerFrame (tête + score), UiSounds
+  score/                  ScoreEntryScreen (saisie de l'arbitre, touche U), ScoreEntryClient, PlayerFrameHud (cadre
+                          joueur du HUD), StreamDeckServer (API HTTP 127.0.0.1, config/craftmaster-client.json)
   regie/VoiceRegie        touche N, enregistrement, envoi au service puis au serveur ; Recorder (micro / WAV) ;
   regie/RegieHud          le panneau « ● Régie à l'écoute » / résultat (HudElementRegistry)
   task/                   CurrentTask (contrat : tâche du moment, carte en surimpression), PaperView (la carte :

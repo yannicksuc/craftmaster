@@ -23,6 +23,8 @@ passe par le même exécuteur que la régie vocale : même comportement, et **to
 | `/craftMasterStage curtain open\|close [nom]` | cfsg | Ouvre / ferme un rideau nommé (défaut : `stage`) |
 | `/craftMasterStage scene place <décor>` | | Pose un décor à l'ancre de scène |
 | `/craftMasterUndo [nombre]` | cfun | Annule la ou les dernières modifications (50 gardées depuis le démarrage) |
+| `/craftMasterRedo [nombre]` | cfrf | Refait ce qui vient d'être annulé (toute nouvelle modification vide le « refaire ») |
+| `/craftMasterScores [saison]` | cfsc | Écran de saisie des points de l'arbitre (aussi touche **U**, [Saisie](Saisie.md)) |
 | `/craftMasterHistory` | cfhi | Les 10 dernières modifications |
 | `/craftMasterStatus` | cfst | Saison, manche en cours, dernier score, scores non publiés, chrono, révélation |
 | `/craftMasterStatus context` | | Le contexte envoyé à la régie vocale, en JSON (vérification) |
