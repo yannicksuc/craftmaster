@@ -31,6 +31,7 @@ import java.util.function.Supplier;
  * /undo /redo   undoes / redoes the last change (organisers; the server checks)
  * /season/next  next / previous season in the open score entry or ranking screen
  * /season/prev
+ * /tablet/start   timer tablets: start, pause, toggle, reset, restart (?group=name: only that group)
  * /status       JSON: connected, organiser, open screen, season, undo / redo available
  * </pre>
  * Every answer is JSON {@code {"ok": true|false, ...}}; the game does the work on its own thread.
@@ -77,7 +78,7 @@ public final class StreamDeckServer {
                 code = 403;
                 out = error("bad token");
             } else {
-                out = route(uri.getPath().replaceAll("/+$", ""));
+                out = route(uri.getPath().replaceAll("/+$", ""), query(uri, "group"));
                 if (!out.get("ok").getAsBoolean()) code = out.has("code") ? out.get("code").getAsInt() : 409;
                 out.remove("code");
             }
@@ -115,7 +116,28 @@ public final class StreamDeckServer {
         return o;
     }
 
-    private static JsonObject route(String path) {
+    /** A query parameter (decoded), "" if absent. */
+    private static String query(URI uri, String name) {
+        String q = uri.getRawQuery();
+        if (q == null) return "";
+        for (String part : q.split("&"))
+            if (part.startsWith(name + "=")) return java.net.URLDecoder.decode(part.substring(name.length() + 1), StandardCharsets.UTF_8);
+        return "";
+    }
+
+    private static JsonObject route(String path, String group) {
+        if (path.startsWith("/tablet/")) {
+            String what = path.substring("/tablet/".length());
+            if (!java.util.List.of("start", "pause", "toggle", "reset", "restart").contains(what)) return error("tablet: start, pause, toggle, reset, restart");
+            String g = group.replaceAll("[^A-Za-z0-9_-]", "");
+            return onGame(() -> {
+                Minecraft mc = Minecraft.getInstance();
+                if (!connected() || mc.player == null) return error("not connected");
+                // The server checks the permission (organisers only)
+                mc.player.connection.sendCommand("craftMasterTablet " + what + (g.isEmpty() ? "" : " " + g));
+                return ok();
+            });
+        }
         return switch (path) {
             case "", "/status" -> onGame(StreamDeckServer::status);
             case "/menu" -> onGame(() -> {
@@ -146,7 +168,7 @@ public final class StreamDeckServer {
                 return ok();
             });
             default -> {
-                JsonObject o = error("unknown: " + path + " (menu, ranking, undo, redo, season/next, season/prev, status)");
+                JsonObject o = error("unknown: " + path + " (menu, ranking, undo, redo, season/next, season/prev, tablet/<start|pause|toggle|reset|restart>, status)");
                 o.addProperty("code", 404);
                 yield o;
             }

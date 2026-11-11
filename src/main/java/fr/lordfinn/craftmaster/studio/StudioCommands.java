@@ -63,6 +63,27 @@ public final class StudioCommands {
         for (String name : List.of("craftMasterSpotlight", "craftmasterspotlight", "cfsp")) d.register(spotlight(name));
         for (String name : List.of("craftMasterDesk", "craftmasterdesk", "cfdk")) d.register(desk(name));
         for (String name : List.of("craftMasterGong", "craftmastergong", "cfgo")) d.register(gong(name));
+        for (String name : List.of("craftMasterTablet", "craftmastertablet", "cftb")) d.register(tablet(name));
+    }
+
+    // ---------------------------------------------------------------- timer tablets
+
+    /** /craftMasterTablet start|pause|toggle|reset|restart [group]: every loaded tablet (of the group). */
+    private static LiteralArgumentBuilder<CommandSourceStack> tablet(String name) {
+        LiteralArgumentBuilder<CommandSourceStack> root = literal(name).requires(Permissions.ADMIN);
+        for (String what : List.of("start", "pause", "toggle", "reset", "restart")) {
+            root.then(literal(what)
+                    .executes(c -> tabletDone(c, what, TimerTabletBlockEntity.controlAll("", what)))
+                    .then(argument("group", StringArgumentType.word())
+                            .executes(c -> tabletDone(c, what, TimerTabletBlockEntity.controlAll(StringArgumentType.getString(c, "group"), what)))));
+        }
+        return root;
+    }
+
+    private static int tabletDone(com.mojang.brigadier.context.CommandContext<CommandSourceStack> c, String what, int n) {
+        c.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(
+                n == 0 ? "Aucune tablette chargée (dans ce groupe)." : "Tablettes : " + what + " (" + n + ")"), false);
+        return n;
     }
 
     // ---------------------------------------------------------------- image

@@ -78,10 +78,14 @@ public final class ActionExecutor {
             }
             case Actions.MancheStarted m -> {
                 int moved = Show.startManche(server, m);
+                fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundStart(server);
                 ShowEvents.onMancheStarted(server, m.season(), m.number(), m.name());
                 if (!m.tp().isEmpty()) lines.add(moved + " joueur(s) téléporté(s) sur " + m.tp().size() + " point(s).");
             }
-            case Actions.MancheEnded m -> Show.endManche(server, m.name());
+            case Actions.MancheEnded m -> {
+                Show.endManche(server, m.name());
+                fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundEnd(server);
+            }
             case Actions.TimerStopped t -> lines.add(Show.stopTimer(server) ? "Chrono arrêté." : "Aucun chrono ne tournait.");
             case Actions.Published p -> {
                 Show.announcePublished(server);

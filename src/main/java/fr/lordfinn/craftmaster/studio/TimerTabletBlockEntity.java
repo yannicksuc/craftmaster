@@ -1,0 +1,237 @@
+package fr.lordfinn.craftmaster.studio;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
+
+/**
+ * A timer tablet: its settings and its own timer ({@link TabletClock}). The server runs the timer (wall clock) and
+ * notices when it is over (sound, redstone signal); the clients draw it from the elapsed time sent with each update
+ * (their own clock may differ from the server's, so only durations travel).
+ */
+public class TimerTabletBlockEntity extends SyncedBlockEntity {
+
+    /** Loaded tablets (both sides), for groups and round triggers. */
+    private static final Set<TimerTabletBlockEntity> LOADED = Collections.newSetFromMap(new WeakHashMap<>());
+
+    private TabletClock.Settings settings = new TabletClock.Settings();
+    private final TabletClock clock = new TabletClock();
+    /** The timer was seen over (server: sound played once; both: "time's up" blink start). */
+    private boolean over;
+    private long overAt = Long.MIN_VALUE / 2;
+    private boolean powered;
+
+    public TimerTabletBlockEntity(BlockPos pos, BlockState state) {
+        super(Studio.TIMER_TABLET_BE, pos, state);
+    }
+
+    public static Set<TimerTabletBlockEntity> loaded() {
+        synchronized (LOADED) {
+            return Set.copyOf(LOADED);
+        }
+    }
+
+    @Override
+    public void setLevel(Level level) {
+        super.setLevel(level);
+        synchronized (LOADED) {
+            LOADED.add(this);
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        synchronized (LOADED) {
+            LOADED.remove(this);
+        }
+    }
+
+    public TabletClock.Settings settings() {
+        return settings;
+    }
+
+    public TabletClock clock() {
+        return clock;
+    }
+
+    public long overAt() {
+        return overAt;
+    }
+
+    public static long now() {
+        return System.currentTimeMillis();
+    }
+
+    // ---------------------------------------------------------------- control (server)
+
+    public void apply(TabletClock.Settings s) {
+        boolean poseChanged = s.pose != settings.pose;
+        settings = s;
+        over = false;
+        if (poseChanged && level != null) {
+            BlockState st = getBlockState();
+            if (st.getBlock() instanceof TimerTabletBlock) level.setBlock(worldPosition, st.setValue(TimerTabletBlock.POSE, s.pose), 3);
+        }
+        sync();
+    }
+
+    /** start, pause, toggle, reset, restart. */
+    public void control(String what) {
+        long now = now();
+        switch (what) {
+            case "start" -> {
+                if (clock.done(settings, now)) clock.reset();
+                clock.start(now);
+            }
+            case "pause" -> clock.pause(now);
+            case "toggle" -> {
+                if (clock.done(settings, now)) clock.restart(now);
+                else clock.toggle(now);
+            }
+            case "reset" -> clock.reset();
+            case "restart" -> clock.restart(now);
+            default -> {
+                return;
+            }
+        }
+        over = false;
+        overAt = Long.MIN_VALUE / 2;
+        sync();
+        updateSignal();
+    }
+
+    /** Applies a control to this tablet and to every loaded one of its group. */
+    public void controlGroup(String what) {
+        if (settings.group.isEmpty()) {
+            control(what);
+            return;
+        }
+        for (TimerTabletBlockEntity t : loaded())
+            if (t.level == level && t.settings.group.equals(settings.group)) t.control(what);
+    }
+
+    /** Redstone on the block changed. */
+    public void redstone(boolean nowPowered) {
+        boolean rising = nowPowered && !powered;
+        boolean falling = !nowPowered && powered;
+        powered = nowPowered;
+        switch (settings.redstone) {
+            case TOGGLE -> { if (rising) controlGroup("toggle"); }
+            case RESTART -> { if (rising) controlGroup("restart"); }
+            case RUN_WHILE_POWERED -> {
+                if (rising) controlGroup("start");
+                if (falling) controlGroup("pause");
+            }
+            case OFF -> {}
+        }
+    }
+
+    /** The redstone signal given (comparator / adjacent): 15 while a timer is over. */
+    public int signal() {
+        return settings.signalWhenDone && settings.mode == TabletClock.Mode.TIMER && clock.done(settings, now()) && clock.elapsed(now()) > 0 ? 15 : 0;
+    }
+
+    private void updateSignal() {
+        if (level != null && !level.isClientSide()) level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
+    }
+
+    public static void serverTick(Level level, BlockPos pos, BlockState state, TimerTabletBlockEntity be) {
+        long now = now();
+        if (be.settings.mode != TabletClock.Mode.TIMER || !be.clock.running() || be.over) return;
+        if (!be.clock.done(be.settings, now)) return;
+        // Over: freeze at 0, sound, redstone signal, blink
+        be.over = true;
+        be.overAt = now;
+        be.clock.pause(now);
+        SoundEvent sound = switch (be.settings.endSound) {
+            case BEEP -> SoundEvents.NOTE_BLOCK_PLING.value();
+            case BELL -> SoundEvents.BELL_BLOCK;
+            case GONG -> Studio.GONG_SOUND.value();
+            case BUZZER -> SoundEvents.NOTE_BLOCK_DIDGERIDOO.value();
+            case NONE -> null;
+        };
+        if (sound != null && level instanceof ServerLevel sl) sl.playSound(null, pos, sound, SoundSource.BLOCKS, 1.5f, 1f);
+        be.sync();
+        be.updateSignal();
+    }
+
+    // ---------------------------------------------------------------- saving and sync
+
+    @Override
+    protected void loadAdditional(ValueInput in) {
+        super.loadAdditional(in);
+        settings = TabletClock.Settings.fromJson(in.getStringOr("Settings", ""));
+        boolean running = in.getBooleanOr("Running", false);
+        long now = now();
+        // Sent to a client: the time counted when the packet left (no wall clock in common)
+        long elapsed = in.getLongOr("ElapsedNow", -1);
+        if (elapsed < 0) {
+            // From the save: the run started at StartedAt (server clock)
+            long banked = in.getLongOr("Banked", 0), started = in.getLongOr("StartedAt", now);
+            elapsed = banked + (running ? Math.max(0, now - started) : 0);
+        }
+        clock.set(running, elapsed, now);
+        long overAgo = in.getLongOr("OverAgo", -1);
+        over = overAgo >= 0;
+        overAt = over ? now - overAgo : Long.MIN_VALUE / 2;
+        powered = in.getBooleanOr("Powered", false);
+    }
+
+    @Override
+    protected void saveAdditional(ValueOutput out) {
+        super.saveAdditional(out);
+        long now = now();
+        out.putString("Settings", settings.toJson());
+        out.putBoolean("Running", clock.running());
+        long elapsed = clock.elapsed(now);
+        out.putLong("Banked", clock.running() ? 0 : elapsed);
+        out.putLong("StartedAt", now - elapsed);
+        if (over) out.putLong("OverAgo", Math.max(0, now - overAt));
+        out.putBoolean("Powered", powered);
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        tag.putLong("ElapsedNow", clock.elapsed(now()));
+        return tag;
+    }
+
+    // ---------------------------------------------------------------- the show and commands
+
+    /** A round started: tablets set to "start with the round" restart, those following the show refresh. */
+    public static void onRoundStart(net.minecraft.server.MinecraftServer server) {
+        for (TimerTabletBlockEntity t : loaded())
+            if (t.level != null && !t.level.isClientSide() && t.settings.startOnRound) t.control("restart");
+    }
+
+    public static void onRoundEnd(net.minecraft.server.MinecraftServer server) {
+        for (TimerTabletBlockEntity t : loaded())
+            if (t.level != null && !t.level.isClientSide() && t.settings.stopOnRoundEnd) t.control("pause");
+    }
+
+    /** /craftMasterTablet: a control for the tablets of a group ("" = every tablet); how many were reached. */
+    public static int controlAll(String group, String what) {
+        int n = 0;
+        String g = group == null ? "" : group.trim().toLowerCase(java.util.Locale.ROOT);
+        for (TimerTabletBlockEntity t : loaded()) {
+            if (t.level == null || t.level.isClientSide() || (!g.isEmpty() && !t.settings.group.equals(g))) continue;
+            t.control(what);
+            n++;
+        }
+        return n;
+    }
+}

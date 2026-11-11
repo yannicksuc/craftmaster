@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      },
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "craftmaster:timer_tablet"
+        }
+      ]
+    }
+  ],
+  "random_sequence": "craftmaster:blocks/timer_tablet"
+}

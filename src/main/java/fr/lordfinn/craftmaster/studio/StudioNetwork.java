@@ -64,11 +64,41 @@ public final class StudioNetwork {
         public Type<SaveScreen> type() { return TYPE; }
     }
 
+    /** Server → client: open the settings of a timer tablet. */
+    public record OpenTablet(net.minecraft.core.BlockPos pos) implements CustomPacketPayload {
+        public static final Type<OpenTablet> TYPE = new Type<>(CraftMaster.id("timer_tablet_open"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, OpenTablet> CODEC = CustomPacketPayload.codec(
+                (p, buf) -> buf.writeBlockPos(p.pos), buf -> new OpenTablet(buf.readBlockPos()));
+
+        @Override
+        public Type<OpenTablet> type() { return TYPE; }
+    }
+
+    /**
+     * Client → server: a timer tablet's new settings ({@link TabletClock.Settings} JSON, "" = unchanged) and/or a
+     * control ("start", "pause", "toggle", "reset", "restart", "" = none; applied to its whole group).
+     */
+    public record EditTablet(net.minecraft.core.BlockPos pos, String settings, String control) implements CustomPacketPayload {
+        public static final Type<EditTablet> TYPE = new Type<>(CraftMaster.id("timer_tablet_edit"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, EditTablet> CODEC = CustomPacketPayload.codec(
+                (p, buf) -> {
+                    buf.writeBlockPos(p.pos);
+                    buf.writeUtf(p.settings, 8192);
+                    buf.writeUtf(p.control, 16);
+                }, buf -> new EditTablet(buf.readBlockPos(), buf.readUtf(8192), buf.readUtf(16)));
+
+        @Override
+        public Type<EditTablet> type() { return TYPE; }
+    }
+
     public static void register() {
         PayloadTypeRegistry.clientboundPlay().register(TimerState.TYPE, TimerState.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(OpenScreen.TYPE, OpenScreen.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(SaveScreen.TYPE, SaveScreen.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(SaveScreen.TYPE, (p, ctx) -> save(ctx.player(), p));
+        PayloadTypeRegistry.clientboundPlay().register(OpenTablet.TYPE, OpenTablet.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(EditTablet.TYPE, EditTablet.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(EditTablet.TYPE, (p, ctx) -> editTablet(ctx.player(), p));
     }
 
     public static void openScreenSettings(ServerPlayer player, ImageScreenEntity screen) {
@@ -94,5 +124,20 @@ public final class StudioNetwork {
         screen.setFit(p.fit());
         if (p.width() != screen.width() || p.height() != screen.height()) screen.resize(p.width(), p.height());
         player.sendOverlayMessage(Component.translatable("message.craftmaster.screen_saved").withStyle(ChatFormatting.GOLD));
+    }
+
+    public static void openTablet(ServerPlayer player, TimerTabletBlockEntity tablet) {
+        if (!ServerPlayNetworking.canSend(player, OpenTablet.TYPE)) {
+            player.sendSystemMessage(Component.translatable("message.craftmaster.no_client_mod").withStyle(ChatFormatting.RED));
+            return;
+        }
+        ServerPlayNetworking.send(player, new OpenTablet(tablet.getBlockPos()));
+    }
+
+    private static void editTablet(ServerPlayer player, EditTablet p) {
+        if (!Permissions.isAdmin(player) || player.blockPosition().distSqr(p.pos()) > 64 * 64) return;
+        if (!(player.level().getBlockEntity(p.pos()) instanceof TimerTabletBlockEntity tablet)) return;
+        if (!p.settings().isEmpty()) tablet.apply(TabletClock.Settings.fromJson(p.settings()));
+        if (!p.control().isEmpty()) tablet.controlGroup(p.control());
     }
 }

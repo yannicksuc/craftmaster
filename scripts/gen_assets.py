@@ -1920,6 +1920,9 @@ fr.update({
 # --- referee's score entry screen and player frame: scripts/gen_scoring.py
 import gen_scoring  # noqa: E402
 gen_scoring.generate(sys.modules[__name__])
+# --- timer tablet (framed digital timer, studio set): scripts/gen_tablet.py
+import gen_tablet  # noqa: E402
+gen_tablet.generate(sys.modules[__name__])
 
 if SOUNDS:
     write_json(os.path.join(A, "sounds.json"), SOUNDS)

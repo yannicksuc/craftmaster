@@ -44,6 +44,7 @@ public final class Studio {
     public static OnAirSignBlock ON_AIR_SIGN;
     // Show
     public static TimerDisplayBlock TIMER_DISPLAY;
+    public static TimerTabletBlock TIMER_TABLET;
     public static DeskBlock CONTESTANT_DESK;
     public static PrizeTableBlock PRIZE_TABLE;
     public static GongBlock GONG;
@@ -55,6 +56,7 @@ public final class Studio {
     public static EntityType<ImageScreenEntity> STUDIO_SCREEN;
     public static BlockEntityType<SpotlightBlockEntity> SPOTLIGHT_BE;
     public static BlockEntityType<TimerDisplayBlockEntity> TIMER_DISPLAY_BE;
+    public static BlockEntityType<TimerTabletBlockEntity> TIMER_TABLET_BE;
     public static BlockEntityType<DeskBlockEntity> DESK_BE;
     public static BlockEntityType<PrizeTableBlockEntity> PRIZE_TABLE_BE;
     public static BlockEntityType<GongBlockEntity> GONG_BE;
@@ -93,6 +95,9 @@ public final class Studio {
         // ------------------------------------------------------------ show
         TIMER_DISPLAY = ModContent.block("timer_display", TimerDisplayBlock::new,
                 props(MapColor.COLOR_BLACK, 2f).sound(SoundType.METAL).noOcclusion().lightLevel(s -> 8));
+        // Timer tablet: a framed digital timer, placed like a sign, held up like in Taskmaster
+        TIMER_TABLET = ModContent.block("timer_tablet", TimerTabletBlock::new,
+                props(MapColor.COLOR_BLACK, 1f).sound(SoundType.WOOD).noOcclusion().noCollision());
         STUDIO_SCREEN_ITEM = ModContent.item("studio_screen", ImageScreenItem::new, new Item.Properties().stacksTo(16));
         CONTESTANT_DESK = ModContent.block("contestant_desk", DeskBlock::new, props(MapColor.COLOR_RED, 2.5f).sound(SoundType.WOOD).noOcclusion());
         DESK_BELL = ModContent.block("desk_bell", DeskBellBlock::new, props(MapColor.GOLD, 1f).sound(SoundType.METAL).noOcclusion());
@@ -107,6 +112,7 @@ public final class Studio {
 
         SPOTLIGHT_BE = blockEntity("spotlight", SpotlightBlockEntity::new, SPOTLIGHT);
         TIMER_DISPLAY_BE = blockEntity("timer_display", TimerDisplayBlockEntity::new, TIMER_DISPLAY);
+        TIMER_TABLET_BE = blockEntity("timer_tablet", TimerTabletBlockEntity::new, TIMER_TABLET);
         DESK_BE = blockEntity("contestant_desk", DeskBlockEntity::new, CONTESTANT_DESK);
         PRIZE_TABLE_BE = blockEntity("prize_table", PrizeTableBlockEntity::new, PRIZE_TABLE);
         GONG_BE = blockEntity("gong", GongBlockEntity::new, GONG);

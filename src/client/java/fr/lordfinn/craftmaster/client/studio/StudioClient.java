@@ -18,6 +18,7 @@ public final class StudioClient {
         EntityRendererRegistry.register(Studio.STUDIO_SCREEN, ImageScreenRenderer::new);
         BlockEntityRendererRegistry.register(Studio.SPOTLIGHT_BE, SpotlightRenderer::new);
         BlockEntityRendererRegistry.register(Studio.TIMER_DISPLAY_BE, TimerDisplayRenderer::new);
+        BlockEntityRendererRegistry.register(Studio.TIMER_TABLET_BE, TimerTabletRenderer::new);
         BlockEntityRendererRegistry.register(Studio.DESK_BE, DeskRenderer::new);
         BlockEntityRendererRegistry.register(Studio.PRIZE_TABLE_BE, PrizeTableRenderer::new);
         BlockEntityRendererRegistry.register(Studio.GONG_BE, GongRenderer::new);
@@ -30,6 +31,11 @@ public final class StudioClient {
             Minecraft mc = ctx.client();
             if (mc.level != null && mc.level.getEntity(payload.entityId()) instanceof ImageScreenEntity screen)
                 mc.gui.setScreen(new ImageScreenSettings(screen));
+        });
+        ClientPlayNetworking.registerGlobalReceiver(StudioNetwork.OpenTablet.TYPE, (payload, ctx) -> {
+            Minecraft mc = ctx.client();
+            if (mc.level != null && mc.level.getBlockEntity(payload.pos()) instanceof fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity tablet)
+                mc.gui.setScreen(new TabletScreen(tablet));
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             StudioTimerClient.clear();
