@@ -72,7 +72,8 @@ public class RankingScreen extends Screen {
         next.active = i >= 0 && i < data.seasons().size() - 1;
     }
 
-    private void changeSeason(int delta) {
+    /** Previous / next season (buttons, arrows, StreamDeck). */
+    public void changeSeason(int delta) {
         List<Integer> seasons = data.seasons();
         if (seasons.isEmpty()) return;
         int i = seasons.indexOf(data.season());

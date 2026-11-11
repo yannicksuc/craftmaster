@@ -54,6 +54,11 @@ public final class VoiceRegie {
 
     static volatile View view = View.IDLE;
     static volatile boolean admin;
+
+    /** Is this player an organiser (as the server last said)? */
+    public static boolean isAdmin() {
+        return admin;
+    }
     private static Recorder recorder;
     private static int requestId;
     private static CompletableFuture<RegiePayloads.Context> pendingContext;

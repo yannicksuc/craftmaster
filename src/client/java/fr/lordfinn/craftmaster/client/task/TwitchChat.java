@@ -37,6 +37,8 @@ public final class TwitchChat {
     /** The client's settings file. */
     public static final class Config {
         public Twitch twitch = new Twitch();
+        /** Local HTTP API for a StreamDeck (score entry screen, undo / redo, seasons). */
+        public fr.lordfinn.craftmaster.client.score.StreamDeckServer.Settings streamDeck = new fr.lordfinn.craftmaster.client.score.StreamDeckServer.Settings();
     }
 
     public static final class Twitch {
@@ -84,6 +86,7 @@ public final class TwitchChat {
                 config = new Config();
             }
             if (config.twitch == null) config.twitch = new Twitch();
+            if (config.streamDeck == null) config.streamDeck = new fr.lordfinn.craftmaster.client.score.StreamDeckServer.Settings();
             // Written back so new settings show up in the file
             Files.createDirectories(f.getParent());
             try (Writer w = Files.newBufferedWriter(f, StandardCharsets.UTF_8)) {

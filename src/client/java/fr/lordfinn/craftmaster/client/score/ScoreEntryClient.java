@@ -29,6 +29,7 @@ public final class ScoreEntryClient {
             if (mc.gui.screen() instanceof ScoreEntryScreen s) s.update(p.json());
             else if (p.open()) mc.gui.setScreen(new ScoreEntryScreen(p.json()));
         });
+        StreamDeckServer.start();
     }
 
     /** Asks the server for the active season's board (the screen opens when it arrives). */

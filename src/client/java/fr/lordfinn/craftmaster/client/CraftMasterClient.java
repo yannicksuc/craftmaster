@@ -46,7 +46,7 @@ public final class CraftMasterClient implements ClientModInitializer {
         fr.lordfinn.craftmaster.client.task.TaskClient.init();
         // Screen effects (fx/): post effects on the view, wearable glasses and masks
         fr.lordfinn.craftmaster.client.fx.FxClient.init();
-        // Referee's score entry screen (key U)
+        // Referee's score entry screen (key U), StreamDeck API (after TaskClient: config)
         fr.lordfinn.craftmaster.client.score.ScoreEntryClient.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
@@ -60,7 +60,7 @@ public final class CraftMasterClient implements ClientModInitializer {
         });
     }
 
-    static void openRanking(Minecraft mc, int season) {
+    public static void openRanking(Minecraft mc, int season) {
         if (ClientPlayNetworking.canSend(Network.RequestRanking.TYPE)) {
             ClientPlayNetworking.send(new Network.RequestRanking(season));
         } else if (mc.player != null) {
