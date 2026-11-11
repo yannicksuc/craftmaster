@@ -79,6 +79,7 @@ public final class ShowCommands {
         CraftMasterCommands.add(d, ShowCommands::stage, "craftMasterStage", "cfsg");
         CraftMasterCommands.add(d, ShowCommands::undo, "craftMasterUndo", "cfun");
         CraftMasterCommands.add(d, ShowCommands::redo, "craftMasterRedo", "cfrf");
+        CraftMasterCommands.add(d, ShowCommands::scoreEntry, "craftMasterScores", "cfsc");
         CraftMasterCommands.add(d, ShowCommands::history, "craftMasterHistory", "cfhi");
         CraftMasterCommands.add(d, ShowCommands::status, "craftMasterStatus", "cfst");
     }
@@ -521,6 +522,21 @@ public final class ShowCommands {
                 .executes(c -> run(c, action("undo", "count", 1)))
                 .then(argument("count", integer(1, CraftMasterData.JOURNAL_SIZE))
                         .executes(c -> run(c, action("undo", "count", getInteger(c, "count")))));
+    }
+
+    /** Opens the referee's score entry screen (active season, or the one given). */
+    private static LiteralArgumentBuilder<CommandSourceStack> scoreEntry(String name) {
+        return literal(name).requires(ADMIN)
+                .executes(c -> {
+                    fr.lordfinn.craftmaster.network.ScoreEntryNetwork.send(c.getSource().getPlayerOrException(),
+                            fr.lordfinn.craftmaster.network.ScoreEntryNetwork.ACTIVE, true);
+                    return 1;
+                })
+                .then(argument("season", integer(0))
+                        .executes(c -> {
+                            fr.lordfinn.craftmaster.network.ScoreEntryNetwork.send(c.getSource().getPlayerOrException(), getInteger(c, "season"), true);
+                            return 1;
+                        }));
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> redo(String name) {

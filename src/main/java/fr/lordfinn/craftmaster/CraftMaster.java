@@ -50,6 +50,8 @@ public final class CraftMaster implements ModInitializer {
         // Studio set (chantier F): blocks, screens, timer sync, commands
         fr.lordfinn.craftmaster.studio.Studio.register();
         Network.register();
+        // The referee's score entry screen
+        fr.lordfinn.craftmaster.network.ScoreEntryNetwork.register();
         RegieServer.register();
         Portraits.register();
         // Chantier H: task props, judging tools, creative objects

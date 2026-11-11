@@ -1917,6 +1917,9 @@ fr.update({
     "paper.craftmaster.preview_ribbon": "APERÇU : rien n'est révélé aux joueurs",
 })
 # --- end chantier D, the task letter ------------------------------------------------------------------------------
+# --- referee's score entry screen and player frame: scripts/gen_scoring.py
+import gen_scoring  # noqa: E402
+gen_scoring.generate(sys.modules[__name__])
 
 if SOUNDS:
     write_json(os.path.join(A, "sounds.json"), SOUNDS)

@@ -63,6 +63,8 @@ public final class ActionExecutor {
         for (int s : CraftMaster.data().allSeasons()) Network.broadcast(server, s);
         // chantier H: open results sheets follow
         fr.lordfinn.craftmaster.trial.TrialNetwork.refreshSheets(server);
+        // Open score entry screens update in place
+        fr.lordfinn.craftmaster.network.ScoreEntryNetwork.refresh(server);
         // Task cards and the J screen follow the task texts (chantier D)
         fr.lordfinn.craftmaster.task.Tasks.sync(server);
     }

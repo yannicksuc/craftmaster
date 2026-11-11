@@ -46,6 +46,8 @@ public final class CraftMasterClient implements ClientModInitializer {
         fr.lordfinn.craftmaster.client.task.TaskClient.init();
         // Screen effects (fx/): post effects on the view, wearable glasses and masks
         fr.lordfinn.craftmaster.client.fx.FxClient.init();
+        // Referee's score entry screen (key U)
+        fr.lordfinn.craftmaster.client.score.ScoreEntryClient.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (RANKING_KEY.consumeClick()) openRanking(mc, -1);

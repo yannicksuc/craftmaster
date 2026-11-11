@@ -395,7 +395,8 @@ public final class TrialNetwork {
         } catch (RuntimeException ex) {
             return;
         }
-        if (actions.isEmpty() || actions.size() > 20) return;
+        // 200: the score entry screen sends a whole board (8 players × its rounds) as one undoable change
+        if (actions.isEmpty() || actions.size() > 200) return;
         ActionExecutor.Result r = ActionExecutor.execute(player, actions);
         // Errors in red in the chat; what was done in the action bar (the screen shows the result)
         if (!r.ok()) for (String l : r.lines()) player.sendSystemMessage(Component.literal(l).withStyle(ChatFormatting.RED));
