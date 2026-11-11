@@ -73,6 +73,7 @@ comme des barrières, mais dans les **6 directions** : tours, poutres, angles, T
 ## L'émission
 | Objet | Bloc / objet | Utilisation |
 |---|---|---|
+| Tablette chrono | `timer_tablet` | Cadre photo autour d'un écran à chiffres 7 segments (comme celui que tient l'assistant de Taskmaster), réglable de A à Z ([ci-dessous](#tablette-chrono)) |
 | Chrono géant | `timer_display` | Panneau doré « 1 · Le Pont » + le temps en grands chiffres à 7 segments. Se fixe à un mur (le panneau monte au-dessus du bloc). Clic droit : plus grand (1 à 6 : 2,5 × 1 à 15 × 6 blocs), accroupi : plus petit |
 | Écran du studio | `studio_screen` (objet) | Écran plat posé sur un mur, 3 × 2 blocs, qui montre une image téléchargée ; voir `/image` |
 | Pupitre de candidat | `contestant_desk` | Pupitre en noyer et velours, plaque en laiton au nom du candidat, tournée vers le public (celui qui le pose). Nom : une **étiquette renommée** utilisée dessus (elle est gardée), ou `/craftMasterDesk name` |
@@ -90,6 +91,28 @@ comme des barrières, mais dans les **6 directions** : tours, poutres, angles, T
 - Sans manche ni chrono : « -:-- » discret. Le bandeau donne « numéro · nom » de la manche en cours (« CraftMaster » sinon).
 
 Il suit le chrono de l'émission (barre de boss, `/craftMasterManche start`, la voix), il n'a rien à régler.
+
+### Tablette chrono
+Un cadre (noir, noyer, doré, blanc ou rouge) avec passe-partout autour d'un écran noir à chiffres 7 segments.
+- **Poser** : contre un mur = accrochée ; au sol = debout sur son pied, tournée vers soi (16 directions, comme un
+  panneau) ; accroupi = à plat (sur une table). Organisateurs : **accroupi + clic droit** = debout → chevalet → à plat.
+- **Clic droit (organisateurs)** : l'écran de réglages, avec un aperçu en direct et ▶ Démarrer, ⏸ Pause, Remettre,
+  Relancer. Tout changement se voit tout de suite sur la tablette.
+- **Mode** : *Minuteur* (compte à rebours, durée « 1:30 », « 90 » ou « 1:00:00 »), *Chrono* (compte), *Heure*
+  (l'heure du PC qui regarde), *Chrono de l'émission* (le même que le chrono géant et la barre de boss).
+  **Format** : Auto (3:07, dixièmes sous 10 s : « 9.4 »), 3:07, 25.7 (dixièmes), 1:07.42 (centièmes), 187
+  (secondes). **Alerte** : les N dernières secondes clignotent dans la couleur d'alerte.
+- **Apparence** : couleur des chiffres (rouge, ambre, vert, bleu, blanc, or), segments éteints visibles ou non, cadre,
+  passe-partout (blanc, crème, noir, aucun), taille × 1 à × 4, texte sous les chiffres (en mode Émission, vide = le
+  nom de la manche).
+- **Déclencheurs** : clic droit des joueurs (démarre / pause), redstone (rien, démarre / pause, tourne tant
+  qu'alimentée, relance), démarre avec la manche, s'arrête en fin de manche, son de fin (bip, cloche, gong, buzzer),
+  clignote à la fin, **comparateur** à 15 quand le minuteur est fini (portes, lampes…), **groupe** : les tablettes
+  d'un même groupe démarrent et s'arrêtent ensemble.
+- **Position** : debout, sur chevalet (inclinaison 0 à 60°), à plat.
+- Commande : `/craftMasterTablet start|pause|toggle|reset|restart [groupe]` (`/cftb`, organisateurs) ; StreamDeck :
+  `http://127.0.0.1:25710/tablet/start?group=plateau` ([Saisie](Saisie.md)).
+- Tenue en main, c'est un petit cadre « 25.7 » fixe : les chiffres vivants ne s'affichent que posée (à venir).
 
 ### `/image` : images sur les écrans
 Remplace le `/image <URL>` du plugin (qui passait par ImageFrame).
@@ -140,6 +163,7 @@ Ces ordres ne touchent pas aux données (rien à annuler) ; ils marchent aussi e
 | Suspension | pépite d'or / lingot d'or / torche |
 | Projecteur | `·F·` / `FGF` / `FFF` — F lingot de fer, G pierre lumineuse |
 | Enseigne « EN DIRECT » | vitre noire, lampe à redstone, vitre noire |
+| Tablette chrono | `PCP` / `PGP` — P béton noir, C horloge, G vitre |
 | Chrono géant | `OHO` / `RBR` — O lingot d'or, H horloge, R redstone, B béton noir |
 | Écran du studio | `BBB` / `BVB` — B béton noir, V vitre |
 | Pupitre | `DDD` / `VOV` / `P·P` — D dalle de chêne noir, V laine rouge, O lingot d'or, P planches de chêne noir |

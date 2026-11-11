@@ -14,6 +14,8 @@
 - `ScoreBoardTest` : écran de saisie de l'arbitre — la place donne le score de base, le +1/-1 suit le joueur, échange,
   en tête, joueur déplacé puis +1/-1 (placé d'abord), bornes -10..+10 sans réécrire un score déjà hors bornes,
   barème d'une épreuve sans points, liste des changements à envoyer. `ScoreEntryBoardTest` : le JSON de l'écran.
+- `TabletClockTest` : tablette chrono — minuteur (pause, reprise, jamais sous 0), chrono, formats (25.7, 3:07, 1:07.42,
+  dixièmes des 10 dernières secondes, arrondi vers le haut d'un compte à rebours), heure, durées tapées, réglages JSON.
 - `PublishedScoresTest` : rien de publié avant la première publication, copie figée, écart non publié, plusieurs
   parties additionnées, persistance.
 - `ActionsTest` : le schéma d'actions de la régie (préparation, manche suivante / en cours, scores par surnom,
@@ -350,3 +352,12 @@ softbox au sol et au mur, cadre au mur, trépied + barre, carrelage, paroi du gl
 sur la chaise (bonne hauteur, vu d'un second client) ; clic droit sur une lumière (angle 3 → 4) ; caméra posée avec
 `/cam here`, son nouveau trépied, coupe `/cam cut` en mode diffusion. Test serveur 0 échec, JUnit 200 tests.
 Non vérifié : icônes dans l'inventaire / l'onglet créatif, softbox et cadre au plafond, rotation accroupi + clic.
+
+### Tablette chrono (vérifié en jeu, serveur de dev + client LordFinn piloté par MCP Fabric)
+| Fonction | Résultat |
+|---|---|
+| 4 positions (debout, chevalet, à plat, au mur) × 4 modes (minuteur 25.7, chrono, heure, chrono de l'émission) | ✔ (captures) |
+| Mode Émission : suit le chrono de la manche (« 1:28 », « 3 · Château ») | ✔ |
+| Écran de réglages (clic droit) : aperçu en direct, Relancer, changement de cadre vu tout de suite | ✔ |
+| Redstone (front montant : relance un minuteur fini), `/craftMasterTablet`, StreamDeck `/tablet/start`, `?group=` | ✔ |
+| Sons de fin, comparateur, clic des joueurs non organisateurs | non vérifiés en jeu (jeu muet, pas de second client) |

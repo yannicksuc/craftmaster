@@ -53,6 +53,7 @@ Redémarrer le jeu après modification. `token` facultatif : s'il est rempli, aj
 | `/ranking` | Ouvre le classement (le ferme s'il est ouvert) |
 | `/undo` · `/redo` | Annule / refait la dernière modification (organisateurs : le serveur vérifie) |
 | `/season/next` · `/season/prev` | Saison suivante / précédente dans l'écran de saisie ou de classement ouvert |
+| `/tablet/start` · `/pause` · `/toggle` · `/reset` · `/restart` | Tablettes chrono (`?group=nom` : seulement ce groupe ; [Plateau](Plateau.md#tablette-chrono)) |
 | `/status` | JSON : connecté, organisateur, écran ouvert, saison affichée, annulations / refaire possibles |
 
 Réponse toujours en JSON `{"ok": true}` ou `{"ok": false, "error": "…"}` (409 : pas connecté ou aucun écran ouvert,
