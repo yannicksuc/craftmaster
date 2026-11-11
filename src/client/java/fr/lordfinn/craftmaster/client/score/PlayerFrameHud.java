@@ -94,6 +94,15 @@ public final class PlayerFrameHud {
         if (config.playerFrame == null || !config.playerFrame.enabled || mc.player == null) return;
         // The setting may have changed (reload): follow it
         if (wantedSeason() != shownSeason) follow();
+        // Organisers: a reminder while a score entry draft is not validated
+        String draft = fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin() ? ScoreEntryScreen.draftRoundName() : null;
+        if (draft != null) {
+            Component d = Component.translatable("hud.craftmaster.draft", draft);
+            String c0 = config.playerFrame.corner == null ? "" : config.playerFrame.corner;
+            int dx = c0.endsWith("left") ? 6 : g.guiWidth() - mc.font.width(d) - 6;
+            int dy = c0.startsWith("bottom") ? g.guiHeight() - 52 - PlayerFrame.height(FACE, false) : 10 + PlayerFrame.height(FACE, false);
+            g.text(mc.font, d, dx, dy, 0xFFFFC23D, true);
+        }
         if (total == null) return;
         if (mc.gui.screen() != null || Broadcast.active()) return;
         int w = FACE + 4, h = PlayerFrame.height(FACE, false);

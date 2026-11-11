@@ -29,6 +29,8 @@ public final class ScoreEntryClient {
             if (mc.gui.screen() instanceof ScoreEntryScreen s) s.update(p.json());
             else if (p.open()) mc.gui.setScreen(new ScoreEntryScreen(p.json()));
         });
+        // Drafts belong to one connection
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register((h, mc) -> mc.execute(ScoreEntryScreen::clearDrafts));
         PlayerFrameHud.init();
         StreamDeckServer.start();
     }
