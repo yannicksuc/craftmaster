@@ -125,6 +125,28 @@ class ScoreBoardTest {
     }
 
     @Test
+    void exAequoSharesThePlaceAndSkipsTheNext() {
+        ScoreBoard b = ScoreBoard.of(List.of("A", "B", "C", "D"), Map.of(), new int[]{5, 4, 3, 2});
+        b.fromBench("A");
+        b.fromBench("B");
+        b.fromBench("C");
+        // C dropped on A: same place and points, B goes to the third place (the second is skipped)
+        assertTrue(b.tieWith("C", "A"));
+        assertEquals(List.of(r("A", 5), r("C", 5), r("B", 3)), b.rows());
+        assertEquals(0, b.place(1));
+        assertTrue(b.isTied("C"));
+        // From the bench straight into the tie
+        assertTrue(b.tieWith("D", "A"));
+        assertEquals(List.of(r("A", 5), r("C", 5), r("D", 5), r("B", 2)), b.rows());
+        // A leaves the top: C leads the tie, D stays tied with C
+        b.moveTo(0, 3);
+        assertEquals(List.of(r("C", 5), r("D", 5), r("B", 3), r("A", 2)), b.rows());
+        assertTrue(b.undo());
+        assertEquals(List.of(r("A", 5), r("C", 5), r("D", 5), r("B", 2)), b.rows());
+        assertFalse(b.tieWith("A", "A"));
+    }
+
+    @Test
     void everyGestureCanBeUndoneAndRedone() {
         ScoreBoard b = board();
         b.bump(0, 1);

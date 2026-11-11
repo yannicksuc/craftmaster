@@ -34,10 +34,13 @@ public final class ScoreBoard {
     private List<String> placed = new ArrayList<>();
     private List<String> bench = new ArrayList<>();
     private Map<String, Integer> tokens = new HashMap<>();
+    /** Players tied with the one before them (same place, same base; the next place is skipped). */
+    private java.util.Set<String> tied = new java.util.HashSet<>();
     /** Score of each player when the board was built (absent: no score yet). */
     private final Map<String, Integer> initial = new LinkedHashMap<>();
 
-    private record Snapshot(List<Integer> steps, List<String> placed, List<String> bench, Map<String, Integer> tokens) {}
+    private record Snapshot(List<Integer> steps, List<String> placed, List<String> bench, Map<String, Integer> tokens,
+                            java.util.Set<String> tied) {}
 
     private final Deque<Snapshot> undo = new ArrayDeque<>(), redo = new ArrayDeque<>();
 
@@ -100,7 +103,23 @@ public final class ScoreBoard {
 
     public int score(int index) {
         check(index);
-        return steps.get(index) + tokens.getOrDefault(placed.get(index), 0);
+        return steps.get(place(index)) + tokens.getOrDefault(placed.get(index), 0);
+    }
+
+    /**
+     * The place (0 = first) of the card on step {@code index}: its own step, or the step of the first card of its
+     * tie (ex aequo share the place; the next card keeps its own step, so the next place is skipped).
+     */
+    public int place(int index) {
+        check(index);
+        int i = index;
+        while (i > 0 && tied.contains(placed.get(i))) i--;
+        return i;
+    }
+
+    /** Is this player tied with the one before him? */
+    public boolean isTied(String player) {
+        return tied.contains(player);
     }
 
     /** The player's own bonus / penalty (follows him from step to step). */
@@ -133,12 +152,21 @@ public final class ScoreBoard {
 
     // ---------------------------------------------------------------- gestures (each one can be undone)
 
+    /** Takes a player out of his tie before he moves (the next one of the tie leads it if he did). */
+    private void untie(int index) {
+        String p = placed.get(index);
+        if (!tied.contains(p) && index + 1 < placed.size()) tied.remove(placed.get(index + 1));
+        tied.remove(p);
+    }
+
     /** The two players trade steps (each takes the base of his new step, keeps his token). */
     public void swap(int a, int b) {
         check(a);
         check(b);
         if (a == b) return;
         record();
+        untie(a);
+        untie(b);
         String p = placed.get(a);
         placed.set(a, placed.get(b));
         placed.set(b, p);
@@ -153,9 +181,11 @@ public final class ScoreBoard {
     public void moveTo(int from, int to) {
         check(from);
         check(to);
-        if (from == to) return;
+        if (from == to && !tied.contains(placed.get(from))) return;
         record();
+        untie(from);
         placed.add(to, placed.remove(from));
+        if (to == 0 && placed.size() > 1) tied.remove(placed.get(1));
     }
 
     /**
@@ -207,7 +237,34 @@ public final class ScoreBoard {
         if (!bench.contains(player) || placed.size() >= steps.size()) return false;
         record();
         bench.remove(player);
-        placed.add(Math.max(0, Math.min(placed.size(), at)), player);
+        int i = Math.max(0, Math.min(placed.size(), at));
+        placed.add(i, player);
+        if (i == 0 && placed.size() > 1) tied.remove(placed.get(1));
+        return true;
+    }
+
+    /**
+     * Ex aequo: the player (placed or on the bench) is put right after {@code target}'s tie and shares its place and
+     * base. False if it cannot be done (same player, target not placed, no free step).
+     */
+    public boolean tieWith(String player, String target) {
+        int t = placed.indexOf(target);
+        if (t < 0 || player.equals(target)) return false;
+        boolean fromBench = bench.contains(player);
+        if (fromBench && placed.size() >= steps.size()) return false;
+        if (!fromBench && !placed.contains(player)) return false;
+        record();
+        if (fromBench) bench.remove(player);
+        else {
+            int from = placed.indexOf(player);
+            untie(from);
+            placed.remove(from);
+        }
+        t = placed.indexOf(target);
+        int end = t;
+        while (end + 1 < placed.size() && tied.contains(placed.get(end + 1))) end++;
+        placed.add(end + 1, player);
+        tied.add(player);
         return true;
     }
 
@@ -215,20 +272,22 @@ public final class ScoreBoard {
     public void toBench(int index) {
         check(index);
         record();
+        untie(index);
         bench.add(placed.remove(index));
     }
 
-    /** "The rest tied last": every player on the bench goes to the step after the last placed one, same base. */
+    /** "The rest tied last": every player on the bench goes to the next place, all of them tied. */
     public void benchTiedLast() {
         if (bench.isEmpty()) return;
         record();
-        int last = placed.size();
-        int base = last < steps.size() ? steps.get(last) : 0;
+        boolean first = true;
         for (String p : new ArrayList<>(bench)) {
+            if (placed.size() >= steps.size()) break;
             placed.add(p);
-            steps.set(placed.size() - 1, base);
+            bench.remove(p);
+            if (!first) tied.add(p);
+            first = false;
         }
-        bench.clear();
     }
 
     public boolean canUndo() {
@@ -255,7 +314,8 @@ public final class ScoreBoard {
     }
 
     private Snapshot snapshot() {
-        return new Snapshot(new ArrayList<>(steps), new ArrayList<>(placed), new ArrayList<>(bench), new HashMap<>(tokens));
+        return new Snapshot(new ArrayList<>(steps), new ArrayList<>(placed), new ArrayList<>(bench), new HashMap<>(tokens),
+                new java.util.HashSet<>(tied));
     }
 
     private void restore(Snapshot s) {
@@ -263,6 +323,7 @@ public final class ScoreBoard {
         placed = new ArrayList<>(s.placed());
         bench = new ArrayList<>(s.bench());
         tokens = new HashMap<>(s.tokens());
+        tied = new java.util.HashSet<>(s.tied());
     }
 
     /** Before every gesture: what to go back to; a new gesture empties the redo. */
