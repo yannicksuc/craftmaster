@@ -20,7 +20,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class EntityRenderDispatcherMixin {
 
     @Inject(method = "shouldRender", at = @At("HEAD"), cancellable = true)
+    //? if >=26.3 {
     private <E extends Entity> void craftmaster$hideOffAir(E entity, Frustum frustum, double x, double y, double z, float partialTick,
+    //?} else {
+    /*private <E extends Entity> void craftmaster$hideOffAir(E entity, Frustum frustum, double x, double y, double z,
+    *///?}
                                                           CallbackInfoReturnable<Boolean> cir) {
         if (!Broadcast.active()) return;
         if (entity instanceof CameraEntity || entity == Minecraft.getInstance().player

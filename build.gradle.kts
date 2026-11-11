@@ -61,7 +61,11 @@ loom {
             (findProperty("quickPlayMultiplayer") as String?)?.let { programArgs("--quickPlayMultiplayer", it) }
             // -PbackgroundClient: the window opens without taking the focus (Minecraft 26.x windows are SDL3,
             // which reads this hint from the environment), see scripts/dev-client.ps1
-            if (hasProperty("backgroundClient")) environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
+            if (hasProperty("backgroundClient")) {
+                environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
+                // Minecraft 26.2 windows are GLFW: client.mixin.DevWindowMixin
+                vmArg("-Dcraftmaster.dev.backgroundClient=true")
+            }
             // -PregieTrigger: the voice control plays the .wav files dropped in run/regie-trigger as if the key
             // were held while they are spoken (tests without keyboard or microphone, docs/wiki/RegieVocale.md)
             if (hasProperty("regieTrigger")) vmArg("-Dcraftmaster.regie.triggerDir=" + rootProject.file(property("run_dir") as String + "/regie-trigger").absolutePath)
@@ -74,7 +78,11 @@ loom {
             (findProperty("quickPlayMultiplayer") as String?)?.let { programArgs("--quickPlayMultiplayer", it) }
             // -PwindowSize=1920x1080: the broadcast picture at Twitch's size (scripts/dev-client.ps1 -Size)
             (findProperty("windowSize") as String?)?.split("x")?.let { programArgs("--width", it[0], "--height", it[1]) }
-            if (hasProperty("backgroundClient")) environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
+            if (hasProperty("backgroundClient")) {
+                environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
+                // Minecraft 26.2 windows are GLFW: client.mixin.DevWindowMixin
+                vmArg("-Dcraftmaster.dev.backgroundClient=true")
+            }
             runDir = rootRunDir("run2_dir")
         }
         named("server") {
@@ -93,4 +101,17 @@ tasks.processResources {
     inputs.properties(props)
     filteringCharset = "UTF-8"
     filesMatching("fabric.mod.json") { expand(props) }
+    // The shaders are written in 26.3's GLSL. 26.2 still uses #moj_import, and no explicit in/out locations (its
+    // vertex shaders do not give any, the separate shader objects extension is 26.3's)
+    inputs.property("glsl_dialect", project.property("glsl_dialect"))
+    if (project.property("glsl_dialect") == "moj_import") {
+        filesMatching(listOf("**/shaders/**/*.fsh", "**/shaders/**/*.vsh", "**/shaders/**/*.glsl")) {
+            filter { line ->
+                if (line.trim() == "#extension GL_ARB_separate_shader_objects : require") ""
+                else line.replace(Regex("^#include <"), "#moj_import <")
+                    .replace(Regex("""layout\(location = \d+\) (in|out) """), "$1 ")
+                    .replace("gl_VertexIndex", "gl_VertexID")
+            }
+        }
+    }
 }
