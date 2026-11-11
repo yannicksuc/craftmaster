@@ -265,25 +265,32 @@ public class TabletScreen extends Screen {
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
         Ui.panel(g, font, left, top, w, h, t("title").copy().withStyle(ChatFormatting.BOLD));
-        preview(g, left + 8, top + 26, 124, 93);
+        preview(g, left + 8, top + 24, 128, 96);
         Component state = tablet.clock().running() ? t("state.running").copy().withStyle(ChatFormatting.GREEN)
                 : t("state.stopped").copy().withStyle(ChatFormatting.GRAY);
-        g.centeredText(font, state, left + 70, top + 125, Theme.TEXT);
+        g.centeredText(font, state, left + 72, top + 126, Theme.TEXT);
         if (!s.group.isEmpty()) g.centeredText(font, t("in_group", s.group), left + 70, top + 186, Theme.TEXT_DIM);
         for (Consumer<GuiGraphicsExtractor> l : labels) l.accept(g);
         super.extractRenderState(g, mouseX, mouseY, partial);
     }
 
-    /** The tablet's face as in the world, live. */
+    /** The tablet's face as in the world, live: the size-4 layers of the tablet texture, twice as big. */
     private void preview(GuiGraphicsExtractor g, int x, int y, int pw, int ph) {
         long now = System.currentTimeMillis();
         TabletView.View v = TabletView.of(s, tablet.clock(), tablet.overAt(), now);
-        int b = 5, m = s.mat == TabletClock.Mat.NONE ? 0 : 6;
-        g.fill(x, y, x + pw, y + ph, 0xFF000000 | s.frame.rgb);
-        g.fill(x, y, x + pw, y + 1, Theme.shade(0xFF000000 | s.frame.rgb, 0.3f));
-        if (m > 0) g.fill(x + b, y + b, x + pw - b, y + ph - b, 0xFF000000 | s.mat.rgb);
-        int sx0 = x + b + m, sy0 = y + b + m, sx1 = x + pw - b - m, sy1 = y + ph - b - m;
-        g.fill(sx0, sy0, sx1, sy1, 0xFF0A0A0A);
+        int frames = TabletClock.FrameColor.values().length;
+        org.joml.Matrix3x2fStack pose = g.pose();
+        pose.pushMatrix();
+        pose.translate(x, y);
+        pose.scale(pw / 64f, ph / 48f);
+        blitLayer(g, frames + 3);
+        if (s.mat != TabletClock.Mat.NONE) blitLayer(g, frames + s.mat.ordinal());
+        blitLayer(g, s.frame.ordinal());
+        pose.popMatrix();
+        // The screen inside the frame (4 px) and the passe-partout (4 px), at the preview's scale
+        float k = pw / 64f;
+        int inset = Math.round((s.mat == TabletClock.Mat.NONE ? 4 : 8) * k);
+        int sx0 = x + inset, sy0 = y + inset, sx1 = x + pw - inset, sy1 = y + ph - inset;
         int lit = TabletView.lit(v.rgb(), v.bright(), 0x0A0A0A);
         int ghost = s.ghostSegments ? TabletView.ghost(v.rgb()) : 0;
         boolean label = !v.label().isEmpty();
@@ -294,6 +301,11 @@ public class TabletScreen extends Screen {
             String text = font.plainSubstrByWidth(v.label(), sx1 - sx0 - 6);
             g.centeredText(font, text, (sx0 + sx1) / 2, sy1 - 12, TabletView.lit(v.rgb(), 0.85f, 0x0A0A0A));
         }
+    }
+
+    /** One 64 × 48 layer (size 4) of the tablet texture at the origin. */
+    private static void blitLayer(GuiGraphicsExtractor g, int row) {
+        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, TimerTabletRenderer.TEXTURE, 0, 0, 96, row * 48, 64, 48, 160, 864);
     }
 
     /** Seven-segment text in the GUI (whole pixels), centred on cx, top at y. */

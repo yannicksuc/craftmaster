@@ -58,14 +58,16 @@ public final class TabletClock {
     }
 
     public enum FrameColor {
-        BLACK(0x141414), WALNUT(0x4C3020), GOLD(0xD4A53A), WHITE(0xEDEAE2), RED(0x8A1C24);
+        // Same order as the rows of textures/entity/timer_tablet.png (scripts/gen_tablet.py)
+        BLACK(0x242428), WALNUT(0x4E3020), OAK(0xA27E4C), GOLD(0xDEA830), STEEL(0xA2A6B0), WHITE(0xE2DCD2), RED(0x9C1C28);
         public final int rgb;
         FrameColor(int rgb) { this.rgb = rgb; }
     }
 
     /** The passe-partout between the frame and the screen (like a photo frame). */
     public enum Mat {
-        WHITE(0xF2EFE6), CREAM(0xE8D9B0), BLACK(0x0C0C0C), NONE(-1);
+        // Same order as the passe-partout rows of the tablet texture; NONE last
+        WHITE(0xF2EFE6), CREAM(0xE8D9B0), BLACK(0x2C2C30), NONE(-1);
         public final int rgb;
         Mat(int rgb) { this.rgb = rgb; }
     }
