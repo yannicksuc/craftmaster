@@ -290,6 +290,11 @@ public final class CraftMasterData {
         return redone;
     }
 
+    /** What a redo would bring back first (null if nothing). */
+    public Change nextRedo() {
+        return redoJournal.peek();
+    }
+
     /** Number of undone changes that can be redone. */
     public int redoSize() {
         return redoJournal.size();

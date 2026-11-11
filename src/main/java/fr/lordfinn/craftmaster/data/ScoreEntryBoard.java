@@ -36,6 +36,12 @@ public final class ScoreEntryBoard {
         o.add("seasons", seasons);
         o.addProperty("undo", data.history().size());
         o.addProperty("redo", data.redoSize());
+        // What Undo / Redo would do, shown on their buttons ("↶ Annuler : Château — 5 scores")
+        if (!data.history().isEmpty()) {
+            o.addProperty("undoText", data.history().getFirst().description());
+            o.addProperty("undoAt", data.history().getFirst().at());
+        }
+        if (data.nextRedo() != null) o.addProperty("redoText", data.nextRedo().description());
 
         JsonArray players = new JsonArray();
         List<String> names = s.players.values().stream().filter(p -> !p.archived).map(p -> p.name).toList();

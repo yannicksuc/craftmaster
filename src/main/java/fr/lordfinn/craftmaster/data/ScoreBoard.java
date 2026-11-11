@@ -1,18 +1,25 @@
 package fr.lordfinn.craftmaster.data;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Pure model of the referee's score entry screen for one round (no Minecraft dependency).
+ * Pure model of the referee's score entry for one round (no Minecraft dependency): a draft, sent only when the
+ * referee validates it.
  *
- * <p>Rule (validated with LordFinn): every place has a base score, and every player has his own bonus / penalty.
- * A player's score = base of his place + his own modifier, kept in [-10, 10]. Moving a player gives him the base of
- * his new place and the others take the base of theirs; +1 / -1 only changes the modifier of that one player, which
- * follows him when he moves. Example: places 5, 3, 1 for A, B, C; +1 on A (6); swap A and C → C 5, B 3, A 1 + 1 = 2.
+ * <p>Rule (validated with LordFinn): every place is a <b>step</b> with a base score painted on it, every player
+ * placed on a step has his own <b>token</b> (bonus / penalty) that follows him. Score = base of his step + his token.
+ * Moving a player gives him the base of his new step; +1 / -1 only changes his token. Example: steps 5, 3, 1 for A,
+ * B, C; +1 on A (6); swap A and C → C 5, B 3, A 1 + 1 = 2.
+ *
+ * <p>Players not ranked yet wait on the <b>bench</b> (a round never scored starts with everyone there, its steps
+ * taking the scale's points): a click sends a player to the next free step, in the order they finished. A player
+ * left on the bench keeps his score (nothing is sent for him). Every gesture can be undone / redone locally.
  */
 public final class ScoreBoard {
 
@@ -21,138 +28,270 @@ public final class ScoreBoard {
 
     public record Row(String player, int score) {}
 
-    private final List<String> players = new ArrayList<>();
-    private final List<Integer> base = new ArrayList<>();
-    private final Map<String, Integer> modifiers = new HashMap<>();
+    /** Base score of each step (as many steps as players). */
+    private List<Integer> steps = new ArrayList<>();
+    /** Players on the steps, step 0 first. */
+    private List<String> placed = new ArrayList<>();
+    private List<String> bench = new ArrayList<>();
+    private Map<String, Integer> tokens = new HashMap<>();
+    /** Score of each player when the board was built (absent: no score yet). */
     private final Map<String, Integer> initial = new LinkedHashMap<>();
 
-    /** Rows in their order; each row's score becomes the base of its place (modifiers start at 0). */
+    private record Snapshot(List<Integer> steps, List<String> placed, List<String> bench, Map<String, Integer> tokens) {}
+
+    private final Deque<Snapshot> undo = new ArrayDeque<>(), redo = new ArrayDeque<>();
+
+    /** Rows in their order, all placed; each row's score becomes the base of its step (tokens start at 0). */
     public ScoreBoard(List<Row> rows) {
         for (Row r : rows) {
             // A score already outside [-10, 10] (given by a command) is kept as is: the screen must not rewrite it
-            int s = r.score();
-            players.add(r.player());
-            base.add(s);
-            initial.put(r.player(), s);
+            placed.add(r.player());
+            steps.add(r.score());
+            initial.put(r.player(), r.score());
         }
     }
 
+    private ScoreBoard() {}
+
     /**
-     * The board of a round: players sorted by their current score (high to low, ties in the given order). When nobody
-     * has a score yet, the places take the points of {@code scale} (place 1 = scale[0]…, 0 past its end), so ordering
-     * the players is enough to give the points.
+     * The board of a round. Players with a score stand on the steps, best first (ties in the given order), each step
+     * keeping that score as its base; the others wait on the bench, and the free steps take the scale's points
+     * (place n = scale[n-1], 0 past its end). A round never scored: everyone on the bench, steps = the scale.
      *
-     * @param scores current score of each player (absent = no score), in the season's order of players
+     * @param players the season's players, in its order
+     * @param scores current score of each player (absent = no score)
      */
     public static ScoreBoard of(List<String> players, Map<String, Integer> scores, int[] scale) {
-        List<String> order = new ArrayList<>(players);
-        boolean none = players.stream().noneMatch(scores::containsKey);
-        if (none) {
-            List<Row> rows = new ArrayList<>();
-            for (int i = 0; i < order.size(); i++) rows.add(new Row(order.get(i), i < scale.length ? scale[i] : 0));
-            ScoreBoard b = new ScoreBoard(rows);
-            // Nothing was given yet: "initial" is 0 for everyone, so the scale counts as a change to send
-            for (String p : order) b.initial.put(p, 0);
-            return b;
-        }
-        order.sort((a, b) -> Integer.compare(scores.getOrDefault(b, 0), scores.getOrDefault(a, 0)));
-        List<Row> rows = new ArrayList<>();
-        for (String p : order) rows.add(new Row(p, scores.getOrDefault(p, 0)));
-        return new ScoreBoard(rows);
+        ScoreBoard b = new ScoreBoard();
+        List<String> scored = new ArrayList<>(players.stream().filter(scores::containsKey).toList());
+        scored.sort((x, y) -> Integer.compare(scores.get(y), scores.get(x)));
+        for (int i = 0; i < players.size(); i++)
+            b.steps.add(i < scored.size() ? scores.get(scored.get(i)) : i < scale.length ? scale[i] : 0);
+        b.placed.addAll(scored);
+        for (String p : players) if (!scores.containsKey(p)) b.bench.add(p);
+        for (String p : scored) b.initial.put(p, scores.get(p));
+        return b;
     }
 
     public static int clamp(int v) {
         return Math.max(MIN, Math.min(MAX, v));
     }
 
+    // ---------------------------------------------------------------- reading
+
+    /** Players on the steps. */
     public int size() {
-        return players.size();
+        return placed.size();
+    }
+
+    /** Number of steps (= players of the board). */
+    public int steps() {
+        return steps.size();
+    }
+
+    public int stepBase(int step) {
+        return steps.get(step);
     }
 
     public String player(int index) {
         check(index);
-        return players.get(index);
+        return placed.get(index);
     }
 
     public int score(int index) {
         check(index);
-        return base.get(index) + modifiers.getOrDefault(players.get(index), 0);
+        return steps.get(index) + tokens.getOrDefault(placed.get(index), 0);
     }
 
+    /** The player's own bonus / penalty (follows him from step to step). */
     public int modifier(String player) {
-        return modifiers.getOrDefault(player, 0);
+        return tokens.getOrDefault(player, 0);
     }
 
     public int indexOf(String player) {
-        return players.indexOf(player);
+        return placed.indexOf(player);
+    }
+
+    public List<String> bench() {
+        return List.copyOf(bench);
+    }
+
+    public boolean onBench(String player) {
+        return bench.contains(player);
+    }
+
+    /** The player's score before the draft (null: none). */
+    public Integer initialScore(String player) {
+        return initial.get(player);
     }
 
     public List<Row> rows() {
         List<Row> out = new ArrayList<>();
-        for (int i = 0; i < players.size(); i++) out.add(new Row(players.get(i), score(i)));
+        for (int i = 0; i < placed.size(); i++) out.add(new Row(placed.get(i), score(i)));
         return out;
     }
 
-    /** Click/click: the two players trade places (each takes the base of his new place, keeps his modifier). */
+    // ---------------------------------------------------------------- gestures (each one can be undone)
+
+    /** The two players trade steps (each takes the base of his new step, keeps his token). */
     public void swap(int a, int b) {
         check(a);
         check(b);
         if (a == b) return;
-        String p = players.get(a);
-        players.set(a, players.get(b));
-        players.set(b, p);
+        record();
+        String p = placed.get(a);
+        placed.set(a, placed.get(b));
+        placed.set(b, p);
     }
 
-    /** Shift-click: the player goes to the top, the ones above shift down by one. */
+    /** The player goes to the top step, the ones above shift down by one. */
     public void toFront(int index) {
         moveTo(index, 0);
     }
 
-    /** The player leaves {@code from} and is inserted at {@code to}; the ones in between shift by one. */
+    /** The player leaves step {@code from} and is inserted at {@code to}; the ones in between shift by one. */
     public void moveTo(int from, int to) {
         check(from);
         check(to);
-        players.add(to, players.remove(from));
+        if (from == to) return;
+        record();
+        placed.add(to, placed.remove(from));
     }
 
     /**
-     * +1 / -1 on one player only (his modifier); returns the new score. It never leaves [-10, 10] (a score already
+     * +1 / -1 on one player only (his token); returns the new score. It never leaves [-10, 10] (a score already
      * outside only moves back towards it).
      */
     public int bump(int index, int delta) {
         int now = score(index);
         int next = Math.max(Math.min(MIN, now), Math.min(Math.max(MAX, now), now + delta));
-        String p = players.get(index);
-        modifiers.put(p, modifiers.getOrDefault(p, 0) + (next - now));
+        if (next == now) return now;
+        record();
+        String p = placed.get(index);
+        tokens.put(p, tokens.getOrDefault(p, 0) + (next - now));
         return next;
     }
 
     /**
-     * A player being moved (picked up) gets a +1 / -1 on another place: the move is applied first (he is inserted
-     * there, the others shift), then the modifier. Returns the new score.
+     * +1 / -1 for a player wherever he is (the board view): one on the bench first goes to the next free step (one
+     * gesture). Returns the new score, or null if he cannot be placed.
      */
+    public Integer bumpPlayer(String player, int delta) {
+        if (bench.contains(player)) {
+            if (placed.size() >= steps.size()) return null;
+            record();
+            bench.remove(player);
+            placed.add(player);
+            int i = placed.size() - 1, now = score(i);
+            int next = Math.max(Math.min(MIN, now), Math.min(Math.max(MAX, now), now + delta));
+            tokens.put(player, tokens.getOrDefault(player, 0) + (next - now));
+            return next;
+        }
+        int i = placed.indexOf(player);
+        return i < 0 ? null : bump(i, delta);
+    }
+
+    /** A player being moved gets +1 / -1 on another step: moved there first (the others shift), then the token. */
     public int moveAndBump(int from, int to, int delta) {
         moveTo(from, to);
         return bump(to, delta);
     }
 
-    /** What changed since the board was built: player → new score, in the order of the rows. */
+    /** From the bench to the next free step ("finished next"); false if not on the bench. */
+    public boolean fromBench(String player) {
+        return fromBench(player, placed.size());
+    }
+
+    /** From the bench to step {@code at} (the others shift down); false if not on the bench. */
+    public boolean fromBench(String player, int at) {
+        if (!bench.contains(player) || placed.size() >= steps.size()) return false;
+        record();
+        bench.remove(player);
+        placed.add(Math.max(0, Math.min(placed.size(), at)), player);
+        return true;
+    }
+
+    /** Back to the bench (his score will not be touched); his token stays with him. */
+    public void toBench(int index) {
+        check(index);
+        record();
+        bench.add(placed.remove(index));
+    }
+
+    /** "The rest tied last": every player on the bench goes to the step after the last placed one, same base. */
+    public void benchTiedLast() {
+        if (bench.isEmpty()) return;
+        record();
+        int last = placed.size();
+        int base = last < steps.size() ? steps.get(last) : 0;
+        for (String p : new ArrayList<>(bench)) {
+            placed.add(p);
+            steps.set(placed.size() - 1, base);
+        }
+        bench.clear();
+    }
+
+    public boolean canUndo() {
+        return !undo.isEmpty();
+    }
+
+    public boolean canRedo() {
+        return !redo.isEmpty();
+    }
+
+    /** Undoes the last gesture; false if there was none. */
+    public boolean undo() {
+        if (undo.isEmpty()) return false;
+        redo.push(snapshot());
+        restore(undo.pop());
+        return true;
+    }
+
+    public boolean redo() {
+        if (redo.isEmpty()) return false;
+        undo.push(snapshot());
+        restore(redo.pop());
+        return true;
+    }
+
+    private Snapshot snapshot() {
+        return new Snapshot(new ArrayList<>(steps), new ArrayList<>(placed), new ArrayList<>(bench), new HashMap<>(tokens));
+    }
+
+    private void restore(Snapshot s) {
+        steps = new ArrayList<>(s.steps());
+        placed = new ArrayList<>(s.placed());
+        bench = new ArrayList<>(s.bench());
+        tokens = new HashMap<>(s.tokens());
+    }
+
+    /** Before every gesture: what to go back to; a new gesture empties the redo. */
+    private void record() {
+        undo.push(snapshot());
+        if (undo.size() > 100) undo.removeLast();
+        redo.clear();
+    }
+
+    // ---------------------------------------------------------------- sending
+
+    /** What to send: every placed player whose score differs from before (bench: untouched), in step order. */
     public Map<String, Integer> changes() {
         Map<String, Integer> out = new LinkedHashMap<>();
-        for (int i = 0; i < players.size(); i++) {
-            String p = players.get(i);
+        for (int i = 0; i < placed.size(); i++) {
+            String p = placed.get(i);
             int s = score(i);
-            if (s != initial.getOrDefault(p, 0)) out.put(p, s);
+            Integer before = initial.get(p);
+            if (before == null || s != before) out.put(p, s);
         }
         return out;
     }
 
-    /** Has a score changed (something to send with the update button)? */
+    /** Has a score changed (something to validate)? */
     public boolean dirty() {
         return !changes().isEmpty();
     }
 
     private void check(int i) {
-        if (i < 0 || i >= players.size()) throw new IndexOutOfBoundsException("row " + i);
+        if (i < 0 || i >= placed.size()) throw new IndexOutOfBoundsException("row " + i);
     }
 }
