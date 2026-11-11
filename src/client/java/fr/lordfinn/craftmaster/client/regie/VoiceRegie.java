@@ -42,7 +42,7 @@ public final class VoiceRegie {
     private VoiceRegie() {}
 
     /** Hold to speak to the voice control (default N). */
-    public static final KeyMapping KEY = new KeyMapping("key.craftmaster.regie", InputConstants.Type.KEYBOARD,
+    public static final KeyMapping KEY = new KeyMapping("key.craftmaster.regie", InputConstants.Type./*$ keyboard_type {*/KEYBOARD/*$}*/,
             InputConstants.KEY_N, CraftMasterClient.CATEGORY);
 
     enum Phase { IDLE, LISTENING, THINKING, EXECUTING, SHOWING }

@@ -62,8 +62,8 @@ public class TrialPropRenderer extends EntityRenderer<TrialPropEntity, TrialProp
     public void submit(State s, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         poseStack.pushPose();
         poseStack.translate(0, s.scale / 2 + s.bob, 0);
-        poseStack.rotate(Axis.YP.rotationDegrees(-s.yaw));
-        poseStack.rotate(Axis.XP.rotationDegrees(s.pitch));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.yaw));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(s.pitch));
         poseStack.scale(s.scale, s.scale, s.scale);
         s.item.submit(poseStack, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, s.outlineColor);
         poseStack.popPose();

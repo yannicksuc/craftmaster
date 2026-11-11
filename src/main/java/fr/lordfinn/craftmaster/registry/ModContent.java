@@ -77,7 +77,7 @@ public final class ModContent {
         for (DyeColor color : DyeColor.values()) {
             CURTAINS.put(color, block(color.getName() + "_curtain", CurtainBlock::new,
                     BlockBehaviour.Properties.of().mapColor(color.getMapColor()).strength(0.8f).sound(SoundType.WOOL)
-                            .noCollision().noOcclusion().ignitedByLava().pushReaction(PushReaction.POPPED)));
+                            .noCollision().noOcclusion().ignitedByLava().pushReaction(PushReaction./*$ push_popped {*/POPPED/*$}*/)));
         }
         CURTAIN_BLOCK_ENTITY = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, CraftMaster.id("curtain"),
                 new BlockEntityType<>(CurtainBlockEntity::new, Set.copyOf(CURTAINS.values())));

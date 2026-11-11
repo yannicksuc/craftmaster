@@ -16,7 +16,7 @@ public final class ScoreEntryClient {
     private ScoreEntryClient() {}
 
     /** Opens the referee's score entry screen (organisers). */
-    public static final KeyMapping SCORES_KEY = new KeyMapping("key.craftmaster.scores", InputConstants.Type.KEYBOARD, InputConstants.KEY_U,
+    public static final KeyMapping SCORES_KEY = new KeyMapping("key.craftmaster.scores", InputConstants.Type./*$ keyboard_type {*/KEYBOARD/*$}*/, InputConstants.KEY_U,
             CraftMasterClient.CATEGORY);
 
     public static void init() {

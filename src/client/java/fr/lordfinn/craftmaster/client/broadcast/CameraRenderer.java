@@ -117,7 +117,7 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         int light = s.lightCoords;
         submitTripod(s, poseStack, collector);
         poseStack.pushPose();
-        poseStack.rotate(Axis.YP.rotationDegrees(180 - s.yaw));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(180 - s.yaw));
         poseStack.scale(-1, -1, 1);
         poseStack.translate(0, -1.501, 0);
         head.xRot = (float) Math.toRadians(s.pitch);
@@ -134,7 +134,7 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
             PoseStack ps = new PoseStack();
             ps.last().set(p);
             ps.translate(0, 2 / 16f, 0);
-            ps.rotate(Axis.XP.rotation(head.xRot));
+            ps./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotation(head.xRot));
             tally.render(ps, c, onAir ? LightCoordsUtil.FULL_BRIGHT : light, OverlayTexture.NO_OVERLAY, onAir ? 0xFFFFFFFF : 0xFF603030);
         });
         submitNumber(s, poseStack, collector);
@@ -145,13 +145,13 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
     /** The tripod (1 block, its model) and its rod up to the camera body, turning with the camera. */
     private static void submitTripod(State s, PoseStack poseStack, SubmitNodeCollector collector) {
         poseStack.pushPose();
-        poseStack.rotate(Axis.YP.rotationDegrees(180 - s.yaw));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(180 - s.yaw));
         poseStack.translate(0, 0.5, 0);
         s.tripod.submit(poseStack, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         poseStack.popPose();
         float h = BODY_BOTTOM - TRIPOD_TOP;
         poseStack.pushPose();
-        poseStack.rotate(Axis.YP.rotationDegrees(180 - s.yaw));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(180 - s.yaw));
         poseStack.translate(0, TRIPOD_TOP + h / 2, 0);
         poseStack.scale(1, h, 1);
         s.rod.submit(poseStack, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, 0);
@@ -166,10 +166,10 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         for (int side = -1; side <= 1; side += 2) {
             poseStack.pushPose();
             poseStack.translate(0, 2 / 16f, 0);
-            poseStack.rotate(Axis.XP.rotationDegrees(s.pitch));
+            poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(s.pitch));
             // On the side face (x = ±3 px), turned to face outward, centred on the body
             poseStack.translate(side * 3.02f / 16f, -2 / 16f, 0.5f / 16f);
-            poseStack.rotate(Axis.YP.rotationDegrees(-side * 90));
+            poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-side * 90));
             float scale = 0.45f / 16f;
             poseStack.scale(scale, scale, scale);
             collector.submitText(poseStack, -w / 2, -4, text.getVisualOrderText(), false, Font.DisplayMode.POLYGON_OFFSET,

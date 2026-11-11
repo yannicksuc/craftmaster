@@ -17,4 +17,17 @@ public abstract class FxPostChainMixin {
     private void craftmaster$fxUniforms(RenderTarget target, GraphicsResourceAllocator allocator, CallbackInfo ci) {
         FxUniforms.beforeProcess((PostChain) (Object) this);
     }
+
+    //? if <26.3 {
+    /*// Minecraft 26.2: the chain's id is only known while it is loaded
+    @Inject(method = "load", at = @At("RETURN"))
+    private static void craftmaster$fxId(net.minecraft.client.renderer.PostChainConfig config,
+                                         net.minecraft.client.renderer.texture.TextureManager textures,
+                                         java.util.Set<net.minecraft.resources.Identifier> externalTargets,
+                                         net.minecraft.resources.Identifier id, net.minecraft.client.renderer.Projection projection,
+                                         net.minecraft.client.renderer.ProjectionMatrixBuffer projectionBuffer,
+                                         org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<PostChain> cir) {
+        FxUniforms.loaded(cir.getReturnValue(), id);
+    }
+    *///?}
 }

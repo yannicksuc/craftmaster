@@ -2,6 +2,7 @@ package fr.lordfinn.craftmaster.client.studio;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import fr.lordfinn.craftmaster.client.compat.ClientCompat;
 import fr.lordfinn.craftmaster.CraftMaster;
 import fr.lordfinn.craftmaster.studio.ImageScreenEntity;
 import net.minecraft.ChatFormatting;
@@ -78,7 +79,7 @@ public class ImageScreenRenderer extends EntityRenderer<ImageScreenEntity, Image
         int light = s.lightCoords;
         poseStack.pushPose();
         // Local axes: x to the viewer's right, y up, +z out of the wall toward the audience
-        poseStack.rotate(Axis.YP.rotationDegrees(-s.yaw));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.yaw));
 
         // Bezel: glossy black front frame, dark sides, plain back
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(BEZEL), (p, c) -> {
@@ -111,10 +112,10 @@ public class ImageScreenRenderer extends EntityRenderer<ImageScreenEntity, Image
             poseStack.translate(0, -hh + BORDER + 0.06f + 10 * scale, hd + 0.006f);
             poseStack.scale(scale, -scale, scale);
             int w = font.width(s.message);
-            collector.submitTextBackground(poseStack, -w / 2f - 3, -2, w / 2f + 3, font.lineHeight + 1, 0xB0000000,
+            ClientCompat.textBackground(collector, poseStack, -w / 2f - 3, -2, w / 2f + 3, font.lineHeight + 1, 0xB0000000,
                     Font.DisplayMode.POLYGON_OFFSET, LightCoordsUtil.FULL_BRIGHT);
             collector.submitText(poseStack, -w / 2f, 0, s.message.getVisualOrderText(), false, Font.DisplayMode.POLYGON_OFFSET,
-                    LightCoordsUtil.FULL_BRIGHT, 0xFFFFFFFF, 0, 0);
+                    LightCoordsUtil.FULL_BRIGHT, 0xFFFFFFFF, ClientCompat.lineBackground(0xB0000000), 0);
             poseStack.popPose();
         }
         poseStack.popPose();

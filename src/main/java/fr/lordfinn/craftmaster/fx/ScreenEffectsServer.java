@@ -211,7 +211,7 @@ public final class ScreenEffectsServer {
             stack.set(net.minecraft.core.component.DataComponents.ENCHANTMENT_GLINT_OVERRIDE, false);
         }
         p.setItemSlot(EquipmentSlot.HEAD, stack);
-        if (!old.isEmpty() && !p.getInventory().add(old)) p.drop(old, false, net.minecraft.util.Prediction.SERVER_ONLY);
+        if (!old.isEmpty() && !p.getInventory().add(old)) p.drop(old, false/*$ drop_prediction {*/, net.minecraft.util.Prediction.SERVER_ONLY/*$}*/);
         String name = FxContent.frenchName(stack);
         p.sendOverlayMessage(Component.literal("Tu portes : ").append(stack.getHoverName()).append(lock ? " (verrouillé)" : "")
                 .withStyle(net.minecraft.ChatFormatting.GOLD));
@@ -227,7 +227,7 @@ public final class ScreenEffectsServer {
         // Given back without the curse (it was only there for the trial)
         EnchantmentHelper.updateEnchantments(head, m -> m.removeIf(h -> h.is(Enchantments.BINDING_CURSE)));
         head.remove(net.minecraft.core.component.DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
-        if (!p.getInventory().add(head)) p.drop(head, false, net.minecraft.util.Prediction.SERVER_ONLY);
+        if (!p.getInventory().add(head)) p.drop(head, false/*$ drop_prediction {*/, net.minecraft.util.Prediction.SERVER_ONLY/*$}*/);
         return p.getName().getString() + " a retiré " + name + ".";
     }
 

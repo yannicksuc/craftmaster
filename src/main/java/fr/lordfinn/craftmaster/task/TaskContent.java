@@ -33,9 +33,9 @@ public final class TaskContent {
     public static void register() {
         TaskComponents.register();
         ENVELOPE_BLOCK = block("envelope_block", EnvelopeBlock::new, BlockBehaviour.Properties.of().mapColor(MapColor.SAND)
-                .strength(0.1f).sound(SoundType.WOOL).noCollision().noOcclusion().pushReaction(PushReaction.POPPED));
+                .strength(0.1f).sound(SoundType.WOOL).noCollision().noOcclusion().pushReaction(PushReaction./*$ push_popped {*/POPPED/*$}*/));
         PINNED_NOTE = block("pinned_note", PinnedNoteBlock::new, BlockBehaviour.Properties.of().mapColor(MapColor.SAND)
-                .strength(0.1f).sound(SoundType.WOOL).noCollision().noOcclusion().pushReaction(PushReaction.POPPED).replaceable());
+                .strength(0.1f).sound(SoundType.WOOL).noCollision().noOcclusion().pushReaction(PushReaction./*$ push_popped {*/POPPED/*$}*/).replaceable());
         ENVELOPE_BLOCK_ENTITY = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, CraftMaster.id("envelope_block"),
                 new BlockEntityType<>(EnvelopeBlockEntity::new, Set.of(ENVELOPE_BLOCK)));
 

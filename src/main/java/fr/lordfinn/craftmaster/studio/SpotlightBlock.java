@@ -36,6 +36,14 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  */
 public class SpotlightBlock extends BaseEntityBlock {
 
+    // Minecraft 26.2 blocks must give a codec (26.3 dropped the requirement)
+    //? if <26.3 {
+    /*@Override
+    protected com.mojang.serialization.MapCodec<? extends BaseEntityBlock> codec() {
+        return com.mojang.serialization.MapCodec.unit(this);
+    }
+    *///?}
+
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
     public static final BooleanProperty HANGING = BlockStateProperties.HANGING;
 

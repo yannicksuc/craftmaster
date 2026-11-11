@@ -128,3 +128,8 @@ logs/
 # Python (tools/voice-regie)
 __pycache__/
 .pytest_cache/
+
+# Minecraft 26.2 dev folders (Stonecutter node 26.2, see versions/26.2/gradle.properties)
+run-26.2/
+run2-26.2/
+run-server-26.2/

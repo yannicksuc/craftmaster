@@ -146,7 +146,7 @@ public class TimerTabletRenderer implements BlockEntityRenderer<TimerTabletBlock
         int light = s.lightCoords;
         pose.pushPose();
         pose.translate(0.5, 0, 0.5);
-        pose.rotate(Axis.YP.rotationDegrees(-s.yaw));
+        pose./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.yaw));
         pose.scale(1 / 16f, 1 / 16f, 1 / 16f);
         switch (s.pose) {
             case WALL -> {
@@ -155,13 +155,13 @@ public class TimerTabletRenderer implements BlockEntityRenderer<TimerTabletBlock
             }
             case FLAT -> {
                 pose.translate(0, 0, h / 2);
-                pose.rotate(Axis.XP.rotationDegrees(-90));
+                pose./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(-90));
                 drawTablet(s, pose, collector, w, h, light);
             }
             case STAND -> {
                 // A photo frame on its back strut, leaning back a little
                 pose.translate(0, 0, 2);
-                pose.rotate(Axis.XP.rotationDegrees(-10));
+                pose./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(-10));
                 drawStrut(s, pose, collector, h, light);
                 drawTablet(s, pose, collector, w, h, light);
             }
@@ -177,7 +177,7 @@ public class TimerTabletRenderer implements BlockEntityRenderer<TimerTabletBlock
         float len = Math.round(top / (float) Math.cos(Math.toRadians(30)));
         pose.pushPose();
         pose.translate(0, top, -0.5f);
-        pose.rotate(Axis.XP.rotationDegrees(-150));
+        pose./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(-150));
         if (wood(st.frame)) {
             Identifier log = st.frame == TabletClock.FrameColor.OAK ? OAK_LOG : DARK_LOG;
             collector.submitCustomGeometry(pose, RenderTypes.entityCutout(log), (p, c) -> tiled(c, p, -1.5f, 0, -0.5f, 1.5f, len, 0.5f, light));
@@ -198,7 +198,7 @@ public class TimerTabletRenderer implements BlockEntityRenderer<TimerTabletBlock
         float tray = 4, legLen = tray + h + 3, lx = w / 2 - 2;
         pose.pushPose();
         pose.translate(0, 0, 3);
-        pose.rotate(Axis.XP.rotationDegrees(-tilt));
+        pose./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(-tilt));
         collector.submitCustomGeometry(pose, RenderTypes.entityCutout(OAK_LOG), (p, c) -> {
             tiled(c, p, -lx - 2, 0, -2, -lx, legLen, 0, light);
             tiled(c, p, lx, 0, -2, lx + 2, legLen, 0, light);
@@ -220,7 +220,7 @@ public class TimerTabletRenderer implements BlockEntityRenderer<TimerTabletBlock
         float backLen = (float) (jointY / Math.cos(t));
         pose.pushPose();
         pose.translate(0, 0, footZ);
-        pose.rotate(Axis.XP.rotationDegrees(tilt));
+        pose./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(tilt));
         collector.submitCustomGeometry(pose, RenderTypes.entityCutout(OAK_LOG), (p, c) -> tiled(c, p, -1, 0, -1, 1, backLen, 1, light));
         pose.popPose();
     }

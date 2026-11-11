@@ -1,6 +1,7 @@
 package fr.lordfinn.craftmaster.client.portrait;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import fr.lordfinn.craftmaster.client.compat.ClientCompat;
 import fr.lordfinn.craftmaster.portrait.Pose;
 import fr.lordfinn.craftmaster.portrait.Pose.Part;
 import fr.lordfinn.craftmaster.portrait.Pose.Rotation;
@@ -408,7 +409,7 @@ public class PoseEditorScreen extends Screen {
     public boolean keyPressed(KeyEvent e) {
         if (nameBox != null && nameBox.isFocused() || getFocused() instanceof AbstractSliderButton) return super.keyPressed(e);
         // Letters by what the key types (Ctrl+Z is Ctrl+Z on an AZERTY keyboard too), digits and arrows by place
-        int letter = e.shortcutKey(), key = e.key();
+        int letter = ClientCompat.shortcutKey(e), key = e.key();
         boolean ctrl = e.hasControlDown(), shift = e.hasShiftDown();
         if (ctrl && letter == 'z') {
             if (shift) redo();

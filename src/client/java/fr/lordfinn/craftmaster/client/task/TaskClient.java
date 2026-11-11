@@ -27,7 +27,7 @@ public final class TaskClient {
     private TaskClient() {}
 
     /** Shows the task of the moment (organisers: even secret, with "reveal"). */
-    public static final KeyMapping TASK_KEY = new KeyMapping("key.craftmaster.task", InputConstants.Type.KEYBOARD, InputConstants.KEY_J,
+    public static final KeyMapping TASK_KEY = new KeyMapping("key.craftmaster.task", InputConstants.Type./*$ keyboard_type {*/KEYBOARD/*$}*/, InputConstants.KEY_J,
             CraftMasterClient.CATEGORY);
 
     private static final Gson GSON = new Gson();

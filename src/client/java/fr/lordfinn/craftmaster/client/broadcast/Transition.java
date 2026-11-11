@@ -3,7 +3,8 @@ package fr.lordfinn.craftmaster.client.broadcast;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.renderpearl.api.textures.FilterMode;
+import /*$ filter_mode_class {*/com.mojang.renderpearl.api.textures.FilterMode/*$}*/;
+import fr.lordfinn.craftmaster.client.compat.ClientCompat;
 import fr.lordfinn.craftmaster.CraftMaster;
 import fr.lordfinn.craftmaster.client.mixin.GuiGraphicsExtractorAccessor;
 import net.minecraft.client.Minecraft;
@@ -33,9 +34,9 @@ public final class Transition {
             RenderTarget main = Minecraft.getInstance().gameRenderer.mainRenderTarget();
             if (still == null || still.width != main.width || still.height != main.height) {
                 if (still != null) still.destroyBuffers();
-                still = new TextureTarget("craftmaster_crossfade", main.width, main.height, main.getColorTexture().getFormat(), null);
+                still = ClientCompat.colorTarget("craftmaster_crossfade", main);
             }
-            still.copyColorFrom(main);
+            ClientCompat.copyColor(main, still);
             capturedAt = System.currentTimeMillis();
         } catch (RuntimeException e) {
             CraftMaster.LOG.warn("[Réalisation] Fondu enchaîné impossible, coupe sèche", e);

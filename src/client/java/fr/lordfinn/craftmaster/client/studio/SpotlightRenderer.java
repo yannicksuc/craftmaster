@@ -110,7 +110,7 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         int light = s.lightCoords;
         poseStack.pushPose();
         poseStack.translate(s.pivot.x, s.pivot.y, s.pivot.z);
-        poseStack.rotate(Axis.YP.rotationDegrees(-s.yaw));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.yaw));
 
         // Yoke (pixels): a bar under (or over) the head and two arms holding it at the pivot
         float sign = s.hanging ? -1 : 1;
@@ -130,7 +130,7 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
             Geo.box(c, q, TEX, -1, swY0, -1, 1, swY1, 1, metal, 0xFFFFFFFF, light);
         });
 
-        poseStack.rotate(Axis.XP.rotationDegrees(s.pitch));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(s.pitch));
         // Head: a can 8 × 8 × 10 px, lens at +z, vents at the back
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (p, c) -> {
             PoseStack ps = new PoseStack();

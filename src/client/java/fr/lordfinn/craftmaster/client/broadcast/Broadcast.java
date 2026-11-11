@@ -47,13 +47,13 @@ public final class Broadcast {
 
     private Broadcast() {}
 
-    public static final KeyMapping TOGGLE_KEY = new KeyMapping("key.craftmaster.broadcast", InputConstants.Type.KEYBOARD,
+    public static final KeyMapping TOGGLE_KEY = new KeyMapping("key.craftmaster.broadcast", InputConstants.Type./*$ keyboard_type {*/KEYBOARD/*$}*/,
             InputConstants.KEY_F8, CraftMasterClient.CATEGORY);
     /** In broadcast mode: next zone of the round (Shift: previous); the keys 1–9 then pick that zone's cameras. */
-    public static final KeyMapping ZONE_KEY = new KeyMapping("key.craftmaster.broadcast_zone", InputConstants.Type.KEYBOARD,
+    public static final KeyMapping ZONE_KEY = new KeyMapping("key.craftmaster.broadcast_zone", InputConstants.Type./*$ keyboard_type {*/KEYBOARD/*$}*/,
             InputConstants.KEY_TAB, CraftMasterClient.CATEGORY);
     /** In broadcast mode: split screen of the zones on / off. */
-    public static final KeyMapping MOSAIC_KEY = new KeyMapping("key.craftmaster.broadcast_mosaic", InputConstants.Type.KEYBOARD,
+    public static final KeyMapping MOSAIC_KEY = new KeyMapping("key.craftmaster.broadcast_mosaic", InputConstants.Type./*$ keyboard_type {*/KEYBOARD/*$}*/,
             InputConstants.KEY_0, CraftMasterClient.CATEGORY);
 
     private static final Gson GSON = new Gson();
@@ -66,7 +66,7 @@ public final class Broadcast {
     private static final List<Identifier> HIDDEN = List.of(VanillaHudElements.MISC_OVERLAYS, VanillaHudElements.CROSSHAIR,
             VanillaHudElements.SPECTATOR_MENU, VanillaHudElements.HOTBAR, VanillaHudElements.ARMOR_BAR, VanillaHudElements.HEALTH_BAR,
             VanillaHudElements.FOOD_BAR, VanillaHudElements.AIR_BAR, VanillaHudElements.MOUNT_HEALTH, VanillaHudElements.INFO_BAR,
-            VanillaHudElements.EXPERIENCE_LEVEL, VanillaHudElements.INFO_BAR_FOREGROUND, VanillaHudElements.HELD_ITEM_TOOLTIP,
+            VanillaHudElements.EXPERIENCE_LEVEL, /*? if >=26.3 {*/VanillaHudElements.INFO_BAR_FOREGROUND, /*?}*/VanillaHudElements.HELD_ITEM_TOOLTIP,
             VanillaHudElements.SPECTATOR_TOOLTIP, VanillaHudElements.MOB_EFFECTS, VanillaHudElements.BOSS_BAR, VanillaHudElements.SLEEP,
             VanillaHudElements.DEMO_TIMER, VanillaHudElements.SCOREBOARD, VanillaHudElements.OVERLAY_MESSAGE,
             VanillaHudElements.PLAYER_LIST, VanillaHudElements.SUBTITLES);

@@ -48,11 +48,11 @@ public class GongRenderer implements BlockEntityRenderer<GongBlockEntity, GongRe
         int light = s.lightCoords;
         poseStack.pushPose();
         poseStack.translate(0.5, 0, 0.5);
-        poseStack.rotate(Axis.YP.rotationDegrees(-s.yaw));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.yaw));
         poseStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
         // Hangs from the beam's underside (y = 14 px), swings around the x axis
         poseStack.translate(0, 14, 0);
-        poseStack.rotate(Axis.XP.rotationDegrees(s.swing));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(s.swing));
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (p, c) -> {
             int white = 0xFFFFFFFF;
             // Disc 12 × 12 px, 1 px thick: front (audience, +z) and back, cut out round by the texture

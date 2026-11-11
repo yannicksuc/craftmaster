@@ -162,6 +162,7 @@ public final class PortraitClipper implements VertexConsumer {
         return this;
     }
 
+    //? if >=26.3
     @Override
     public VertexConsumer setUv3(float u, float v) {
         return this;

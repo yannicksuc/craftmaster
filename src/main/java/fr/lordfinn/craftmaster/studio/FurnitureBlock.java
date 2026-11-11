@@ -35,6 +35,14 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  */
 public class FurnitureBlock extends BaseEntityBlock {
 
+    // Minecraft 26.2 blocks must give a codec (26.3 dropped the requirement)
+    //? if <26.3 {
+    /*@Override
+    protected com.mojang.serialization.MapCodec<? extends BaseEntityBlock> codec() {
+        return com.mojang.serialization.MapCodec.unit(this);
+    }
+    *///?}
+
     public static final EnumProperty<AttachFace> FACE = BlockStateProperties.ATTACH_FACE;
     /** The wall it hangs on is behind it (FACE = WALL only). */
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;

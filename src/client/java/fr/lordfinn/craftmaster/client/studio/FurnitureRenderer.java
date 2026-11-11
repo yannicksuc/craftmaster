@@ -130,8 +130,8 @@ public class FurnitureRenderer implements BlockEntityRenderer<FurnitureBlockEnti
                 // The bracket: the rod's arm turned from the block's centre to the wall, its cap flat on it
                 pose.pushPose();
                 pose.translate(0.5, 0.5, 0.5);
-                pose.rotate(Axis.YP.rotationDegrees(-toSupport.toYRot()));
-                pose.rotate(Axis.XP.rotationDegrees(90));
+                pose./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-toSupport.toYRot()));
+                pose./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(90));
                 s.bracket.submit(pose, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, 0);
                 pose.popPose();
             }
@@ -151,18 +151,18 @@ public class FurnitureRenderer implements BlockEntityRenderer<FurnitureBlockEnti
         pose.translate(0.5, 0.5, 0.5);
         switch (s.face) {
             case FLOOR -> {
-                pose.rotate(Axis.XP.rotationDegrees(-90));
-                pose.rotate(Axis.YP.rotationDegrees(180));
+                pose./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(-90));
+                pose./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(180));
             }
             case CEILING -> {
-                pose.rotate(Axis.XP.rotationDegrees(90));
-                pose.rotate(Axis.YP.rotationDegrees(180));
+                pose./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(90));
+                pose./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(180));
             }
-            case WALL -> pose.rotate(Axis.YP.rotationDegrees(180 - s.wall.toYRot()));
+            case WALL -> pose./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(180 - s.wall.toYRot()));
         }
         pose.translate(0, 0, 0.5);
         // The frame's own rotation turns the piece (8 steps of 45°); a ceiling frame sees it from below
-        if (s.face != AttachFace.WALL) pose.rotate(Axis.ZP.rotationDegrees(s.face == AttachFace.CEILING ? -s.yaw : s.yaw));
+        if (s.face != AttachFace.WALL) pose./*$ pose_rotate {*/rotate/*$}*/(Axis.ZP.rotationDegrees(s.face == AttachFace.CEILING ? -s.yaw : s.yaw));
         pose.scale(0.5f, 0.5f, 0.5f);
     }
 
@@ -171,21 +171,21 @@ public class FurnitureRenderer implements BlockEntityRenderer<FurnitureBlockEnti
         switch (s.face) {
             case FLOOR -> {
                 pose.translate(0.5, 0, 0.5);
-                pose.rotate(Axis.YP.rotationDegrees(-s.yaw));
+                pose./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.yaw));
             }
             case CEILING -> {
                 pose.translate(0.5, 1, 0.5);
-                pose.rotate(Axis.YP.rotationDegrees(-s.yaw));
-                pose.rotate(Axis.XP.rotationDegrees(180));
+                pose./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.yaw));
+                pose./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(180));
             }
             case WALL -> {
                 // Upright, its back to the wall, shining out of it (its stand reads as the wall bracket)
                 pose.translate(0.5, 0, 0.5);
-                pose.rotate(Axis.YP.rotationDegrees(-s.wall.toYRot()));
+                pose./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.wall.toYRot()));
             }
         }
         pose.translate(0, 0.015, 0);
-        pose.rotate(Axis.YP.rotationDegrees(180));
+        pose./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(180));
     }
 
     @Override

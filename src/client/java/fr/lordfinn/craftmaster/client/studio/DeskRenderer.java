@@ -53,7 +53,7 @@ public class DeskRenderer implements BlockEntityRenderer<DeskBlockEntity, DeskRe
         float scale = Math.min(3.2f / 16 / font.lineHeight, PLATE_W / w);
         poseStack.pushPose();
         poseStack.translate(0.5, 0, 0.5);
-        poseStack.rotate(Axis.YP.rotationDegrees(-s.yaw));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.yaw));
         poseStack.translate(0, PLATE_CENTER_Y + (font.lineHeight - 1) * scale / 2, PLATE_FRONT);
         poseStack.scale(scale, -scale, scale);
         // Dark engraving on the brass plate, lit like the desk

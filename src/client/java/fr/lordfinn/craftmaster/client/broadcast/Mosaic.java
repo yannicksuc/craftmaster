@@ -3,7 +3,8 @@ package fr.lordfinn.craftmaster.client.broadcast;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.renderpearl.api.textures.FilterMode;
+import /*$ filter_mode_class {*/com.mojang.renderpearl.api.textures.FilterMode/*$}*/;
+import fr.lordfinn.craftmaster.client.compat.ClientCompat;
 import fr.lordfinn.craftmaster.CraftMaster;
 import fr.lordfinn.craftmaster.client.mixin.GuiGraphicsExtractorAccessor;
 import net.minecraft.client.Minecraft;
@@ -61,7 +62,7 @@ public final class Mosaic {
             TextureTarget t = TILES[i];
             if (t != null && t.width == main.width && t.height == main.height) continue;
             if (t != null) t.destroyBuffers();
-            TILES[i] = new TextureTarget("craftmaster_mosaic_" + i, main.width, main.height, main.getColorTexture().getFormat(), null);
+            TILES[i] = ClientCompat.colorTarget("craftmaster_mosaic_" + i, main);
             filledAt[i] = 0;
         }
     }
@@ -71,7 +72,7 @@ public final class Mosaic {
         int i = rendering;
         if (i < 0 || i >= MAX || TILES[i] == null) return;
         try {
-            TILES[i].copyColorFrom(Minecraft.getInstance().gameRenderer.mainRenderTarget());
+            ClientCompat.copyColor(Minecraft.getInstance().gameRenderer.mainRenderTarget(), TILES[i]);
             filledAt[i] = System.currentTimeMillis();
         } catch (RuntimeException e) {
             CraftMaster.LOG.warn("[Réalisation] Écran partagé : copie impossible", e);

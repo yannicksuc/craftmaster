@@ -2,8 +2,8 @@ package fr.lordfinn.craftmaster.client.fx;
 
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.renderpearl.api.buffers.GpuBuffer;
-import com.mojang.renderpearl.api.device.GpuDevice;
+import /*$ gpu_buffer_class {*/com.mojang.renderpearl.api.buffers.GpuBuffer/*$}*/;
+import /*$ gpu_device_class {*/com.mojang.renderpearl.api.device.GpuDevice/*$}*/;
 import fr.lordfinn.craftmaster.CraftMaster;
 import fr.lordfinn.craftmaster.client.mixin.PostChainAccessor;
 import fr.lordfinn.craftmaster.client.mixin.PostPassAccessor;
@@ -29,9 +29,23 @@ public final class FxUniforms {
     public static final String BLOCK = "FxConfig";
     private static final String PREFIX = "fx/";
 
+    //? if <26.3 {
+    /*// Minecraft 26.2 chains do not know their id: kept when they are loaded (FxPostChainMixin)
+    private static final java.util.Map<PostChain, Identifier> IDS = java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
+
+    public static void loaded(PostChain chain, Identifier id) {
+        if (chain != null) IDS.put(chain, id);
+    }
+    *///?}
+
     /** Called at the start of {@link PostChain#process} (mixin). */
     public static void beforeProcess(PostChain chain) {
+        //? if >=26.3 {
         Identifier id = chain.id();
+        //?} else {
+        /*Identifier id = IDS.get(chain);
+        if (id == null) return;
+        *///?}
         if (!CraftMaster.MOD_ID.equals(id.getNamespace()) || !id.getPath().startsWith(PREFIX)) return;
         float intensity = ScreenEffects.intensity(id.getPath().substring(PREFIX.length()));
         float time = ScreenEffects.time();

@@ -16,6 +16,14 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  */
 public class StanchionBlock extends BaseEntityBlock {
 
+    // Minecraft 26.2 blocks must give a codec (26.3 dropped the requirement)
+    //? if <26.3 {
+    /*@Override
+    protected com.mojang.serialization.MapCodec<? extends BaseEntityBlock> codec() {
+        return com.mojang.serialization.MapCodec.unit(this);
+    }
+    *///?}
+
     public static final int MAX_GAP = 4;
     private static final VoxelShape SHAPE = Block.box(5, 0, 5, 11, 15, 11);
     private static final VoxelShape COLLISION = Block.box(6, 0, 6, 10, 24, 10);

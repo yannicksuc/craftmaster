@@ -270,7 +270,7 @@ public class PaperScreen extends Screen {
         float tilt = (1 - arrive) * -0.25f;
         sound(0, 0, t, SoundEvents.BOOK_PAGE_TURN, 0.7f);
         // 2. Wax: trembles, cracks, the halves fall
-        sound(1, T_CRACK, t, SoundEvents.AXE_WAX_OFF.value(), 0.8f);
+        sound(1, T_CRACK, t, SoundEvents.AXE_WAX_OFF/*$ sound_value {*/.value()/*$}*/, 0.8f);
         sound(2, T_SPLIT, t, SoundEvents.HONEYCOMB_WAX_ON, 0.6f);
         // 3. Flap opens (0..180 degrees), 4. card slides out, 5. card unfolds toward the reader
         float flap = Mth.clamp((t - T_SPLIT - 1) / (T_FLAP - T_SPLIT - 1), 0, 1);

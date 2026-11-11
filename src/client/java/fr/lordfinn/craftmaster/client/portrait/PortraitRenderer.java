@@ -3,6 +3,7 @@ package fr.lordfinn.craftmaster.client.portrait;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import fr.lordfinn.craftmaster.client.compat.ClientCompat;
 import fr.lordfinn.craftmaster.CraftMaster;
 import fr.lordfinn.craftmaster.bust.Busts;
 import fr.lordfinn.craftmaster.portrait.Pose;
@@ -234,7 +235,11 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
 
     /** During a rearrangement the portrait leaves its box: cull on the whole path instead. */
     @Override
+    //? if >=26.3 {
     protected AABB getBoundingBoxForCulling(PortraitEntity e, float partialTick) {
+    //?} else {
+    /*protected AABB getBoundingBoxForCulling(PortraitEntity e) {
+    *///?}
         AABB box = e.getBoundingBox();
         double t = e.level().getGameTime() - e.animStart();
         if (t < -PortraitAnimation.LEAD_TICKS * 4 || t > PortraitAnimation.totalTicks(e.animSlide()) + 2) return box;
@@ -258,7 +263,7 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         poseStack.pushPose();
         poseStack.translate(s.hookOffset.x, s.hookOffset.y, s.hookOffset.z);
         // Portrait axes: x to the viewer's right, y up, z toward the viewer; the sway turns around the string
-        poseStack.rotate(Axis.YP.rotationDegrees(-s.yaw + s.sway));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.yaw + s.sway));
 
         // Hook and string, in blocks: one straight vertical line from the runner down to the knot, which
         // portraitOrigin puts right under the hook (and the centre of gravity right under the knot)
@@ -299,7 +304,7 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
                 clip.flush();
             });
         }
-        poseStack.rotate(Axis.XP.rotation((float) Math.PI));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotation((float) Math.PI));
         poseStack.scale(16, 16, 16);
         submitPart(mouldings, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, null);
         if (!window) submitPart(canvas, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, null);
@@ -352,7 +357,7 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
 
         poseStack.pushPose();
         poseStack.mulPose(new Matrix4f(PortraitGeometry.frameMatrix(pose)));
-        poseStack.rotate(Axis.XP.rotation((float) Math.PI));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotation((float) Math.PI));
         poseStack.scale(16, 16, 16);
         int frameTint = s.frameSelected ? SELECTED_TINT : s.frameHovered ? HOVER_TINT : 0xFFFFFFFF;
         submitTinted(mouldings, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, frameTint);
@@ -414,12 +419,12 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         int light = LightCoordsUtil.FULL_BRIGHT;
         int width = 0;
         for (Component line : s.label) width = Math.max(width, font.width(line));
-        collector.submitTextBackground(poseStack, -width / 2f - 2, -1, width / 2f + 2, s.label.size() * lineH, 0x80000000,
+        ClientCompat.textBackground(collector, poseStack, -width / 2f - 2, -1, width / 2f + 2, s.label.size() * lineH, 0x80000000,
                 Font.DisplayMode.NORMAL, light);
         for (int i = 0; i < s.label.size(); i++) {
             Component line = s.label.get(i);
             collector.submitText(poseStack, -font.width(line) / 2f, i * lineH, line.getVisualOrderText(), false,
-                    Font.DisplayMode.POLYGON_OFFSET, light, 0xFFFFFFFF, 0, 0);
+                    Font.DisplayMode.POLYGON_OFFSET, light, 0xFFFFFFFF, ClientCompat.lineBackground(0x80000000), 0);
         }
         poseStack.popPose();
     }

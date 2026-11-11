@@ -24,7 +24,7 @@ public final class CraftMasterClient implements ClientModInitializer {
     public static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(CraftMaster.id("main"));
 
     /** Opens / closes the ranking screen. */
-    public static final KeyMapping RANKING_KEY = new KeyMapping("key.craftmaster.ranking", InputConstants.Type.KEYBOARD, InputConstants.KEY_K, CATEGORY);
+    public static final KeyMapping RANKING_KEY = new KeyMapping("key.craftmaster.ranking", InputConstants.Type./*$ keyboard_type {*/KEYBOARD/*$}*/, InputConstants.KEY_K, CATEGORY);
 
     @Override
     public void onInitializeClient() {

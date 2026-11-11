@@ -1,9 +1,14 @@
+// Per-version build: Stonecutter applies it to every node of settings.gradle.kts (versions/26.3, versions/26.2).
+// minecraft_version, fabric_api_version... come from that node's versions/<node>/gradle.properties.
 plugins {
     java
-    id("net.fabricmc.fabric-loom") version "1.17-SNAPSHOT"
+    id("net.fabricmc.fabric-loom")
 }
 
-version = property("mod_version") as String
+val minecraftVersion = property("minecraft_version") as String
+
+// Fabric-style versioned jar: craftmaster-2.0.0+26.2.jar
+version = "${property("mod_version")}+$minecraftVersion"
 group = property("maven_group") as String
 
 base {
@@ -16,8 +21,6 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
 }
-
-val minecraftVersion = property("minecraft_version") as String
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
@@ -37,6 +40,9 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+// Dev run folders at the repository root (run/, run2/, run-server/ for 26.3; run-26.2/... for 26.2)
+fun rootRunDir(key: String) = rootProject.file(property(key) as String).relativeTo(projectDir).invariantSeparatorsPath
 
 loom {
     // Client-only code (screens, key binding, renderers) lives in src/client so the dedicated server never loads it
@@ -58,8 +64,8 @@ loom {
             if (hasProperty("backgroundClient")) environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
             // -PregieTrigger: the voice control plays the .wav files dropped in run/regie-trigger as if the key
             // were held while they are spoken (tests without keyboard or microphone, docs/wiki/RegieVocale.md)
-            if (hasProperty("regieTrigger")) vmArg("-Dcraftmaster.regie.triggerDir=" + file("run/regie-trigger").absolutePath)
-            runDir = "run"
+            if (hasProperty("regieTrigger")) vmArg("-Dcraftmaster.regie.triggerDir=" + rootProject.file(property("run_dir") as String + "/regie-trigger").absolutePath)
+            runDir = rootRunDir("run_dir")
         }
         // Second player without admin rights, to see what participants see: .\gradlew.bat runClient2
         create("client2") {
@@ -69,11 +75,11 @@ loom {
             // -PwindowSize=1920x1080: the broadcast picture at Twitch's size (scripts/dev-client.ps1 -Size)
             (findProperty("windowSize") as String?)?.split("x")?.let { programArgs("--width", it[0], "--height", it[1]) }
             if (hasProperty("backgroundClient")) environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
-            runDir = "run2"
+            runDir = rootRunDir("run2_dir")
         }
         named("server") {
             server()
-            runDir = "run-server"
+            runDir = rootRunDir("run_server_dir")
         }
     }
 }

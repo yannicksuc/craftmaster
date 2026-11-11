@@ -40,6 +40,14 @@ import java.util.List;
  */
 public class EnvelopeBlock extends BaseEntityBlock {
 
+    // Minecraft 26.2 blocks must give a codec (26.3 dropped the requirement)
+    //? if <26.3 {
+    /*@Override
+    protected com.mojang.serialization.MapCodec<? extends BaseEntityBlock> codec() {
+        return com.mojang.serialization.MapCodec.unit(this);
+    }
+    *///?}
+
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final EnumProperty<WaxColor> WAX = EnumProperty.create("wax", WaxColor.class);
     public static final BooleanProperty OPEN = BooleanProperty.create("open");

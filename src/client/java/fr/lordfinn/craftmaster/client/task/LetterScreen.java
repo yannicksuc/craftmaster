@@ -2,6 +2,7 @@ package fr.lordfinn.craftmaster.client.task;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.Window;
+import fr.lordfinn.craftmaster.client.compat.ClientCompat;
 import fr.lordfinn.craftmaster.client.DevInput;
 import fr.lordfinn.craftmaster.client.broadcast.Broadcast;
 import fr.lordfinn.craftmaster.task.LetterMotion;
@@ -149,7 +150,7 @@ public class LetterScreen extends Screen {
 
     private void popNow(float dirX, float dirY) {
         popAt = clock;
-        play(SoundEvents.AXE_WAX_OFF.value(), 1.35f, 1f);
+        play(SoundEvents.AXE_WAX_OFF/*$ sound_value {*/.value()/*$}*/, 1.35f, 1f);
         play(SoundEvents.HONEYCOMB_WAX_ON, 0.75f, 0.8f);
         Random r = new Random(paper.title().hashCode() * 31L + paper.mancheId().hashCode());
         float sx = LetterMotion.SEAL_X + seal.offsetX(), sy = LetterMotion.SEAL_Y + seal.offsetY();
@@ -298,7 +299,7 @@ public class LetterScreen extends Screen {
     }
 
     private boolean pullKeyHeld() {
-        return InputConstants.isKeyDown(InputConstants.KEY_SPACE) || InputConstants.isKeyDown(InputConstants.KEY_RETURN)
+        return ClientCompat.isKeyDown(InputConstants.KEY_SPACE) || ClientCompat.isKeyDown(InputConstants.KEY_RETURN)
                 || DevInput.held(InputConstants.KEY_SPACE) || DevInput.held(InputConstants.KEY_RETURN);
     }
 

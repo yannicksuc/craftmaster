@@ -68,7 +68,7 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
     public void submit(State s, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         poseStack.pushPose();
         poseStack.translate(0.5, 0.5, 0.5);
-        poseStack.rotate(Axis.YP.rotationDegrees(-s.yaw));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.yaw));
         // Against the wall (block's back face at z = -0.5), standing on the block's bottom, centred
         float k = s.size / PH;           // blocks per panel pixel
         poseStack.translate(0, -0.5f, -0.5f);

@@ -1,6 +1,6 @@
 package fr.lordfinn.craftmaster.client.mixin;
 
-import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import /*$ gpu_buffer_class {*/com.mojang.renderpearl.api.buffers.GpuBuffer/*$}*/;
 import net.minecraft.client.renderer.PostPass;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;

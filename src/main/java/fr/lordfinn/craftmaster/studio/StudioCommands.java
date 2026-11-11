@@ -293,7 +293,7 @@ public final class StudioCommands {
             BlockPos at = BlockPos.containing(c.getSource().getPosition());
             Optional<BlockPos> gong = Optional.empty();
             // Nearest first
-            for (BlockPos p : BlockPos.withinClippedManhattan(at, 32, 16, 32)) {
+            for (BlockPos p : BlockPos./*$ within_clipped_manhattan {*/withinClippedManhattan/*$}*/(at, 32, 16, 32)) {
                 if (level.getBlockState(p).getBlock() instanceof GongBlock) {
                     gong = Optional.of(p.immutable());
                     break;

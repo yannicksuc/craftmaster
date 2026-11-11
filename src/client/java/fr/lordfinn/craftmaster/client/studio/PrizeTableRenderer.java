@@ -64,8 +64,8 @@ public class PrizeTableRenderer implements BlockEntityRenderer<PrizeTableBlockEn
             poseStack.pushPose();
             poseStack.translate(at[0], 1.0 + 0.012, at[1]);
             // Lying flat, its top toward the audience (the table's front)
-            poseStack.rotate(Axis.YP.rotationDegrees(-s.yaw + 180));
-            poseStack.rotate(Axis.XP.rotationDegrees(-90));
+            poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.yaw + 180));
+            poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(-90));
             poseStack.scale(0.42f, 0.42f, 0.42f);
             s.items.get(i).submit(poseStack, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, 0);
             poseStack.popPose();

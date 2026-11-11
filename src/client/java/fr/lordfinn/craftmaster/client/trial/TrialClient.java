@@ -23,7 +23,7 @@ public final class TrialClient {
     private TrialClient() {}
 
     /** Opens the results sheet of the current round (organisers). */
-    public static final KeyMapping RESULTS_KEY = new KeyMapping("key.craftmaster.results", InputConstants.Type.KEYBOARD,
+    public static final KeyMapping RESULTS_KEY = new KeyMapping("key.craftmaster.results", InputConstants.Type./*$ keyboard_type {*/KEYBOARD/*$}*/,
             InputConstants.KEY_R, CraftMasterClient.CATEGORY);
 
     public static void init() {

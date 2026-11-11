@@ -60,7 +60,7 @@ public final class StageControl {
     public static Vec3i saveScene(ServerLevel level, String name, BlockPos a, BlockPos b) {
         BlockPos min = new BlockPos(Math.min(a.getX(), b.getX()), Math.min(a.getY(), b.getY()), Math.min(a.getZ(), b.getZ()));
         Vec3i size = new Vec3i(Math.abs(a.getX() - b.getX()) + 1, Math.abs(a.getY() - b.getY()) + 1, Math.abs(a.getZ() - b.getZ()) + 1);
-        StructureTemplateManager manager = level.getServer().getStructureTemplateManager();
+        StructureTemplateManager manager = level.getServer()./*$ structure_manager {*/getStructureTemplateManager/*$}*/();
         StructureTemplate template = manager.getOrCreate(sceneId(name));
         template.fillFromWorld(level, min, size, false, List.of(Blocks.STRUCTURE_VOID));
         manager.save(sceneId(name));
@@ -79,7 +79,7 @@ public final class StageControl {
         if (stage.anchor == null) return "Pas d'ancre de scène.";
         ServerLevel level = Busts.level(server, stage.anchor.world());
         if (level == null) return "Monde introuvable pour l'ancre : " + stage.anchor.world();
-        Optional<StructureTemplate> template = server.getStructureTemplateManager().get(sceneId(name));
+        Optional<StructureTemplate> template = server./*$ structure_manager {*/getStructureTemplateManager/*$}*/().get(sceneId(name));
         if (template.isEmpty()) return "Fichier du décor « " + name + " » introuvable.";
         BlockPos anchor = new BlockPos(stage.anchor.x(), stage.anchor.y(), stage.anchor.z());
         Stage.Scene old = previous == null ? null : stage.scenes.get(previous);

@@ -60,7 +60,7 @@ public class PlinthRenderer implements BlockEntityRenderer<PlinthBlockEntity, Pl
         if (s.empty) return;
         poseStack.pushPose();
         poseStack.translate(0.5, 14 / 16.0 + 0.42 + s.bob, 0.5);
-        poseStack.rotate(Axis.YP.rotationDegrees(s.angle));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(s.angle));
         poseStack.scale(0.75f, 0.75f, 0.75f);
         s.item.submit(poseStack, collector, s.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         poseStack.popPose();

@@ -81,7 +81,7 @@ public class BoardRenderer extends EntityRenderer<BoardEntity, BoardRenderer.Sta
         int light = s.lightCoords;
         poseStack.pushPose();
         // Board axes: x to the viewer's right, y up, z out of the wall toward the viewer
-        poseStack.rotate(Axis.YP.rotationDegrees(-s.yaw));
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.yaw));
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(s.texture), (p, c) -> {
             quad(c, p, -hw, -hh, hw, hh, 0.001f, 0, 0, 1, 1, light);
         });
