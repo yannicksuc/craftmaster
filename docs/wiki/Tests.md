@@ -9,6 +9,7 @@
   tâches retirées, joueurs, busts, saisons cachées, scores publiés identiques), copie `config.yml.v1`, pas de
   seconde conversion.
 - `UndoJournalTest` : annuler une / plusieurs modifications, modifications imbriquées = une entrée, rien de changé
+- `ScoreBoardTest`, `BoundedHistoryTest` : modèle pur de l'écran de saisie (échange, tête, +1/-1 borné -10..+10) et pile undo/redo de 50 pas
   = rien de journalisé, échec = données intactes, limite de 50, état du direct annulé aussi.
 - `PublishedScoresTest` : rien de publié avant la première publication, copie figée, écart non publié, plusieurs
   parties additionnées, persistance.
