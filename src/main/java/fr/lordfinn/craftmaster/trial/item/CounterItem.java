@@ -8,7 +8,19 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.animal.equine.AbstractHorse;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.npc.InventoryCarrier;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,9 +38,13 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * Tally counter: use it on a chest (any container) or on a player to count the items in it, with the three most
- * common kinds. If the other hand holds an item, only that kind is counted ("how many eggs in the chest?").
- * Organisers get buttons to write the count down for a contestant.
+ * Tally counter: use it on anything that holds items to count them, with the three most common kinds. Blocks: any
+ * container (chest, double chest, barrel, shulker box, hopper, dispenser, furnace...), other mods' storages through
+ * Fabric's transfer API, the studio's desks and prize tables. Entities: players, chest minecarts and boats,
+ * donkeys and llamas with a chest, villagers and allays, armour stands and mobs (what they wear and hold), item
+ * frames, items on the ground. If the other hand holds an item, only that kind is counted ("how many eggs in the
+ * chest?"). Organisers get buttons to write the count down for a contestant. Entities go through
+ * {@link #useOnEntity} (Trials' UseEntityCallback: an item only gets living entities by itself).
  */
 public class CounterItem extends Item {
 
@@ -39,20 +55,79 @@ public class CounterItem extends Item {
     @Override
     public InteractionResult useOn(UseOnContext ctx) {
         if (!(ctx.getLevel() instanceof ServerLevel level) || !(ctx.getPlayer() instanceof ServerPlayer player)) return InteractionResult.SUCCESS;
-        if (!(level.getBlockEntity(ctx.getClickedPos()) instanceof Container c)) {
-            player.sendOverlayMessage(Component.literal("🔢 Utilise le compteur sur un coffre (ou un joueur)").withStyle(ChatFormatting.GRAY));
+        List<ItemStack> items = blockItems(level, ctx.getClickedPos());
+        if (items == null) {
+            player.sendOverlayMessage(Component.literal("🔢 Utilise le compteur sur ce qui contient des objets (coffre, tonneau, entonnoir, wagonnet, âne, porte-armure, joueur…)")
+                    .withStyle(ChatFormatting.GRAY));
             return InteractionResult.SUCCESS_SERVER;
         }
-        List<ItemStack> items = new ArrayList<>();
-        for (int i = 0; i < c.getContainerSize(); i++) items.add(c.getItem(i));
         report(player, items, level.getBlockState(ctx.getClickedPos()).getBlock().getName().getString(), ctx.getHand());
         return InteractionResult.SUCCESS_SERVER;
     }
 
-    @Override
-    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target, InteractionHand hand) {
-        if (!(target instanceof ServerPlayer other) || !(player instanceof ServerPlayer sp)) return InteractionResult.PASS;
-        report(sp, other.getInventory().getNonEquipmentItems(), other.getGameProfile().name(), hand);
+    /** The items of the block there, or null if it holds none. */
+    static List<ItemStack> blockItems(Level level, BlockPos pos) {
+        List<ItemStack> items = new ArrayList<>();
+        // Fabric's transfer API first: double chests whole, other mods' storages, the studio's desks and tables
+        Storage<ItemVariant> storage = ItemStorage.SIDED.find(level, pos, null);
+        if (storage != null) {
+            for (StorageView<ItemVariant> v : storage) {
+                if (v.isResourceBlank() || v.getAmount() <= 0) continue;
+                items.add(v.getResource().toStack((int) Math.min(Integer.MAX_VALUE, v.getAmount())));
+            }
+        } else if (level.getBlockEntity(pos) instanceof Container c) {
+            for (int i = 0; i < c.getContainerSize(); i++) items.add(c.getItem(i));
+        } else {
+            return null;
+        }
+        // What lies on show on a prize table counts too
+        if (level.getBlockEntity(pos) instanceof fr.lordfinn.craftmaster.studio.PrizeTableBlockEntity table) items.addAll(table.items());
+        return items;
+    }
+
+    /** The items an entity holds, or null if it holds none. */
+    static List<ItemStack> entityItems(Entity e) {
+        List<ItemStack> items = new ArrayList<>();
+        if (e instanceof Player p) {
+            items.addAll(p.getInventory().getNonEquipmentItems());
+            for (EquipmentSlot slot : EquipmentSlot.values()) items.add(p.getItemBySlot(slot));
+            return items;
+        }
+        boolean any = false;
+        if (e instanceof Container c) {                       // chest minecarts and boats, hopper minecarts
+            for (int i = 0; i < c.getContainerSize(); i++) items.add(c.getItem(i));
+            any = true;
+        }
+        if (e instanceof InventoryCarrier carrier) {          // villagers, allays, piglins
+            Container c = carrier.getInventory();
+            for (int i = 0; i < c.getContainerSize(); i++) items.add(c.getItem(i));
+            any = true;
+        }
+        if (e instanceof AbstractHorse horse) {                // saddle, armour, a donkey's or llama's chest
+            for (int i = 0; i < horse.getInventorySize(); i++) items.add(horse.getSlot(AbstractHorse.INVENTORY_SLOT_OFFSET + i).get());
+            any = true;
+        }
+        if (e instanceof LivingEntity living) {               // armour stands and mobs: what they wear and hold
+            for (EquipmentSlot slot : EquipmentSlot.values()) items.add(living.getItemBySlot(slot));
+            any = true;
+        }
+        if (e instanceof ItemFrame frame) {
+            items.add(frame.getItem());
+            any = true;
+        }
+        if (e instanceof ItemEntity item) {
+            items.add(item.getItem());
+            any = true;
+        }
+        return any ? items : null;
+    }
+
+    /** Use on an entity (from Trials' UseEntityCallback). */
+    public static InteractionResult useOnEntity(ServerPlayer player, InteractionHand hand, Entity target) {
+        List<ItemStack> items = entityItems(target);
+        if (items == null) return InteractionResult.PASS;
+        String name = target instanceof ServerPlayer other ? other.getGameProfile().name() : target.getName().getString();
+        report(player, items, name, hand);
         return InteractionResult.SUCCESS_SERVER;
     }
 

@@ -105,6 +105,11 @@ public final class Studio {
         PRIZE_TABLE_BE = blockEntity("prize_table", PrizeTableBlockEntity::new, PRIZE_TABLE);
         GONG_BE = blockEntity("gong", GongBlockEntity::new, GONG);
         STANCHION_BE = blockEntity("stanchion", StanchionBlockEntity::new, STANCHION);
+        // The desks' drawers and the prize tables' shelves are storages for hoppers, the tally counter, other mods
+        net.fabricmc.fabric.api.transfer.v1.item.ItemStorage.SIDED.registerForBlockEntity(
+                (be, dir) -> net.fabricmc.fabric.api.transfer.v1.item.ContainerStorage.of(be.storage(), dir), DESK_BE);
+        net.fabricmc.fabric.api.transfer.v1.item.ItemStorage.SIDED.registerForBlockEntity(
+                (be, dir) -> net.fabricmc.fabric.api.transfer.v1.item.ContainerStorage.of(be.storage(), dir), PRIZE_TABLE_BE);
 
         ResourceKey<EntityType<?>> screenKey = ResourceKey.create(Registries.ENTITY_TYPE, CraftMaster.id("studio_screen"));
         // LordFinn's furniture from the server (after the throne: they share its block entity type)

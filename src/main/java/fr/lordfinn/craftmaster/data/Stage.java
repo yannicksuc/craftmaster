@@ -23,6 +23,9 @@ public final class Stage {
     public BlockSpot anchor;
     public final Map<String, Scene> scenes = new LinkedHashMap<>();
     public RevealTiming reveal = RevealTiming.DEFAULT;
+    /** How the buzzers play (trial.Buzzers.Mode id: first, order, auto, free) and the automatic re-arm delay (s). */
+    public String buzzerMode = "first";
+    public int buzzerRearm = 5;
 
     Map<String, Object> toYaml() {
         Map<String, Object> m = new LinkedHashMap<>();
@@ -39,6 +42,7 @@ public final class Stage {
         r.put("step", reveal.step());
         r.put("podium", reveal.podium());
         m.put("reveal", r);
+        m.put("buzzers", new LinkedHashMap<>(Map.of("mode", buzzerMode, "rearm", buzzerRearm)));
         return m;
     }
 
@@ -62,6 +66,9 @@ public final class Stage {
                     r.containsKey("step") ? Maps.toDouble(r.get("step")) : d.step(),
                     r.containsKey("podium") ? Maps.toDouble(r.get("podium")) : d.podium());
         }
+        Map<String, Object> bz = Maps.map(m, "buzzers");
+        if (bz.get("mode") instanceof String mode) st.buzzerMode = mode;
+        if (bz.containsKey("rearm")) st.buzzerRearm = Math.max(1, Maps.toInt(bz.get("rearm")));
         return st;
     }
 }

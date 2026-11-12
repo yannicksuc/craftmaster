@@ -40,7 +40,18 @@ donne un signal redstone (fort dans le bloc dessous), et les organisateurs saven
 **Buzzers** (16 couleurs, une par candidat) : le premier qui buzze allume son buzzer (lumière + signal redstone),
 un titre annonce « Ensuri a buzzé en premier ! » et les autres sont bloqués jusqu'à la remise à zéro ; les suivants
 sont quand même notés (2e, 3e, avec l'écart en secondes) : `/craftMasterBuzzer status`. Remise à zéro :
-`/craftMasterBuzzer reset`, la voix (« remets les buzzers »), ou un organisateur accroupi + clic droit sur un buzzer.
+`/craftMasterBuzzer reset`, la voix (« remets les buzzers »), un organisateur accroupi + clic droit sur un buzzer, ou un
+**signal redstone** qui arrive dans un buzzer (bouton, levier, pédale du juge : au front montant).
+
+**Modes des buzzers** (`/craftMasterBuzzer mode` : un menu cliquable dans le chat ; gardé avec les données de
+l'émission, annulable) :
+
+| Mode | Id | Effet |
+|---|---|---|
+| Premier qui buzze | `first` | Par défaut : le premier allume son buzzer et bloque les autres jusqu'à la remise à zéro |
+| Tous dans l'ordre | `order` | Chacun buzze une fois, tous les buzzers s'allument, l'ordre d'arrivée s'affiche dans le chat |
+| Réarmement automatique | `auto` | Comme « premier », puis les buzzers se réarment seuls après le délai (`/craftMasterBuzzer rearm <secondes>`, 5 par défaut) |
+| Libre | `free` | Chaque appui fait clignoter son buzzer une seconde et sonne, sans blocage ni ordre |
 
 ## 2. Feuille de résultats et barème
 
@@ -62,8 +73,8 @@ défaut est 5-4-3-2-1 (places au-delà : 0 point ; disqualifié : 0 ; sans valeu
 | Outil | Utilisation |
 |---|---|
 | **Chronomètre du juge** | Sur un candidat : départ, puis arrêt (le temps est noté sur la feuille). En l'air : tous les chronos avec des boutons ▶ / ■ dans le chat. Chaque chrono est une barre visible de tous (essai en solo pendant que les autres attendent), « Top départ ! » / « Stop ! » au candidat. |
-| **Mètre ruban** | Sur un bloc puis sur un autre : distance entre leurs centres (et à plat, et la hauteur), ligne de poussière dorée. Accroupi : recommencer. Les deux derniers points servent à créer une zone. |
-| **Compteur** | Sur un coffre (tout conteneur) ou un joueur : nombre d'objets et les trois plus nombreux ; seulement le type tenu dans l'autre main s'il y en a un (« combien d'œufs ? »). Marche aussi sur les coffres qui s'ouvrent. |
+| **Mètre ruban** | Sur un point puis sur un autre : la distance entre les **points exacts visés** par le réticule (sur la face du bloc, pas son centre), au centième de bloc, plus la distance à plat et la hauteur. Pendant 10 s, un **ruban jaune** est posé entre les deux points avec la distance écrite au-dessus, visible de tous. Accroupi : recommencer. Les deux derniers points servent à créer une zone. |
+| **Compteur** | Sur **tout ce qui contient des objets** : blocs (coffre, coffre double entier, tonneau, boîte de shulker, entonnoir, distributeur, four…, les rangements des autres mods par l'API de transfert Fabric, le tiroir des pupitres et la table des prix, prix posés compris) et entités (joueur, wagonnet ou bateau à coffre, âne / lama chargé, villageois, porte-armure et mobs : ce qu'ils portent et tiennent, cadre, objet au sol). Nombre d'objets et les trois plus nombreux ; seulement le type tenu dans l'autre main s'il y en a un (« combien d'œufs ? »). |
 | **Balance** (bloc) | Clic droit en tenant un objet : son poids ; main vide : le poids des objets jetés sur le plateau. Table de poids ludique mais cohérente (netherite > or > fer, plume ≈ 0). |
 | **Zones d'épreuve** | `/craftMasterZone create <nom>` (avec les deux points du mètre) ou `… <de> <à>`. Un candidat qui sort a un titre « Hors zone ! », un rappel tant qu'il est dehors, et les organisateurs sont prévenus ; le retour est noté. `players <nom> <joueurs…\|all>`, `show` (contour 15 s), `enable`, `remove`, `list`. Enregistrées dans `config/craftmaster/zones.json`. |
 

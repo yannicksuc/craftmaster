@@ -5,6 +5,8 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
+import net.minecraft.server.level.ServerPlayer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.context.UseOnContext;
@@ -29,6 +31,7 @@ public final class Trials {
             Buzzers.LOCK.reset();
             TrialLog.clear();
         });
+        ServerTickEvents.END_SERVER_TICK.register(Buzzers::tick);
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             Judging.tick(server);
             TrialProps.tick(server);
@@ -41,6 +44,13 @@ public final class Trials {
                     || stack.is(TrialContent.PROP_WAND))) return InteractionResult.PASS;
             return stack.getItem().useOn(new UseOnContext(player, hand, hit));
         });
+        // The tally counter on any entity holding items (an item alone only gets living entities, and after them)
+        UseEntityCallback.EVENT.register((player, level, hand, entity, hit) -> {
+            if (player.isSpectator() || !player.getItemInHand(hand).is(TrialContent.TALLY_COUNTER)) return InteractionResult.PASS;
+            if (!(player instanceof ServerPlayer sp)) return InteractionResult.SUCCESS;
+            return fr.lordfinn.craftmaster.trial.item.CounterItem.useOnEntity(sp, hand, entity);
+        });
+        TapeRibbons.register();
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> Judging.onJoin(handler.getPlayer()));
     }
 }

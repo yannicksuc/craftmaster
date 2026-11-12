@@ -314,111 +314,110 @@ def clipboard():
 
 
 def uv_torch():
-    """UV torch (was a violet wand): black aluminium body with grip rings, a wider head, violet lens and glow."""
+    """UV torch, side view (was a violet wand): black aluminium body with a grip, a wider head on the right, the
+    violet lens and its cone of light."""
     O = (24, 22, 30)
     V, v, VL = (150, 90, 230), (104, 56, 170), (214, 186, 255)
     i = Icon()
-    # Drawn on the diagonal from the bottom left (tail) to the top right (head), 2 px wide body
-    for k in range(7):
-        x, y = 2 + k, 13 - k
-        i.set(x, y, CHAR[1]); i.set(x + 1, y, CHAR[2]); i.set(x, y - 1, CHAR[0]) if k == 0 else None
-        i.set(x + 1, y - 1, CHAR[1])
-    # Grip rings
-    for k in (2, 4):
-        i.set(2 + k, 13 - k, CHAR[3]); i.set(3 + k, 12 - k, CHAR[3])
-    # Head: a 3 x 3 block, then the lens
-    i.rect(9, 4, 11, 6, CHAR[1])
-    i.rect(9, 4, 11, 4, CHAR[0])
-    i.set(11, 6, CHAR[2])
-    i.rect(11, 3, 12, 4, V)
-    i.set(12, 3, VL)
-    i.set(12, 5, v); i.set(10, 3, v)
+    # Body x 1..8, y 7..9 (tail cap on the left), grip rings
+    i.rect(1, 7, 8, 9, CHAR[1])
+    i.rect(1, 7, 8, 7, CHAR[0])
+    i.rect(1, 9, 8, 9, CHAR[2])
+    for x in (3, 5):
+        i.rect(x, 7, x, 9, CHAR[3])
+    # Switch on top
+    i.set(6, 6, (200, 60, 50))
+    # Head x 9..11, y 5..11, wider
+    i.rect(9, 5, 11, 11, CHAR[1])
+    i.rect(9, 5, 11, 5, CHAR[0])
+    i.rect(9, 11, 11, 11, CHAR[2])
+    # Lens on the front of the head
+    i.rect(12, 6, 12, 10, V)
+    i.set(12, 6, VL); i.set(12, 10, v)
     i.outline(O)
-    # Soft glow out of the lens
-    for (x, y) in ((13, 2), (14, 1), (13, 1), (14, 2)):
-        if i.get(x, y)[3] == 0 or i.get(x, y)[:3] == O:
-            i.set(x, y, VL if (x, y) == (13, 2) else (186, 150, 250))
+    # Cone of UV light out of the lens (soft, no outline)
+    for (x, y) in ((14, 7), (14, 8), (14, 9), (15, 6), (15, 8), (15, 10)):
+        i.set(x, y, (186, 150, 250))
     return i.p
-
 
 def brass_seal():
-    """Brass seal (layer 0): a turned rosewood handle, a brass collar and the round die. The wax it holds is the
-    tinted layer 1 (gen_assets)."""
+    """Brass seal, upright (layer 0): a turned rosewood handle with its knob, a brass collar and the brass die at the
+    bottom. Next to it lies a round wax seal it made: that is the tinted layer 1 (gen_assets)."""
     O = (60, 34, 20)
-    H = [(150, 92, 58), (120, 70, 42), (90, 50, 30)]
+    H = [(156, 98, 62), (126, 76, 46), (96, 56, 34)]
     i = Icon()
-    # Handle along the diagonal, top right
-    for k in range(5):
-        x, y = 9 + k, 6 - k
-        i.set(x, y, H[0]); i.set(x + 1, y, H[1]); i.set(x, y + 1, H[1]); i.set(x + 1, y + 1, H[2])
-    # Knob at the end
-    i.rect(13, 0, 14, 1, H[0]); i.set(14, 1, H[2])
-    # Brass collar
-    i.rect(7, 6, 9, 8, BRASS[1]); i.set(7, 6, BRASS[0]); i.set(9, 8, BRASS[3])
-    # Die: a brass disc (square with soft corners), bottom left
-    i.rect(3, 8, 7, 12, BRASS[2])
-    i.rect(3, 8, 7, 8, BRASS[1]); i.rect(3, 8, 3, 12, BRASS[1])
-    i.rect(7, 9, 7, 12, BRASS[3]); i.rect(4, 12, 7, 12, BRASS[3])
-    i.set(4, 9, BRASS[0])
-    for (x, y) in ((3, 8), (7, 8), (3, 12), (7, 12)):
-        i.set(x, y, T)
+    # Knob x 3..6, y 1..3
+    i.rect(3, 1, 6, 3, H[1])
+    i.rect(3, 1, 6, 1, H[0]); i.set(3, 2, H[0])
+    i.rect(6, 2, 6, 3, H[2])
+    i.set(3, 1, T); i.set(6, 1, T)
+    # Neck and handle x 4..5, y 4..8, then widening
+    i.rect(4, 4, 5, 8, H[1])
+    i.rect(4, 4, 4, 8, H[0])
+    i.rect(3, 7, 6, 8, H[1]); i.set(3, 7, H[0]); i.set(6, 8, H[2])
+    # Brass collar and die x 2..7, y 9..12
+    i.rect(3, 9, 6, 9, BRASS[1])
+    i.rect(2, 10, 7, 12, BRASS[2])
+    i.rect(2, 10, 7, 10, BRASS[0])
+    i.rect(2, 10, 2, 12, BRASS[1])
+    i.rect(7, 11, 7, 12, BRASS[3])
+    i.rect(3, 12, 7, 12, BRASS[3])
     i.outline(O)
     return i.p
-
 
 def judge_stopwatch():
-    """Judge's stopwatch: round steel case seen as a soft square, white dial, red hand, crown and button on top."""
+    """Judge's stopwatch: a round steel case, white dial with its marks and red hand, the crown button on top."""
+    import math
     O = (44, 40, 46)
     i = Icon()
-    # Crown and side button
-    i.rect(7, 1, 8, 2, STEEL[1]); i.set(7, 1, STEEL[0])
-    i.set(11, 3, STEEL[2])
-    # Case x 3..12, y 3..13, corners cut
-    i.rect(3, 3, 12, 13, STEEL[2])
-    i.rect(3, 3, 12, 3, STEEL[0]); i.rect(3, 3, 3, 13, STEEL[1])
-    i.rect(12, 4, 12, 13, STEEL[3]); i.rect(4, 13, 12, 13, STEEL[3])
-    for (x, y) in ((3, 3), (12, 3), (3, 13), (12, 13)):
-        i.set(x, y, T)
-    # Dial x 4..11, y 4..12, soft corners
-    i.rect(4, 4, 11, 12, PAPER[0])
-    i.rect(5, 12, 11, 12, PAPER[1]); i.rect(11, 5, 11, 12, PAPER[1])
-    for (x, y) in ((4, 4), (11, 4), (4, 12), (11, 12)):
-        i.set(x, y, STEEL[2])
-    # Marks at 12, 3, 6, 9
-    for (x, y) in ((7, 5), (8, 5), (10, 8), (7, 11), (8, 11), (5, 8)):
-        i.set(x, y, (90, 86, 96))
-    # Hands: red seconds hand to the top right, black minute stub
-    i.set(8, 8, (40, 36, 44)); i.set(7, 8, (40, 36, 44))
-    i.set(8, 7, (210, 40, 36)); i.set(9, 6, (210, 40, 36))
+    # Crown button and its stem
+    i.rect(6, 0, 9, 1, STEEL[1]); i.rect(6, 0, 9, 0, STEEL[0])
+    i.rect(7, 2, 8, 2, STEEL[3])
+    cx, cy = 7.5, 9.0
+    for y in range(16):
+        for x in range(16):
+            r = math.hypot(x + 0.5 - cx - 0.5, y + 0.5 - cy - 0.5)
+            if r > 6.3:
+                continue
+            if r > 5.0:   # the case: lit at the top left, dark at the bottom right
+                lit = (x + 0.5 - cx - 0.5) + (y + 0.5 - cy - 0.5) < -1.5
+                dark = (x + 0.5 - cx - 0.5) + (y + 0.5 - cy - 0.5) > 2.5
+                i.set(x, y, STEEL[0] if lit else STEEL[3] if dark else STEEL[2])
+            else:         # the dial, a little shaded at the bottom right
+                i.set(x, y, PAPER[1] if (x + y) > 19 and r > 3.6 else PAPER[0])
+    # Marks at 12, 3, 6 and 9 o'clock
+    for (x, y) in ((8, 5), (12, 9), (8, 13), (4, 9)):
+        i.set(x, y, (100, 96, 106))
+    # Hands from the centre: black minutes to 12, red seconds to the top right
+    i.set(8, 9, (40, 36, 44)); i.set(8, 8, (40, 36, 44)); i.set(8, 7, (40, 36, 44))
+    i.set(9, 8, (210, 40, 36)); i.set(10, 7, (210, 40, 36)); i.set(11, 6, (210, 40, 36))
     i.outline(O)
     return i.p
 
-
 def measuring_tape():
-    """Tape measure: a yellow case with a black grip band, steel hook, the yellow tape pulled out with marks."""
+    """Tape measure: a yellow case with a black grip band, the yellow tape pulled out with marks, its steel hook,
+    all inside the 16 px (outline included)."""
     O = (60, 40, 14)
     Y = [(255, 226, 96), (240, 196, 48), (206, 156, 30), (160, 112, 20)]
     i = Icon()
-    # Case x 1..9, y 4..12
-    i.rect(1, 4, 9, 12, Y[1])
-    i.rect(1, 4, 9, 4, Y[0]); i.rect(1, 4, 1, 12, Y[0])
-    i.rect(9, 5, 9, 12, Y[3]); i.rect(2, 12, 9, 12, Y[3])
-    for (x, y) in ((1, 4), (9, 4), (1, 12), (9, 12)):
+    # Case x 1..8, y 4..11
+    i.rect(1, 4, 8, 11, Y[1])
+    i.rect(1, 4, 8, 4, Y[0]); i.rect(1, 4, 1, 11, Y[0])
+    i.rect(8, 5, 8, 11, Y[3]); i.rect(2, 11, 8, 11, Y[3])
+    for (x, y) in ((1, 4), (8, 4), (1, 11), (8, 11)):
         i.set(x, y, T)
-    # Black grip band round the middle, steel screw
-    i.rect(3, 6, 7, 10, CHAR[2]); i.rect(3, 6, 7, 6, CHAR[1])
-    i.rect(4, 7, 6, 9, CHAR[3])
-    i.set(5, 8, STEEL[1])
-    # Tape out of the case at the bottom right
-    i.rect(10, 10, 14, 11, Y[0])
-    i.rect(10, 11, 14, 11, Y[2])
-    for x in (11, 13):
-        i.set(x, 10, (40, 34, 30))
-    # Hook
-    i.rect(15, 9, 15, 11, STEEL[2]); i.set(15, 9, STEEL[1])
+    # Black grip band, steel screw
+    i.rect(3, 6, 6, 9, CHAR[2]); i.rect(3, 6, 6, 6, CHAR[1])
+    i.rect(4, 7, 5, 8, CHAR[3])
+    i.set(4, 7, STEEL[1])
+    # Tape out of the case at the bottom right, marks, hook
+    i.rect(9, 9, 13, 10, Y[0])
+    i.rect(9, 10, 13, 10, Y[2])
+    for x in (10, 12):
+        i.set(x, 9, (40, 34, 30))
+    i.rect(14, 8, 14, 10, STEEL[2]); i.set(14, 8, STEEL[1])
     i.outline(O)
     return i.p
-
 
 def tally_counter():
     """Hand tally counter: chrome round body, the number window, the push button on top, the ring for the finger."""

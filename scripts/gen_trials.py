@@ -215,7 +215,8 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
         model(name, {"parent": "craftmaster:block/buzzer_template", "textures": {"dome": f"craftmaster:block/{name}_dome"}})
         model(name + "_lit", {"parent": "craftmaster:block/buzzer_template", "textures": {"dome": f"craftmaster:block/{name}_dome_lit"}})
         write_json(os.path.join(A, f"blockstates/{name}.json"), {"variants": {
-            "lit=false": {"model": f"craftmaster:block/{name}"}, "lit=true": {"model": f"craftmaster:block/{name}_lit"}}})
+            f"lit={lit},powered={pw}": {"model": f"craftmaster:block/{name}" + ("_lit" if lit == "true" else "")}
+            for lit in ("false", "true") for pw in ("false", "true")}})
         item_def(name, f"craftmaster:block/{name}")
         write_json(os.path.join(D, f"craftmaster/loot_table/blocks/{name}.json"), self_drop(name))
         shaped(name, ["D", "B", "I"], {"D": f"minecraft:{color}_dye", "B": "minecraft:stone_button", "I": "minecraft:iron_ingot"},
@@ -316,11 +317,11 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
         "item.craftmaster.judge_stopwatch.hint": ("On a contestant: start / stop their time · In the air: all the stopwatches",
                                                   "Sur un candidat : départ / arrêt de son temps · En l'air : tous les chronos"),
         "item.craftmaster.measuring_tape": ("Measuring Tape", "Mètre ruban"),
-        "item.craftmaster.measuring_tape.hint": ("Use on a block, then on another: the distance · Sneak: start over",
-                                                 "Sur un bloc puis sur un autre : la distance · Accroupi : recommencer"),
+        "item.craftmaster.measuring_tape.hint": ("Use on a point, then on another: the exact distance, a tape shown for 10 s · Sneak: start over",
+                                                 "Sur un point puis sur un autre : la distance exacte, ruban affiché 10 s · Accroupi : recommencer"),
         "item.craftmaster.tally_counter": ("Tally Counter", "Compteur"),
-        "item.craftmaster.tally_counter.hint": ("On a chest or a player: counts the items (only the kind held in the other hand, if any)",
-                                                "Sur un coffre ou un joueur : compte les objets (seulement ceux de l'autre main, s'il y en a)"),
+        "item.craftmaster.tally_counter.hint": ("On anything holding items (chest, barrel, hopper, minecart, donkey, armour stand, player...): counts them (only the kind held in the other hand, if any)",
+                                                "Sur tout ce qui contient des objets (coffre, tonneau, entonnoir, wagonnet, âne, porte-armure, joueur…) : les compte (seulement ceux de l'autre main, s'il y en a)"),
         "item.craftmaster.canvas": ("Painter's Canvas", "Toile de peintre"),
         "item.craftmaster.slate": ("Slate", "Ardoise"),
         "item.craftmaster.whiteboard": ("Whiteboard", "Tableau blanc"),

@@ -1278,7 +1278,7 @@ seal_rows = [
     "................",
 ]
 d_save("textures/item/wax_seal.png", gen_icons.brass_seal())  # a brass seal (scripts/gen_icons.py)
-d_save("textures/item/wax_seal_wax.png", d_wax_item(5.5, 10.5, 2.3))  # the wax on the die
+d_save("textures/item/wax_seal_wax.png", d_wax_item(11.5, 12, 3.2))  # a round wax seal next to it
 d_item_model("wax_seal", ["wax_seal", "wax_seal_wax"])
 write_json(os.path.join(A, "items/wax_seal.json"), {"model": {"type": "minecraft:model", "model": "craftmaster:item/wax_seal", "tints": D_TINTS}})
 
