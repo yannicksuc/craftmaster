@@ -30,7 +30,8 @@ Anciennement un plugin Paper : mêmes commandes, mêmes données (importées aut
 | [Développement](docs/wiki/Developpement.md) · [Tests](docs/wiki/Tests.md) | Build, structure du code, tests |
 
 ## Build
-`.\gradlew.bat build` (Java 25) → `build/libs/craftmaster-<version>.jar` (lance aussi les tests unitaires).
+`.\gradlew.bat build` (Java 25) → `build/libs/craftmaster-<version>+26.3.jar` et `build/libs/craftmaster-<version>+26.2.jar`
+(un jar par version de Minecraft, même code, tests unitaires lancés sur les deux ; voir [Développement](docs/wiki/Developpement.md)).
 
 ## Crédits
 - Police machine à écrire des lettres de tâche (`craftmaster:typewriter`) : conversion bitmap de **Cairopixel** de

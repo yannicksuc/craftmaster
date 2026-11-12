@@ -373,3 +373,17 @@ Non vérifié : icônes dans l'inventaire / l'onglet créatif, softbox et cadre 
 | Échap puis réouverture : brouillon retrouvé (cases hachurées) | ✔ |
 | Entrée : une seule modification « Steve 5 ; LordFinn 5 ; Notch 3 ; Alice 2 ; Bob 1 », bouton « Annuler : … » | ✔ |
 | Survol (▲ ▼, infobulle), sons | non vérifiés (la vraie souris, jeu muet) |
+
+## 8. Minecraft 26.2 (portage, vérifié en jeu le 12/11/2026)
+Serveur `:26.2:runServer` (`run-server-26.2/`, jeu 25901, RCON 25902) + client `scripts\dev-client.ps1 -Version 26.2`
+(`run-26.2/`, MCP Fabric 26.2 dans `run-26.2/mods/`, pont 25941), Fabric Loader 0.20.1, Fabric API 0.161.0+26.2.
+- `.\gradlew.bat build` : 274 tests sur chaque version, deux jars.
+- Serveur 26.2 : démarre, commandes (`/craftMasterHistory`, `/craftMasterRanking`, `/fx`, `/cam`, `/tv`, `/cfpt`),
+  blocs du studio posés avec leurs données (trône, projecteur, chrono géant, enveloppe).
+- Client 26.2 (captures MCP) : studio dessiné (trône, projecteur, chrono géant avec son bandeau, enveloppe) ; les 16
+  effets d'écran compilent et s'affichent, HUD net par-dessus ; mode diffusion (vue de la caméra, HUD et mains
+  masqués, « EN DIRECT »), coupe, fondu au noir, fondu enchaîné, écran partagé à deux tuiles ; tableau suspendu
+  avec son étiquette. Fenêtre ouverte sans prendre le focus.
+- Client 26.3 de la même branche : démarre jusqu'à l'écran titre sans erreur de mixin.
+- Pas encore revérifié en 26.2 : écrans à clavier / souris (saisie des points, lettres, éditeur de poses : la lettre
+  d'une touche passe par GLFW en 26.2), régie vocale, épreuves, rideaux, tablette chrono, StreamDeck, deux joueurs.

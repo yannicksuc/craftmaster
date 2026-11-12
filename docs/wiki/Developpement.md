@@ -7,15 +7,39 @@
 
 | Tâche | Effet |
 |---|---|
-| `.\gradlew.bat build` | Compile, lance les tests unitaires, produit `build/libs/craftmaster-<version>.jar` |
-| `.\gradlew.bat test` | Tests unitaires seuls |
-| `.\gradlew.bat runServer` | Serveur de dev (`run-server/`) |
-| `.\gradlew.bat runClient` / `runClient2` | Client LordFinn (`run/`, admin) / Joueur2 (`run2/`, joueur normal) |
-| `powershell -File scripts\dev-client.ps1 [-Second]` | Client en arrière-plan, sans son, connecté au serveur de dev |
+| `.\gradlew.bat build` | Compile et teste les deux versions, produit `build/libs/craftmaster-<version>+26.3.jar` et `craftmaster-<version>+26.2.jar` |
+| `.\gradlew.bat test` | Tests unitaires seuls (26.3 ; `:26.2:test` pour 26.2) |
+| `.\gradlew.bat runServer` | Serveur de dev 26.3 (`run-server/`) ; `:26.2:runServer` : serveur 26.2 (`run-server-26.2/`) |
+| `.\gradlew.bat runClient` / `runClient2` | Client LordFinn (`run/`, admin) / Joueur2 (`run2/`, joueur normal), en 26.3 ; `:26.2:runClient` / `:26.2:runClient2` : `run-26.2/`, `run2-26.2/` |
+| `powershell -File scripts\dev-client.ps1 [-Second] [-Version 26.2]` | Client en arrière-plan, sans son, connecté au serveur de dev (25691 en 26.3, 25901 en 26.2) |
 | `python3 scripts/gen_assets.py` | Régénère modèles, états de blocs, textures, recettes, loot tables, traductions |
 | `python3 scripts/server_smoke_test.py <ip>` | Test de bout en bout sur le serveur de dev ([Tests](Tests.md)) |
 | `.\gradlew.bat runClient -PregieTrigger` | Client dont la régie vocale joue les WAV déposés dans `run/regie-trigger/` |
 | `powershell -File tools\voice-regie\start.ps1` | Service local de la régie vocale ([RegieVocale](RegieVocale.md)) |
+
+## Deux versions de Minecraft (26.3 et 26.2)
+Le même code donne un jar 26.3 et un jar 26.2 (l'event tourne en 26.2 : Immersive Melodies, Joy of Painting,
+Immersive Paintings, Music Maker n'existent qu'en 26.2). Outil : [Stonecutter](https://stonecutter.kikugie.dev/)
+0.9.8, comme Axiom Atelier.
+- `settings.gradle.kts` déclare les nœuds `26.3` et `26.2` ; chacun lit `versions/<nœud>/gradle.properties`
+  (Minecraft, Fabric Loader, Fabric API, dossiers de lancement, dialecte GLSL). `build.gradle.kts` est le build d'un
+  nœud, `stonecutter.gradle.kts` le projet racine (tâches `build`, `runServer`, `runClient`… et les « swaps »).
+- **Le code de `src/` est écrit pour 26.3** (version active). Le nœud 26.2 compile une copie transformée dans
+  `versions/26.2/build/generated/stonecutter/`. Ne pas lancer « Set active project to 26.2 » : il réécrirait `src/`.
+- Différences dans le code, toujours écrites 26.3 d'abord :
+  - petits renommages : swaps `/*$ nom {*/nom 26.3/*$}*/`, définis dans `stonecutter.gradle.kts` (`PushReaction`,
+    `Player#drop`, `mulPose` / `rotate`, `KEYSYM` / `KEYBOARD`, paquets `renderpearl` de 26.3…) ;
+  - blocs : `//? if <26.3 {` … `/*code 26.2*/` … `//?}` (le code 26.2 reste en commentaire dans `src/`) ;
+  - appels plus longs regroupés dans `client/compat/ClientCompat` (cible de rendu, copie d'image, fond de texte,
+    touche enfoncée, lettre d'une touche).
+- Shaders : écrits en GLSL 26.3 ; pour 26.2, `processResources` remplace `#include` par `#moj_import` et retire les
+  `layout(location = n)` des entrées / sorties (`glsl_dialect=moj_import`).
+- Ce qui diffère vraiment en 26.2 : un seul post effect vanilla, donc `FxGameRendererMixin` lance nos chaînes lui-même
+  juste après le monde ; `PostChain` ne connaît pas son id (gardé au chargement, `FxPostChainMixin`) ; pas de fond de
+  texte autonome (les étiquettes des tableaux et de l'écran image ont un fond par ligne) ; fenêtre GLFW (et non SDL3) :
+  `DevWindowMixin` l'ouvre sans prendre le focus quand le client de dev est lancé en arrière-plan.
+- Après une modification, `.\gradlew.bat build` compile et teste les deux. Une mixin peut compiler et échouer au
+  lancement (signature différente) : lancer aussi le client 26.2.
 
 ## Structure du code
 ```
