@@ -1,7 +1,7 @@
 {
   "textures": {
-    "duck": "craftmaster:item/toy/rubber_duck",
-    "particle": "craftmaster:item/toy/rubber_duck"
+    "duck": "craftmaster:item/toy/rubber_duck_yellow",
+    "particle": "craftmaster:item/toy/rubber_duck_yellow"
   },
   "elements": [
     {
@@ -23,8 +23,7 @@
             0.0,
             3.0,
             4.0
-          ],
-          "tintindex": 0
+          ]
         },
         "down": {
           "texture": "#duck",
@@ -33,8 +32,7 @@
             0.0,
             6.0,
             4.0
-          ],
-          "tintindex": 0
+          ]
         },
         "east": {
           "texture": "#duck",
@@ -43,8 +41,7 @@
             0.0,
             10.0,
             2.0
-          ],
-          "tintindex": 0
+          ]
         },
         "west": {
           "texture": "#duck",
@@ -53,8 +50,7 @@
             2.0,
             10.0,
             4.0
-          ],
-          "tintindex": 0
+          ]
         },
         "north": {
           "texture": "#duck",
@@ -63,8 +59,7 @@
             0.0,
             13.0,
             2.0
-          ],
-          "tintindex": 0
+          ]
         },
         "south": {
           "texture": "#duck",
@@ -73,8 +68,7 @@
             2.0,
             13.0,
             4.0
-          ],
-          "tintindex": 0
+          ]
         }
       }
     },
@@ -97,8 +91,7 @@
             4.0,
             2.0,
             6.0
-          ],
-          "tintindex": 0
+          ]
         },
         "down": {
           "texture": "#duck",
@@ -107,8 +100,7 @@
             4.0,
             4.0,
             6.0
-          ],
-          "tintindex": 0
+          ]
         },
         "east": {
           "texture": "#duck",
@@ -117,8 +109,7 @@
             4.0,
             6.0,
             6.0
-          ],
-          "tintindex": 0
+          ]
         },
         "west": {
           "texture": "#duck",
@@ -127,8 +118,7 @@
             4.0,
             8.0,
             6.0
-          ],
-          "tintindex": 0
+          ]
         },
         "north": {
           "texture": "#duck",
@@ -137,8 +127,7 @@
             4.0,
             10.0,
             6.0
-          ],
-          "tintindex": 0
+          ]
         },
         "south": {
           "texture": "#duck",
@@ -147,8 +136,7 @@
             4.0,
             12.0,
             6.0
-          ],
-          "tintindex": 0
+          ]
         }
       }
     },
@@ -207,98 +195,6 @@
             6.0,
             1.0,
             7.0
-          ]
-        }
-      }
-    },
-    {
-      "from": [
-        5,
-        4.05,
-        4
-      ],
-      "to": [
-        11,
-        4.05,
-        12
-      ],
-      "faces": {
-        "up": {
-          "texture": "#duck",
-          "uv": [
-            0.0,
-            8.0,
-            3.0,
-            12.0
-          ]
-        }
-      }
-    },
-    {
-      "from": [
-        6,
-        8.05,
-        3
-      ],
-      "to": [
-        10,
-        8.05,
-        7
-      ],
-      "faces": {
-        "up": {
-          "texture": "#duck",
-          "uv": [
-            3.0,
-            8.0,
-            5.0,
-            10.0
-          ]
-        }
-      }
-    },
-    {
-      "from": [
-        11.05,
-        0,
-        4
-      ],
-      "to": [
-        11.05,
-        4,
-        12
-      ],
-      "faces": {
-        "east": {
-          "texture": "#duck",
-          "uv": [
-            5.0,
-            8.0,
-            9.0,
-            10.0
-          ]
-        }
-      }
-    },
-    {
-      "from": [
-        4.95,
-        0,
-        4
-      ],
-      "to": [
-        4.95,
-        4,
-        12
-      ],
-      "faces": {
-        "west": {
-          "texture": "#duck",
-          "uv": [
-            5.0,
-            10.0,
-            9.0,
-            12.0
           ]
         }
       }

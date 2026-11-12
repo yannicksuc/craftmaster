@@ -32,10 +32,13 @@ battu son meilleur lancer) et les organisateurs à moins de 64 blocs ont la lign
 
 ## 2. Canard en plastique
 
-Petit canard en plastique (6 × 8 px de corps, une tête, un bec). Il couine quand on le ramasse, le frappe, le
-lance ou quand il tombe de haut. Seize couleurs : il se teint à l'établi comme le cuir (canard + teinture), et
-l'onglet créatif en propose déjà sept (jaune, rouge, bleu, vert, rose, blanc, noir). Son nom suit sa couleur
-(« Canard en plastique rouge »), ce qui le distingue aussi pour le compteur.
+Petit canard en plastique : un rectangle pour le corps, un pour la tête, un pour le bec. Il couine quand on le
+ramasse, le frappe, le lance ou quand il tombe de haut. Seize couleurs : il se teint à l'établi comme le cuir
+(canard + teinture), et l'onglet créatif en propose déjà sept (jaune, rouge, bleu, vert, rose, blanc, noir). Un
+seul modèle ; chaque couleur a sa texture peinte (même ombrage, teintes décalées : un canard jaune tire sur
+l'orange dans l'ombre et sur le jaune pâle dans la lumière). Un canard teint de plusieurs teintures prend la
+couleur de teinture la plus proche. Son nom suit sa couleur (« Canard en plastique rouge »), ce qui le distingue
+aussi pour le compteur.
 
 **Chasse aux canards** (« trouver les dix canards cachés ») :
 1. Un organisateur pose les canards (clic droit sur un bloc) : posés par un organisateur, ils sont **cachés** (il

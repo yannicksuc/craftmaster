@@ -191,6 +191,20 @@ public final class Toys {
         return c == null ? fallback : c.rgb();
     }
 
+    /**
+     * A rubber duck has one painted texture per dye colour: a duck dyed with several dyes (an in-between colour) is
+     * given the nearest of the 16. Returns true if it changed.
+     */
+    public static boolean snapDuckColour(ItemStack stack) {
+        if (!(stack.getItem() instanceof ToyItem t) || t.kind() != ToyKind.DUCK) return false;
+        DyedItemColor c = stack.get(DataComponents.DYED_COLOR);
+        if (c == null) return false;
+        int rgb = ToyPhysics.DYE_RGB[ToyPhysics.nearestDye(c.rgb())];
+        if ((c.rgb() & 0xFFFFFF) == rgb) return false;
+        stack.set(DataComponents.DYED_COLOR, new DyedItemColor(rgb));
+        return true;
+    }
+
     public static CompoundTag data(ItemStack stack) {
         CustomData d = stack.get(DataComponents.CUSTOM_DATA);
         return d == null ? new CompoundTag() : d.copyTag();

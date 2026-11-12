@@ -206,123 +206,169 @@ def argb(rgb):
 
 # ================================================================ toys
 
-def rubber_duck():
-    """Body 6×4×8, head 4×4×4, beak 2×2×2: three cubes. Smooth moulded plastic: each face one flat tone of grey
-    (the dye colour multiplies it; top lightest, sides one step darker, underside darker), no gradient on the
-    tops. The gloss is white and NOT tinted: planes just over the top and sides (0.05 px) with a few crisp
-    highlight pixels, like light on shiny plastic."""
-    im = img(32, 32)
-    # Greys of moulded plastic, wide range for volume (no pure white: dyed, it would turn into a flat colour)
-    P = [(70, 70, 76), (98, 98, 104), (128, 128, 134), (160, 160, 164), (192, 192, 196), (220, 220, 222)]
-    G = lambda i: rgba(P[max(0, min(5, i))])
+DYE_RGB = [0xF9FFFE, 0xF9801D, 0xC74EBD, 0x3AB3DA, 0xFED83D, 0x80C71F, 0xF38BAA, 0x474F52, 0x9D9D97, 0x169C9C,
+           0x8932B8, 0x3C44AA, 0x835432, 0x5E7C16, 0xB02E26, 0x1D1D21]
 
-    def shaded(levels, salt, sides=True, edge_cols=1):
-        """A face of a soft rounded volume drawn on a square: one level per row (light on top, dark below, the
-        change broken by 2–3 px strokes of the upper tone), its left and right columns a step darker (the
-        surface turning away) and the bottom corners two steps darker."""
+
+def hue_ramp(rgb, n=7, base=4):
+    """A pixel-art ramp of n colours around a dye colour (index base = the dye itself). Shading is not just
+    darker: shadows turn the hue towards red / purple and get more saturated, lights turn it towards yellow and
+    get paler, the way painted plastic catches the light."""
+    import colorsys
+    r, g, b = ((rgb >> 16) & 255) / 255, ((rgb >> 8) & 255) / 255, (rgb & 255) / 255
+    h, sat, v = colorsys.rgb_to_hsv(r, g, b)
+    grey = sat < 0.18
+    if not grey:
+        # Bright toy plastic: lift dull dyes a little
+        sat, v = min(1, sat * 1.12 + 0.05), min(1, max(v, 0.62) * 1.08)
+    out = []
+    for i in range(n):
+        k = i - base  # < 0 shadows, > 0 lights
+        hh, ss, vv = h, sat, v
+        if not grey:
+            # Shadows towards red-orange for warm hues, towards purple for cool ones; lights towards yellow
+            shadow_hue = 0.0 if (h < 0.17 or h > 0.83) else 0.75
+            light_hue = 0.16
+            if k < 0:
+                if abs(shadow_hue - h) < 0.5:
+                    hh = h + (shadow_hue - h) * min(0.35, -k * 0.09)
+                ss = min(1, sat - k * 0.06)
+                vv = v * (1 + k * 0.13)
+            elif k > 0:
+                if abs(light_hue - h) < 0.5:
+                    hh = h + (light_hue - h) * k * 0.12
+                ss = max(0, sat - k * 0.22)
+                vv = min(1, v + k * (1 - v) * 0.55 + k * 0.03)
+        else:
+            vv = max(0.08, min(1, v + k * 0.11 if v < 0.5 else v * (1 + k * 0.07)))
+            hh, ss = 0.62, (0.06 if k < 0 else 0.03)  # a touch of cold blue in the grey shadows
+        cr, cg, cb = colorsys.hsv_to_rgb(hh % 1, max(0, min(1, ss)), max(0, min(1, vv)))
+        out.append((round(cr * 255), round(cg * 255), round(cb * 255)))
+    return out
+
+
+def rubber_duck():
+    """Body 6x4x8, head 4x4x4, beak 2x2x2: three cubes, one model. The shading is painted once as a map of ramp
+    levels (0 = deepest shadow, 4 = the dye colour, 6 = highlight) and written in each of the 16 dye colours with a
+    hue-shifted ramp; the item model picks the texture from the duck's dye colour (minecraft:dyed_color)."""
+    L = [[None] * 32 for _ in range(32)]   # a ramp level, or a fixed colour (eye, beak)
+    EYE_B, EYE_W = (24, 20, 28), (250, 250, 246)
+    BEAK = [(176, 64, 14), (214, 96, 20), (240, 132, 32), (252, 170, 64), (255, 204, 112)]
+
+    def put(x0, y0, w, h, fn):
+        for y in range(h):
+            for x in range(w):
+                L[y0 + y][x0 + x] = fn(x, y, w, h)
+
+    def side(levels, salt, dark_edges=True):
+        """Rows light to dark broken by short strokes; the vertical edges a step down (the surface turns away)."""
         def fn(x, y, w, h):
             lv = levels[min(y, len(levels) - 1)]
             if y > 0 and lv < levels[min(y - 1, len(levels) - 1)] and hash2(x // 3, y, salt) > 0.55:
                 lv += 1
-            if sides and (x < edge_cols or x >= w - edge_cols):
+            if dark_edges and (x == 0 or x == w - 1):
                 lv -= 1
-                if y == h - 1:
-                    lv -= 1
-            return G(lv)
+            return lv
         return fn
 
-    def top_face(w, h, salt, shadow_rows=()):
-        """Top: a light middle, the border a step darker, the corners two (rounded, no dark spots inside);
-        rows in shadow_rows a step darker (in the shade of the head)."""
+    def top(w, h, shade_rows=(), shine=()):
         def fn(x, y, ww, hh):
-            edge_x, edge_y = x in (0, w - 1), y in (0, h - 1)
-            lv = 5 - (1 if edge_x or edge_y else 0) - (1 if edge_x and edge_y else 0)
-            if y in shadow_rows:
-                lv -= 1 if not (edge_x and hash2(x, y, salt) > 0.5) else 2
-            return G(lv)
+            ex, ey = x in (0, w - 1), y in (0, h - 1)
+            lv = 5 - (1 if ex or ey else 0) - (1 if ex and ey else 0)
+            if y in shade_rows:
+                lv -= 1
+            if (x, y) in shine:
+                lv = 6
+            return lv
         return fn
 
-    # Body (x 5..11, y 0..4, z 4..12). The head covers its top rows 0-2; row 3 is in the head's shade
-    paint(im, 0, 0, 6, 8, top_face(6, 8, 3, shadow_rows=(3,)))
-    paint(im, 6, 0, 6, 8, lambda x, y, w, h: G(0 if min(x, y, w - 1 - x, h - 1 - y) == 0 else 1))   # underside
+    # Body (x 5..11, y 0..4, z 4..12): the head covers its top rows 0-2, row 3 is in its shade
+    put(0, 0, 6, 8, top(6, 8, shade_rows=(3,), shine={(1, 5), (2, 5), (1, 6)}))
+    put(6, 0, 6, 8, lambda x, y, w, h: 1)
 
     def body_side(flip, salt):
-        base = shaded([4, 4, 3, 2], salt)
+        base = side([5, 4, 3, 2], salt)
 
         def fn(x, y, w, h):
             xx = w - 1 - x if flip else x  # 0 = front
-            # The moulded wing: a lighter lobe with a dark seam under it, tip up at the back
-            if y == 1 and 2 <= xx <= 5:
-                return G(5)
-            if y == 0 and xx == 6:
-                return G(5)
+            if (y == 1 and 2 <= xx <= 5) or (y == 0 and xx == 6):
+                return 6 if (xx, y) == (2, 1) else 5      # the wing, catching the light
             if (y == 2 and 2 <= xx <= 5) or (y == 1 and xx == 6):
-                return G(2)
+                return 2                                  # its seam
+            if y == 0 and xx == 7:
+                return 6                                  # the tail tip
             return base(x, y, w, h)
         return fn
-    paint(im, 12, 0, 8, 4, body_side(True, 11))    # east (front = -z = right of the face)
-    paint(im, 12, 4, 8, 4, body_side(False, 12))   # west
-    paint(im, 20, 0, 6, 4, shaded([3, 3, 2, 1], 13))  # north (chest, under the head: darker)
-    paint(im, 20, 4, 6, 4, shaded([5, 4, 3, 2], 14))  # south (tail)
+    put(12, 0, 8, 4, body_side(True, 11))
+    put(12, 4, 8, 4, body_side(False, 12))
+    put(20, 0, 6, 4, side([4, 3, 3, 2], 13))   # chest, under the head
+    put(20, 4, 6, 4, side([5, 5, 4, 3], 14))   # tail
     # Head (x 6..10, y 4..8, z 3..7)
-    paint(im, 0, 8, 4, 4, top_face(4, 4, 4))
-    paint(im, 4, 8, 4, 4, lambda x, y, w, h: G(1))
+    put(0, 8, 4, 4, top(4, 4, shine={(1, 1), (2, 1)}))
+    put(4, 8, 4, 4, lambda x, y, w, h: 2)
 
     def head_side(flip, salt):
-        base = shaded([5, 4, 4, 3], salt)
+        base = side([5, 5, 4, 3], salt)
 
         def fn(x, y, w, h):
             xx = w - 1 - x if flip else x  # 0 = front
-            if xx == 1 and y == 1:
-                return rgba(EYE)
-            if xx == 1 and y == 2:
-                return G(3)  # a little shade under the eye
+            if 1 <= y <= 2 and xx == 1:
+                return EYE_B                              # pupil, to the front
+            if 1 <= y <= 2 and xx == 2:
+                return EYE_W if y == 1 else EYE_B         # white of the eye
             return base(x, y, w, h)
         return fn
-    paint(im, 8, 8, 4, 4, head_side(True, 21))
-    paint(im, 12, 8, 4, 4, head_side(False, 22))
-    paint(im, 16, 8, 4, 4, shaded([5, 4, 3, 3], 23))   # face (above the beak)
-    paint(im, 20, 8, 4, 4, shaded([4, 4, 3, 2], 24))   # back of the head
-    # Beak (orange, not tinted): light top, front lit then darker underneath
-    paint(im, 0, 12, 2, 2, lambda x, y, w, h: rgba(ORANGE[3] if y == 0 else ORANGE[2]))
-    paint(im, 2, 12, 2, 2, lambda x, y, w, h: rgba(ORANGE[0]))
-    paint(im, 4, 12, 2, 2, lambda x, y, w, h: rgba(ORANGE[2] if y == 0 else ORANGE[1]))
-    # Gloss (untinted white): body top, head top, body sides
-    W, W2 = (255, 255, 255, 235), (255, 255, 255, 120)
-    gloss = {(0, 16): (6, 8, [((1, 1), W), ((1, 2), W), ((2, 1), W2), ((1, 3), W2)]),       # body top, front left
-             (6, 16): (4, 4, [((1, 1), W), ((2, 1), W2)]),                                   # head top
-             (10, 16): (8, 4, [((6, 0), W), ((5, 0), W2)]),                                  # body east, top front
-             (10, 20): (8, 4, [((1, 0), W), ((2, 0), W2)])}                                  # body west
-    for (gx, gy), (w, h, px) in gloss.items():
-        for (x, y), c in px:
-            im[gy + y][gx + x] = c
-    write_png(os.path.join(A, "textures/item/toy/rubber_duck.png"), im)
+    put(8, 8, 4, 4, head_side(True, 21))
+    put(12, 8, 4, 4, head_side(False, 22))
+    put(16, 8, 4, 4, side([6, 5, 5, 4], 23))   # face
+    put(20, 8, 4, 4, side([5, 4, 4, 3], 24))   # back of the head
+    # Beak: its own orange ramp, light on top, dark underneath
+    put(0, 12, 2, 2, lambda x, y, w, h: BEAK[4] if (x, y) == (0, 0) else BEAK[3])
+    put(2, 12, 2, 2, lambda x, y, w, h: BEAK[0])
+    put(4, 12, 2, 2, lambda x, y, w, h: BEAK[3] if y == 0 else BEAK[1])
 
-    t = "#duck"
-    s = 0.5
-    o = 0.05  # gloss planes, just over the faces they shine on
+    t, s = "#duck", 0.5
     els = [
         box([5, 0, 4], [11, 4, 12], {
-            "up": face(t, uv(0, 0, 6, 8, s), True), "down": face(t, uv(6, 0, 6, 8, s), True),
-            "east": face(t, uv(12, 0, 8, 4, s), True), "west": face(t, uv(12, 4, 8, 4, s), True),
-            "north": face(t, uv(20, 0, 6, 4, s), True), "south": face(t, uv(20, 4, 6, 4, s), True)}),
+            "up": face(t, uv(0, 0, 6, 8, s)), "down": face(t, uv(6, 0, 6, 8, s)),
+            "east": face(t, uv(12, 0, 8, 4, s)), "west": face(t, uv(12, 4, 8, 4, s)),
+            "north": face(t, uv(20, 0, 6, 4, s)), "south": face(t, uv(20, 4, 6, 4, s))}),
         box([6, 4, 3], [10, 8, 7], {
-            "up": face(t, uv(0, 8, 4, 4, s), True), "down": face(t, uv(4, 8, 4, 4, s), True),
-            "east": face(t, uv(8, 8, 4, 4, s), True), "west": face(t, uv(12, 8, 4, 4, s), True),
-            "north": face(t, uv(16, 8, 4, 4, s), True), "south": face(t, uv(20, 8, 4, 4, s), True)}),
+            "up": face(t, uv(0, 8, 4, 4, s)), "down": face(t, uv(4, 8, 4, 4, s)),
+            "east": face(t, uv(8, 8, 4, 4, s)), "west": face(t, uv(12, 8, 4, 4, s)),
+            "north": face(t, uv(16, 8, 4, 4, s)), "south": face(t, uv(20, 8, 4, 4, s))}),
         box([7, 4, 1], [9, 6, 3], {
             "up": face(t, uv(0, 12, 2, 2, s)), "down": face(t, uv(2, 12, 2, 2, s)),
             "east": face(t, uv(4, 12, 2, 2, s)), "west": face(t, uv(4, 12, 2, 2, s)),
             "north": face(t, uv(0, 12, 2, 2, s))}),
-        # Gloss planes (zero thickness, not tinted)
-        box([5, 4 + o, 4], [11, 4 + o, 12], {"up": face(t, uv(0, 16, 6, 8, s))}),
-        box([6, 8 + o, 3], [10, 8 + o, 7], {"up": face(t, uv(6, 16, 4, 4, s))}),
-        box([11 + o, 0, 4], [11 + o, 4, 12], {"east": face(t, uv(10, 16, 8, 4, s))}),
-        box([5 - o, 0, 4], [5 - o, 4, 12], {"west": face(t, uv(10, 20, 8, 4, s))}),
     ]
-    model("toy/rubber_duck", {"textures": {"duck": "craftmaster:item/toy/rubber_duck", "particle": "craftmaster:item/toy/rubber_duck"},
+    model("toy/rubber_duck", {"textures": {"duck": "craftmaster:item/toy/rubber_duck_yellow",
+                                           "particle": "craftmaster:item/toy/rubber_duck_yellow"},
                               "elements": els, "display": display(gui=1.6, ground=0.6, hand=0.75, gui_y=1)})
-    item_def("rubber_duck", "craftmaster:item/toy/rubber_duck", argb(0xF6C632))
+    old = os.path.join(A, "textures/item/toy/rubber_duck.png")
+    if os.path.exists(old):
+        os.remove(old)
+    cases = []
+    for i, dye in enumerate(DYES):
+        ramp_ = hue_ramp(DYE_RGB[i])
+        im = img(32, 32)
+        for y in range(32):
+            for x in range(32):
+                v = L[y][x]
+                if v is None:
+                    continue
+                im[y][x] = rgba(v) if isinstance(v, tuple) else rgba(ramp_[max(0, min(6, v))])
+        write_png(os.path.join(A, f"textures/item/toy/rubber_duck_{dye}.png"), im)
+        name = "craftmaster:item/toy/rubber_duck" + ("" if dye == "yellow" else f"_{dye}")
+        if dye != "yellow":
+            model(f"toy/rubber_duck_{dye}", {"parent": "craftmaster:item/toy/rubber_duck",
+                                              "textures": {"duck": f"craftmaster:item/toy/rubber_duck_{dye}",
+                                                           "particle": f"craftmaster:item/toy/rubber_duck_{dye}"}})
+        cases.append({"when": signed(DYE_RGB[i]), "model": {"type": "minecraft:model", "model": name}})
+    # Undyed = yellow; any other colour is snapped to the nearest dye by the game (ToyItem)
+    write_json(os.path.join(A, "items/rubber_duck.json"), {"model": {
+        "type": "minecraft:select", "property": "minecraft:component", "component": "minecraft:dyed_color",
+        "cases": cases, "fallback": {"type": "minecraft:model", "model": "craftmaster:item/toy/rubber_duck"}}})
 
 
 def small_cube(name, frm, to, side, top, bottom, tint_default=None, disp=None):

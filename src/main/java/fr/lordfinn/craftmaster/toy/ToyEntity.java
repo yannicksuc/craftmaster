@@ -90,7 +90,9 @@ public class ToyEntity extends Entity {
     }
 
     public void setStack(ItemStack stack) {
-        entityData.set(STACK, stack.copyWithCount(1));
+        ItemStack one = stack.copyWithCount(1);
+        Toys.snapDuckColour(one);
+        entityData.set(STACK, one);
         if (stack.getItem() instanceof ToyItem t) kind = t.kind();
         refreshDimensions();
     }
