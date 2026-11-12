@@ -231,16 +231,16 @@ def hue_ramp(rgb, n=7, base=4):
             light_hue = 0.16
             if k < 0:
                 if abs(shadow_hue - h) < 0.5:
-                    hh = h + (shadow_hue - h) * min(0.35, -k * 0.09)
-                ss = min(1, sat - k * 0.06)
-                vv = v * (1 + k * 0.13)
+                    hh = h + (shadow_hue - h) * min(0.2, -k * 0.05)
+                ss = min(1, sat - k * 0.03)
+                vv = v * (1 + k * 0.07)
             elif k > 0:
                 if abs(light_hue - h) < 0.5:
-                    hh = h + (light_hue - h) * k * 0.12
-                ss = max(0, sat - k * 0.22)
-                vv = min(1, v + k * (1 - v) * 0.55 + k * 0.03)
+                    hh = h + (light_hue - h) * k * 0.07
+                ss = max(0, sat - k * 0.12)
+                vv = min(1, v + k * (1 - v) * 0.35 + k * 0.02)
         else:
-            vv = max(0.08, min(1, v + k * 0.11 if v < 0.5 else v * (1 + k * 0.07)))
+            vv = max(0.08, min(1, v + k * 0.06 if v < 0.5 else v * (1 + k * 0.045)))
             hh, ss = 0.62, (0.06 if k < 0 else 0.03)  # a touch of cold blue in the grey shadows
         cr, cg, cb = colorsys.hsv_to_rgb(hh % 1, max(0, min(1, ss)), max(0, min(1, vv)))
         out.append((round(cr * 255), round(cg * 255), round(cb * 255)))
@@ -286,26 +286,26 @@ def rubber_duck():
 
     # Body (x 5..11, y 0..4, z 4..12): the head covers its top rows 0-2, row 3 is in its shade
     put(0, 0, 6, 8, top(6, 8, shade_rows=(3,), shine={(1, 5), (2, 5), (1, 6)}, front=4))
-    put(6, 0, 6, 8, lambda x, y, w, h: 1)
+    put(6, 0, 6, 8, lambda x, y, w, h: 2)
 
     def body_side(flip, salt):
-        base = side([5, 4, 3, 2], salt)
+        base = side([5, 4, 4, 3], salt)
 
         def fn(x, y, w, h):
             xx = w - 1 - x if flip else x  # 0 = front
             if (y == 1 and 2 <= xx <= 5) or (y == 0 and xx == 6):
                 return 6 if (xx, y) == (2, 1) else 5      # the wing, catching the light
             if (y == 2 and 2 <= xx <= 5) or (y == 1 and xx == 6):
-                return 2                                  # its seam
+                return 3                                  # its seam
             return base(x, y, w, h)
         return fn
     put(12, 0, 8, 4, body_side(True, 11))
     put(12, 4, 8, 4, body_side(False, 12))
-    put(20, 0, 6, 4, side([4, 3, 3, 2], 13))   # chest, under the head
+    put(20, 0, 6, 4, side([4, 4, 3, 3], 13))   # chest, under the head
     put(20, 4, 6, 4, side([5, 5, 4, 3], 14))   # tail
     # Head (x 6..10, y 4..8, z 3..7)
     put(0, 8, 4, 4, top(4, 4, shine={(1, 1), (2, 1)}))
-    put(4, 8, 4, 4, lambda x, y, w, h: 2)
+    put(4, 8, 4, 4, lambda x, y, w, h: 3)
 
     def head_side(flip, salt):
         base = side([5, 5, 4, 3], salt)
