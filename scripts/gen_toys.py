@@ -266,24 +266,26 @@ def rubber_duck():
             lv = levels[min(y, len(levels) - 1)]
             if y > 0 and lv < levels[min(y - 1, len(levels) - 1)] and hash2(x // 3, y, salt) > 0.55:
                 lv += 1
-            if dark_edges and (x == 0 or x == w - 1):
+            # The vertical edges turn away, from the second row down: the top row meets the top face at its level
+            if dark_edges and (x == 0 or x == w - 1) and y > 0:
                 lv -= 1
             return lv
         return fn
 
-    def top(w, h, shade_rows=(), shine=()):
+    def top(w, h, shade_rows=(), shine=(), front=5):
+        """Top face: lit evenly up to its border, so each edge has the same value as the side face's top row (5;
+        the front row takes the front face's top row level). The head's shade is inside, away from the edges."""
         def fn(x, y, ww, hh):
-            ex, ey = x in (0, w - 1), y in (0, h - 1)
-            lv = 5 - (1 if ex or ey else 0) - (1 if ex and ey else 0)
-            if y in shade_rows:
-                lv -= 1
+            lv = front if y == 0 else 5
+            if y in shade_rows and 0 < x < w - 1:
+                lv = 4
             if (x, y) in shine:
                 lv = 6
             return lv
         return fn
 
     # Body (x 5..11, y 0..4, z 4..12): the head covers its top rows 0-2, row 3 is in its shade
-    put(0, 0, 6, 8, top(6, 8, shade_rows=(3,), shine={(1, 5), (2, 5), (1, 6)}))
+    put(0, 0, 6, 8, top(6, 8, shade_rows=(3,), shine={(1, 5), (2, 5), (1, 6)}, front=4))
     put(6, 0, 6, 8, lambda x, y, w, h: 1)
 
     def body_side(flip, salt):
@@ -295,8 +297,6 @@ def rubber_duck():
                 return 6 if (xx, y) == (2, 1) else 5      # the wing, catching the light
             if (y == 2 and 2 <= xx <= 5) or (y == 1 and xx == 6):
                 return 2                                  # its seam
-            if y == 0 and xx == 7:
-                return 6                                  # the tail tip
             return base(x, y, w, h)
         return fn
     put(12, 0, 8, 4, body_side(True, 11))
@@ -320,7 +320,7 @@ def rubber_duck():
         return fn
     put(8, 8, 4, 4, head_side(True, 21))
     put(12, 8, 4, 4, head_side(False, 22))
-    put(16, 8, 4, 4, side([6, 5, 5, 4], 23))   # face
+    put(16, 8, 4, 4, side([5, 5, 5, 4], 23))   # face
     put(20, 8, 4, 4, side([5, 4, 4, 3], 24))   # back of the head
     # Beak: its own orange ramp, light on top, dark underneath
     put(0, 12, 2, 2, lambda x, y, w, h: BEAK[4] if (x, y) == (0, 0) else BEAK[3])
