@@ -485,7 +485,7 @@ def generate(g):
         "firstperson_lefthand": {"rotation": [0, 225, 0], "translation": [0, -2, 0], "scale": [0.25, 0.25, 0.25]},
     }
     WIDE_DISPLAY = {
-        "gui": {"rotation": [15, 200, 0], "translation": [0, 0, 0], "scale": [0.36, 0.36, 0.36]},
+        "gui": {"rotation": [0, 180, 0], "translation": [0, 0, 0], "scale": [0.4, 0.4, 0.4]},
         "ground": {"rotation": [0, 0, 0], "translation": [0, 2, 0], "scale": [0.2, 0.2, 0.2]},
         "fixed": {"rotation": [0, 180, 0], "translation": [0, 0, 0], "scale": [0.38, 0.38, 0.38]},
         "thirdperson_righthand": {"rotation": [75, 45, 0], "translation": [0, 2.5, 0], "scale": [0.25, 0.25, 0.25]},
@@ -770,8 +770,8 @@ def generate(g):
         "message.craftmaster.bell_rung": "♪ %s rang the bell",
         "message.craftmaster.bell_rung_timer": "♪ %s rang the bell (%s left)",
         "screen.craftmaster.studio_screen": "Studio screen",
-        "screen.craftmaster.studio_screen.url": "Image (URL)",
-        "screen.craftmaster.studio_screen.url_hint": "Address of a PNG, JPEG or GIF image (http:// or https://). Empty: test card.",
+        "screen.craftmaster.studio_screen.url": "Image or video (URL)",
+        "screen.craftmaster.studio_screen.url_hint": "A PNG, JPEG or GIF image, or with WaterMedia a video (YouTube, Twitch, MP4...). Empty: test card.",
         "screen.craftmaster.studio_screen.width": "Width",
         "screen.craftmaster.studio_screen.height": "Height",
         "screen.craftmaster.studio_screen.size": "Size (blocks)",
@@ -783,6 +783,8 @@ def generate(g):
         "screen.craftmaster.studio_screen.bad_size": "Size: 1 to %s blocks wide, 1 to %s high",
         "screen.craftmaster.studio_screen.loading": "Loading…",
         "screen.craftmaster.studio_screen.failed": "Image unavailable: %s",
+        "screen.craftmaster.studio_screen.video_failed": "Video unavailable: %s",
+        "screen.craftmaster.studio_screen.no_video": "Not an image: videos need the WaterMedia mod",
     })
     fr.update({
         "container.craftmaster.desk_drawer": "Tiroir du pupitre",
@@ -801,8 +803,8 @@ def generate(g):
         "message.craftmaster.bell_rung": "♪ %s a sonné",
         "message.craftmaster.bell_rung_timer": "♪ %s a sonné (%s restantes)",
         "screen.craftmaster.studio_screen": "Écran du studio",
-        "screen.craftmaster.studio_screen.url": "Image (adresse)",
-        "screen.craftmaster.studio_screen.url_hint": "Adresse d'une image PNG, JPEG ou GIF (http:// ou https://). Vide : la mire.",
+        "screen.craftmaster.studio_screen.url": "Image ou vidéo (adresse)",
+        "screen.craftmaster.studio_screen.url_hint": "Une image PNG, JPEG ou GIF, ou avec WaterMedia une vidéo (YouTube, Twitch, MP4…). Vide : la mire.",
         "screen.craftmaster.studio_screen.width": "Largeur",
         "screen.craftmaster.studio_screen.height": "Hauteur",
         "screen.craftmaster.studio_screen.size": "Taille (blocs)",
@@ -814,4 +816,6 @@ def generate(g):
         "screen.craftmaster.studio_screen.bad_size": "Taille : de 1 à %s blocs de large, de 1 à %s de haut",
         "screen.craftmaster.studio_screen.loading": "Chargement…",
         "screen.craftmaster.studio_screen.failed": "Image indisponible : %s",
+        "screen.craftmaster.studio_screen.video_failed": "Vidéo indisponible : %s",
+        "screen.craftmaster.studio_screen.no_video": "Pas une image : les vidéos demandent le mod WaterMedia",
     })

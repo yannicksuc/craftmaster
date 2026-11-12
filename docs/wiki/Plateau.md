@@ -12,21 +12,24 @@ de son serveur (voir [Mobilier du serveur](#mobilier-du-serveur)).
 |---|---|---|
 | Trône du maître du jeu | `craftmaster:throne` | Le trône du serveur : bois doré et velours rouge, couronne au sommet (1,7 bloc de large, 4,5 de haut). Clic droit : on s'assoit, comme sur les [chaises](Chaises.md) ; s'accroupir pour se lever |
 | Chaise de candidat | `craftmaster:candidate_chair` | La chaise de candidat du serveur (bois doré, assise et dossier rouges, ~1,8 bloc de haut) ; s'assoit pareil |
-| Fauteuil de l'assistant | `craftmaster:assistant_chair` | Velours, pieds dorés ; s'assoit pareil |
-| Canapé de velours | `craftmaster:sofa` | Une place par bloc ; posés côte à côte (même sens), ils forment un seul canapé : les accoudoirs ne restent qu'aux bouts |
 
 Tous sont posés face à soi (le dossier de l'autre côté), comme les chaises.
+
+**Retirés** (retours de LordFinn, 12/11/2026) : le fauteuil de l'assistant, le canapé de velours et le trophée
+CraftMaster (le trophée de l'émission est une tête de joueur, la grenouille d'or). Un monde qui en contient se
+charge sans erreur : `craftmaster:trophy` devient une **tête de joueur** (bloc et objet), `assistant_chair` et `sofa`
+disparaissent (alias de registre, `Studio.removed()`).
 
 ## Éclairage
 | Objet | Bloc | Utilisation |
 |---|---|---|
 | Lampadaire | `floor_lamp` | Abat-jour crème en haut (2 blocs de haut), lumière 15. Clic droit : allumer / éteindre |
-| Lampe de bureau | `desk_lamp` | Lampe de banquier en verre vert, lumière 12, clic droit |
-| Suspension | `ceiling_pendant` | Se pose sous un plafond (tombe si le bloc au-dessus part), lumière 15, clic droit |
+| Lampe de bureau | `desk_lamp` | Lampe de banquier : socle et tige en laiton, abat-jour en verre vert, la lumière dessous ; lumière 12, clic droit |
+| Suspension | `ceiling_pendant` | Rosace au plafond, chaîne dorée (comme la chaîne du jeu) jusqu'à l'abat-jour à deux étages, ampoule ; se pose sous un plafond (tombe si le bloc au-dessus part), lumière 15, clic droit |
 | Projecteur | `spotlight` | Sur le sol, ou suspendu sous un plafond. Voir ci-dessous |
 | Lumière de studio | `studio_light` | Petit projecteur sur pied, lumière 15. Au sol, **suspendue** sous un plafond ou une barre, ou **sur le côté** d'un mur (sur un petit bras fixé au mur) ou d'une barre (sur le bras de la barre). Posée face à soi (8 orientations). **Clic droit** : change l'angle (5 inclinaisons, du bas vers le haut) ; **accroupi + clic droit** : la tourne de 45° |
 | Softbox | `softbox` | Grande boîte à lumière, lumière 15 ; au sol, au plafond, contre un mur (debout, dos au mur) ou sur le côté d'une barre (debout sur son bras). Clic droit : 4 angles ; accroupi + clic droit : tourner |
-| Enseigne « EN DIRECT » | `on_air_sign` | Caisson lumineux contre un mur (plus large que le bloc). Clic droit ou courant de redstone (allumée tant qu'elle est alimentée) |
+| Enseigne « EN DIRECT » | `on_air_sign` | Caisson lumineux à cadre doré (côtés compris) contre un mur, plus large que le bloc. Clic droit ou courant de redstone (allumée tant qu'elle est alimentée) |
 
 ### Projecteurs
 - Faisceau visible (cône de lumière qui s'estompe) jusqu'au premier bloc rencontré (48 blocs max), avec une
@@ -75,13 +78,12 @@ comme des barrières, mais dans les **6 directions** : tours, poutres, angles, T
 |---|---|---|
 | Tablette chrono | `timer_tablet` | Cadre photo autour d'un écran à chiffres 7 segments (comme celui que tient l'assistant de Taskmaster), réglable de A à Z ([ci-dessous](#tablette-chrono)) |
 | Chrono géant | `timer_display` | Panneau doré « 1 · Le Pont » + le temps en grands chiffres à 7 segments. Se fixe à un mur (le panneau monte au-dessus du bloc). Clic droit : plus grand (1 à 6 : 2,5 × 1 à 15 × 6 blocs), accroupi : plus petit |
-| Écran du studio | `studio_screen` (objet) | Écran plat posé sur un mur, 3 × 2 blocs, qui montre une image téléchargée ; voir `/image` |
-| Pupitre de candidat | `contestant_desk` | Pupitre en noyer et velours, plaque en laiton au nom du candidat, tournée vers le public (celui qui le pose). Nom : une **étiquette renommée** utilisée dessus (elle est gardée), ou `/craftMasterDesk name` |
+| Écran du studio | `studio_screen` (objet) | Écran plat posé sur un mur, 3 × 2 blocs, qui montre une image téléchargée, ou une **vidéo** avec WaterMedia ; voir `/image` |
+| Pupitre de candidat | `contestant_desk` | Pupitre en noyer et velours, plaque en laiton au nom du candidat, tournée vers le public (celui qui le pose). Nom : une **étiquette renommée** utilisée dessus (elle est gardée), ou `/craftMasterDesk name`. **Côte à côte** (même sens), les pupitres forment un seul long pupitre (plus de montants ni de bord doré entre eux). **Clic droit** (sauf étiquette) : son **tiroir**, 9 cases |
 | Sonnette de comptoir | `desk_bell` | « Ding » quand un candidat a fini : les organisateurs voient « ♪ Ensuri a sonné (1:42 restantes) » ; impulsion de redstone, une fois par demi-seconde |
-| Gong | `gong` | Disque doré dans un cadre laqué. Clic droit (ou impulsion de redstone) : un coup de gong entendu dans tout le studio, le disque se balance. **Un organisateur accroupi** termine en plus la manche en cours (comme `/craftMasterManche end`, annulable) |
-| Table des prix | `prize_table` | Table drapée de velours ; jusqu'à 4 prix posés à plat (un par quart du plateau) : clic droit avec l'objet pour le poser, main vide pour le reprendre. Casser la table fait tomber les prix |
+| Gong | `gong` | Disque doré dans un cadre en chêne noir du jeu (montants et poutre en bûche écorcée, pieds en planches). Clic droit (ou impulsion de redstone) : un coup de gong entendu dans tout le studio, le disque se balance. **Un organisateur accroupi** termine en plus la manche en cours (comme `/craftMasterManche end`, annulable) |
+| Table des prix | `prize_table` | Table drapée de velours ; jusqu'à 4 prix posés à plat (un par quart du plateau) : clic droit **sur le dessus** avec l'objet pour le poser, main vide pour le reprendre. Clic droit **sur le drapé** (les côtés) : l'**étagère cachée** dessous, 27 cases. Côte à côte (même sens), les tables forment une seule longue table sous un seul drapé. Casser la table fait tomber les prix et l'étagère |
 | Podium 1er / 2e / 3e | `podium_first`, `podium_second`, `podium_third` | Marches de marbre (1, ¾, ½ bloc) à bandeau or / argent / bronze et numéro |
-| Trophée CraftMaster | `trophy` | Coupe dorée gravée CM |
 | Poteau à cordon | `stanchion` | Poteaux en laiton ; un cordon de velours pend jusqu'au poteau suivant sur la même ligne (est ou sud, jusqu'à 4 blocs, sans mur entre les deux) |
 
 ### Ce qu'affiche le chrono géant
@@ -123,8 +125,20 @@ dégradé avec biseau. Chevalet de peintre en chêne : pieds derrière la tablet
   `http://127.0.0.1:25710/tablet/start?group=plateau` ([Saisie](Saisie.md)).
 - Tenue en main, c'est un petit cadre « 25.7 » fixe : les chiffres vivants ne s'affichent que posée (à venir).
 
-### `/image` : images sur les écrans
+### `/image` : images (et vidéos) sur les écrans
 Remplace le `/image <URL>` du plugin (qui passait par ImageFrame).
+
+**Vidéos** : avec [WaterMedia](https://modrinth.com/mod/watermedia) 3.0.1+ (et ses binaires, WaterMedia Binaries)
+dans le jeu des joueurs, une adresse qui n'est pas une image (.png, .jpg, .jpeg, .gif, .bmp, .webp) est **lue comme
+une vidéo** : YouTube, Twitch, Kick, un lien MP4 / WebM direct… Le mod CraftMaster ne l'exige pas : sans WaterMedia
+(ou en 26.3, que WaterMedia ne prend pas en charge), les écrans ne montrent que des images, et une vidéo affiche
+« Pas une image : les vidéos demandent le mod WaterMedia ».
+- Même image pour tout le monde : le serveur garde où en est la vidéo, chaque jeu se cale dessus (à 2 s près).
+- Le son vient de l'écran : plein jusqu'à 4 blocs, s'éteint à 40 ; réglage « Juke-box / blocs musicaux » du jeu.
+- `/image play`, `/image pause`, `/image restart`, `/image seek <secondes>`, `/image volume <0-100>`,
+  `/image loop <true|false>` (en boucle par défaut), sur l'écran regardé.
+- Un écran hors de vue depuis 5 s, ou à plus de 128 blocs, arrête son lecteur chez ce joueur (il reprend au bon
+  endroit quand on le revoit).
 
 - `/image <URL> [largeur] [hauteur]` en **regardant un écran du studio** : il affiche l'image (et change de taille
   si on la donne). En regardant **un mur** : un nouvel écran y est accroché, centré sur le bloc visé, 5 × 3 par
@@ -165,8 +179,6 @@ Ces ordres ne touchent pas aux données (rien à annuler) ; ils marchent aussi e
 | Objet | Recette (lignes) |
 |---|---|
 | Trône | `O·O` / `OVO` / `OBO` — O lingot d'or, V laine rouge, B bloc d'or |
-| Fauteuil de l'assistant | `V··` / `VVV` / `P·P` — V laine rouge, P pépite d'or |
-| Canapé (×3) | `V··` / `VVV` / `PPP` — V laine rouge, P planches |
 | Lampadaire | laine blanche / torche / lingot d'or (colonne) |
 | Lampe de bureau | verre vert / torche / pépite d'or |
 | Suspension | pépite d'or / lingot d'or / torche |
@@ -180,7 +192,6 @@ Ces ordres ne touchent pas aux données (rien à annuler) ; ils marchent aussi e
 | Gong | `BBB` / `BOB` / `B·B` — B bâton, O bloc d'or |
 | Table des prix | `VVV` / `POP` / `P·P` — V laine rouge, P planches, O pépite d'or |
 | Podium 1er / 2e / 3e | `OOO` / `QQQ` / `QQQ` (or) ; `FFF` / `QQQ` (fer) ; `CCC` / dalles de quartz (cuivre) — Q bloc de quartz |
-| Trophée | `O·O` / `OOO` / `·D·` — O lingot d'or, D dalle de chêne noir |
 | Poteau à cordon (×2) | pépite d'or / bâton / lingot d'or |
 
 ## Sons
@@ -191,8 +202,16 @@ vanilla réaccordés, remplaçables par un pack de ressources (`assets/craftmast
 - Paquet `craftmaster:studio_timer` (serveur → clients) : chrono en cours, secondes restantes, durée de la manche,
   nom et numéro ; envoyé à chaque changement (une fois par seconde pendant le chrono) et à la connexion. Il lit
   `Show.timerRemaining` sans rien modifier.
-- Écrans : entité `craftmaster:studio_screen` (adresse, largeur, hauteur, sens, image entière) ; paquets
-  `studio_screen_open` / `studio_screen_save` pour l'écran de réglages.
+- Écrans : entité `craftmaster:studio_screen` (adresse, largeur, hauteur, sens, image entière ; vidéo : tick de
+  départ, position de pause, boucle, volume, sauvés comme position) ; paquets `studio_screen_open` /
+  `studio_screen_save` pour l'écran de réglages. Vidéos : `client/studio/ScreenVideos` (ne touche jamais une classe
+  de WaterMedia), `WaterMediaScreens` (un lecteur par écran, moteur OpenGL de WaterMedia, son OpenAL) et
+  `VideoTexture` (la texture OpenGL de WaterMedia montrée comme une texture du jeu, sans copie ; 26.2 seulement).
+  WaterMedia est une dépendance de compilation (`compileOnly`, Modrinth), jamais livrée ; `fabric.mod.json` la
+  « suggère ».
+- Pupitres et tables qui se joignent : `JoiningBlock` / `SideJoins` (propriétés `left` / `right`, à gauche / droite
+  du sens du bloc, comme l'ancien canapé) ; rangements : `StudioStorage` (sauvé sous `Storage`, jamais envoyé aux
+  clients).
 - <a id="mobilier-du-serveur"></a>**Mobilier du serveur** : les modèles et textures de LordFinn, copiés de son pack
   ItemsAdder « sandbox » dans `scripts/ia_sandbox/`, convertis par `scripts/gen_furniture.py` (seuls les noms de
   textures changent). Sur le serveur, ce sont des modèles d'objet montrés par un cadre invisible (une entité

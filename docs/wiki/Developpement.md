@@ -107,10 +107,10 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
   show/                   ShowContext (contexte de la partie) et ActionExecutor (exécution du schéma d'actions)
   registry/ModContent     blocs, objets, entité, onglet créatif (block / item publics : studio/ s'y enregistre)
   studio/                 décor du studio (chantier F, Plateau.md) : Studio (enregistrements), sièges
-                          (StudioSeatBlock, SofaBlock : ChairBlock + SeatEntity), LampBlock, OnAirSignBlock,
+                          (StudioSeatBlock : ChairBlock + SeatEntity), LampBlock, OnAirSignBlock,
                           SpotlightBlock / BlockEntity (+ SpotlightAim, Spotlights), TimerDisplayBlock / BlockEntity
                           (+ SevenSegment, StudioTimer), ImageScreenEntity / Item (+ ImageRequest), DeskBlock,
-                          PrizeTableBlock, GongBlock (+ GongSwing), DeskBellBlock, DecorBlock, StanchionBlock,
+                          PrizeTableBlock (JoiningBlock + SideJoins, StudioStorage), GongBlock (+ GongSwing), DeskBellBlock, DecorBlock, StanchionBlock,
                           StudioNetwork (paquets), StudioCommands (/image, /cfsp, /cfdk, /cfgo)
   mixin/                  accès aux setters privés des text_display
 src/client/java/…/client/                   client uniquement (jamais chargé par un serveur dédié)

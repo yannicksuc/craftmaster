@@ -24,9 +24,13 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * Studio screen ({@code craftmaster:studio_screen}): a flat screen on a wall, several blocks wide, showing an image
- * downloaded from a URL by every player's game (see client/studio/ScreenImages). Replaces the Paper plugin's
+ * downloaded from a URL by every player's game (see client/studio/ScreenImages), or a video (YouTube, Twitch, MP4...)
+ * played by WaterMedia when the players have it (client/studio/ScreenVideos). Replaces the Paper plugin's
  * {@code /image} (ImageFrame). The entity's position is the centre of the picture; its size is in blocks.
  * Without an image (or while it loads, or if it cannot be shown) the screen shows the CraftMaster test card.
+ *
+ * <p>Video playback is the same for everyone: the server keeps the game tick the video started at ({@code START}),
+ * or the position it was paused at ({@code PAUSED_AT}, -1 while playing); each game plays (and seeks) to match.
  */
 public class ImageScreenEntity extends Entity {
 
@@ -36,6 +40,11 @@ public class ImageScreenEntity extends Entity {
     private static final EntityDataAccessor<Integer> FACING = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.INT);
     /** True: the whole image, with bars if its shape differs; false: stretched to fill the screen. */
     private static final EntityDataAccessor<Boolean> FIT = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.BOOLEAN);
+    /** Video: game tick at which the video was at 0:00, position (ms) it is paused at or -1, loop, volume 0..100. */
+    private static final EntityDataAccessor<Long> START = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.LONG);
+    private static final EntityDataAccessor<Long> PAUSED_AT = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.LONG);
+    private static final EntityDataAccessor<Boolean> LOOP = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> VOLUME = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.INT);
 
     /** Thickness of the screen (blocks): it stands out of the wall like a flat TV. */
     public static final double DEPTH = 2 / 16.0;
@@ -77,19 +86,67 @@ public class ImageScreenEntity extends Entity {
         b.define(HEIGHT, ImageRequest.DEFAULT_HEIGHT);
         b.define(FACING, Direction.SOUTH.get2DDataValue());
         b.define(FIT, true);
+        b.define(START, 0L);
+        b.define(PAUSED_AT, -1L);
+        b.define(LOOP, true);
+        b.define(VOLUME, 100);
     }
 
     public String url() { return entityData.get(URL); }
     public int width() { return entityData.get(WIDTH); }
     public int height() { return entityData.get(HEIGHT); }
     public boolean fit() { return entityData.get(FIT); }
+    public long videoStart() { return entityData.get(START); }
+    public long pausedAt() { return entityData.get(PAUSED_AT); }
+    public boolean paused() { return entityData.get(PAUSED_AT) >= 0; }
+    public boolean loop() { return entityData.get(LOOP); }
+    public int volume() { return entityData.get(VOLUME); }
+
+    /** Where the video should be now (ms from its start), on this side's clock; partialTick smooths it on clients. */
+    public long videoPosition(float partialTick) {
+        if (paused()) return pausedAt();
+        return Math.max(0, (long) ((level().getGameTime() - videoStart() + partialTick) * 50));
+    }
+
+    /** The video starts again from 0:00 (also when the address changes). */
+    public void restartVideo() {
+        entityData.set(START, level().getGameTime());
+        entityData.set(PAUSED_AT, -1L);
+    }
+
+    public void pauseVideo() {
+        if (!paused()) entityData.set(PAUSED_AT, videoPosition(0));
+    }
+
+    public void playVideo() {
+        if (!paused()) return;
+        entityData.set(START, level().getGameTime() - pausedAt() / 50);
+        entityData.set(PAUSED_AT, -1L);
+    }
+
+    /** Jumps to {@code position} ms, playing or paused. */
+    public void playVideoAt(long position, boolean paused) {
+        long p = Math.max(0, position);
+        entityData.set(START, level().getGameTime() - p / 50);
+        entityData.set(PAUSED_AT, paused ? p : -1L);
+    }
+
+    public void setLoop(boolean loop) {
+        entityData.set(LOOP, loop);
+    }
+
+    public void setVolume(int volume) {
+        entityData.set(VOLUME, Math.max(0, Math.min(100, volume)));
+    }
 
     public Direction getFacing() {
         return Direction.from2DDataValue(entityData.get(FACING));
     }
 
     public void setUrl(String url) {
-        entityData.set(URL, url == null ? "" : url.trim());
+        String u = url == null ? "" : url.trim();
+        if (!u.equals(url())) restartVideo();
+        entityData.set(URL, u);
     }
 
     public void setFit(boolean fit) {
@@ -200,6 +257,12 @@ public class ImageScreenEntity extends Entity {
         entityData.set(WIDTH, ImageRequest.clamp(in.getIntOr("Width", ImageRequest.DEFAULT_WIDTH), ImageRequest.MAX_WIDTH));
         entityData.set(HEIGHT, ImageRequest.clamp(in.getIntOr("Height", ImageRequest.DEFAULT_HEIGHT), ImageRequest.MAX_HEIGHT));
         entityData.set(FIT, in.getBooleanOr("Fit", true));
+        // Saved as a position: a paused video stays where it was, a playing one goes on from there
+        long position = Math.max(0, in.getLongOr("VideoPosition", 0L));
+        entityData.set(PAUSED_AT, in.getBooleanOr("VideoPaused", false) ? position : -1L);
+        entityData.set(START, level().getGameTime() - position / 50);
+        entityData.set(LOOP, in.getBooleanOr("VideoLoop", true));
+        entityData.set(VOLUME, Math.max(0, Math.min(100, in.getIntOr("VideoVolume", 100))));
         setFacing(Direction.byName(in.getStringOr("Facing", "south")) instanceof Direction d ? d : Direction.SOUTH);
         refreshBox();
     }
@@ -210,6 +273,10 @@ public class ImageScreenEntity extends Entity {
         out.putInt("Width", width());
         out.putInt("Height", height());
         out.putBoolean("Fit", fit());
+        out.putLong("VideoPosition", videoPosition(0));
+        out.putBoolean("VideoPaused", paused());
+        out.putBoolean("VideoLoop", loop());
+        out.putInt("VideoVolume", volume());
         out.putString("Facing", getFacing().getSerializedName());
     }
 }

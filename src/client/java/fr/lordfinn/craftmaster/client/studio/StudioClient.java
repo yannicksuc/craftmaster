@@ -3,6 +3,7 @@ package fr.lordfinn.craftmaster.client.studio;
 import fr.lordfinn.craftmaster.studio.ImageScreenEntity;
 import fr.lordfinn.craftmaster.studio.Studio;
 import fr.lordfinn.craftmaster.studio.StudioNetwork;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
@@ -40,6 +41,9 @@ public final class StudioClient {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             StudioTimerClient.clear();
             client.execute(ScreenImages::clear);
+            client.execute(ScreenVideos::clear);
         });
+        // Videos on the studio screens (WaterMedia): sound by distance, players of screens out of sight stopped
+        ClientTickEvents.END_CLIENT_TICK.register(ScreenVideos::tick);
     }
 }

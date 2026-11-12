@@ -387,3 +387,24 @@ Serveur `:26.2:runServer` (`run-server-26.2/`, jeu 25901, RCON 25902) + client `
 - Client 26.3 de la même branche : démarre jusqu'à l'écran titre sans erreur de mixin.
 - Pas encore revérifié en 26.2 : écrans à clavier / souris (saisie des points, lettres, éditeur de poses : la lettre
   d'une touche passe par GLFW en 26.2), régie vocale, épreuves, rideaux, tablette chrono, StreamDeck, deux joueurs.
+
+## 9. Retours de LordFinn sur le mobilier du studio (vérifié en 26.2 le 12/11/2026)
+Serveur `:26.2:runServer` (jeu 25951, RCON 25952) + client 26.2 (pont MCP 25991), WaterMedia 3.0.1 et WaterMedia
+Binaries 3.0.1 dans `run-26.2/mods/`. Plateau posé par RCON, captures MCP.
+
+| Vérification | Résultat |
+|---|---|
+| Gong : cadre en chêne noir du jeu (bûche écorcée, planches), plus de bout jaune | ✔ |
+| Lampe de bureau : socle et tige en laiton, abat-jour vert ombré normalement, lumière dessous | ✔ |
+| Suspension : rosace, chaîne dorée continue jusqu'à l'abat-jour à deux étages, ampoule | ✔ |
+| Enseigne « EN DIRECT » : côtés et dessus dorés ; icône entière dans l'inventaire | ✔ |
+| Lampadaire : icône entière dans l'inventaire | ✔ |
+| Chrono géant : « CraftMaster » dans son bandeau (tailles 1 et 4), plus de support qui dépasse ni de scintillement en bas | ✔ |
+| 3 pupitres côte à côte : un seul long pupitre ; clic droit : « Tiroir du pupitre » (9 cases) | ✔ |
+| 3 tables des prix côte à côte : une seule table sous un drapé ; clic sur le drapé : étagère (27 cases) ; clic sur le dessus : le prix se pose (données du bloc vérifiées) | ✔ |
+| `craftmaster:trophy` (alias) : donne une tête de joueur | ✔ |
+| Icônes clap, caméra, télécommande, tableau dans la barre | ✔ |
+| Écran du studio + MP4 direct : la vidéo joue ; `/image pause` fige l'image, `/image play` repart | ✔ |
+| Écran du studio + lien YouTube (WaterMedia) : la vidéo joue | ✔ |
+| Adresse en 404 : « Vidéo indisponible : HTTP 404… » sur la mire | ✔ |
+| Son des vidéos selon la distance, deux joueurs synchronisés | non vérifié (jeu muet, un seul client) |
