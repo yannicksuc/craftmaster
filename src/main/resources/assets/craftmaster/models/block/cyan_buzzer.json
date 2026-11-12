@@ -2,8 +2,8 @@
   "parent": "minecraft:block/block",
   "ambientocclusion": false,
   "textures": {
-    "particle": "minecraft:block/cyan_concrete",
-    "dome": "minecraft:block/cyan_concrete",
+    "particle": "craftmaster:block/cyan_buzzer_dome",
+    "dome": "craftmaster:block/cyan_buzzer_dome",
     "base": "minecraft:block/polished_blackstone",
     "band": "minecraft:block/gold_block"
   },
@@ -141,46 +141,46 @@
         "north": {
           "texture": "#dome",
           "uv": [
-            5,
-            9,
-            11,
-            12
+            0,
+            6,
+            6,
+            9
           ]
         },
         "south": {
           "texture": "#dome",
           "uv": [
-            5,
-            9,
-            11,
-            12
+            0,
+            6,
+            6,
+            9
           ]
         },
         "east": {
           "texture": "#dome",
           "uv": [
-            5,
-            9,
-            11,
-            12
+            0,
+            6,
+            6,
+            9
           ]
         },
         "west": {
           "texture": "#dome",
           "uv": [
-            5,
-            9,
-            11,
-            12
+            0,
+            6,
+            6,
+            9
           ]
         },
         "up": {
           "texture": "#dome",
           "uv": [
-            5,
-            5,
-            11,
-            11
+            0,
+            0,
+            6,
+            6
           ]
         }
       }

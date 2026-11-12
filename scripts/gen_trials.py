@@ -160,13 +160,61 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
     write_json(os.path.join(D, "craftmaster/loot_table/blocks/big_red_button.json"), self_drop("big_red_button"))
 
     # ---------------------------------------------------------------- buzzers (one per dye colour)
-    # As Minecraft would (LordFinn: no painted gradients on a small dome): one model in vanilla textures, a polished
-    # blackstone base with a band of gold block, the dome in the concrete of its colour; lit, the dome is the stained
-    # glass of its colour, lighter, and glows (light emission).
+    # The base in vanilla textures (polished blackstone, a band of gold block). The dome is painted like the toy
+    # ducks (gen_toys.py of the task objects): one map of ramp levels (0 deepest shadow, 4 the dye colour, 6
+    # highlight) written in each dye colour with a hue-shifted ramp. Top lit evenly with a small L of shine, sides a
+    # step darker row by row and at their vertical edges. Lit: everything a step lighter, a bright centre, glowing.
+    def hue_ramp(rgb, n=7, base=4):
+        import colorsys
+        r, g, b = ((rgb >> 16) & 255) / 255, ((rgb >> 8) & 255) / 255, (rgb & 255) / 255
+        h, sat, v = colorsys.rgb_to_hsv(r, g, b)
+        grey = sat < 0.18
+        if not grey:
+            sat, v = min(1, sat * 1.12 + 0.05), min(1, max(v, 0.62) * 1.08)
+        out = []
+        for i in range(n):
+            k = i - base
+            hh, ss, vv = h, sat, v
+            if not grey:
+                shadow_hue = 0.0 if (h < 0.17 or h > 0.83) else 0.75
+                light_hue = 0.16
+                if k < 0:
+                    if abs(shadow_hue - h) < 0.5:
+                        hh = h + (shadow_hue - h) * min(0.2, -k * 0.05)
+                    ss = min(1, sat - k * 0.03)
+                    vv = v * (1 + k * 0.07)
+                elif k > 0:
+                    if abs(light_hue - h) < 0.5:
+                        hh = h + (light_hue - h) * k * 0.07
+                    ss = max(0, sat - k * 0.12)
+                    vv = min(1, v + k * (1 - v) * 0.35 + k * 0.02)
+            else:
+                vv = max(0.08, min(1, v + k * 0.06 if v < 0.5 else v * (1 + k * 0.045)))
+                hh, ss = 0.62, (0.06 if k < 0 else 0.03)
+            cr, cg, cb = colorsys.hsv_to_rgb(hh % 1, max(0, min(1, ss)), max(0, min(1, vv)))
+            out.append((round(cr * 255), round(cg * 255), round(cb * 255), 255))
+        return out
+
+    def dome_levels(lit):
+        """Ramp levels of the dome atlas: top 6 x 6 at (0, 0), sides 6 x 3 at (0, 6)."""
+        lv = {}
+        for y in range(6):
+            for x in range(6):
+                lv[(x, y)] = 5
+        for p in ((1, 1), (2, 1), (1, 2)):
+            lv[p] = 6
+        for y, row in enumerate((5, 4, 3)):
+            for x in range(6):
+                lv[(x, 6 + y)] = row - (1 if (x in (0, 5) and y > 0) else 0)
+        lv[(1, 6)] = 6
+        if lit:
+            lv = {p: min(6, v + 1) for p, v in lv.items()}
+        return lv
+
     def buzzer_model(name, dome, lit):
         dome_el = {"from": [5, 4, 5], "to": [11, 7, 11], "faces": {
-            **{d: {"texture": "#dome", "uv": [5, 9, 11, 12]} for d in ("north", "south", "east", "west")},
-            "up": {"texture": "#dome", "uv": [5, 5, 11, 11]}}}
+            **{d: {"texture": "#dome", "uv": [0, 6, 6, 9]} for d in ("north", "south", "east", "west")},
+            "up": {"texture": "#dome", "uv": [0, 0, 6, 6]}}}
         if lit:
             dome_el["light_emission"] = 15
         model(name, {"parent": "minecraft:block/block", "ambientocclusion": False,
@@ -183,8 +231,16 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
 
     for color, (rgb, en_name, fr_name) in colors.items():
         name = f"{color}_buzzer"
-        buzzer_model(name, f"minecraft:block/{color}_concrete", False)
-        buzzer_model(name + "_lit", f"minecraft:block/{color}_stained_glass", True)
+        ramp_ = hue_ramp(rgb)
+        for lit in (False, True):
+            rows = [[(0, 0, 0, 0)] * 16 for _ in range(16)]
+            for (x, y), v in dome_levels(lit).items():
+                rows[y][x] = ramp_[v]
+            if lit:
+                rows[2][2] = rows[2][3] = rows[3][2] = rows[3][3] = (255, 255, 240, 255)
+            tex(f"{name}_dome" + ("_lit" if lit else ""), rows)
+        buzzer_model(name, f"craftmaster:block/{name}_dome", False)
+        buzzer_model(name + "_lit", f"craftmaster:block/{name}_dome_lit", True)
         write_json(os.path.join(A, f"blockstates/{name}.json"), {"variants": {
             f"lit={lit},powered={pw}": {"model": f"craftmaster:block/{name}" + ("_lit" if lit == "true" else "")}
             for lit in ("false", "true") for pw in ("false", "true")}})
