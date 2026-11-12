@@ -18,6 +18,10 @@ de l'event, 322 tenues).
   veste…) : tu n'enfiles qu'elle et tu gardes le reste. On mélange ainsi les tenues (« Tenue mélangée »).
 - **Clic droit sur une tenue : favori** (★, encore un clic droit pour l'enlever). Les favoris passent en tête,
   le bouton **★ Favoris** n'affiche qu'eux. Ils sont à chaque joueur et valent dans toutes les garde-robes.
+- **Sous l'aperçu, quatre cases** (tête, corps, jambes, pieds) montrent ce que tu portes. **Clic** sur une case :
+  la liste défile jusqu'à la tenue d'où vient la pièce, qui clignote (la recherche est vidée si elle la cachait).
+  **Clic droit** : tu enlèves la pièce (une pièce de costume rend ce que tu portais là avant, une pièce à toi va
+  dans l'inventaire).
 - **Mes affaires** (ou **accroupi + clic droit** sur l'armoire, sans ouvrir l'écran) : tu reprends tes vêtements.
 - **Barre de recherche** en français, sans tenir compte des accents ni des majuscules, sur le nom de la tenue et de
   ses pièces. Les mots français cherchent aussi leur traduction anglaise, en mots entiers (les vêtements de

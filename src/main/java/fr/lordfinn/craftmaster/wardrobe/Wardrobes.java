@@ -233,6 +233,19 @@ public final class Wardrobes {
                 }
             }
             case "back" -> takeBack(p, w);
+            case "take_off" -> {
+                if (index < 0 || index > 3) return;
+                WardrobeState st = state(p);
+                List<ItemStack> worn = worn(p);
+                if (worn.get(index).isEmpty()) return;
+                Component piece = worn.get(index).getHoverName();
+                var r = Dressing.takeOff(KIND, worn, st.saved().orElse(null), index);
+                apply(p, r);
+                boolean still = r.saved() != null || r.worn().stream().anyMatch(Wardrobes::isCostume);
+                setState(p, st.withDressing(Optional.ofNullable(r.saved()), still ? WardrobeState.MIX : ""));
+                sound(p);
+                say(p, "taken_off", piece);
+            }
             case "favourite" -> {
                 Outfit o = w.get(index);
                 if (o == null) return;

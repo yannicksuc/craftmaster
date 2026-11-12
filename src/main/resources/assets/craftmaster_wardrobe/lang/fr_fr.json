@@ -1,4 +1,7 @@
 {
+  "screen.craftmaster.wardrobe.tip.worn": "Clic : voir sa tenue · clic droit : l'enlever",
+  "screen.craftmaster.wardrobe.not_here": "%s ne vient pas d'une tenue de cette garde-robe",
+  "message.craftmaster.wardrobe.taken_off": "Enlevé : %s",
   "screen.craftmaster.wardrobe.auto.already": "Elle contient déjà toutes les tenues du jeu ; elle garde sa propre liste dès que tu la modifies.",
   "screen.craftmaster.wardrobe.type.storage.tip": "Rangement : les habits sont réels ; enfiler une tenue l'échange avec ce que tu portes. Clic : en faire une garde-robe à costumes (copies, toutes les tenues).",
   "screen.craftmaster.wardrobe.type.show.tip": "Costumes pour l'émission : chacun porte des copies, la garde-robe ne se vide jamais et tes vêtements sont mis de côté jusqu'à « Mes affaires ». Clic : en faire une garde-robe de rangement (vrais habits, pour la survie ; elle repart vide).",

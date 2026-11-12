@@ -128,6 +128,34 @@ class DressingTest {
     }
 
     @Test
+    void takingOffACopyGivesBackWhatWasKeptAside() {
+        var on = Dressing.putOnCopy(K, OWN, null, DOCTOR);
+        var hat = Dressing.takeOff(K, on.worn(), on.saved(), 0);
+        assertEquals(List.of("cap", "*robe", "*trousers", "*boots"), hat.worn());
+        assertEquals(List.of("", "shirt", "jeans", ""), hat.saved());
+        assertTrue(hat.toInventory().isEmpty());
+        // Feet: nothing was kept there, nothing comes back
+        var feet = Dressing.takeOff(K, hat.worn(), hat.saved(), 3);
+        assertEquals(List.of("cap", "*robe", "*trousers", ""), feet.worn());
+    }
+
+    @Test
+    void takingOffTheLastCopyEndsTheCostume() {
+        var robe = Dressing.putOnCopy(K, OWN, null, DOCTOR, Dressing.only(1));
+        var off = Dressing.takeOff(K, robe.worn(), robe.saved(), 1);
+        assertEquals(OWN, off.worn());
+        assertNull(off.saved());
+    }
+
+    @Test
+    void takingOffOwnPieceGoesToTheInventory() {
+        var off = Dressing.takeOff(K, OWN, null, 1);
+        assertEquals(List.of("cap", "", "jeans", ""), off.worn());
+        assertEquals(List.of("shirt"), off.toInventory());
+        assertNull(off.saved());
+    }
+
+    @Test
     void fourPiecesRequired() {
         assertThrows(IllegalArgumentException.class, () -> Dressing.swap(K, List.of("a"), DOCTOR));
     }

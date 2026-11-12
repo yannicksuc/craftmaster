@@ -104,6 +104,28 @@ public final class Dressing {
     }
 
     /**
+     * Takes one piece off: a costume copy gives back what was kept aside in that place (or nothing), a piece of the
+     * player's own goes to the inventory. {@code saved} of the result is {@code null} once no costume copy is worn
+     * and nothing is kept aside any more (the costume is over).
+     */
+    public static <T> Result<T> takeOff(Kind<T> k, List<T> worn, List<T> saved, int piece) {
+        check(worn);
+        List<T> newWorn = new ArrayList<>(worn);
+        List<T> newSaved = saved == null ? null : new ArrayList<>(saved);
+        List<T> inv = new ArrayList<>();
+        T cur = worn.get(piece);
+        if (k.costume(cur)) {
+            newWorn.set(piece, newSaved == null ? k.none() : newSaved.get(piece));
+            if (newSaved != null) newSaved.set(piece, k.none());
+        } else if (!k.empty(cur)) {
+            inv.add(cur);
+            newWorn.set(piece, k.none());
+        }
+        if (newSaved != null && allEmpty(k, newSaved) && newWorn.stream().noneMatch(k::costume)) newSaved = null;
+        return new Result<>(newWorn, newSaved, inv, null);
+    }
+
+    /**
      * Storage wardrobe: the outfit's pieces picked by {@code mask} are worn and what was worn goes in their place.
      * Costume copies of a show wardrobe are not stored (they disappear).
      */

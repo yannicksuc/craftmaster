@@ -393,6 +393,9 @@ def item_model():
 
 # ---------------------------------------------------------------- texts
 EN = {
+    "screen.craftmaster.wardrobe.tip.worn": "Click: its outfit · right-click: take it off",
+    "screen.craftmaster.wardrobe.not_here": "%s is not an outfit of this wardrobe",
+    "message.craftmaster.wardrobe.taken_off": "Taken off: %s",
     "screen.craftmaster.wardrobe.auto.already": "It already holds every outfit of the game; it keeps its own list as soon as you change it.",
     "screen.craftmaster.wardrobe.type.storage.tip": "Storage: the clothes are real; putting an outfit on swaps it with what you wear. Click: make it a costume wardrobe (copies, every outfit).",
     "screen.craftmaster.wardrobe.type.show.tip": "Costumes for the show: everyone wears copies, the wardrobe never empties and your own clothes are kept aside until « My clothes ». Click: make it a storage wardrobe (real clothes, for survival; it starts empty).",
@@ -470,6 +473,9 @@ EN = {
     "message.craftmaster.wardrobe.catalogue_missing": "%s is not a ready outfit",
 }
 FR = {
+    "screen.craftmaster.wardrobe.tip.worn": "Clic : voir sa tenue · clic droit : l'enlever",
+    "screen.craftmaster.wardrobe.not_here": "%s ne vient pas d'une tenue de cette garde-robe",
+    "message.craftmaster.wardrobe.taken_off": "Enlevé : %s",
     "screen.craftmaster.wardrobe.auto.already": "Elle contient déjà toutes les tenues du jeu ; elle garde sa propre liste dès que tu la modifies.",
     "screen.craftmaster.wardrobe.type.storage.tip": "Rangement : les habits sont réels ; enfiler une tenue l'échange avec ce que tu portes. Clic : en faire une garde-robe à costumes (copies, toutes les tenues).",
     "screen.craftmaster.wardrobe.type.show.tip": "Costumes pour l'émission : chacun porte des copies, la garde-robe ne se vide jamais et tes vêtements sont mis de côté jusqu'à « Mes affaires ». Clic : en faire une garde-robe de rangement (vrais habits, pour la survie ; elle repart vide).",

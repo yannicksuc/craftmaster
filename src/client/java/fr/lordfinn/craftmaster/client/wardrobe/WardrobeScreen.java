@@ -8,6 +8,7 @@ import fr.lordfinn.craftmaster.wardrobe.Outfit;
 import fr.lordfinn.craftmaster.wardrobe.OutfitSearch;
 import fr.lordfinn.craftmaster.wardrobe.WardrobeNetwork;
 import fr.lordfinn.craftmaster.wardrobe.WardrobeState;
+import fr.lordfinn.craftmaster.wardrobe.Wardrobes;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -65,7 +66,10 @@ public class WardrobeScreen extends Screen {
     /** What the grid shows now (filtered, favourites first). */
     private final List<Card> cards = new ArrayList<>();
     private Card hovered;
-    private int hoveredPiece = -1;
+    private int hoveredPiece = -1, hoveredWorn = -1;
+    /** The outfit shown by a click on a worn piece, outlined until {@link #flashUntil}. */
+    private int flash = -1;
+    private long flashUntil;
     private RemotePlayer mannequin;
     private List<ItemStack> dressed = List.of();
 
@@ -281,6 +285,12 @@ public class WardrobeScreen extends Screen {
     @Override
     public boolean mouseClicked(MouseButtonEvent e, boolean doubleClick) {
         if (super.mouseClicked(e, doubleClick)) return true;
+        int worn = wornAt(e.x(), e.y());
+        if (worn >= 0) {
+            if (e.button() == InputConstants.MOUSE_BUTTON_RIGHT) act("take_off", worn, "");
+            else if (e.button() == InputConstants.MOUSE_BUTTON_LEFT) showOutfitOf(worn);
+            return true;
+        }
         Card c = cardAt(e.x(), e.y());
         if (c == null) return false;
         if (e.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
@@ -302,7 +312,7 @@ public class WardrobeScreen extends Screen {
 
     @Override
     public boolean mouseDragged(MouseButtonEvent e, double dx, double dy) {
-        if (Ui.inside(e.x(), e.y(), x0 + 6, y0 + 22, LEFT_W - 6, h - 74)) {
+        if (Ui.inside(e.x(), e.y(), x0 + 6, y0 + 22, LEFT_W - 6, h - 74 - 24)) {
             spin = (spin + (float) dx * 2.5f) % 360f;
             return true;
         }
@@ -348,6 +358,7 @@ public class WardrobeScreen extends Screen {
         g.text(font, count, x0 + 12 + font.width(title.copy().withStyle(ChatFormatting.BOLD)), y0 + 5, Theme.TEXT_DIM, false);
 
         hovered = cardAt(mouseX, mouseY);
+        hoveredWorn = wornAt(mouseX, mouseY);
         hoveredPiece = hovered == null || editing ? -1 : pieceAt(hovered, mouseX, mouseY);
         extractPreview(g, mouseX, mouseY);
         extractGrid(g);
@@ -367,6 +378,11 @@ public class WardrobeScreen extends Screen {
         }
         super.extractRenderState(g, mouseX, mouseY, partial);
         if (hovered != null) g.setTooltipForNextFrame(tooltip(hovered), mouseX, mouseY);
+        else if (hoveredWorn >= 0 && minecraft != null && minecraft.player != null) {
+            ItemStack s = minecraft.player.getItemBySlot(Outfit.SLOTS[hoveredWorn]);
+            if (!s.isEmpty()) g.setTooltipForNextFrame(List.of(s.getHoverName().copy().withStyle(ChatFormatting.GOLD).getVisualOrderText(),
+                    t("tip.worn").copy().withStyle(ChatFormatting.DARK_GRAY).getVisualOrderText()), mouseX, mouseY);
+        }
     }
 
     private List<FormattedCharSequence> tooltip(Card c) {
@@ -400,7 +416,11 @@ public class WardrobeScreen extends Screen {
                 boolean fav = favourites.contains(card.key());
                 g.fill(x, y, x + CARD_W, y + CARD_H, Theme.shade(Theme.VELVET, -0.35f));
                 if (card == hovered && hoveredPiece < 0) g.fill(x, y, x + CARD_W, y + CARD_H, Theme.HOVER);
-                if (editing && card.index() == selected) {
+                if (card.index() == flash && System.currentTimeMillis() < flashUntil) {
+                    boolean blink = (System.currentTimeMillis() / 250) % 2 == 0;
+                    g.fill(x, y, x + CARD_W, y + CARD_H, blink ? 0x50FFC23D : 0x20FFC23D);
+                    g.outline(x, y, CARD_W, CARD_H, Theme.GOLD);
+                } else if (editing && card.index() == selected) {
                     g.fill(x, y, x + CARD_W, y + CARD_H, Theme.SELECTED);
                     g.outline(x, y, CARD_W, CARD_H, Theme.GOLD);
                 } else {
@@ -433,7 +453,7 @@ public class WardrobeScreen extends Screen {
         Minecraft mc = Minecraft.getInstance();
         int px = x0 + 6, py = y0 + 22, pw = LEFT_W - 6, ph = h - 22 - 52;
         Ui.paper(g, px, py, pw, ph);
-        g.fill(px + 1, py + ph - 14, px + pw - 1, py + ph - 1, Theme.shade(Theme.PAPER, -0.12f));
+        g.fill(px + 1, py + ph - 24, px + pw - 1, py + ph - 1, Theme.shade(Theme.PAPER, -0.12f));
         if (mc.player == null || mc.level == null) return;
         // What the player wears now, with the outfit (or the single piece) under the mouse
         List<ItemStack> look = new ArrayList<>();
@@ -453,11 +473,67 @@ public class WardrobeScreen extends Screen {
             for (int i = 0; i < 4; i++) m.setItemSlot(Outfit.SLOTS[i], look.get(i).copy());
             dressed = look;
         }
-        int scale = Math.min(pw, ph) * 30 / 100;
-        extractMannequin(g, px + 2, py + 2, px + pw - 2, py + ph - 14, scale, 0.0625f, mouseX, mouseY, m);
-        g.centeredText(font, Component.literal(font.plainSubstrByWidth(label.getString(), pw - 6)), px + pw / 2, py + ph - 11, Theme.INK);
+        int scale = Math.min(pw, ph) * 28 / 100;
+        extractMannequin(g, px + 2, py + 2, px + pw - 2, py + ph - 34, scale, 0.0625f, mouseX, mouseY, m);
+        g.centeredText(font, Component.literal(font.plainSubstrByWidth(label.getString(), pw - 6)), px + pw / 2, py + ph - 32, Theme.INK);
+        // On the floor: what the player wears now, one square per piece (click: its outfit, right-click: take it off)
+        for (int i = 0; i < 4; i++) {
+            int sx = wornX(i), sy = wornY();
+            ItemStack s = mc.player.getItemBySlot(Outfit.SLOTS[i]);
+            boolean on = hoveredWorn == i;
+            g.fill(sx, sy, sx + 18, sy + 18, on ? 0x60FFC23D : Theme.shade(Theme.PAPER, -0.28f));
+            g.outline(sx, sy, 18, 18, on ? Theme.GOLD : Theme.PAPER_EDGE);
+            if (!s.isEmpty()) g.fakeItem(s, sx + 1, sy + 1);
+        }
         Component under = hovered != null ? t("preview") : inCostume ? t("in_costume") : t("you");
         g.centeredText(font, under, px + pw / 2, py + ph + 4, Theme.TEXT_DIM);
+    }
+
+    private int wornX(int i) {
+        return x0 + 6 + (LEFT_W - 6 - 81) / 2 + i * 21;
+    }
+
+    private int wornY() {
+        return y0 + 22 + (h - 74) - 21;
+    }
+
+    /** The worn piece square under the mouse (0 head … 3 feet), or -1. */
+    private int wornAt(double mx, double my) {
+        for (int i = 0; i < 4; i++) if (Ui.inside(mx, my, wornX(i), wornY(), 18, 18)) return i;
+        return -1;
+    }
+
+    /** Scrolls to the outfit a worn piece comes from (the one worn whole first) and makes it flash. */
+    private void showOutfitOf(int piece) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        ItemStack worn = Wardrobes.unmark(mc.player.getItemBySlot(Outfit.SLOTS[piece]));
+        if (worn.isEmpty()) return;
+        int found = -1;
+        for (int i = 0; i < outfits.size() && found < 0; i++)
+            if (outfits.get(i).key().equals(wearing) && ItemStack.isSameItemSameComponents(outfits.get(i).pieces().get(piece), worn)) found = i;
+        for (int i = 0; i < outfits.size() && found < 0; i++)
+            if (ItemStack.isSameItemSameComponents(Wardrobes.unmark(outfits.get(i).pieces().get(piece)), worn)) found = i;
+        if (found < 0) {
+            mc.player.sendOverlayMessage(t("not_here", worn.getHoverName()).copy().withStyle(ChatFormatting.GOLD));
+            return;
+        }
+        int target = found;
+        if (cards.stream().noneMatch(c -> c.index() == target)) {
+            // Hidden by the search or the favourites filter: show everything again
+            query = "";
+            favouritesOnly = false;
+            search.setValue("");
+            filter();
+        }
+        for (int i = 0; i < cards.size(); i++) {
+            if (cards.get(i).index() == target) {
+                scroll = Math.max(0, Math.min(maxScroll(), i / cols - visibleRows() / 2));
+                break;
+            }
+        }
+        flash = target;
+        flashUntil = System.currentTimeMillis() + 2000;
     }
 
     private Component wornName() {
