@@ -77,9 +77,14 @@ public final class ActionExecutor {
                 ShowEvents.onScoreGiven(server, s.season(), s.player(), s.delta(), s.manche());
             }
             case Actions.MancheStarted m -> {
+                // A chained intro plays first: the round itself starts at its end (black, teleports, title, reveal)
+                String chained = fr.lordfinn.craftmaster.broadcast.MancheIntros.playThenStart(server, m);
+                if (chained != null) {
+                    lines.add(chained);
+                    return;
+                }
                 int moved = Show.startManche(server, m);
-                fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundStart(server);
-                ShowEvents.onMancheStarted(server, m.season(), m.number(), m.name());
+                Show.roundStarted(server, m);
                 if (!m.tp().isEmpty()) lines.add(moved + " joueur(s) téléporté(s) sur " + m.tp().size() + " point(s).");
             }
             case Actions.MancheEnded m -> {

@@ -25,6 +25,11 @@ public final class MancheIntro {
     /** Default length of a camera or follow shot; length of a travelling = its own unless given (seconds). */
     public static final double DEFAULT_SECONDS = 4, MAX_SECONDS = 120;
     public static final int MAX_SHOTS = 24;
+    /** Tempo of the show's theme (scripts/gen_theme.py), used by "rythme theme". */
+    public static final double THEME_BPM = 112;
+    /** Wanted length of a shot cut on the music when none is given (seconds; rounded to whole beats). */
+    public static final double BEAT_SHOT_SECONDS = 3;
+    public static final double MIN_BPM = 40, MAX_BPM = 240;
 
     /**
      * One shot of the intro.
@@ -54,12 +59,23 @@ public final class MancheIntro {
 
         /** "caméra large, 4 s, enchaîné, effet sepia, titre" */
         public String describe() {
+            return describe(seconds > 0 ? fmt(seconds) : kind.equals(PATH) ? "durée du trajet" : fmt(DEFAULT_SECONDS));
+        }
+
+        /** With the length as played (cut on the music: whole beats). */
+        public String describe(Timed played, double beatSeconds) {
+            if (beatSeconds <= 0) return describe();
+            long beats = Math.round(played.length() / beatSeconds);
+            return describe(fmt(Math.round(played.length() * 10) / 10.0) + " (" + beats + " temps)");
+        }
+
+        private String describe(String length) {
             StringBuilder b = new StringBuilder(switch (kind) {
                 case PATH -> "trajet " + ref;
                 case FOLLOW -> "suivi de " + ref;
                 default -> "caméra " + ref;
             });
-            b.append(", ").append(seconds > 0 ? fmt(seconds) : kind.equals(PATH) ? "durée du trajet" : fmt(DEFAULT_SECONDS));
+            b.append(", ").append(length);
             if (!transition.isEmpty()) b.append(", ").append(transition);
             if (!effect.isEmpty()) b.append(", effet ").append(effect);
             if (!card.isEmpty()) b.append(", ").append(card.equals(TITLE) ? "titre" : "synthé").append(text.isEmpty() ? "" : " « " + text + " »");
@@ -93,10 +109,63 @@ public final class MancheIntro {
     public String music = "";
     /** With no card on any shot: the title card goes on the last shot (false = no card at all). */
     public boolean titleCard = true;
+    /**
+     * Cuts on the music: tempo in beats per minute (0 = off, shots keep their own lengths). Every shot then lasts a
+     * whole number of beats (its length rounded, or {@link #beats} when it has none) so each cut falls on a beat.
+     */
+    public double bpm;
+    /** Default shot length in beats when cutting on the music (0 = about {@link #BEAT_SHOT_SECONDS}). */
+    public int beats;
+    /** Seconds from the start of the music to its first beat (the first shot is that much longer). */
+    public double offset;
+    /**
+     * Played at the round's start ({@link #auto}): the round itself (teleports, title, timer) waits for the end of
+     * the intro, then fade to black, teleports in the dark, the round's title, and the picture opens on the players
+     * (false = the round starts at once and the intro plays over it).
+     */
+    public boolean chained = true;
     public final List<Shot> shots = new ArrayList<>();
 
     public boolean isEmpty() {
-        return shots.isEmpty() && !auto && music.isEmpty() && titleCard;
+        return shots.isEmpty() && !auto && music.isEmpty() && titleCard && bpm == 0 && beats == 0 && offset == 0 && chained;
+    }
+
+    /** Length of a beat in seconds (0 when not cutting on the music). */
+    public double beatSeconds() {
+        return bpm > 0 ? 60 / bpm : 0;
+    }
+
+    /** Default shot length in beats when cutting on the music. */
+    public int defaultBeats() {
+        if (beats > 0) return beats;
+        double b = beatSeconds();
+        return b <= 0 ? 0 : (int) Math.max(1, Math.round(BEAT_SHOT_SECONDS / b));
+    }
+
+    /** "rythme 112 BPM, 6 temps par plan" or "" */
+    public String rhythmText() {
+        if (bpm <= 0) return "";
+        return "rythme " + fmtNumber(bpm) + " BPM, " + defaultBeats() + " temps par plan (" + fmt(defaultBeats() * beatSeconds()) + ")"
+                + (offset > 0 ? ", 1er temps à " + fmt(offset) : "");
+    }
+
+    /** "theme" → {@link #THEME_BPM}, "off" / "non" / "0" → 0, a number → that tempo (bounded); null if not understood. */
+    public static Double parseBpm(String text) {
+        if (text == null) return null;
+        String k = text.trim().toLowerCase(Locale.ROOT);
+        switch (k) {
+            case "theme", "thème", "generique", "générique" -> { return THEME_BPM; }
+            case "off", "non", "aucun", "0", "" -> { return 0.0; }
+            default -> {
+                try {
+                    double v = Double.parseDouble(k.replace(',', '.').replace("bpm", "").trim());
+                    if (!Double.isFinite(v) || v <= 0) return 0.0;
+                    return Math.max(MIN_BPM, Math.min(MAX_BPM, v));
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            }
+        }
     }
 
     public static String normalizeKind(String k) {
@@ -135,6 +204,23 @@ public final class MancheIntro {
      */
     public List<Timed> timeline(ToDoubleFunction<String> pathSeconds) {
         List<Timed> out = new ArrayList<>();
+        double beat = beatSeconds();
+        if (beat > 0) {
+            // On the music: every cut on a beat (the first shot also covers the music's lead-in)
+            long count = 0;
+            double t = 0;
+            for (int i = 0; i < shots.size(); i++) {
+                Shot s = shots.get(i);
+                double len = s.seconds();
+                if (len <= 0 && s.kind().equals(PATH)) len = pathSeconds.applyAsDouble(s.ref());
+                long n = len > 0 ? Math.max(1, Math.round(len / beat)) : defaultBeats();
+                count += n;
+                double end = offset + count * beat;
+                out.add(new Timed(i, s, t, end - t));
+                t = end;
+            }
+            return out;
+        }
         double t = 0;
         for (int i = 0; i < shots.size(); i++) {
             Shot s = shots.get(i);
@@ -165,12 +251,20 @@ public final class MancheIntro {
         c.auto = auto;
         c.music = music;
         c.titleCard = titleCard;
+        c.bpm = bpm;
+        c.beats = beats;
+        c.offset = offset;
+        c.chained = chained;
         c.shots.addAll(shots);
         return c;
     }
 
     static String fmt(double s) {
-        return (s == Math.rint(s) ? String.valueOf((long) s) : String.format(Locale.ROOT, "%.1f", s).replace('.', ',')) + " s";
+        return fmtNumber(s) + " s";
+    }
+
+    static String fmtNumber(double s) {
+        return s == Math.rint(s) ? String.valueOf((long) s) : String.format(Locale.ROOT, "%.1f", s).replace('.', ',');
     }
 
     Map<String, Object> toYaml() {
@@ -178,6 +272,10 @@ public final class MancheIntro {
         if (auto) m.put("auto", true);
         if (!music.isEmpty()) m.put("music", music);
         if (!titleCard) m.put("titleCard", false);
+        if (bpm > 0) m.put("bpm", bpm);
+        if (beats > 0) m.put("beats", beats);
+        if (offset > 0) m.put("offset", offset);
+        if (!chained) m.put("chained", false);
         List<Object> list = new ArrayList<>();
         for (Shot s : shots) list.add(s.toYaml());
         if (!list.isEmpty()) m.put("shots", list);
@@ -191,6 +289,13 @@ public final class MancheIntro {
         i.auto = Maps.bool(m.get("auto"));
         i.music = normalizeMusic(Maps.str(m.get("music"), ""));
         i.titleCard = m.get("titleCard") == null || Maps.bool(m.get("titleCard"));
+        double bpm = Maps.toDouble(m.get("bpm"));
+        i.bpm = Double.isFinite(bpm) && bpm > 0 ? Math.max(MIN_BPM, Math.min(MAX_BPM, bpm)) : 0;
+        double beats = Maps.toDouble(m.get("beats"));
+        i.beats = Double.isFinite(beats) ? (int) Math.max(0, Math.min(64, Math.round(beats))) : 0;
+        double offset = Maps.toDouble(m.get("offset"));
+        i.offset = Double.isFinite(offset) ? Math.max(0, Math.min(30, offset)) : 0;
+        i.chained = m.get("chained") == null || Maps.bool(m.get("chained"));
         for (Object s : Maps.list(m.get("shots"))) if (s instanceof Map<?, ?>) i.shots.add(Shot.fromYaml(Maps.map(s)));
         return i;
     }

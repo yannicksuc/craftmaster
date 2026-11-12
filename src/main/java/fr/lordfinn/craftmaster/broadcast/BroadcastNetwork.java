@@ -222,7 +222,9 @@ public final class BroadcastNetwork {
     public static final class Cues {
         public static final String POINTS = "points", LOWER_THIRD = "lower_third", SCORES = "scores", TASK = "task",
                 TITLE_CARD = "title_card", CONTESTANT = "contestant", CREDITS = "credits", THEME = "theme", CLEAR = "clear",
-                BROADCAST = "broadcast", PATH_PREVIEW = "path_preview";
+                BROADCAST = "broadcast", PATH_PREVIEW = "path_preview",
+                /** Everyone's picture to black and back (title = round name, subtitle = "Manche 2", player = "in,hold,out" ticks). */
+                BLACKOUT = "blackout";
 
         private Cues() {}
     }

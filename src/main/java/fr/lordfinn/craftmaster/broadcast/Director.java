@@ -204,7 +204,7 @@ public final class Director {
 
     /** A sequence (credits, round intro) holds the air: the automatic direction waits. */
     public static boolean sequenceRunning() {
-        return !Credits.running().isEmpty() || MancheIntros.running() != null;
+        return !Credits.running().isEmpty() || MancheIntros.running() != null || MancheIntros.launching();
     }
 
     // ---------------------------------------------------------------- focus
@@ -442,7 +442,7 @@ public final class Director {
         String timerName = Show.timerName();
         // The strip would give the ranking away during the staged reveal
         int scores = Reveal.running() ? BroadcastNetwork.SCORES_OFF : scoresMode;
-        String sequence = MancheIntros.running() != null ? "manche" : Credits.running();
+        String sequence = MancheIntros.running() != null || MancheIntros.launching() ? "manche" : Credits.running();
         return new ShowState(server.getTickCount(), seasonId, seasonName, hidden, partieId, partieName, mancheId, mancheNumber,
                 mancheName, timerName == null ? "" : timerName, Show.timerEndTick(), Show.timerTotalTicks(), contestants,
                 Cameras.list().all(), shot, auto, letterbox, scores, master(server), sequence, focus(), CameraPaths.all());

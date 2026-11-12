@@ -13,6 +13,7 @@ import fr.lordfinn.craftmaster.data.MancheIntro;
 import fr.lordfinn.craftmaster.data.Partie;
 import fr.lordfinn.craftmaster.data.Season;
 import fr.lordfinn.craftmaster.show.Actions;
+import fr.lordfinn.craftmaster.show.Show;
 import fr.lordfinn.craftmaster.show.ShowEvents;
 import net.minecraft.server.MinecraftServer;
 
@@ -34,6 +35,10 @@ public final class MancheIntros {
     /** Round whose intro is playing, or null. */
     private static String running;
     private static boolean music;
+    /** The round waiting for the end of its intro to start ({@link #playThenStart}), or null. */
+    private static Actions.MancheStarted pending;
+    /** Between the black and the reveal of a launched round. */
+    private static boolean launching;
 
     private MancheIntros() {}
 
@@ -52,6 +57,21 @@ public final class MancheIntros {
         return p == null ? 0 : p.duration();
     }
 
+    /**
+     * A round started whose intro is set to play first and lead into it ({@link MancheIntro#chained}): plays the
+     * intro, and the round itself (teleports, title, timer) waits for its end ({@link #launch}). Returns the line for
+     * the organiser, or null when the round should start at once (no such intro, or it could not play).
+     */
+    public static String playThenStart(MinecraftServer server, Actions.MancheStarted start) {
+        CraftMasterData data = CraftMaster.data();
+        Manche m = data == null ? null : data.currentManche();
+        if (m == null || !m.intro.auto || !m.intro.chained || m.intro.shots.isEmpty()) return null;
+        String line = play(server, m.id);
+        if (running == null) return null;
+        pending = start;
+        return line + " La manche démarre à la fin : noir, téléportation, titre, révélation.";
+    }
+
     /** Starts the intro of round {@code mancheId}; returns the line for the organiser. */
     public static String play(MinecraftServer server, String mancheId) {
         Manche m = Lieux.manche(mancheId);
@@ -59,6 +79,8 @@ public final class MancheIntros {
         MancheIntro intro = m.intro;
         if (intro.shots.isEmpty())
             return "⚠ La manche « " + m.name + " » n'a pas encore d'intro (/tv intro " + m.id + " ajouter camera <caméra>).";
+        // A round still waiting for an earlier intro is dropped: another one is being introduced
+        pending = null;
         stop(server);
         Credits.stop(server);
         running = m.id;
@@ -143,21 +165,80 @@ public final class MancheIntros {
         }
     }
 
-    /** End of the intro: the round's wide shot, music stopped. */
+    /** End of the intro: the round's wide shot, music stopped; or the round waiting for it is launched. */
     private static void finish(MinecraftServer server, boolean wide) {
         running = null;
         STEPS.clear();
+        Actions.MancheStarted start = pending;
+        pending = null;
+        if (start != null) {
+            launch(server, start);
+            return;
+        }
         if (music) Director.cue(server, new ShowCue(Cues.THEME, "stop", "", "", 0));
         music = false;
         if (wide) Director.wide(server, BroadcastNetwork.CROSSFADE);
         Director.sync(server);
     }
 
-    /** Stops the intro (cards cleared, music stopped); true if one was playing. */
+    /** Fade to black, in the dark, the round's title on black (ticks). */
+    public static final int BLACK_IN = 12, BLACK_HOLD = 64, BLACK_OUT = 26;
+
+    /**
+     * The round's start after its intro: everyone's picture fades to black (players and broadcast), the players are
+     * teleported in the dark and the broadcast cuts to the round's wide shot, the round's name is typed on black,
+     * then the picture opens on them with the horn and the timer.
+     */
+    static void launch(MinecraftServer server, Actions.MancheStarted start) {
+        boolean withMusic = music;
+        music = false;
+        Director.cue(server, new ShowCue(Cues.CLEAR, "", "", "", 0));
+        Director.cue(server, new ShowCue(Cues.BLACKOUT, start.name(), "Manche " + start.number(),
+                BLACK_IN + "," + BLACK_HOLD + "," + BLACK_OUT, BLACK_IN + BLACK_HOLD + BLACK_OUT));
+        // Games without the mod: no black screen, so blindness over the teleport and the usual title
+        for (net.minecraft.server.level.ServerPlayer p : server.getPlayerList().getPlayers())
+            if (!net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(p, ShowCue.TYPE))
+                p.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.BLINDNESS, BLACK_IN + BLACK_HOLD + 10, 0, false, false));
+        launching = true;
+        at(server, BLACK_IN / 20.0, () -> {
+            if (withMusic) Director.cue(server, new ShowCue(Cues.THEME, "stop", "", "", 0));
+            Show.teleport(server, start);
+            Director.wide(server, BroadcastNetwork.CUT);
+            Director.sync(server);
+        });
+        at(server, (BLACK_IN + BLACK_HOLD) / 20.0, () -> {
+            launching = false;
+            for (net.minecraft.server.level.ServerPlayer p : server.getPlayerList().getPlayers())
+                if (!net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(p, ShowCue.TYPE)) Show.roundTitle(p, start);
+            Show.announce(server, start, false);
+            Show.roundStarted(server, start);
+            // The round's banner comes back with the picture
+            Director.sync(server);
+            CraftMaster.LOG.info("[Réalisation] Manche « {} » lancée après son intro", start.name());
+        });
+    }
+
+    /** Is a round's launch (black, teleports, title) under way? */
+    public static boolean launching() {
+        return launching;
+    }
+
+    /**
+     * Stops the intro (cards cleared, music stopped); true if one was playing. A round waiting for it starts at
+     * once (black, teleports, title): stopping an intro skips it, it does not cancel the round.
+     */
     static boolean stop(MinecraftServer server) {
         boolean was = running != null;
+        if (server == null) {
+            STEPS.clear();
+            running = null;
+            pending = null;
+            launching = false;
+            return was;
+        }
+        if (launching) return was;   // the launch's own steps run to the end
         STEPS.clear();
-        if (was && server != null) {
+        if (was) {
             Director.cue(server, new ShowCue(Cues.CLEAR, "", "", "", 0));
             finish(server, false);
         }
@@ -186,7 +267,8 @@ public final class MancheIntros {
         public void onMancheStarted(MinecraftServer server, int season, int number, String name) {
             CraftMasterData data = CraftMaster.data();
             Manche m = data == null ? null : data.currentManche();
-            if (m != null && m.intro.auto && !m.intro.shots.isEmpty()) {
+            // A chained intro already played before the round (playThenStart): not twice
+            if (m != null && m.intro.auto && !m.intro.chained && !m.intro.shots.isEmpty()) {
                 String line = play(server, m.id);
                 CraftMaster.LOG.info("[Réalisation] {}", line);
             }

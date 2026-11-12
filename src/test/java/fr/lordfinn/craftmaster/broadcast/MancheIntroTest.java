@@ -68,6 +68,69 @@ class MancheIntroTest {
     }
 
     @Test
+    void cutsFallOnTheBeat() {
+        MancheIntro in = new MancheIntro();
+        in.shots.add(new MancheIntro.Shot("camera", "large", 0, "", "", "", ""));     // default: ~3 s
+        in.shots.add(new MancheIntro.Shot("camera", "2", 2.0, "", "", "", ""));       // 2 s → nearest whole beats
+        in.shots.add(new MancheIntro.Shot("trajet", "pont", 0, "", "", "", ""));      // a travelling's own length, rounded
+        in.shots.add(new MancheIntro.Shot("camera", "3", 0.1, "", "", "", ""));       // never less than one beat
+        in.bpm = 120;   // a beat = 0.5 s
+        assertEquals(6, in.defaultBeats());
+        List<MancheIntro.Timed> tl = in.timeline(n -> n.equals("pont") ? 4.3 : 0);
+        assertEquals(List.of(0.0, 3.0, 5.0, 9.5), tl.stream().map(MancheIntro.Timed::start).toList());
+        assertEquals(10.0, in.duration(n -> n.equals("pont") ? 4.3 : 0), 1e-9);
+        // Every cut on a beat of the music
+        for (MancheIntro.Timed t : tl) assertEquals(0, (t.start() / 0.5) % 1, 1e-9);
+
+        // The music's first beat comes late: the first shot covers it, the cuts stay on the beats
+        in.offset = 0.4;
+        in.beats = 4;
+        tl = in.timeline(n -> 0);
+        double[] starts = {0, 2.4, 4.4, 6.4};
+        for (int i = 0; i < starts.length; i++) assertEquals(starts[i], tl.get(i).start(), 1e-9);
+        assertEquals(2.4, tl.getFirst().length(), 1e-9);
+
+        // The theme's tempo; a 112 BPM beat makes a 3 s shot 6 beats
+        assertEquals(MancheIntro.THEME_BPM, MancheIntro.parseBpm("thème"));
+        assertEquals(0.0, MancheIntro.parseBpm("off"));
+        assertEquals(240.0, MancheIntro.parseBpm("900"));
+        assertEquals(96.5, MancheIntro.parseBpm("96,5 bpm"));
+        assertNull(MancheIntro.parseBpm("vite"));
+        MancheIntro theme = new MancheIntro();
+        theme.bpm = MancheIntro.THEME_BPM;
+        assertEquals(6, theme.defaultBeats());
+    }
+
+    @Test
+    void rhythmAndChainActionsAreKept() {
+        assertTrue(run(a("intro.shot.add", "manche", "Le Pont", "camera", "large")).ok());
+        MancheIntro in = pont().intro;
+        assertTrue(in.chained, "chained by default");
+        Actions.Outcome o = run(a("intro.set", "manche", "Le Pont", "bpm", "theme", "beats", 4, "offset", 0.25, "chained", false));
+        assertTrue(o.ok(), o.lines().toString());
+        assertEquals(112, pont().intro.bpm);
+        assertEquals(4, pont().intro.beats);
+        assertEquals(0.25, pont().intro.offset);
+        assertFalse(pont().intro.chained);
+        assertFalse(run(a("intro.set", "manche", "Le Pont", "bpm", "très vite")).ok());
+
+        data.save();
+        CraftMasterData again = new CraftMasterData(dir.resolve("config.yml"), LoggerFactory.getLogger("test"));
+        again.load(null);
+        MancheIntro read = again.activeSeason().activePartie().manches.getFirst().intro;
+        assertEquals(112, read.bpm);
+        assertEquals(4, read.beats);
+        assertEquals(0.25, read.offset);
+        assertFalse(read.chained);
+
+        assertTrue(run(a("intro.set", "manche", "Le Pont", "bpm", "off", "chained", true)).ok());
+        assertEquals(0, pont().intro.bpm);
+        assertTrue(pont().intro.chained);
+        assertTrue(run(a("undo")).ok());
+        assertEquals(112, pont().intro.bpm);
+    }
+
+    @Test
     void normalizations() {
         assertEquals(MancheIntro.PATH, MancheIntro.normalizeKind("travelling"));
         assertEquals(MancheIntro.FOLLOW, MancheIntro.normalizeKind("follow"));

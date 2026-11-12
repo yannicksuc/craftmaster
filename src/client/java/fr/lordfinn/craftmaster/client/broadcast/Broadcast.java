@@ -78,6 +78,8 @@ public final class Broadcast {
         for (Identifier id : HIDDEN) HudElementRegistry.replaceElement(id, vanilla -> hiddenInBroadcast(vanilla, false));
         HudElementRegistry.replaceElement(VanillaHudElements.CHAT, vanilla -> hiddenInBroadcast(vanilla, true));
         HudElementRegistry.addLast(CraftMaster.id("broadcast"), BroadcastOverlay::extract);
+        // Launch of a round after its intro: above everything, players and broadcast alike
+        HudElementRegistry.addLast(CraftMaster.id("blackout"), Blackout::extract);
 
         ClientPlayNetworking.registerGlobalReceiver(ShowState.TYPE, (payload, ctx) -> ShowStateClient.set(payload));
         ClientPlayNetworking.registerGlobalReceiver(BroadcastNetwork.FreeCamera.TYPE, (payload, ctx) -> DirectorCamera.freeCamera(payload));
@@ -87,6 +89,8 @@ public final class Broadcast {
                 else ThemeSound.play(payload.subtitle());
             } else if (Cues.BROADCAST.equals(payload.kind())) {
                 set("on".equals(payload.title()));
+            } else if (Cues.BLACKOUT.equals(payload.kind())) {
+                Blackout.start(payload);
             } else if (Cues.PATH_PREVIEW.equals(payload.kind())) {
                 DirectorCamera.preview(payload.title(), payload.ticks());
             } else {
@@ -101,6 +105,7 @@ public final class Broadcast {
             ShowStateClient.clear();
             DirectorCamera.reset();
             BroadcastOverlay.reset();
+            Blackout.reset();
             ThemeSound.stop();
         }));
         // Before the game handles its keys: in broadcast mode the hotbar keys pick a camera

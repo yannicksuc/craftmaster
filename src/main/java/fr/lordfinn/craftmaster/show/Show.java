@@ -73,6 +73,13 @@ public final class Show {
      * @return the number of players teleported
      */
     public static int startManche(MinecraftServer server, Actions.MancheStarted m) {
+        int moved = teleport(server, m);
+        announce(server, m, true);
+        return moved;
+    }
+
+    /** The round's teleports: the season's online players on its TP points, shared out in turn. */
+    public static int teleport(MinecraftServer server, Actions.MancheStarted m) {
         int moved = 0;
         if (!m.tp().isEmpty()) {
             int i = 0;
@@ -86,14 +93,28 @@ public final class Show {
                 moved++;
             }
         }
-        // "Manche 3" in big, the round's name below: a long name would not fit in the title's size
+        return moved;
+    }
+
+    /** "Manche 3" in big, the round's name below (a long name would not fit in the title's size). */
+    public static void roundTitle(ServerPlayer p, Actions.MancheStarted m) {
         Component title = Component.translatable("show.craftmaster.manche_title", m.number()).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
         Component sub = Component.literal(m.name() + (m.timer() > 0 ? " · " + Actions.clock(m.timer()) : "")).withStyle(ChatFormatting.YELLOW);
-        titleAll(server, title, sub, 10, 60, 20);
+        title(p, title, sub, 10, 60, 20);
+    }
+
+    /** The round's go: its title for everyone ({@code title}), a horn, and its timer if it has one. */
+    public static void announce(MinecraftServer server, Actions.MancheStarted m, boolean title) {
+        if (title) for (ServerPlayer p : server.getPlayerList().getPlayers()) roundTitle(p, m);
         soundAll(server, SoundEvents.GOAT_HORN_SOUND_VARIANTS.getFirst(), 1f, 1f);
         stopTimer(server);
         if (m.timer() > 0) startTimer(server, m.name(), m.timer());
-        return moved;
+    }
+
+    /** What else starts with a round: the timer tablets set to, and the show's listeners (direction, recordings…). */
+    public static void roundStarted(MinecraftServer server, Actions.MancheStarted m) {
+        fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundStart(server);
+        ShowEvents.onMancheStarted(server, m.season(), m.number(), m.name());
     }
 
     public static void endManche(MinecraftServer server, String name) {

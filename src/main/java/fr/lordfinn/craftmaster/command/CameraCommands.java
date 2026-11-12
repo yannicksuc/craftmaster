@@ -690,6 +690,16 @@ public final class CameraCommands {
                         .executes(c -> run(c, intro(c, "intro.set", "music", str(c, "music"))))))
                 .then(literal("titre").then(argument("enabled", word()).suggests(ON_OFF)
                         .executes(c -> run(c, intro(c, "intro.set", "titleCard", onOff(c, "enabled"))))))
+                // Cut on the music: tempo ("theme" = the show's theme), shot length in beats, first beat (s)
+                .then(literal("rythme").then(argument("bpm", word()).suggests(list(c -> List.of("theme", "off", "120")))
+                        .executes(c -> run(c, intro(c, "intro.set", "bpm", str(c, "bpm"))))
+                        .then(argument("beats", integer(1, 64))
+                                .executes(c -> run(c, intro(c, "intro.set", "bpm", str(c, "bpm"), "beats", getInteger(c, "beats"))))
+                                .then(argument("offset", DoubleArgumentType.doubleArg(0, 30))
+                                        .executes(c -> run(c, intro(c, "intro.set", "bpm", str(c, "bpm"), "beats", getInteger(c, "beats"),
+                                                "offset", DoubleArgumentType.getDouble(c, "offset"))))))))
+                .then(literal("enchaine").then(argument("enabled", word()).suggests(ON_OFF)
+                        .executes(c -> run(c, intro(c, "intro.set", "chained", onOff(c, "enabled"))))))
                 .then(literal("effacer").executes(c -> run(c, intro(c, "intro.clear"))));
     }
 
@@ -700,8 +710,10 @@ public final class CameraCommands {
             return 0;
         }
         MancheIntro in = m.intro;
-        c.getSource().sendSystemMessage(Component.literal("— Intro de « " + m.name + " » — " + (in.auto ? "jouée au lancement" : "à la main (/tv intro " + m.id + ")")
-                + " · " + (in.music.isEmpty() ? "sans musique" : "musique " + in.music) + " · "
+        c.getSource().sendSystemMessage(Component.literal("— Intro de « " + m.name + " » — "
+                + (in.auto ? in.chained ? "jouée au lancement, enchaînée (noir, TP, titre, révélation)" : "jouée au lancement" : "à la main (/tv intro " + m.id + ")")
+                + " · " + (in.music.isEmpty() ? "sans musique" : "musique " + in.music)
+                + (in.bpm > 0 ? " · " + in.rhythmText() : "") + " · "
                 + CameraPath.seconds(Math.round(in.duration(n -> {
                     CameraPath p = CameraPaths.get(n);
                     return p == null ? 0 : p.duration();
@@ -709,8 +721,13 @@ public final class CameraCommands {
         if (in.shots.isEmpty()) c.getSource().sendSystemMessage(Component.literal(
                 "Aucun plan : /tv intro " + m.id + " ajouter camera <caméra> [s] · ajouter trajet <nom> [s] · ajouter suivi <joueur> [s]").withStyle(ChatFormatting.GRAY));
         int auto = in.autoCardShot();
+        List<MancheIntro.Timed> timeline = in.timeline(n -> {
+            CameraPath p = CameraPaths.get(n);
+            return p == null ? 0 : p.duration();
+        });
         for (int i = 0; i < in.shots.size(); i++)
-            c.getSource().sendSystemMessage(Component.literal("  " + (i + 1) + " · " + in.shots.get(i).describe() + (i == auto ? ", titre (automatique)" : ""))
+            c.getSource().sendSystemMessage(Component.literal("  " + (i + 1) + " · " + in.shots.get(i).describe(timeline.get(i), in.beatSeconds())
+                            + (i == auto ? ", titre (automatique)" : ""))
                     .withStyle(ChatFormatting.GRAY));
         return in.shots.size();
     }

@@ -92,6 +92,8 @@ public final class PlayerFrameHud {
         Minecraft mc = Minecraft.getInstance();
         TwitchChat.Config config = TwitchChat.config();
         if (config.playerFrame == null || !config.playerFrame.enabled || mc.player == null) return;
+        // A round's launch: the black screen is not covered
+        if (fr.lordfinn.craftmaster.client.broadcast.Blackout.active()) return;
         // The setting may have changed (reload): follow it
         if (wantedSeason() != shownSeason) follow();
         // Organisers: a reminder while a score entry draft is not validated

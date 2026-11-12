@@ -1276,7 +1276,7 @@ public final class Actions {
             return f.manche();
         }
 
-        /** intro.set {manche?, auto?, music?, titleCard?} */
+        /** intro.set {manche?, auto?, music?, titleCard?, bpm?, beats?, offset?, chained?} */
         private void introSet(Map<String, Object> a) {
             Manche r = introManche(a);
             fr.lordfinn.craftmaster.data.MancheIntro in = r.intro;
@@ -1295,7 +1295,23 @@ public final class Actions {
                 in.titleCard = card;
                 changed.add(card ? "titre de la manche à la fin" : "sans titre automatique");
             }
-            if (changed.isEmpty()) throw new Invalid("rien à changer (auto, music ou titleCard).");
+            if (a.containsKey("bpm")) {
+                Double bpm = fr.lordfinn.craftmaster.data.MancheIntro.parseBpm(a.get("bpm") == null ? "" : String.valueOf(a.get("bpm")));
+                if (bpm == null) throw new Invalid("tempo « " + a.get("bpm") + " » : un nombre de BPM, « theme » ou « off ».");
+                in.bpm = bpm;
+                if (bpm == 0) changed.add("plans à leur durée (pas calés sur la musique)");
+            }
+            if (a.get("beats") instanceof Number n) in.beats = (int) Math.max(0, Math.min(64, Math.round(n.doubleValue())));
+            if (a.get("offset") instanceof Number n) in.offset = Math.max(0, Math.min(30, n.doubleValue()));
+            if (in.bpm > 0 && (a.containsKey("bpm") || a.containsKey("beats") || a.containsKey("offset"))) changed.add(in.rhythmText());
+            else if (a.containsKey("beats") || a.containsKey("offset")) changed.add("rythme enregistré (actif avec un tempo)");
+            Boolean chained = bool(a, "chained");
+            if (chained != null) {
+                in.chained = chained;
+                changed.add(chained ? "lancement enchaîné (noir, TP, titre, révélation à la fin de l'intro)"
+                        : "la manche démarre tout de suite, l'intro joue par-dessus");
+            }
+            if (changed.isEmpty()) throw new Invalid("rien à changer (auto, music, titleCard, bpm, beats, offset ou chained).");
             line("Intro de « " + r.name + " » : " + String.join(", ", changed) + ".");
         }
 
