@@ -65,7 +65,7 @@ public class WardrobeScreen extends Screen {
     private List<ItemStack> saved = List.of(), last = List.of();
 
     private String query = "";
-    private boolean favouritesOnly, editing, tagsOpen, confirming;
+    private boolean favouritesOnly, editing, tagsOpen, confirming, laidOut;
     private int scroll, tagScroll, selected = -1;
     /** Tags ticked in the tag panel: an outfit is shown if it has all of them. */
     private final Set<OutfitTags.Tag> activeTags = new LinkedHashSet<>();
@@ -121,7 +121,8 @@ public class WardrobeScreen extends Screen {
         tagCount = null;
         if (selected >= outfits.size()) selected = -1;
         if (!manage()) editing = false;
-        if (minecraft != null) rebuildKeepingText();
+        // Not before the first init: the screen has no size yet (its widgets would stay under the real ones)
+        if (laidOut) rebuildKeepingText();
     }
 
     private void rebuildKeepingText() {
@@ -151,23 +152,26 @@ public class WardrobeScreen extends Screen {
     }
 
     /** A square button drawing its own icon. */
-    private UiButton iconButton(int x, int y, Consumer<GuiGraphicsExtractor> icon, Consumer<InputWithModifiers> onPress) {
+    private UiButton iconButton(int x, int y, Icon icon, Consumer<InputWithModifiers> onPress) {
         return addRenderableWidget(new UiButton(x, y, ICON, ICON, Component.empty(), onPress) {
             @Override
             protected void extractContents(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
                 super.extractContents(g, mouseX, mouseY, partial);
-                g.pose().pushMatrix();
-                g.pose().translate(getX(), getY());
-                icon.accept(g);
-                g.pose().popMatrix();
+                icon.draw(g, getX(), getY());
             }
         });
+    }
+
+    /** An icon drawn in pixels at (x, y), the top left corner of its 18 px square. */
+    private interface Icon {
+        void draw(GuiGraphicsExtractor g, int x, int y);
     }
 
     // ---------------------------------------------------------------- layout
 
     @Override
     protected void init() {
+        laidOut = true;
         // The panel grows with the window (more cards, a bigger preview), with a margin around it
         w = Math.min(width - 2 * M, Math.max(420, Math.min(720, width * 9 / 10)));
         h = Math.min(height - 2 * M, Math.max(230, Math.min(420, height * 9 / 10)));
@@ -772,25 +776,25 @@ public class WardrobeScreen extends Screen {
         }
     }
 
-    /** ⇄ drawn in pixels: an arrow to the right above an arrow to the left. */
-    private void switchIcon(GuiGraphicsExtractor g) {
+    /** ⇄ drawn in pixels: an arrow to the right above an arrow to the left, each with a triangle head. */
+    private void switchIcon(GuiGraphicsExtractor g, int x, int y) {
         int c = Theme.TEXT;
-        g.fill(4, 6, 13, 7, c);
-        g.fill(11, 4, 12, 9, c);
-        g.fill(12, 5, 13, 8, c);
-        g.fill(5, 11, 14, 12, c);
-        g.fill(6, 9, 7, 14, c);
-        g.fill(5, 10, 6, 13, c);
+        // Top: shaft from the left edge, then a head pointing right (7, 5, 3, 1 px high)
+        g.fill(x + 2, y + 5, x + 12, y + 6, c);
+        for (int i = 0; i < 4; i++) g.fill(x + 12 + i, y + 2 + i, x + 13 + i, y + 9 - i, c);
+        // Bottom: shaft to the right edge, then a head pointing left
+        g.fill(x + 6, y + 12, x + 16, y + 13, c);
+        for (int i = 0; i < 4; i++) g.fill(x + 5 - i, y + 9 + i, x + 6 - i, y + 16 - i, c);
     }
 
     /** A bin drawn in pixels: lid, handle, body with ribs. */
-    private void trashIcon(GuiGraphicsExtractor g) {
+    private void trashIcon(GuiGraphicsExtractor g, int x, int y) {
         int c = Theme.TEXT, d = Theme.shade(Theme.TEXT, -0.35f);
-        g.fill(7, 3, 11, 4, c);
-        g.fill(4, 4, 14, 6, c);
-        g.fill(5, 6, 13, 15, c);
-        g.fill(7, 7, 8, 14, d);
-        g.fill(10, 7, 11, 14, d);
+        g.fill(x + 7, y + 3, x + 11, y + 4, c);
+        g.fill(x + 4, y + 4, x + 14, y + 6, c);
+        g.fill(x + 5, y + 6, x + 13, y + 15, c);
+        g.fill(x + 7, y + 7, x + 8, y + 14, d);
+        g.fill(x + 10, y + 7, x + 11, y + 14, d);
     }
 
     /**
