@@ -191,14 +191,27 @@ public final class Wardrobes {
         else say(p, "wearing_piece", o.pieces().get(piece).getHoverName());
     }
 
-    /** Back into your own clothes: a show costume ends; in a storage wardrobe, swaps with "Affaires de <you>". */
+    /**
+     * Back into your own clothes: a show costume ends (it is remembered: {@link #switchOutfit} puts it back on);
+     * in a storage wardrobe, swaps with "Affaires de <you>".
+     */
     public static void takeBack(ServerPlayer p, WardrobeBlockEntity w) {
         WardrobeState st = state(p);
         if (st.inCostume()) {
-            var r = Dressing.takeBack(KIND, worn(p), st.saved().get());
+            List<ItemStack> worn = worn(p);
+            // The costume pieces worn now, to put them back on with the switch button
+            List<ItemStack> costume = new ArrayList<>();
+            List<Boolean> ownPieces = new ArrayList<>();
+            for (ItemStack s : worn) {
+                costume.add(isCostume(s) ? unmark(s) : ItemStack.EMPTY);
+                ownPieces.add(!s.isEmpty() && !isCostume(s));
+            }
+            var r = Dressing.takeBack(KIND, worn, st.saved().get());
             purgeCopies(p);
             apply(p, r);
-            setState(p, st.withDressing(Optional.empty(), ""));
+            WardrobeState next = st.withDressing(Optional.empty(), "");
+            if (!Dressing.allEmpty(KIND, costume)) next = next.withLast(Optional.of(costume), st.wearing(), ownPieces);
+            setState(p, next);
             sound(p);
             say(p, "back");
             return;
@@ -212,6 +225,28 @@ public final class Wardrobes {
             }
         }
         say(p, "nothing_back");
+    }
+
+    /**
+     * The switch button: in a costume, back into your own clothes; in your own clothes, the last costume again
+     * (copies, the pieces it had only: the others stay yours).
+     */
+    public static void switchOutfit(ServerPlayer p, WardrobeBlockEntity w) {
+        WardrobeState st = state(p);
+        if (st.inCostume() || w == null || !w.show() || st.last().isEmpty()) {
+            takeBack(p, w);
+            return;
+        }
+        List<ItemStack> last = st.last().get();
+        // The same look as then: its pieces, nothing where it had nothing, your own pieces where you wore them
+        boolean[] mask = new boolean[Dressing.PIECES];
+        for (int i = 0; i < mask.length; i++) mask[i] = !st.lastOwn(i);
+        var r = Dressing.putOnCopy(KIND, worn(p), null, last, mask);
+        purgeCopies(p);
+        apply(p, r);
+        setState(p, st.withDressing(Optional.of(r.saved()), st.lastWearing().isEmpty() ? WardrobeState.MIX : st.lastWearing()));
+        sound(p);
+        say(p, "switched");
     }
 
     /**
@@ -233,16 +268,22 @@ public final class Wardrobes {
                 }
             }
             case "back" -> takeBack(p, w);
-            case "strip" -> {
+            case "switch" -> switchOutfit(p, w);
+            case "trash" -> {
+                // The costume goes (and is not remembered); your own clothes come back
                 WardrobeState st = state(p);
-                List<ItemStack> worn = worn(p);
-                if (Dressing.allEmpty(KIND, worn)) return;
-                var r = Dressing.stripAll(KIND, worn, st.saved().orElse(null));
+                if (st.inCostume()) takeBack(p, w);
+                setState(p, state(p).withLast(Optional.empty(), "", List.of()));
+                say(p, "trashed");
+            }
+            case "trash_all" -> {
+                // Shift + trash, confirmed: everything worn is deleted, your own clothes too
                 purgeCopies(p);
-                apply(p, r);
-                setState(p, st.withDressing(Optional.ofNullable(r.saved()), ""));
+                for (EquipmentSlot slot : Outfit.SLOTS) p.setItemSlot(slot, ItemStack.EMPTY);
+                p.inventoryMenu.broadcastChanges();
+                setState(p, state(p).withDressing(Optional.empty(), "").withLast(Optional.empty(), "", List.of()));
                 sound(p);
-                say(p, "stripped");
+                say(p, "trashed_all");
             }
             case "restore" -> {
                 // An outfit of the game that this wardrobe's own list left out (grey in the edit mode): back in

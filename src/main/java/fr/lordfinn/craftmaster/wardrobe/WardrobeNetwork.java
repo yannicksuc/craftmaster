@@ -10,6 +10,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,8 @@ public final class WardrobeNetwork {
      * {@code others}: then, for organisers, the outfits of the game its list leaves out (grey in the edit mode).
      */
     public record Open(BlockPos pos, boolean show, boolean custom, boolean admin, boolean inCostume, String wearing,
-                       List<String> favourites, List<Outfit> outfits, List<Outfit> others, boolean refresh) implements CustomPacketPayload {
+                       List<String> favourites, List<Outfit> outfits, List<Outfit> others, List<ItemStack> saved,
+                       List<ItemStack> last, String lastWearing, boolean refresh) implements CustomPacketPayload {
         public static final Type<Open> TYPE = new Type<>(CraftMaster.id("wardrobe_open"));
         public static final StreamCodec<RegistryFriendlyByteBuf, Open> CODEC = CustomPacketPayload.codec(
                 (p, buf) -> {
@@ -41,6 +43,9 @@ public final class WardrobeNetwork {
                     for (Outfit o : p.outfits) Outfit.STREAM_CODEC.encode(buf, o);
                     buf.writeVarInt(p.others.size());
                     for (Outfit o : p.others) Outfit.STREAM_CODEC.encode(buf, o);
+                    ItemStack.OPTIONAL_LIST_STREAM_CODEC.encode(buf, p.saved);
+                    ItemStack.OPTIONAL_LIST_STREAM_CODEC.encode(buf, p.last);
+                    buf.writeUtf(p.lastWearing, 2048);
                     buf.writeBoolean(p.refresh);
                 }, buf -> {
                     BlockPos pos = buf.readBlockPos();
@@ -52,7 +57,10 @@ public final class WardrobeNetwork {
                     for (int i = Math.min(buf.readVarInt(), 4096); i > 0; i--) list.add(Outfit.STREAM_CODEC.decode(buf));
                     List<Outfit> others = new ArrayList<>();
                     for (int i = Math.min(buf.readVarInt(), 4096); i > 0; i--) others.add(Outfit.STREAM_CODEC.decode(buf));
-                    return new Open(pos, show, custom, admin, costume, wearing, fav, list, others, buf.readBoolean());
+                    List<ItemStack> saved = ItemStack.OPTIONAL_LIST_STREAM_CODEC.decode(buf);
+                    List<ItemStack> last = ItemStack.OPTIONAL_LIST_STREAM_CODEC.decode(buf);
+                    String lastWearing = buf.readUtf(2048);
+                    return new Open(pos, show, custom, admin, costume, wearing, fav, list, others, saved, last, lastWearing, buf.readBoolean());
                 });
 
         @Override
@@ -60,7 +68,7 @@ public final class WardrobeNetwork {
     }
 
     /**
-     * Client → server: a button. {@code action}: wear, wear_piece ({@code text} = 0 head … 3 feet), back, strip, take_off, favourite,
+     * Client → server: a button. {@code action}: wear, wear_piece ({@code text} = 0 head … 3 feet), back, switch, trash, trash_all, take_off, favourite,
      * add, replace, rename, tags ({@code text} = comma separated), delete, restore ({@code text} = outfit key), up, down,
      * mode, auto, catalogue_add, catalogue_remove, close.
      */
@@ -102,7 +110,8 @@ public final class WardrobeNetwork {
             for (Outfit o : Catalogue.all()) if (!in.contains(o.key())) others.add(o);
         }
         return new Open(w.getBlockPos(), w.show(), w.custom(), admin, st.inCostume(), st.wearing(),
-                st.favourites(), List.copyOf(w.outfits()), others, refresh);
+                st.favourites(), List.copyOf(w.outfits()), others, st.saved().orElse(List.of()), st.last().orElse(List.of()),
+                st.lastWearing(), refresh);
     }
 
     public static void sendOpen(ServerPlayer player, WardrobeBlockEntity w) {

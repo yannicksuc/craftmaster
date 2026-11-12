@@ -399,7 +399,8 @@ Serveur `:26.2:runServer` (jeu 26061, RCON 26062) + client 26.2 (pont MCP 26071)
   cowboy, pilote spatial, forgeron : pièces vérifiées par `data get entity … equipment`, copies marquées), chapeau
   seul par-dessus le médecin (« Tenue mélangée »), favori (★ en tête), Mes affaires, recherche « chapeau noir »,
   « policier », cases des pièces portées (clic droit : chapeau enlevé, le casque d'avant revient ; clic : défile
-  jusqu'à Capitaine, recherche vidée), Tout enlever puis Mes affaires, panneau des tags (Métier, Thème… avec leurs
+  jusqu'à Capitaine, recherche vidée), ⇄ (policier → mes affaires → policier tête nue, comme avant), poubelle (vêtements rendus), Maj + poubelle
+  (confirmation : Non revient à l'écran, Oui supprime tout), panneau des tags (Métier, Thème… avec leurs
   nombres ; « Médiéval » : 11 tenues), tenue supprimée restée en gris puis remise d'un clic, mode Modifier (renommer → liste propre, Remettre toutes les tenues), type rangement (vraie armure
   rangée puis remise).
 - Pas vérifié en jeu : Emotecraft / Player Animation Library et Straw Statues (pas dans les mods de test ; aucune
