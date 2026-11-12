@@ -125,9 +125,24 @@ prend le relais.
 | Ajouter un plan | `/tv intro <m> ajouter camera large 4` · `ajouter trajet survol` · `ajouter suivi Ensuri 5` (+ `[transition] [effet]`) |
 | Régler un plan | `/tv intro <m> plan 2 duree 3` · `plan 2 transition coupe` · `plan 2 effet sepia` · `plan 1 carte synthe Le Pont \| Épreuve 1` · `plan 3 retirer` |
 | Réglages | `/tv intro <m> musique theme\|aucune\|<son>` · `titre on\|off` · `auto on` (jouée toute seule au lancement de la manche) · `effacer` |
+| Couper sur la musique | `/tv intro <m> rythme theme` (tempo du thème, 112 BPM) · `rythme 96` · `rythme 120 4` (4 temps par plan) · `rythme 120 4 0,4` (1er temps à 0,4 s) · `rythme off` |
+| Lancement enchaîné | `/tv intro <m> enchaine on\|off` (on par défaut, avec `auto on`) |
 | Voir / jouer | `/tv intro <m> voir` · `/tv intro <m>` · « lance l'intro du pont » · `/tv stop` l'arrête |
 
 - Les caméras d'un plan se lisent **dans le lieu de la manche** : `large`, `2`, `ensuri:1`, ou `studio:3`.
+- **Coupé sur la musique** (`rythme`) : chaque plan dure un nombre entier de temps, donc chaque coupe tombe sur un
+  temps. Un plan sans durée dure environ 3 s (6 temps à 112 BPM), un plan avec durée est arrondi au temps le plus
+  proche (jamais moins d'un temps). `/tv intro <m> voir` donne la durée jouée de chaque plan (« 3,2 s (6 temps) »).
+  Le thème fourni est une fanfare provisoire à 112 BPM qui commence sur un temps ; avec une autre musique, donner
+  son tempo et, si elle commence par un silence, l'instant de son premier temps.
+- **Lancement enchaîné** (`auto on` + `enchaine on`, le défaut) : `/cfma next` lance l'intro **avant** la manche.
+  Les joueurs restent où ils sont et entendent le thème. À la fin de l'intro, l'image de tout le monde (joueurs et
+  diffusion) descend au noir, les joueurs sont téléportés dans le noir, la diffusion coupe sur le plan large de la
+  manche, « MANCHE 3 » puis le nom de la manche sont tapés à la machine sur le noir, puis l'image s'ouvre sur eux
+  avec le cor et le chrono (≈ 5 s en tout). Les chronos de tablette et la réalisation automatique démarrent à ce
+  moment-là. `/tv stop` pendant l'intro la saute : on passe directement au noir. Un joueur sans le mod a une
+  cécité pendant le noir et le titre habituel. `enchaine off` : la manche démarre tout de suite et l'intro joue
+  par-dessus (ancien comportement).
 - Tout réglage d'intro est **annulable** (« annule », `/craftMasterUndo`) : il est rangé avec la manche.
 - `/tv intro` seul lance toujours le générique d'ouverture de l'émission.
 

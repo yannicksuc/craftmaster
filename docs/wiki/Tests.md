@@ -61,7 +61,7 @@ phrases synthétisées (voix Windows française) : avec les pseudos en vocabulai
   studio), clés explicites, lieux dits en mots (« caméra 2 du studio », « caméra 1 d'Ensuri », « de l'équipe
   bleue »), molette dans une zone, changement de lieu. `CameraPathTest` : durée et arrivées, étapes atteintes,
   pauses immobiles, départ / arrivée adoucis, pas de saut (échantillons à 120 i/s), vitesse continue aux étapes,
-  yaw par le plus court, zoom, points répétés. `MancheIntroTest` : minutage (durée des trajets), titre automatique,
+  yaw par le plus court, zoom, points répétés. `MancheIntroTest` : minutage (durée des trajets), coupes sur les temps de la musique (tempo, temps par plan, premier temps), lancement enchaîné gardé dans le fichier, titre automatique,
   actions `intro.*` (fichier, annulation, refus), `intro.play` en effet, nouvelles actions `camera.*`.
   Serveur : bloc « TV direction » de `scripts/server_smoke_test.py <hôte> <port rcon>` (avec LordFinn connecté).
 - `StudioLogicTest` (décor du studio) : angles des projecteurs (conventions de Minecraft, aller-retour direction ↔
@@ -387,3 +387,14 @@ Serveur `:26.2:runServer` (`run-server-26.2/`, jeu 25901, RCON 25902) + client `
 - Client 26.3 de la même branche : démarre jusqu'à l'écran titre sans erreur de mixin.
 - Pas encore revérifié en 26.2 : écrans à clavier / souris (saisie des points, lettres, éditeur de poses : la lettre
   d'une touche passe par GLFW en 26.2), régie vocale, épreuves, rideaux, tablette chrono, StreamDeck, deux joueurs.
+
+### Lancement enchaîné d'une manche (intro en rythme, noir, TP, titre, révélation)
+Serveur `runServer` + client de dev (LordFinn), manche « Château » (chrono 90 s, un point de TP), intro de 3 plans
+du studio (sépia, noir et blanc, vignette) sur le thème, `rythme theme`, `auto on`. Vérifié avec captures MCP :
+- vue joueur : pendant l'intro le joueur reste au studio ; noir ; « MANCHE 3 » et « Château » tapés sur le noir (le
+  cadre joueur se retire pendant le noir) ; l'image s'ouvre sur le point de TP, chrono lancé ;
+- vue diffusion (F8) : plans coupés en rythme avec leurs effets, noir, titre, ouverture sur le plan large avec le
+  bandeau de la manche (caché pendant la descente au noir) ; `/tv stop` pendant l'intro saute au noir ;
+- `/tv intro <m> voir` donne « 3,2 s (6 temps) » par plan.
+Pas vérifié : un joueur sans le mod (cécité + titre), plusieurs joueurs et plusieurs points de TP, le son des
+touches de la machine à écrire et le calage à l'oreille sur le thème.
