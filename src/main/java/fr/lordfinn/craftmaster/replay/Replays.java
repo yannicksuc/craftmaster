@@ -97,6 +97,8 @@ public final class Replays {
         String zoneFolder;
         ReplayArea.Chunks area;
         boolean zoneNeedsState = true;
+        /** Round running at the last tick (to mark its end in a game's file). */
+        String lastManche;
         final Map<UUID, PlayerRec> players = new LinkedHashMap<>();
         final List<String> playerFolders = new ArrayList<>();
         final JsonArray markers = new JsonArray();
@@ -182,6 +184,10 @@ public final class Replays {
         if (session != null && !session.key.equals(want)) stop(server, "fin");
         if (session == null && want != null) start(server, data, want);
         if (session == null) return;
+        // A round of the game being recorded ends ("partie" mode; in "manche" mode its file ends with it)
+        String current = data.live().current == null ? null : data.live().current.manche();
+        if (session.number == 0 && session.lastManche != null && !session.lastManche.equals(current)) marker("Fin de la manche", 0xF2C14E);
+        session.lastManche = current;
 
         // Players joining (or coming back) are recorded in the same folder; the show's state goes into new files
         if (server.getTickCount() % 20 == 0) addPlayers(server, data);
@@ -413,9 +419,10 @@ public final class Replays {
             String what = switch (reason == null ? "" : reason) {
                 case "envelope" -> "ouvre son enveloppe";
                 case "buzzer" -> "buzze";
-                default -> reason == null ? "" : reason;
+                case "" -> "(projecteur)";
+                default -> reason == null ? "(projecteur)" : reason;
             };
-            marker(player + (what.isEmpty() ? "" : " " + what), 0x42A5F5);
+            marker(player + " " + what, 0x42A5F5);
         }
 
         @Override

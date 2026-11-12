@@ -167,6 +167,10 @@ Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`
 | `/tv spotlight <joueur> [raison]` | | « Tous les yeux sur lui » : la réalisation auto coupe dessus |
 | `/tv broadcast <joueur> <on\|off>` | | Active / coupe le mode diffusion de ce jeu à distance |
 
+## Replays (admin, [Replays](Replays.md))
+- `/craftMasterReplay` (`/cmreplay`) : état ; `mode manche|partie|off`, `start`, `stop`, `joueurs on|off`, `zone on|off`,
+  `marge <n>`, `repere <texte>`. Il faut Server Replay sur le serveur.
+
 ## Effets d'écran ([Effets](Effets.md))
 | Commande | Alias | Rôle |
 |---|---|---|
