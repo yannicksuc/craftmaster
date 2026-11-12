@@ -33,6 +33,7 @@ public final class ScoreEntryClient {
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register((h, mc) -> mc.execute(ScoreEntryScreen::clearDrafts));
         PlayerFrameHud.init();
         StreamDeckServer.start();
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents.CLIENT_STOPPING.register(mc -> StreamDeckServer.stop());
     }
 
     /** Asks the server for the active season's board (the screen opens when it arrives). */

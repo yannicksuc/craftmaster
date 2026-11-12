@@ -62,7 +62,16 @@ public final class StreamDeckServer {
         try {
             server = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), s.port), 8);
             server.createContext("/", e -> handle(e, s));
-            server.start();
+            // Its dispatcher thread takes the daemon status of the thread that starts it: started from a daemon
+            // thread, it never keeps the game from closing (it did: the shutdown watchdog crashed the client)
+            HttpServer started = server;
+            Thread t = Thread.ofPlatform().daemon().name("CraftMaster-streamdeck-start").unstarted(started::start);
+            t.start();
+            try {
+                t.join(2000);
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            }
             CraftMaster.LOG.info("[StreamDeck] API sur http://127.0.0.1:{}/", s.port);
         } catch (IOException e) {
             CraftMaster.LOG.warn("[StreamDeck] Impossible d'ouvrir le port {} : {}", s.port, e.toString());
