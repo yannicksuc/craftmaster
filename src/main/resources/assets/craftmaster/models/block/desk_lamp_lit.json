@@ -1,9 +1,8 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "craftmaster:block/studio/green_glass",
-    "brass": "craftmaster:block/studio/brass",
-    "glass": "craftmaster:block/studio/green_glass",
+    "particle": "craftmaster:block/studio/desk_lamp",
+    "lamp": "craftmaster:block/studio/desk_lamp",
     "glow": "craftmaster:block/studio/lamp_glow"
   },
   "elements": [
@@ -20,57 +19,57 @@
       ],
       "faces": {
         "north": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            4,
-            15,
-            12,
-            16
+            0,
+            6,
+            8,
+            7
           ]
         },
         "south": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            4,
-            15,
-            12,
-            16
+            0,
+            6,
+            8,
+            7
           ]
         },
         "east": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            5,
-            15,
-            11,
-            16
+            8,
+            6,
+            14,
+            7
           ]
         },
         "west": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            5,
-            15,
-            11,
-            16
+            8,
+            6,
+            14,
+            7
           ]
         },
         "up": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            4,
-            5,
-            12,
-            11
+            0,
+            0,
+            8,
+            6
           ]
         },
         "down": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            4,
-            5,
-            12,
-            11
+            0,
+            0,
+            8,
+            6
           ]
         }
       }
@@ -88,57 +87,39 @@
       ],
       "faces": {
         "north": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            7,
+            8,
+            0,
             10,
-            9,
-            15
+            5
           ]
         },
         "south": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            7,
+            8,
+            0,
             10,
-            9,
-            15
+            5
           ]
         },
         "east": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            7,
+            8,
+            0,
             10,
-            9,
-            15
+            5
           ]
         },
         "west": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            7,
+            8,
+            0,
             10,
-            9,
-            15
-          ]
-        },
-        "up": {
-          "texture": "#brass",
-          "uv": [
-            7,
-            7,
-            9,
-            9
-          ]
-        },
-        "down": {
-          "texture": "#brass",
-          "uv": [
-            7,
-            7,
-            9,
-            9
+            5
           ]
         }
       }
@@ -156,50 +137,64 @@
       ],
       "faces": {
         "north": {
-          "texture": "#glass",
+          "texture": "#lamp",
           "uv": [
-            3,
+            0,
             7,
-            13,
+            10,
             10
           ]
         },
         "south": {
-          "texture": "#glass",
+          "texture": "#lamp",
           "uv": [
-            3,
+            0,
             7,
-            13,
+            10,
             10
           ]
         },
         "east": {
-          "texture": "#glass",
+          "texture": "#lamp",
           "uv": [
-            5,
+            10,
             7,
-            11,
+            16,
             10
           ]
         },
         "west": {
-          "texture": "#glass",
+          "texture": "#lamp",
           "uv": [
-            5,
+            10,
             7,
-            11,
+            16,
             10
           ]
         },
         "up": {
-          "texture": "#glass",
+          "texture": "#lamp",
           "uv": [
-            3,
-            5,
-            13,
-            11
+            0,
+            10,
+            10,
+            16
           ]
-        },
+        }
+      }
+    },
+    {
+      "from": [
+        3,
+        6,
+        5
+      ],
+      "to": [
+        13,
+        6,
+        11
+      ],
+      "faces": {
         "down": {
           "texture": "#glow",
           "uv": [
@@ -225,60 +220,52 @@
       ],
       "faces": {
         "north": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            7,
-            6,
-            9,
-            7
+            12,
+            0,
+            14,
+            1
           ]
         },
         "south": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            7,
-            6,
-            9,
-            7
+            12,
+            0,
+            14,
+            1
           ]
         },
         "east": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            7,
-            6,
-            9,
-            7
+            12,
+            0,
+            14,
+            1
           ]
         },
         "west": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            7,
-            6,
-            9,
-            7
+            12,
+            0,
+            14,
+            1
           ]
         },
         "up": {
-          "texture": "#brass",
+          "texture": "#lamp",
           "uv": [
-            7,
-            7,
-            9,
-            9
-          ]
-        },
-        "down": {
-          "texture": "#brass",
-          "uv": [
-            7,
-            7,
-            9,
-            9
+            12,
+            0,
+            14,
+            2
           ]
         }
       }
     }
-  ]
+  ],
+  "ambientocclusion": false
 }

@@ -2,6 +2,8 @@ package fr.lordfinn.craftmaster.studio;
 
 import fr.lordfinn.craftmaster.block.Shapes4;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -16,13 +18,21 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * The prize table: a table draped in red velvet where up to four prizes lie on show (one per quarter of the top).
- * Right click with an item: puts one down where you click; empty hand: takes back the one under the cursor.
- * Breaking the table drops them.
+ * On the top, right click with an item: puts one down where you click; empty hand: takes back the one under the
+ * cursor. On the drape (the sides): the shelf hidden under it, 27 slots. Tables side by side join into one long
+ * table ({@link SideJoins}). Breaking the table drops everything.
  */
-public class PrizeTableBlock extends FacingEntityBlock {
+public class PrizeTableBlock extends JoiningBlock {
 
     public PrizeTableBlock(Properties props) {
-        super(props, Shapes4.of(new double[]{0, 0, 0, 16, 16, 16}), false);
+        super(props, Shapes4.of(new double[]{0, 0, 0, 16, 16, 16}));
+    }
+
+    /** A click on a side of the drape (not the top): the hidden shelf. */
+    private static InteractionResult openShelf(Level level, BlockPos pos, Player player) {
+        if (!(level.getBlockEntity(pos) instanceof PrizeTableBlockEntity table)) return InteractionResult.PASS;
+        table.storage().open(player, Component.translatable("container.craftmaster.prize_table"));
+        return InteractionResult.SUCCESS;
     }
 
     /** Which quarter of the top a click is on (0..3, see {@link PrizeTableBlockEntity#slotOffset}). */
@@ -33,6 +43,7 @@ public class PrizeTableBlock extends FacingEntityBlock {
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (hit.getDirection() != Direction.UP) return openShelf(level, pos, player);
         if (stack.isEmpty() || !player.mayBuild() || !(level.getBlockEntity(pos) instanceof PrizeTableBlockEntity table))
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         int slot = table.freeSlot(slotAt(pos, hit.getLocation()));
@@ -47,6 +58,7 @@ public class PrizeTableBlock extends FacingEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (hit.getDirection() != Direction.UP) return openShelf(level, pos, player);
         if (!player.mayBuild() || !(level.getBlockEntity(pos) instanceof PrizeTableBlockEntity table)) return InteractionResult.PASS;
         int slot = table.takenSlot(slotAt(pos, hit.getLocation()));
         if (slot < 0) return InteractionResult.PASS;

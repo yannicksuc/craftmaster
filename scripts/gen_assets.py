@@ -10,6 +10,9 @@ import os
 import random
 import struct
 import zlib
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gen_icons  # noqa: E402  (item icons drawn from shapes)
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "main", "resources")
 A = os.path.join(ROOT, "assets", "craftmaster")
@@ -210,7 +213,7 @@ for color, (rgb, _, _) in COLORS.items():
 
 # ------------------------------------------------------------------ remote
 write_json(os.path.join(A, "models/item/curtain_remote.json"),
-           {"parent": "minecraft:item/handheld", "textures": {"layer0": "craftmaster:item/curtain_remote"}})
+           {"parent": "minecraft:item/generated", "textures": {"layer0": "craftmaster:item/curtain_remote"}})
 write_json(os.path.join(A, "items/curtain_remote.json"), {"model": {"type": "minecraft:model", "model": "craftmaster:item/curtain_remote"}})
 T = (0, 0, 0, 0)
 K = (34, 30, 40, 255)      # outline
@@ -238,7 +241,7 @@ art = [
     "................",
 ]
 pal = {".": T, "K": K, "B": B, "L": L, "R": R, "G": G, "W": W}
-write_png(os.path.join(A, "textures/item/curtain_remote.png"), 16, 16, [[pal[c] for c in row] for row in art])
+write_png(os.path.join(A, "textures/item/curtain_remote.png"), 16, 16, gen_icons.remote())  # upright (scripts/gen_icons.py)
 
 # ------------------------------------------------------------------ mod icon (128 px): a stage with red curtains
 S = 32
@@ -433,7 +436,7 @@ for y in range(5, 12):
     for x in range(5, 11):
         if pix[y][x] == T:
             pix[y][x] = (112, 26, 38, 255)
-write_png(os.path.join(A, "textures/item/portrait.png"), 16, 16, pix)
+write_png(os.path.join(A, "textures/item/portrait.png"), 16, 16, gen_icons.portrait())  # scripts/gen_icons.py
 
 # ==================================================================================================================
 # TV direction (chantier E): studio camera (entity texture, item), the CM wax seal of the broadcast overlay, the
@@ -582,7 +585,7 @@ art = [
 pal = {".": T, "k": (28, 26, 32, 255), "K": (52, 50, 58, 255), "M": (52, 50, 58, 255), "m": (70, 68, 78, 255),
        "b": (206, 156, 52, 255), "Y": (206, 156, 52, 255), "y": (160, 110, 34, 255), "g": (36, 52, 86, 255),
        "o": (150, 190, 230, 255), "O": (24, 34, 58, 255), "r": (236, 48, 44, 255), "w": (96, 64, 38, 255)}
-write_png(os.path.join(A, "textures/item/camera.png"), 16, 16, [[pal[c] for c in row] for row in art])
+write_png(os.path.join(A, "textures/item/camera.png"), 16, 16, gen_icons.camera())  # scripts/gen_icons.py
 
 # The CM wax seal of the overlay (32 x 32): a round blob of red wax, uneven rim, embossed ring and letters
 SEAL = [[(0, 0, 0, 0)] * 32 for _ in range(32)]
@@ -931,7 +934,7 @@ art = [
 pal = {".": T, "s": (40, 38, 44, 255), "k": (40, 38, 44, 255), "W": (236, 228, 208, 255), "h": (206, 156, 52, 255),
        "D": (58, 56, 64, 255), "d": (30, 28, 34, 255), "S": (64, 70, 66, 255), "c": (196, 204, 196, 255),
        "r": (224, 44, 46, 255)}
-write_png(os.path.join(A, "textures/item/path_marker.png"), 16, 16, [[pal[c] for c in row] for row in art])
+write_png(os.path.join(A, "textures/item/path_marker.png"), 16, 16, gen_icons.clapperboard())  # scripts/gen_icons.py
 en.update({
     "item.craftmaster.path_marker": "Travelling Marker",
     "item.craftmaster.path_marker.hint": "Path \"%s\": right click = a step at your eyes, sneak = remove the last one",

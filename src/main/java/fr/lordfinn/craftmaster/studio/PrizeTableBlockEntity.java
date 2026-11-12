@@ -1,7 +1,9 @@
 package fr.lordfinn.craftmaster.studio;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
@@ -9,12 +11,16 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-/** The four prizes lying on a prize table (slot = quarter of the top: 0 north-west, 1 north-east, 2 south-west, 3 south-east). */
+/**
+ * The four prizes lying on a prize table (slot = quarter of the top: 0 north-west, 1 north-east, 2 south-west,
+ * 3 south-east), and the shelf hidden under its drape (27 slots, not sent to the clients).
+ */
 public class PrizeTableBlockEntity extends SyncedBlockEntity {
 
     public static final int SLOTS = 4;
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOTS, ItemStack.EMPTY);
+    private final StudioStorage storage = new StudioStorage(this, 27);
 
     public PrizeTableBlockEntity(BlockPos pos, BlockState state) {
         super(Studio.PRIZE_TABLE_BE, pos, state);
@@ -22,6 +28,10 @@ public class PrizeTableBlockEntity extends SyncedBlockEntity {
 
     public NonNullList<ItemStack> items() {
         return items;
+    }
+
+    public StudioStorage storage() {
+        return storage;
     }
 
     /** Centre of a slot on the top, in block coordinates (x, z). */
@@ -55,10 +65,12 @@ public class PrizeTableBlockEntity extends SyncedBlockEntity {
         return s;
     }
 
-    /** The table is broken: its prizes fall on the floor. */
+    /** The table is broken: its prizes and its shelf fall on the floor. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        if (level != null) Containers.dropContents(level, pos, items);
+        if (level == null) return;
+        Containers.dropContents(level, pos, items);
+        storage.dropAll(level, pos);
     }
 
     @Override
@@ -66,11 +78,21 @@ public class PrizeTableBlockEntity extends SyncedBlockEntity {
         super.loadAdditional(in);
         items.clear();
         ContainerHelper.loadAllItems(in, items);
+        storage.load(in);
     }
 
     @Override
     protected void saveAdditional(ValueOutput out) {
         super.saveAdditional(out);
         ContainerHelper.saveAllItems(out, items, true);
+        storage.save(out);
+    }
+
+    /** The clients get the prizes on show, not the hidden shelf. */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        tag.remove("Storage");
+        return tag;
     }
 }

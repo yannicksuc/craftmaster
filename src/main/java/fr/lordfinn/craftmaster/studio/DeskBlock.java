@@ -19,14 +19,22 @@ import net.minecraft.world.phys.BlockHitResult;
 
 /**
  * A contestant's desk: the front faces the audience (the player who places it), with a brass plate bearing the
- * contestant's name. Name it with a renamed name tag (the tag is kept), or {@code /craftMasterDesk name}.
+ * contestant's name. Name it with a renamed name tag (the tag is kept), or {@code /craftMasterDesk name}. Desks side
+ * by side join into one long desk ({@link SideJoins}); right click (anything but a name tag): its drawer, 9 slots.
  */
-public class DeskBlock extends FacingEntityBlock {
+public class DeskBlock extends JoiningBlock {
 
     public DeskBlock(Properties props) {
         // Facing north (front toward the audience at north): top, front panel, side panels
         super(props, Shapes4.of(new double[]{0, 13, 0, 16, 16, 16}, new double[]{0, 0, 1, 16, 13, 4},
-                new double[]{0, 0, 4, 2, 13, 15}, new double[]{14, 0, 4, 16, 13, 15}), false);
+                new double[]{0, 0, 4, 2, 13, 15}, new double[]{14, 0, 4, 16, 13, 15}));
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (!(level.getBlockEntity(pos) instanceof DeskBlockEntity desk)) return InteractionResult.PASS;
+        desk.storage().open(player, Component.translatable("container.craftmaster.desk_drawer"));
+        return InteractionResult.SUCCESS;
     }
 
     @Override

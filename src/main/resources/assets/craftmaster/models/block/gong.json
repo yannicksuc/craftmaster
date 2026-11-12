@@ -1,9 +1,10 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "craftmaster:block/studio/lacquer",
-    "wood": "craftmaster:block/studio/lacquer",
-    "gold": "craftmaster:block/studio/gold_plain"
+    "particle": "minecraft:block/stripped_dark_oak_log",
+    "log": "minecraft:block/stripped_dark_oak_log",
+    "log_top": "minecraft:block/stripped_dark_oak_log_top",
+    "planks": "minecraft:block/dark_oak_planks"
   },
   "elements": [
     {
@@ -19,7 +20,7 @@
       ],
       "faces": {
         "north": {
-          "texture": "#wood",
+          "texture": "#planks",
           "uv": [
             14,
             15,
@@ -28,7 +29,7 @@
           ]
         },
         "south": {
-          "texture": "#wood",
+          "texture": "#planks",
           "uv": [
             0,
             15,
@@ -37,7 +38,7 @@
           ]
         },
         "east": {
-          "texture": "#wood",
+          "texture": "#planks",
           "uv": [
             5,
             15,
@@ -46,7 +47,7 @@
           ]
         },
         "west": {
-          "texture": "#wood",
+          "texture": "#planks",
           "uv": [
             5,
             15,
@@ -55,7 +56,7 @@
           ]
         },
         "up": {
-          "texture": "#wood",
+          "texture": "#planks",
           "uv": [
             0,
             5,
@@ -64,7 +65,7 @@
           ]
         },
         "down": {
-          "texture": "#wood",
+          "texture": "#planks",
           "uv": [
             0,
             5,
@@ -87,7 +88,7 @@
       ],
       "faces": {
         "north": {
-          "texture": "#wood",
+          "texture": "#planks",
           "uv": [
             0,
             15,
@@ -96,7 +97,7 @@
           ]
         },
         "south": {
-          "texture": "#wood",
+          "texture": "#planks",
           "uv": [
             14,
             15,
@@ -105,7 +106,7 @@
           ]
         },
         "east": {
-          "texture": "#wood",
+          "texture": "#planks",
           "uv": [
             5,
             15,
@@ -114,7 +115,7 @@
           ]
         },
         "west": {
-          "texture": "#wood",
+          "texture": "#planks",
           "uv": [
             5,
             15,
@@ -123,7 +124,7 @@
           ]
         },
         "up": {
-          "texture": "#wood",
+          "texture": "#planks",
           "uv": [
             14,
             5,
@@ -132,7 +133,7 @@
           ]
         },
         "down": {
-          "texture": "#wood",
+          "texture": "#planks",
           "uv": [
             14,
             5,
@@ -155,7 +156,7 @@
       ],
       "faces": {
         "north": {
-          "texture": "#wood",
+          "texture": "#log",
           "uv": [
             14,
             2,
@@ -164,7 +165,7 @@
           ]
         },
         "south": {
-          "texture": "#wood",
+          "texture": "#log",
           "uv": [
             0,
             2,
@@ -173,7 +174,7 @@
           ]
         },
         "east": {
-          "texture": "#wood",
+          "texture": "#log",
           "uv": [
             7,
             2,
@@ -182,7 +183,7 @@
           ]
         },
         "west": {
-          "texture": "#wood",
+          "texture": "#log",
           "uv": [
             7,
             2,
@@ -191,7 +192,7 @@
           ]
         },
         "up": {
-          "texture": "#wood",
+          "texture": "#log_top",
           "uv": [
             0,
             7,
@@ -200,7 +201,7 @@
           ]
         },
         "down": {
-          "texture": "#wood",
+          "texture": "#log_top",
           "uv": [
             0,
             7,
@@ -223,7 +224,7 @@
       ],
       "faces": {
         "north": {
-          "texture": "#wood",
+          "texture": "#log",
           "uv": [
             0,
             2,
@@ -232,7 +233,7 @@
           ]
         },
         "south": {
-          "texture": "#wood",
+          "texture": "#log",
           "uv": [
             14,
             2,
@@ -241,7 +242,7 @@
           ]
         },
         "east": {
-          "texture": "#wood",
+          "texture": "#log",
           "uv": [
             7,
             2,
@@ -250,7 +251,7 @@
           ]
         },
         "west": {
-          "texture": "#wood",
+          "texture": "#log",
           "uv": [
             7,
             2,
@@ -259,7 +260,7 @@
           ]
         },
         "up": {
-          "texture": "#wood",
+          "texture": "#log_top",
           "uv": [
             14,
             7,
@@ -268,7 +269,7 @@
           ]
         },
         "down": {
-          "texture": "#wood",
+          "texture": "#log_top",
           "uv": [
             14,
             7,
@@ -291,60 +292,65 @@
       ],
       "faces": {
         "north": {
-          "texture": "#wood",
+          "texture": "#log",
           "uv": [
             0,
             0,
-            16,
-            2
-          ]
+            2,
+            16
+          ],
+          "rotation": 90
         },
         "south": {
-          "texture": "#wood",
+          "texture": "#log",
           "uv": [
             0,
             0,
-            16,
-            2
-          ]
+            2,
+            16
+          ],
+          "rotation": 90
+        },
+        "up": {
+          "texture": "#log",
+          "uv": [
+            0,
+            0,
+            4,
+            16
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#log",
+          "uv": [
+            4,
+            0,
+            8,
+            16
+          ],
+          "rotation": 90
         },
         "east": {
-          "texture": "#gold",
+          "texture": "#log_top",
           "uv": [
             6,
-            0,
+            7,
             10,
-            2
+            9
           ]
         },
         "west": {
-          "texture": "#gold",
+          "texture": "#log_top",
           "uv": [
             6,
-            0,
+            7,
             10,
-            2
-          ]
-        },
-        "up": {
-          "texture": "#wood",
-          "uv": [
-            0,
-            6,
-            16,
-            10
-          ]
-        },
-        "down": {
-          "texture": "#wood",
-          "uv": [
-            0,
-            6,
-            16,
-            10
+            9
           ]
         }
       }
     }
-  ]
+  ],
+  "ambientocclusion": false
 }

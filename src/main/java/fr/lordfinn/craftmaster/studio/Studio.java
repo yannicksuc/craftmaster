@@ -26,9 +26,9 @@ import net.minecraft.world.level.material.MapColor;
 import java.util.Set;
 
 /**
- * The studio set (chantier F, docs/wiki/Plateau.md): throne, seats and sofa, lights and spotlights, giant timer,
- * studio screens (/image), contestants' desks, prize table, gong and bells, podium, trophy, "EN DIRECT" sign and
- * stanchions. Registered after {@link ModContent} (same creative tab).
+ * The studio set (chantier F, docs/wiki/Plateau.md): throne, lights and spotlights, giant timer, studio screens
+ * (/image), contestants' desks, prize table, gong and bells, podium, "EN DIRECT" sign and stanchions. Registered
+ * after {@link ModContent} (same creative tab).
  */
 public final class Studio {
 
@@ -36,8 +36,6 @@ public final class Studio {
 
     // Seats
     public static FurnitureSeatBlock THRONE;
-    public static StudioSeatBlock ASSISTANT_CHAIR;
-    public static SofaBlock SOFA;
     // Lights
     public static LampBlock FLOOR_LAMP, DESK_LAMP, CEILING_PENDANT;
     public static SpotlightBlock SPOTLIGHT;
@@ -49,7 +47,7 @@ public final class Studio {
     public static PrizeTableBlock PRIZE_TABLE;
     public static GongBlock GONG;
     public static DeskBellBlock DESK_BELL;
-    public static DecorBlock PODIUM_FIRST, PODIUM_SECOND, PODIUM_THIRD, TROPHY;
+    public static DecorBlock PODIUM_FIRST, PODIUM_SECOND, PODIUM_THIRD;
     public static StanchionBlock STANCHION;
     public static Item STUDIO_SCREEN_ITEM;
 
@@ -74,10 +72,6 @@ public final class Studio {
         THRONE = ModContent.block("throne", p -> new FurnitureSeatBlock(p, 20, Shapes4.of(
                         new double[]{0, 0, 0, 16, 15, 16}, new double[]{0, 15, 14, 16, 16, 16})),
                 props(MapColor.GOLD, 3f).sound(SoundType.WOOD).noOcclusion());
-        ASSISTANT_CHAIR = ModContent.block("assistant_chair", p -> new StudioSeatBlock(p, 10, Shapes4.of(
-                        new double[]{2, 0, 2, 14, 10, 14}, new double[]{2, 10, 12, 14, 16, 14})),
-                props(MapColor.COLOR_RED, 2f).sound(SoundType.WOOD).noOcclusion());
-        SOFA = ModContent.block("sofa", SofaBlock::new, props(MapColor.COLOR_RED, 1.5f).sound(SoundType.WOOL).noOcclusion());
 
         // ------------------------------------------------------------ lights
         FLOOR_LAMP = ModContent.block("floor_lamp", p -> new LampBlock(p, Shapes4.of(
@@ -106,8 +100,6 @@ public final class Studio {
         PODIUM_FIRST = podium("podium_first", 16);
         PODIUM_SECOND = podium("podium_second", 12);
         PODIUM_THIRD = podium("podium_third", 8);
-        TROPHY = ModContent.block("trophy", p -> new DecorBlock(p, Shapes4.of(new double[]{4, 0, 4, 12, 2, 12}, new double[]{3, 2, 3, 13, 15, 13})),
-                props(MapColor.GOLD, 2f).sound(SoundType.METAL).noOcclusion());
         STANCHION = ModContent.block("stanchion", StanchionBlock::new, props(MapColor.GOLD, 2f).sound(SoundType.METAL).noOcclusion());
 
         SPOTLIGHT_BE = blockEntity("spotlight", SpotlightBlockEntity::new, SPOTLIGHT);
@@ -126,11 +118,29 @@ public final class Studio {
                 EntityType.Builder.<ImageScreenEntity>of(ImageScreenEntity::new, MobCategory.MISC)
                         .sized(1f, 1f).noLootTable().clientTrackingRange(10).updateInterval(10).build(screenKey));
 
+        removed();
         StudioNetwork.register();
         CommandRegistrationCallback.EVENT.register((d, ctx, sel) -> StudioCommands.register(d));
         ServerTickEvents.END_SERVER_TICK.register(StudioTimer::tick);
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> StudioTimer.onJoin(handler.getPlayer()));
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> StudioTimer.reset());
+    }
+
+    /**
+     * Pieces taken out of the set (LordFinn's feedback): worlds that still hold them load without errors. The trophy
+     * becomes a player head (LordFinn's trophy is a golden frog head, a skinned player head), the assistant's
+     * armchair and the sofa disappear. Blocks and items alike (in chests, inventories, item frames).
+     */
+    private static void removed() {
+        alias("trophy", "minecraft:player_head");
+        alias("assistant_chair", "minecraft:air");
+        alias("sofa", "minecraft:air");
+    }
+
+    private static void alias(String old, String now) {
+        net.minecraft.resources.Identifier from = CraftMaster.id(old), to = net.minecraft.resources.Identifier.parse(now);
+        BuiltInRegistries.BLOCK.addAlias(from, to);
+        BuiltInRegistries.ITEM.addAlias(from, to);
     }
 
     private static BlockBehaviour.Properties props(MapColor color, float strength) {

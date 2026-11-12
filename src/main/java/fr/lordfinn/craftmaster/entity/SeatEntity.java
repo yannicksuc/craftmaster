@@ -83,7 +83,7 @@ public class SeatEntity extends Entity {
         return level().getBlockState(pos).getBlock() instanceof ChairBlock ? pos : pos.below();
     }
 
-    /** Seat height of the chair at {@code pos} (each kind of seat has its own: chairs, throne, sofa...). */
+    /** Seat height of the chair at {@code pos} (each kind of seat has its own: chairs, throne...). */
     private static double seatTop(Level level, BlockPos pos) {
         return level.getBlockState(pos).getBlock() instanceof ChairBlock chair ? chair.seatTop() : ChairBlock.SEAT_TOP;
     }
