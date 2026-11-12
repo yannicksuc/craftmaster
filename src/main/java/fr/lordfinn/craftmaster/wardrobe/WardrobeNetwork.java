@@ -21,10 +21,11 @@ public final class WardrobeNetwork {
 
     /**
      * Server → client: the outfit screen of the wardrobe at {@code pos} ({@code refresh}: update it if it is open,
-     * do not open it otherwise). {@code custom}: its outfits were chosen (otherwise every outfit of the game).
+     * do not open it otherwise). {@code custom}: its outfits were chosen (otherwise every outfit of the game);
+     * {@code others}: then, for organisers, the outfits of the game its list leaves out (grey in the edit mode).
      */
     public record Open(BlockPos pos, boolean show, boolean custom, boolean admin, boolean inCostume, String wearing,
-                       List<String> favourites, List<Outfit> outfits, boolean refresh) implements CustomPacketPayload {
+                       List<String> favourites, List<Outfit> outfits, List<Outfit> others, boolean refresh) implements CustomPacketPayload {
         public static final Type<Open> TYPE = new Type<>(CraftMaster.id("wardrobe_open"));
         public static final StreamCodec<RegistryFriendlyByteBuf, Open> CODEC = CustomPacketPayload.codec(
                 (p, buf) -> {
@@ -38,6 +39,8 @@ public final class WardrobeNetwork {
                     p.favourites.forEach(f -> buf.writeUtf(f, 2048));
                     buf.writeVarInt(p.outfits.size());
                     for (Outfit o : p.outfits) Outfit.STREAM_CODEC.encode(buf, o);
+                    buf.writeVarInt(p.others.size());
+                    for (Outfit o : p.others) Outfit.STREAM_CODEC.encode(buf, o);
                     buf.writeBoolean(p.refresh);
                 }, buf -> {
                     BlockPos pos = buf.readBlockPos();
@@ -47,7 +50,9 @@ public final class WardrobeNetwork {
                     for (int i = Math.min(buf.readVarInt(), 4096); i > 0; i--) fav.add(buf.readUtf(2048));
                     List<Outfit> list = new ArrayList<>();
                     for (int i = Math.min(buf.readVarInt(), 4096); i > 0; i--) list.add(Outfit.STREAM_CODEC.decode(buf));
-                    return new Open(pos, show, custom, admin, costume, wearing, fav, list, buf.readBoolean());
+                    List<Outfit> others = new ArrayList<>();
+                    for (int i = Math.min(buf.readVarInt(), 4096); i > 0; i--) others.add(Outfit.STREAM_CODEC.decode(buf));
+                    return new Open(pos, show, custom, admin, costume, wearing, fav, list, others, buf.readBoolean());
                 });
 
         @Override
@@ -55,8 +60,9 @@ public final class WardrobeNetwork {
     }
 
     /**
-     * Client → server: a button. {@code action}: wear, wear_piece ({@code text} = 0 head … 3 feet), back, favourite,
-     * add, replace, rename, delete, up, down, mode, auto, catalogue_add, catalogue_remove, close.
+     * Client → server: a button. {@code action}: wear, wear_piece ({@code text} = 0 head … 3 feet), back, strip, take_off, favourite,
+     * add, replace, rename, tags ({@code text} = comma separated), delete, restore ({@code text} = outfit key), up, down,
+     * mode, auto, catalogue_add, catalogue_remove, close.
      */
     public record Act(BlockPos pos, String action, int index, String text) implements CustomPacketPayload {
         public static final Type<Act> TYPE = new Type<>(CraftMaster.id("wardrobe_act"));
@@ -88,8 +94,15 @@ public final class WardrobeNetwork {
 
     private static Open payload(ServerPlayer player, WardrobeBlockEntity w, boolean refresh) {
         WardrobeState st = Wardrobes.state(player);
-        return new Open(w.getBlockPos(), w.show(), w.custom(), Permissions.isAdmin(player), st.inCostume(), st.wearing(),
-                st.favourites(), List.copyOf(w.outfits()), refresh);
+        boolean admin = Permissions.isAdmin(player);
+        List<Outfit> others = new ArrayList<>();
+        if (admin && w.show() && w.custom()) {
+            java.util.Set<String> in = new java.util.HashSet<>();
+            for (Outfit o : w.outfits()) in.add(o.key());
+            for (Outfit o : Catalogue.all()) if (!in.contains(o.key())) others.add(o);
+        }
+        return new Open(w.getBlockPos(), w.show(), w.custom(), admin, st.inCostume(), st.wearing(),
+                st.favourites(), List.copyOf(w.outfits()), others, refresh);
     }
 
     public static void sendOpen(ServerPlayer player, WardrobeBlockEntity w) {

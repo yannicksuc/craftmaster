@@ -104,6 +104,24 @@ public final class Dressing {
     }
 
     /**
+     * Takes everything off (to start a new outfit from nothing): costume copies go, the player's own pieces are kept
+     * aside with the rest (or go to the inventory if something is kept aside there already). "Mes affaires" then
+     * gives everything back. {@code saved} is {@code null} if nothing is kept aside.
+     */
+    public static <T> Result<T> stripAll(Kind<T> k, List<T> worn, List<T> saved) {
+        check(worn);
+        List<T> newSaved = saved == null ? nothing(k) : new ArrayList<>(saved);
+        List<T> inv = new ArrayList<>();
+        for (int i = 0; i < PIECES; i++) {
+            T cur = worn.get(i);
+            if (k.empty(cur) || k.costume(cur)) continue;
+            if (k.empty(newSaved.get(i))) newSaved.set(i, cur);
+            else inv.add(cur);
+        }
+        return new Result<>(nothing(k), allEmpty(k, newSaved) ? null : newSaved, inv, null);
+    }
+
+    /**
      * Takes one piece off: a costume copy gives back what was kept aside in that place (or nothing), a piece of the
      * player's own goes to the inventory. {@code saved} of the result is {@code null} once no costume copy is worn
      * and nothing is kept aside any more (the costume is over).

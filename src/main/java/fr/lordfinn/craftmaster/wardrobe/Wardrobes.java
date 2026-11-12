@@ -181,7 +181,7 @@ public final class Wardrobes {
                 setState(p, st.withDressing(st.saved(), ownThings ? "" : o.key()));
             } else {
                 if (Dressing.allEmpty(KIND, r.outfit())) w.remove(index);
-                else w.set(index, Outfit.of(o.name(), r.outfit()));
+                else w.set(index, Outfit.of(o.name(), r.outfit(), o.tags()));
                 setState(p, st.withDressing(st.saved(), WardrobeState.MIX));
             }
         }
@@ -233,6 +233,34 @@ public final class Wardrobes {
                 }
             }
             case "back" -> takeBack(p, w);
+            case "strip" -> {
+                WardrobeState st = state(p);
+                List<ItemStack> worn = worn(p);
+                if (Dressing.allEmpty(KIND, worn)) return;
+                var r = Dressing.stripAll(KIND, worn, st.saved().orElse(null));
+                purgeCopies(p);
+                apply(p, r);
+                setState(p, st.withDressing(Optional.ofNullable(r.saved()), ""));
+                sound(p);
+                say(p, "stripped");
+            }
+            case "restore" -> {
+                // An outfit of the game that this wardrobe's own list left out (grey in the edit mode): back in
+                if (!admin || !w.show() || name.isEmpty()) return;
+                for (Outfit o : Catalogue.all()) {
+                    if (o.key().equals(name) && w.outfits().stream().noneMatch(x -> x.key().equals(name))) {
+                        w.addAll(List.of(o));
+                        say(p, "restored", o.displayName());
+                        break;
+                    }
+                }
+            }
+            case "tags" -> {
+                Outfit o = w.get(index);
+                if (!manage || o == null) return;
+                w.set(index, o.withTags(OutfitTags.parse(name)));
+                say(p, "tagged", o.displayName());
+            }
             case "take_off" -> {
                 if (index < 0 || index > 3) return;
                 WardrobeState st = state(p);
@@ -289,7 +317,7 @@ public final class Wardrobes {
                     say(p, "wear_something");
                     break;
                 }
-                w.set(index, Outfit.of(name.isEmpty() ? o.name() : name, Dressing.template(KIND, worn, Wardrobes::unmark)));
+                w.set(index, Outfit.of(name.isEmpty() ? o.name() : name, Dressing.template(KIND, worn, Wardrobes::unmark), o.tags()));
                 say(p, "replaced", w.get(index).displayName());
             }
             case "rename" -> {

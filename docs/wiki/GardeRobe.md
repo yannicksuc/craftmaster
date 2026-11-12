@@ -22,11 +22,38 @@ de l'event, 322 tenues).
   la liste défile jusqu'à la tenue d'où vient la pièce, qui clignote (la recherche est vidée si elle la cachait).
   **Clic droit** : tu enlèves la pièce (une pièce de costume rend ce que tu portais là avant, une pièce à toi va
   dans l'inventaire).
+- **Tout enlever** : tu enlèves tout, pour composer une tenue à partir de rien ; tes vêtements restent de côté.
 - **Mes affaires** (ou **accroupi + clic droit** sur l'armoire, sans ouvrir l'écran) : tu reprends tes vêtements.
 - **Barre de recherche** en français, sans tenir compte des accents ni des majuscules, sur le nom de la tenue et de
   ses pièces. Les mots français cherchent aussi leur traduction anglaise, en mots entiers (les vêtements de
   Selfexpression ont des noms anglais) : « médecin », « chapeau », « veste rouge », « bottes », « lutin », « noël »,
   « bonhomme de neige »… Tous les mots tapés doivent correspondre.
+
+## Tags
+
+Le bouton **# Tags** ouvre, à la place des tenues, les tags par catégorie avec le nombre de tenues de chacun. On en
+coche un ou plusieurs (« ✕ Tout décocher » pour repartir) : seules les tenues qui ont tous les tags cochés restent,
+et le bas de l'écran les rappelle. Les tags comptent aussi dans la recherche et s'affichent dans l'infobulle d'une
+tenue.
+
+Ils sont trouvés tout seuls dans les noms de la tenue et de ses pièces (en anglais ou en français, mots entiers ;
+pas dans les identifiants d'objets) :
+
+| Catégorie | Exemples |
+|---|---|
+| Métier | Médecin, Policier, Pompier, Militaire, Chevalier, Ouvrier, Mineur, Forgeron, Jardinier, Cuisinier, Marin, Pilote, Scientifique, Avocat, Prisonnier, Chasseur, Voleur, Mafieux, Royauté, Bouffon, Cowboy |
+| Thème | Médiéval, Futuriste, Espace, Noël, Halloween, Far west, Apocalypse, Fantastique, Science-fiction, Hiver, Automne, Animaux, Empire |
+| Contexte | Ville, Campagne, Mer, Montagne, Forêt, Château, Chantier, Hôpital, Prison, Champ de bataille |
+| Couleur | Rouge, Bleu, Vert, Jaune, Orange, Violet, Rose, Noir, Blanc, Gris, Marron, Cyan, Doré |
+| Type | Veste, Manteau, Sweat, T-shirt, Robe, Uniforme, Combinaison, Armure, Chapeau, Casque, Capuche, Masque, Lunettes, Pantalon, Chaussures, Sac, Tablier |
+| Matière | Cuir, Fer, Or, Diamant, Netherite, Mailles, Cuivre, Tissu, Métal |
+| Utilité | Protection, Protection chimique, Chaud, Travail, Chic, Déguisement, Discrétion |
+| Loisir | Sport, Jeu vidéo, Fête, Musique, Plage, Jardinage, Aventure |
+| Partie du corps | Tête, Corps, Jambes, Pieds, Tenue complète (d'après les pièces) |
+
+Un organisateur ajoute ses propres tags à une tenue (« défilé », « manche 3 »…) : Modifier, choisir la tenue, les
+taper séparés par des virgules, **Enregistrer les tags** (catégorie « Tags de l'organisateur »). Le dictionnaire des
+tags automatiques est dans `OutfitTags` : un mot de plus = une ligne.
 
 ## Ce que contient une garde-robe
 
@@ -67,8 +94,11 @@ cet endroit).
 - un nom · **Ajouter ma tenue** (ce que tu portes devient une nouvelle tenue ; refusé si la même existe déjà) ·
   **Renommer** (la tenue choisie) ;
 - tenue choisie : **Remplacer** (par ce que tu portes) · **Supprimer** (rangement : **Sortir**, les habits vont
-  dans l'inventaire) · **◀ ▶** (déplacer) ;
+  dans l'inventaire) · **◀ ▶** (déplacer) ; au-dessus, ses tags et **Enregistrer les tags** ;
 - sans tenue choisie : **Type : costumes / rangement** · **Remettre toutes les tenues**.
+
+En mode Modifier, les tenues du jeu qu'une liste choisie a retirées restent affichées **en gris** à la fin : un clic
+la remet dans la garde-robe.
 
 Pour préparer une tenue : enfiler les pièces (depuis l'onglet créatif de Selfexpression, par exemple), Modifier,
 taper un nom, Ajouter ma tenue. Copier une garde-robe préparée : pioche du bloc avec Ctrl en créatif.
@@ -85,7 +115,7 @@ touche jamais au vrai joueur.
 
 - Code : `wardrobe/` (commun) — `Dressing` (ce que fait un changement de tenue, entière ou pièce par pièce, sans
   Minecraft, testé par `DressingTest`), `OutfitSearch` (recherche et dictionnaire français → anglais,
-  `OutfitSearchTest`), `Outfit` (nom, pièces, `key()` = ses pièces), `WardrobeState` (pièce jointe Fabric sur le
+  `OutfitSearchTest`), `OutfitTags` (tags par catégorie, `OutfitTagsTest`), `Outfit` (nom, pièces, `key()` = ses pièces), `WardrobeState` (pièce jointe Fabric sur le
   joueur : vêtements mis de côté, tenue portée, favoris), `Catalogue` (tenues prêtes, `tenues.json`, ensembles du
   jeu), `WardrobeBlock` (deux blocs, portes), `WardrobeBlockEntity`, `WardrobeNetwork`, `Wardrobes` (enregistrement,
   actions) ; `client/wardrobe/` — l'écran.

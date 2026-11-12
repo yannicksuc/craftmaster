@@ -19,7 +19,7 @@ import java.util.List;
  * An outfit without a name (the sets found in the game's items) is called after its body piece, in the player's
  * language.
  */
-public record Outfit(String name, List<ItemStack> pieces) {
+public record Outfit(String name, List<ItemStack> pieces, List<String> tags) {
 
     /** Head, body, legs, feet: the order of {@link #pieces}. */
     public static final EquipmentSlot[] SLOTS = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
@@ -27,20 +27,27 @@ public record Outfit(String name, List<ItemStack> pieces) {
 
     public static final Codec<Outfit> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.STRING.optionalFieldOf("name", "").forGetter(Outfit::name),
-            ItemStack.OPTIONAL_CODEC.listOf().optionalFieldOf("pieces", List.of()).forGetter(Outfit::pieces)
+            ItemStack.OPTIONAL_CODEC.listOf().optionalFieldOf("pieces", List.of()).forGetter(Outfit::pieces),
+            Codec.STRING.listOf().optionalFieldOf("tags", List.of()).forGetter(Outfit::tags)
     ).apply(i, Outfit::of));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, Outfit> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.stringUtf8(MAX_NAME * 4), Outfit::name,
             ItemStack.OPTIONAL_LIST_STREAM_CODEC, Outfit::pieces,
+            ByteBufCodecs.stringUtf8(128).apply(ByteBufCodecs.list(16)), Outfit::tags,
             Outfit::of);
 
-    /** Always four pieces, copies, the name trimmed to {@link #MAX_NAME}. */
     public static Outfit of(String name, List<ItemStack> pieces) {
+        return of(name, pieces, List.of());
+    }
+
+    /** Always four pieces, copies, the name trimmed to {@link #MAX_NAME}, at most 16 tags (organisers' own). */
+    public static Outfit of(String name, List<ItemStack> pieces, List<String> tags) {
         List<ItemStack> p = new ArrayList<>();
         for (int i = 0; i < Dressing.PIECES; i++) p.add(i < pieces.size() && pieces.get(i) != null ? pieces.get(i).copy() : ItemStack.EMPTY);
         String n = name == null ? "" : name.strip();
-        return new Outfit(n.length() > MAX_NAME ? n.substring(0, MAX_NAME) : n, List.copyOf(p));
+        List<String> t = tags == null ? List.of() : List.copyOf(tags.subList(0, Math.min(16, tags.size())));
+        return new Outfit(n.length() > MAX_NAME ? n.substring(0, MAX_NAME) : n, List.copyOf(p), t);
     }
 
     public boolean isEmpty() {
@@ -48,7 +55,18 @@ public record Outfit(String name, List<ItemStack> pieces) {
     }
 
     public Outfit withName(String name) {
-        return of(name, pieces);
+        return of(name, pieces, tags);
+    }
+
+    public Outfit withTags(List<String> tags) {
+        return of(name, pieces, tags);
+    }
+
+    /** Which pieces there are (head, body, legs, feet). */
+    public boolean[] present() {
+        boolean[] b = new boolean[Dressing.PIECES];
+        for (int i = 0; i < b.length; i++) b[i] = !pieces.get(i).isEmpty();
+        return b;
     }
 
     /** Its name, or (no name) its body piece's name, translated by the client. */

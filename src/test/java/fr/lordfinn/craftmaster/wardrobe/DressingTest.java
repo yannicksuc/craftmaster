@@ -156,6 +156,17 @@ class DressingTest {
     }
 
     @Test
+    void strippingKeepsEverythingAside() {
+        var mixed = Dressing.putOnCopy(K, OWN, null, DOCTOR, Dressing.only(1));   // cap, *robe, jeans, ""
+        var bare = Dressing.stripAll(K, mixed.worn(), mixed.saved());
+        assertTrue(Dressing.allEmpty(K, bare.worn()));
+        assertEquals(OWN, bare.saved());
+        assertTrue(bare.toInventory().isEmpty());
+        assertEquals(OWN, Dressing.takeBack(K, bare.worn(), bare.saved()).worn());
+        assertNull(Dressing.stripAll(K, Dressing.nothing(K), null).saved());
+    }
+
+    @Test
     void fourPiecesRequired() {
         assertThrows(IllegalArgumentException.class, () -> Dressing.swap(K, List.of("a"), DOCTOR));
     }

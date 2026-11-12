@@ -6,6 +6,7 @@ import fr.lordfinn.craftmaster.client.ui.Ui;
 import fr.lordfinn.craftmaster.client.ui.UiButton;
 import fr.lordfinn.craftmaster.wardrobe.Outfit;
 import fr.lordfinn.craftmaster.wardrobe.OutfitSearch;
+import fr.lordfinn.craftmaster.wardrobe.OutfitTags;
 import fr.lordfinn.craftmaster.wardrobe.WardrobeNetwork;
 import fr.lordfinn.craftmaster.wardrobe.WardrobeState;
 import fr.lordfinn.craftmaster.wardrobe.Wardrobes;
@@ -55,6 +56,19 @@ public class WardrobeScreen extends Screen {
     private String wearing;
     private Set<String> favourites = Set.of();
     private List<Outfit> outfits;
+    /** For organisers, the outfits of the game this wardrobe's own list leaves out (grey in the edit mode). */
+    private List<Outfit> others = List.of();
+    /** Tags ticked in the tag panel: an outfit is shown if it has all of them. */
+    private final Set<OutfitTags.Tag> activeTags = new java.util.LinkedHashSet<>();
+    private boolean tagsOpen;
+    private int tagScroll;
+    /** Chips drawn by the tag panel this frame (for the clicks). */
+    private final List<Chip> chips = new ArrayList<>();
+
+    private record Chip(int x, int y, int w, int h, OutfitTags.Tag tag) {}
+
+    private java.util.Map<OutfitTags.Tag, Integer> tagCount;
+    private java.util.Map<String, java.util.LinkedHashSet<OutfitTags.Tag>> tagsByCategory;
 
     private String query = "";
     private boolean favouritesOnly, editing;
@@ -62,7 +76,7 @@ public class WardrobeScreen extends Screen {
     /** Turn of the preview, in degrees (drag it). */
     private float spin;
     private int x0, y0, w, h, gridX, gridY, gridW, gridH, cols, hintY;
-    private EditBox search, nameBox;
+    private EditBox search, nameBox, tagsBox;
     /** What the grid shows now (filtered, favourites first). */
     private final List<Card> cards = new ArrayList<>();
     private Card hovered;
@@ -73,7 +87,8 @@ public class WardrobeScreen extends Screen {
     private RemotePlayer mannequin;
     private List<ItemStack> dressed = List.of();
 
-    private record Card(int index, Outfit outfit, String key, Component name, String search) {}
+    /** A card: an outfit of the wardrobe ({@code index} ≥ 0), or a grey one it leaves out ({@code grey}, edit mode). */
+    private record Card(int index, Outfit outfit, String key, Component name, String search, List<OutfitTags.Tag> tags, boolean grey) {}
 
     public WardrobeScreen(WardrobeNetwork.Open p) {
         super(Component.translatable("screen.craftmaster.wardrobe"));
@@ -94,6 +109,8 @@ public class WardrobeScreen extends Screen {
         wearing = p.wearing();
         favourites = new HashSet<>(p.favourites());
         outfits = p.outfits();
+        others = p.others();
+        tagCount = null;
         if (selected >= outfits.size()) selected = -1;
         if (!manage()) editing = false;
         if (minecraft != null) rebuildKeepingName();
@@ -148,10 +165,11 @@ public class WardrobeScreen extends Screen {
             addRenderableWidget(e);
         }
 
-        // Search and the favourites filter
+        // Search, the tag panel and the favourites filter
         Component fav = t("favourites");
-        int favW = bw(fav);
-        search = new EditBox(font, rx, y0 + 22, rw - favW - 4, 16, t("search"));
+        Component tagsLabel = activeTags.isEmpty() ? t("tags") : t("tags.n", activeTags.size());
+        int favW = bw(fav), tagsW = bw(tagsLabel);
+        search = new EditBox(font, rx, y0 + 22, rw - favW - tagsW - 6, 16, t("search"));
         search.setHint(t("search.hint").copy().withStyle(ChatFormatting.DARK_GRAY));
         search.setValue(query);
         search.setResponder(s -> {
@@ -160,6 +178,12 @@ public class WardrobeScreen extends Screen {
             filter();
         });
         addRenderableWidget(search);
+        UiButton tagsButton = UiButton.of(rx + rw - favW - tagsW - 2, y0 + 22, tagsW, 16, tagsLabel, () -> {
+            tagsOpen = !tagsOpen;
+            tagScroll = 0;
+        }).on(() -> tagsOpen || !activeTags.isEmpty());
+        tagsButton.setTooltip(Tooltip.create(t("tags.tip")));
+        addRenderableWidget(tagsButton);
         UiButton favButton = UiButton.of(rx + rw - favW, y0 + 22, favW, 16, fav, () -> {
             favouritesOnly = !favouritesOnly;
             scroll = 0;
@@ -173,8 +197,12 @@ public class WardrobeScreen extends Screen {
         UiButton back = UiButton.of(x0 + 6, rowB, LEFT_W - 6, 20, t("back"), () -> act("back", -1, ""));
         back.setTooltip(Tooltip.create(t("back.tip")));
         addRenderableWidget(back);
+        UiButton strip = UiButton.of(x0 + 6, rowA, LEFT_W - 6, 20, t("strip"), () -> act("strip", -1, ""));
+        strip.setTooltip(Tooltip.create(t("strip.tip")));
+        addRenderableWidget(strip);
 
         nameBox = null;
+        tagsBox = null;
         if (editing) {
             int col = (rw - 4) / 3;
             int c1 = rx, c2 = rx + col + 2, c3 = rx + 2 * (col + 2), last = rx + rw - c3;
@@ -208,6 +236,17 @@ public class WardrobeScreen extends Screen {
                 if (show) cell(c2, rowB, rx + rw - c2, t("auto"), custom ? "auto.tip" : "auto.already", admin && custom, () -> act("auto", -1, ""));
             }
             hintY = rowA - 12;
+            if (chosen != null) {
+                // Row T: the organiser's tags of the chosen outfit
+                int rowT = rowA - 24;
+                tagsBox = new EditBox(font, c1, rowT, c3 - 2 - c1, 20, t("tags.edit"));
+                tagsBox.setMaxLength(256);
+                tagsBox.setHint(t("tags.edit.hint").copy().withStyle(ChatFormatting.DARK_GRAY));
+                tagsBox.setValue(String.join(", ", chosen.tags()));
+                addRenderableWidget(tagsBox);
+                cell(c3, rowT, last, t("tags.save"), "tags.save.tip", true, () -> act("tags", selected, tagsBox.getValue()));
+                hintY = rowT - 12;
+            }
         } else {
             hintY = rowB + 6;
         }
@@ -223,18 +262,38 @@ public class WardrobeScreen extends Screen {
         cards.clear();
         List<Card> favs = new ArrayList<>(), rest = new ArrayList<>();
         for (int i = 0; i < outfits.size(); i++) {
-            Outfit o = outfits.get(i);
-            Component name = o.displayName();
-            String key = o.key();
-            Card c = new Card(i, o, key, name, describe(o, name));
-            boolean fav = favourites.contains(key);
-            if ((favouritesOnly && !fav) || !OutfitSearch.matches(query, c.search())) continue;
+            Card c = card(i, outfits.get(i), false);
+            boolean fav = favourites.contains(c.key());
+            if ((favouritesOnly && !fav) || !passes(c)) continue;
             // In the edit mode the order is the wardrobe's (moving outfits); otherwise favourites first
             (fav && !editing ? favs : rest).add(c);
         }
         cards.addAll(favs);
         cards.addAll(rest);
+        // Edit mode: what the wardrobe's own list leaves out, in grey (a click puts it back)
+        if (editing && !favouritesOnly) {
+            for (Outfit o : others) {
+                Card c = card(-1, o, true);
+                if (passes(c)) cards.add(c);
+            }
+        }
         scroll = Math.max(0, Math.min(scroll, maxScroll()));
+    }
+
+    private Card card(int index, Outfit o, boolean grey) {
+        Component name = o.displayName();
+        String words = describe(o, name);
+        // Tags from the names only: every Selfexpression id ends in _chestplate, _helmet... (not armour, not a helmet)
+        StringBuilder names = new StringBuilder(name.getString());
+        for (ItemStack s : o.pieces()) if (!s.isEmpty()) names.append(' ').append(s.getHoverName().getString());
+        List<OutfitTags.Tag> tags = OutfitTags.of(names.toString(), o.present(), o.tags());
+        StringBuilder search = new StringBuilder(words);
+        for (OutfitTags.Tag tag : tags) search.append(' ').append(tag.name());
+        return new Card(index, o, o.key(), name, search.toString(), tags, grey);
+    }
+
+    private boolean passes(Card c) {
+        return c.tags().containsAll(activeTags) && OutfitSearch.matches(query, c.search());
     }
 
     /** The words of an outfit for the search: its name, its pieces' names and ids. */
@@ -285,6 +344,18 @@ public class WardrobeScreen extends Screen {
     @Override
     public boolean mouseClicked(MouseButtonEvent e, boolean doubleClick) {
         if (super.mouseClicked(e, doubleClick)) return true;
+        if (tagsOpen && Ui.inside(e.x(), e.y(), gridX, gridY, gridW, gridH)) {
+            for (Chip chip : chips) {
+                if (Ui.inside(e.x(), e.y(), chip.x(), chip.y(), chip.w(), chip.h())) {
+                    if (chip.tag() == null) activeTags.clear();
+                    else if (!activeTags.remove(chip.tag())) activeTags.add(chip.tag());
+                    scroll = 0;
+                    rebuildKeepingName();
+                    return true;
+                }
+            }
+            return true;
+        }
         int worn = wornAt(e.x(), e.y());
         if (worn >= 0) {
             if (e.button() == InputConstants.MOUSE_BUTTON_RIGHT) act("take_off", worn, "");
@@ -293,6 +364,10 @@ public class WardrobeScreen extends Screen {
         }
         Card c = cardAt(e.x(), e.y());
         if (c == null) return false;
+        if (c.grey()) {
+            if (e.button() == InputConstants.MOUSE_BUTTON_LEFT) act("restore", -1, c.key());
+            return true;
+        }
         if (e.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
             act("favourite", c.index(), "");
             return true;
@@ -312,7 +387,7 @@ public class WardrobeScreen extends Screen {
 
     @Override
     public boolean mouseDragged(MouseButtonEvent e, double dx, double dy) {
-        if (Ui.inside(e.x(), e.y(), x0 + 6, y0 + 22, LEFT_W - 6, h - 74 - 24)) {
+        if (Ui.inside(e.x(), e.y(), x0 + 6, y0 + 22, LEFT_W - 6, h - 98 - 24)) {
             spin = (spin + (float) dx * 2.5f) % 360f;
             return true;
         }
@@ -322,7 +397,8 @@ public class WardrobeScreen extends Screen {
     @Override
     public boolean mouseScrolled(double mx, double my, double sx, double sy) {
         if (Ui.inside(mx, my, gridX, gridY, gridW, gridH)) {
-            scroll = Math.max(0, Math.min(maxScroll(), scroll - (int) Math.signum(sy)));
+            if (tagsOpen) tagScroll = Math.max(0, tagScroll - (int) Math.signum(sy) * 12);
+            else scroll = Math.max(0, Math.min(maxScroll(), scroll - (int) Math.signum(sy)));
             return true;
         }
         return super.mouseScrolled(mx, my, sx, sy);
@@ -357,21 +433,24 @@ public class WardrobeScreen extends Screen {
         Component count = cards.size() == 1 ? t("count.one") : t("count", cards.size());
         g.text(font, count, x0 + 12 + font.width(title.copy().withStyle(ChatFormatting.BOLD)), y0 + 5, Theme.TEXT_DIM, false);
 
-        hovered = cardAt(mouseX, mouseY);
+        hovered = tagsOpen ? null : cardAt(mouseX, mouseY);
         hoveredWorn = wornAt(mouseX, mouseY);
         hoveredPiece = hovered == null || editing ? -1 : pieceAt(hovered, mouseX, mouseY);
         extractPreview(g, mouseX, mouseY);
-        extractGrid(g);
+        if (tagsOpen) extractTags(g, mouseX, mouseY);
+        else extractGrid(g);
 
         Component hint;
         if (editing) {
             Outfit chosen = selected >= 0 && selected < outfits.size() ? outfits.get(selected) : null;
             hint = chosen == null ? t("hint.edit") : t("hint.chosen", chosen.displayName());
+        } else if (!activeTags.isEmpty()) {
+            hint = t("hint.tags", String.join(", ", activeTags.stream().map(OutfitTags.Tag::name).toList()));
         } else {
             hint = t("hint");
         }
         g.text(font, font.plainSubstrByWidth(hint.getString(), gridW), gridX, hintY, editing ? Theme.GOLD : Theme.TEXT_DIM, false);
-        if (cards.isEmpty()) {
+        if (cards.isEmpty() && !tagsOpen) {
             Component empty = favouritesOnly && query.isBlank() ? t("empty.favourites")
                     : query.isBlank() ? t(show ? "empty.show" : "empty.storage") : t("no_match", query);
             g.centeredText(font, empty, gridX + gridW / 2, gridY + 20, Theme.TEXT_DIM);
@@ -385,6 +464,72 @@ public class WardrobeScreen extends Screen {
         }
     }
 
+    /** The tag panel, in place of the grid: each category and its tags (how many outfits), click to tick. */
+    private void extractTags(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+        chips.clear();
+        if (tagCount == null) {
+            // How many outfits of the wardrobe have each tag (counted again when the outfits change)
+            tagCount = new java.util.HashMap<>();
+            tagsByCategory = new java.util.LinkedHashMap<>();
+            for (String c : OutfitTags.CATEGORIES.keySet()) tagsByCategory.put(c, new java.util.LinkedHashSet<>());
+            tagsByCategory.put(OutfitTags.BODY, new java.util.LinkedHashSet<>());
+            tagsByCategory.put(OutfitTags.CUSTOM, new java.util.LinkedHashSet<>());
+            for (int i = 0; i < outfits.size(); i++) {
+                for (OutfitTags.Tag tag : card(i, outfits.get(i), false).tags()) {
+                    tagCount.merge(tag, 1, Integer::sum);
+                    tagsByCategory.computeIfAbsent(tag.category(), k -> new java.util.LinkedHashSet<>()).add(tag);
+                }
+            }
+        }
+        var count = tagCount;
+        var byCategory = tagsByCategory;
+        g.fill(gridX, gridY, gridX + gridW, gridY + gridH, 0x40000000);
+        g.enableScissor(gridX, gridY, gridX + gridW, gridY + gridH);
+        int x = gridX + 4, y = gridY + 4 - tagScroll;
+        if (!activeTags.isEmpty()) {
+            Component clear = t("tags.clear");
+            int cw = font.width(clear) + 8;
+            chip(g, x, y, cw, clear, null, false, mouseX, mouseY);
+            y += 16;
+        }
+        for (var e : byCategory.entrySet()) {
+            if (e.getValue().isEmpty()) continue;
+            // In the order of the dictionary, each category's tags
+            List<OutfitTags.Tag> tags = new ArrayList<>(e.getValue());
+            if (OutfitTags.CATEGORIES.containsKey(e.getKey())) {
+                List<String> order = new ArrayList<>(OutfitTags.CATEGORIES.get(e.getKey()).keySet());
+                tags.sort(java.util.Comparator.comparingInt(tag -> order.indexOf(tag.name())));
+            }
+            g.text(font, e.getKey(), gridX + 4, y + 2, Theme.GOLD, false);
+            y += 12;
+            x = gridX + 4;
+            for (OutfitTags.Tag tag : tags) {
+                Component label = Component.literal(tag.name() + " " + count.getOrDefault(tag, 0));
+                int cw = font.width(label) + 8;
+                if (x + cw > gridX + gridW - 4) {
+                    x = gridX + 4;
+                    y += 14;
+                }
+                chip(g, x, y, cw, label, tag, activeTags.contains(tag), mouseX, mouseY);
+                x += cw + 3;
+            }
+            y += 18;
+        }
+        g.disableScissor();
+        // Do not scroll past the end
+        int content = y + tagScroll - gridY;
+        tagScroll = Math.max(0, Math.min(tagScroll, content - gridH));
+    }
+
+    private void chip(GuiGraphicsExtractor g, int x, int y, int w, Component label, OutfitTags.Tag tag, boolean on, int mouseX, int mouseY) {
+        boolean hover = Ui.inside(mouseX, mouseY, x, y, w, 12) && Ui.inside(mouseX, mouseY, gridX, gridY, gridW, gridH);
+        int face = on ? Theme.BUTTON_ON : hover ? Theme.BUTTON_HOVER : Theme.BUTTON;
+        g.fill(x, y, x + w, y + 12, face);
+        g.outline(x, y, w, 12, on ? Theme.GOLD : Theme.BORDER_DARK);
+        g.text(font, label, x + 4, y + 2, on ? Theme.TITLE : Theme.TEXT, false);
+        if (y + 12 > gridY && y < gridY + gridH) chips.add(new Chip(x, Math.max(y, gridY), w, Math.min(y + 12, gridY + gridH) - Math.max(y, gridY), tag));
+    }
+
     private List<FormattedCharSequence> tooltip(Card c) {
         List<FormattedCharSequence> lines = new ArrayList<>();
         boolean fav = favourites.contains(c.key());
@@ -396,10 +541,14 @@ public class WardrobeScreen extends Screen {
             ChatFormatting style = i == hoveredPiece ? ChatFormatting.WHITE : ChatFormatting.GRAY;
             lines.add(t("piece." + parts[i], s.isEmpty() ? t("nothing") : s.getHoverName()).copy().withStyle(style).getVisualOrderText());
         }
-        Component action = editing ? t("tip.choose")
+        if (!c.tags().isEmpty()) {
+            String tags = String.join(", ", c.tags().stream().map(OutfitTags.Tag::name).toList());
+            for (FormattedCharSequence line : font.split(t("tip.tags", tags).copy().withStyle(ChatFormatting.DARK_AQUA), 220)) lines.add(line);
+        }
+        Component action = c.grey() ? t("tip.restore") : editing ? t("tip.choose")
                 : hoveredPiece >= 0 ? t("tip.wear_piece", c.outfit().pieces().get(hoveredPiece).getHoverName()) : t("tip.wear");
         lines.add(action.copy().withStyle(ChatFormatting.DARK_GRAY).getVisualOrderText());
-        lines.add((fav ? t("tip.unfavourite") : t("tip.favourite")).copy().withStyle(ChatFormatting.DARK_GRAY).getVisualOrderText());
+        if (!c.grey()) lines.add((fav ? t("tip.unfavourite") : t("tip.favourite")).copy().withStyle(ChatFormatting.DARK_GRAY).getVisualOrderText());
         return lines;
     }
 
@@ -427,7 +576,8 @@ public class WardrobeScreen extends Screen {
                     g.outline(x, y, CARD_W, CARD_H, worn ? Theme.OK : Theme.BORDER_DARK);
                 }
                 int nameW = CARD_W - 6 - (fav ? 9 : 0);
-                g.text(font, font.plainSubstrByWidth(card.name().getString(), nameW), x + 3, y + 3, worn ? Theme.OK : Theme.TEXT, false);
+                g.text(font, font.plainSubstrByWidth(card.name().getString(), nameW), x + 3, y + 3,
+                        card.grey() ? Theme.TEXT_DIM : worn ? Theme.OK : Theme.TEXT, false);
                 if (fav) g.text(font, "★", x + CARD_W - 9, y + 3, Theme.GOLD, false);
                 for (int p = 0; p < 4; p++) {
                     ItemStack s = card.outfit().pieces().get(p);
@@ -437,6 +587,7 @@ public class WardrobeScreen extends Screen {
                     if (on) g.outline(ix, iy, 18, 16, Theme.GOLD);
                     if (!s.isEmpty()) g.fakeItem(s, ix + 1, iy);
                 }
+                if (card.grey()) g.fill(x + 1, y + 1, x + CARD_W - 1, y + CARD_H - 1, 0x99201A1C);
             }
         }
         g.disableScissor();
@@ -451,7 +602,7 @@ public class WardrobeScreen extends Screen {
 
     private void extractPreview(GuiGraphicsExtractor g, int mouseX, int mouseY) {
         Minecraft mc = Minecraft.getInstance();
-        int px = x0 + 6, py = y0 + 22, pw = LEFT_W - 6, ph = h - 22 - 52;
+        int px = x0 + 6, py = y0 + 22, pw = LEFT_W - 6, ph = h - 22 - 76;
         Ui.paper(g, px, py, pw, ph);
         g.fill(px + 1, py + ph - 24, px + pw - 1, py + ph - 1, Theme.shade(Theme.PAPER, -0.12f));
         if (mc.player == null || mc.level == null) return;
@@ -494,7 +645,7 @@ public class WardrobeScreen extends Screen {
     }
 
     private int wornY() {
-        return y0 + 22 + (h - 74) - 21;
+        return y0 + 22 + (h - 98) - 21;
     }
 
     /** The worn piece square under the mouse (0 head … 3 feet), or -1. */
