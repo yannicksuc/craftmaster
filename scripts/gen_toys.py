@@ -212,45 +212,81 @@ def rubber_duck():
     tops. The gloss is white and NOT tinted: planes just over the top and sides (0.05 px) with a few crisp
     highlight pixels, like light on shiny plastic."""
     im = img(32, 32)
-    G = lambda i: rgba(TINT[i])
-    flat = lambda i: (lambda x, y, w, h: G(i))
-    # Body (x 5..11, y 0..4, z 4..12)
-    paint(im, 0, 0, 6, 8, flat(5))     # top
-    paint(im, 6, 0, 6, 8, flat(2))     # bottom
+    # Greys of moulded plastic, wide range for volume (no pure white: dyed, it would turn into a flat colour)
+    P = [(70, 70, 76), (98, 98, 104), (128, 128, 134), (160, 160, 164), (192, 192, 196), (220, 220, 222)]
+    G = lambda i: rgba(P[max(0, min(5, i))])
 
-    def body_side(flip):
+    def shaded(levels, salt, sides=True, edge_cols=1):
+        """A face of a soft rounded volume drawn on a square: one level per row (light on top, dark below, the
+        change broken by 2–3 px strokes of the upper tone), its left and right columns a step darker (the
+        surface turning away) and the bottom corners two steps darker."""
+        def fn(x, y, w, h):
+            lv = levels[min(y, len(levels) - 1)]
+            if y > 0 and lv < levels[min(y - 1, len(levels) - 1)] and hash2(x // 3, y, salt) > 0.55:
+                lv += 1
+            if sides and (x < edge_cols or x >= w - edge_cols):
+                lv -= 1
+                if y == h - 1:
+                    lv -= 1
+            return G(lv)
+        return fn
+
+    def top_face(w, h, salt, shadow_rows=()):
+        """Top: a light middle, the border a step darker, the corners two (rounded, no dark spots inside);
+        rows in shadow_rows a step darker (in the shade of the head)."""
+        def fn(x, y, ww, hh):
+            edge_x, edge_y = x in (0, w - 1), y in (0, h - 1)
+            lv = 5 - (1 if edge_x or edge_y else 0) - (1 if edge_x and edge_y else 0)
+            if y in shadow_rows:
+                lv -= 1 if not (edge_x and hash2(x, y, salt) > 0.5) else 2
+            return G(lv)
+        return fn
+
+    # Body (x 5..11, y 0..4, z 4..12). The head covers its top rows 0-2; row 3 is in the head's shade
+    paint(im, 0, 0, 6, 8, top_face(6, 8, 3, shadow_rows=(3,)))
+    paint(im, 6, 0, 6, 8, lambda x, y, w, h: G(0 if min(x, y, w - 1 - x, h - 1 - y) == 0 else 1))   # underside
+
+    def body_side(flip, salt):
+        base = shaded([4, 4, 3, 2], salt)
+
         def fn(x, y, w, h):
             xx = w - 1 - x if flip else x  # 0 = front
-            if y == h - 1:
-                return G(3)
-            # The moulded wing: one soft seam a step darker, rising to the back
-            if (y == 2 and 3 <= xx <= 5) or (y == 1 and xx == 6):
-                return G(3)
-            return G(4)
+            # The moulded wing: a lighter lobe with a dark seam under it, tip up at the back
+            if y == 1 and 2 <= xx <= 5:
+                return G(5)
+            if y == 0 and xx == 6:
+                return G(5)
+            if (y == 2 and 2 <= xx <= 5) or (y == 1 and xx == 6):
+                return G(2)
+            return base(x, y, w, h)
         return fn
-    paint(im, 12, 0, 8, 4, body_side(True))    # east (front = -z = right of the face)
-    paint(im, 12, 4, 8, 4, body_side(False))   # west
-    paint(im, 20, 0, 6, 4, lambda x, y, w, h: G(3) if y == h - 1 else G(4))   # north (chest)
-    paint(im, 20, 4, 6, 4, lambda x, y, w, h: G(3) if y == h - 1 else G(4))   # south (tail)
+    paint(im, 12, 0, 8, 4, body_side(True, 11))    # east (front = -z = right of the face)
+    paint(im, 12, 4, 8, 4, body_side(False, 12))   # west
+    paint(im, 20, 0, 6, 4, shaded([3, 3, 2, 1], 13))  # north (chest, under the head: darker)
+    paint(im, 20, 4, 6, 4, shaded([5, 4, 3, 2], 14))  # south (tail)
     # Head (x 6..10, y 4..8, z 3..7)
-    paint(im, 0, 8, 4, 4, flat(5))
-    paint(im, 4, 8, 4, 4, flat(3))
+    paint(im, 0, 8, 4, 4, top_face(4, 4, 4))
+    paint(im, 4, 8, 4, 4, lambda x, y, w, h: G(1))
 
-    def head_side(flip):
+    def head_side(flip, salt):
+        base = shaded([5, 4, 4, 3], salt)
+
         def fn(x, y, w, h):
             xx = w - 1 - x if flip else x  # 0 = front
             if xx == 1 and y == 1:
                 return rgba(EYE)
-            return G(4)
+            if xx == 1 and y == 2:
+                return G(3)  # a little shade under the eye
+            return base(x, y, w, h)
         return fn
-    paint(im, 8, 8, 4, 4, head_side(True))
-    paint(im, 12, 8, 4, 4, head_side(False))
-    paint(im, 16, 8, 4, 4, flat(4))
-    paint(im, 20, 8, 4, 4, flat(4))
-    # Beak (orange, not tinted): flat too, lighter on top
-    paint(im, 0, 12, 2, 2, lambda x, y, w, h: rgba(ORANGE[3]))
-    paint(im, 2, 12, 2, 2, lambda x, y, w, h: rgba(ORANGE[1]))
-    paint(im, 4, 12, 2, 2, lambda x, y, w, h: rgba(ORANGE[2]))
+    paint(im, 8, 8, 4, 4, head_side(True, 21))
+    paint(im, 12, 8, 4, 4, head_side(False, 22))
+    paint(im, 16, 8, 4, 4, shaded([5, 4, 3, 3], 23))   # face (above the beak)
+    paint(im, 20, 8, 4, 4, shaded([4, 4, 3, 2], 24))   # back of the head
+    # Beak (orange, not tinted): light top, front lit then darker underneath
+    paint(im, 0, 12, 2, 2, lambda x, y, w, h: rgba(ORANGE[3] if y == 0 else ORANGE[2]))
+    paint(im, 2, 12, 2, 2, lambda x, y, w, h: rgba(ORANGE[0]))
+    paint(im, 4, 12, 2, 2, lambda x, y, w, h: rgba(ORANGE[2] if y == 0 else ORANGE[1]))
     # Gloss (untinted white): body top, head top, body sides
     W, W2 = (255, 255, 255, 235), (255, 255, 255, 120)
     gloss = {(0, 16): (6, 8, [((1, 1), W), ((1, 2), W), ((2, 1), W2), ((1, 3), W2)]),       # body top, front left
