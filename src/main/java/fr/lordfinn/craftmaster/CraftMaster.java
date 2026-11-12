@@ -58,6 +58,8 @@ public final class CraftMaster implements ModInitializer {
         fr.lordfinn.craftmaster.trial.Trials.register();
         // TV direction (chantier E): cameras, show state, overlay cues, credits
         Director.register();
+        // Replays of the rounds with Server Replay, if installed (optional)
+        fr.lordfinn.craftmaster.replay.Replays.register();
         // Tasks, envelopes, hidden notes (chantier D)
         fr.lordfinn.craftmaster.task.Tasks.register();
         Curtains.register();
@@ -70,6 +72,7 @@ public final class CraftMaster implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> PortraitCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> CameraCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.FxCommands.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.ReplayCommands.register(dispatcher));
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             FabricLoader fl = FabricLoader.getInstance();

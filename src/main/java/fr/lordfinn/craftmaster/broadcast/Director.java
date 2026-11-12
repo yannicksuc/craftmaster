@@ -383,6 +383,7 @@ public final class Director {
             ServerPlayer p = server.getPlayerList().getPlayer(id);
             if (p != null && ServerPlayNetworking.canSend(p, FreeCamera.TYPE)) ServerPlayNetworking.send(p, pose);
         }
+        fr.lordfinn.craftmaster.replay.Replays.onPayload(server, pose, false);
     }
 
     /** Sends the state now (next tick) to every client. */
@@ -393,6 +394,7 @@ public final class Director {
     public static void cue(MinecraftServer server, ShowCue cue) {
         for (ServerPlayer p : server.getPlayerList().getPlayers())
             if (ServerPlayNetworking.canSend(p, ShowCue.TYPE)) ServerPlayNetworking.send(p, cue);
+        fr.lordfinn.craftmaster.replay.Replays.onPayload(server, cue, true);
     }
 
     private static void send(ServerPlayer p, ShowState state) {
@@ -498,6 +500,7 @@ public final class Director {
                 dirty = false;
                 lastSent = state;
                 for (ServerPlayer p : server.getPlayerList().getPlayers()) send(p, state);
+                fr.lordfinn.craftmaster.replay.Replays.onPayload(server, state, true);
             }
         }
         if (now % 20 == 0) keepBroadcastersNear(server);
