@@ -56,6 +56,8 @@ public final class CraftMaster implements ModInitializer {
         Portraits.register();
         // Chantier H: task props, judging tools, creative objects
         fr.lordfinn.craftmaster.trial.Trials.register();
+        // Task toys: rubber ducks, balls, eggs, golf, balloons, targets that count, graduated glass (toy/)
+        fr.lordfinn.craftmaster.toy.Toys.register();
         // TV direction (chantier E): cameras, show state, overlay cues, credits
         Director.register();
         // Tasks, envelopes, hidden notes (chantier D)

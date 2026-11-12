@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:grass_block",
+    "minecraft:white_wool",
+    "minecraft:stick"
+  ],
+  "result": {
+    "id": "craftmaster:golf_hole",
+    "count": 1
+  }
+}

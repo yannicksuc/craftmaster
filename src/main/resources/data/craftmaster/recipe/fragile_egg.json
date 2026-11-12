@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:egg",
+    "minecraft:paper"
+  ],
+  "result": {
+    "id": "craftmaster:fragile_egg",
+    "count": 1
+  }
+}

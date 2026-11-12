@@ -2,6 +2,7 @@
 
 ## 1. Tests unitaires (automatiques, à chaque build)
 `.\gradlew.bat test` — `src/test/java` :
+- `toy/ToyLogicTest` : objets à manipuler (physique, œuf fragile, golf, couleurs, décomptes, ballon, verre gradué).
 - `CraftMasterDataTest` : import du fichier du plugin (clés entre guillemets, nombres en texte, monde Bukkit),
   ajout / retrait / renommage de tâches (les scores suivent, fusion), scores (fixer, ajouter, retirer), classement
   et égalités, saisons cachées, busts, format 2 du fichier écrit, score sur une tâche inconnue, fichier illisible.
@@ -146,7 +147,9 @@ l'interface, bouton 0 gauche / 1 droit, mods 1 Maj, 2 Ctrl, 4 Alt ; `DevInput`).
 `["!input", "click 351 106\nkey Z 2", délai]`. Hors dev, rien n'est lu. Le survol (infobulles) suit la vraie
 souris et reste à voir à la main. Aussi : `hold NOM secondes` (touche tenue, ex. `hold SPACE 2` pour arracher le
 sceau d'une lettre), `slowmo 4` (animations 4 fois plus lentes, pour capturer chaque phase ; `slowmo 1` remet),
-`quit` (ferme le client de test proprement).
+`quit` (ferme le client de test proprement), `use secondes` (tient la touche « utiliser » dans le monde, même sans
+écran ouvert : charger un lancer, gonfler un ballon, tirer à l'arc ; `stop_using_item` de MCP Fabric ne relâche que
+côté client, le serveur ne voit pas le relâchement).
 
 **Lettre de tâche** : `/tache apercu <manche>` puis, pour le sceau, `click` dessus puis `drag` vers le haut (il saute
 au-delà de 26 pixels de lettre), ou `hold SPACE 2` ; captures avec `slowmo 3`. Tests JUnit : `TaskMarkupTest`,
@@ -387,3 +390,30 @@ Serveur `:26.2:runServer` (`run-server-26.2/`, jeu 25901, RCON 25902) + client `
 - Client 26.3 de la même branche : démarre jusqu'à l'écran titre sans erreur de mixin.
 - Pas encore revérifié en 26.2 : écrans à clavier / souris (saisie des points, lettres, éditeur de poses : la lettre
   d'une touche passe par GLFW en 26.2), régie vocale, épreuves, rideaux, tablette chrono, StreamDeck, deux joueurs.
+
+## 9. Objets à manipuler (vérifié en jeu 26.2 le 12/11/2026)
+Tests unitaires : `toy/ToyLogicTest` (rebond, hauteur de chute équivalente, œuf qui casse ou non, charge d'un
+lancer, trou de golf rapide / lent / à côté, couleurs et accords, décomptes par joueur, ballon et limite, verre
+gradué : verser, reprendre, déborder, trait).
+
+En jeu (serveur + client 26.2 de ce worktree, jeu 25961, RCON 25962, pont MCP 25981, captures MCP) :
+| Fonction | Résultat |
+|---|---|
+| Canards de 7 couleurs posés sur l'eau : ils flottent à plat ; sur une dalle, dans un pot, derrière un bloc | ✔ |
+| Canard dans un canal : le courant l'emmène au bout (x 14,5 → 20,8) | ✔ |
+| Candidat (non op) qui ramasse deux canards cachés : dans son inventaire, `/craftMasterToys` « trouvé(s) 2 : 1 canard en plastique, 1 canard en plastique rouge », 7 encore cachés | ✔ |
+| `/craftMasterToys list` (coordonnées cliquables) et `glow` (contour à travers les murs) | ✔ |
+| Lancer chargé (`use 1.5`) : distance notée au repos, record | ✔ |
+| Sachet lancé dans le seau-cible : « Dans le seau ! (3,4 blocs · 3) », 3 prises notées à LordFinn | ✔ |
+| Objet tombé, boule de neige et œuf du jeu dans la poubelle et la tasse | ✔ |
+| Compteur sur le seau-cible (« 3 objet(s) ») | ✔ |
+| Ballon gonflé en main (taille affichée, modèle qui grossit), une pile n'en gonfle qu'un, attaché sur un bloc, crevé d'un coup : confettis bleus, bloc de redstone deux blocs dessous | ✔ |
+| Œuf fragile : survit à 1,5 bloc, casse à 5 ; coquille fine : casse à 0,7, tient posé | ✔ |
+| Golf : putt « force 100 % », balle au trou, « dans le trou en 1 coup » | ✔ |
+| Verre doseur : 2 fioles = 500 mL ; cuve : seau = 1 000 mL, eau au-dessus = + 300 mL en 3 s ; niveau visible | ✔ |
+| Eau qui coule sur le verre : il reste (récipients forcés « solides », l'eau emportait le verre) et se remplit (400 mL) | ✔ |
+| Trait tracé accroupi à 400 mL, + une fiole : « 650 mL / 1 000 mL · trait 400 mL (+250 mL) » | ✔ |
+| Distributeur chargé de balles + signal : il en lance une, qui roule loin | ✔ |
+
+Non vérifiés en jeu : l'onglet créatif (pas d'inventaire par MCP), les recettes à l'établi, une flèche sur un ballon, deux joueurs (messages d'un candidat vus par un
+organisateur : vérifiés par le journal `/craftMasterTrial log`), le client 26.3 en jeu (seulement compilé et testé).

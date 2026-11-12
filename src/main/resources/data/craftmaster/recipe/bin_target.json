@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:cauldron",
+    "minecraft:target"
+  ],
+  "result": {
+    "id": "craftmaster:bin_target",
+    "count": 1
+  }
+}

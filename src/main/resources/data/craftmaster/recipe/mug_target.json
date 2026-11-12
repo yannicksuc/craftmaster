@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:flower_pot",
+    "minecraft:target"
+  ],
+  "result": {
+    "id": "craftmaster:mug_target",
+    "count": 1
+  }
+}

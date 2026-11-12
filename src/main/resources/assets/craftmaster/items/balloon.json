@@ -1,0 +1,64 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+      {
+        "when": "none",
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/balloon",
+          "tints": [
+            {
+              "type": "minecraft:dye",
+              "default": -5231066
+            }
+          ]
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:range_dispatch",
+      "property": "minecraft:custom_model_data",
+      "index": 0,
+      "entries": [
+        {
+          "threshold": 0.3,
+          "model": {
+            "type": "minecraft:model",
+            "model": "craftmaster:item/toy/balloon_1",
+            "tints": [
+              {
+                "type": "minecraft:dye",
+                "default": -5231066
+              }
+            ]
+          }
+        },
+        {
+          "threshold": 0.65,
+          "model": {
+            "type": "minecraft:model",
+            "model": "craftmaster:item/toy/balloon_2",
+            "tints": [
+              {
+                "type": "minecraft:dye",
+                "default": -5231066
+              }
+            ]
+          }
+        }
+      ],
+      "fallback": {
+        "type": "minecraft:model",
+        "model": "craftmaster:item/toy/balloon_0",
+        "tints": [
+          {
+            "type": "minecraft:dye",
+            "default": -5231066
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_dye",
+  "dye": "#minecraft:dyes",
+  "group": "craftmaster_toy_dye",
+  "result": {
+    "id": "craftmaster:bouncy_ball"
+  },
+  "target": "craftmaster:bouncy_ball"
+}

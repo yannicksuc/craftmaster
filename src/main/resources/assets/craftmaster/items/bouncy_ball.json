@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "craftmaster:item/toy/bouncy_ball",
+    "tints": [
+      {
+        "type": "minecraft:dye",
+        "default": -5231066
+      }
+    ]
+  }
+}

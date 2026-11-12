@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "craftmaster:item/toy/bean_bag",
+    "tints": [
+      {
+        "type": "minecraft:dye",
+        "default": -3561877
+      }
+    ]
+  }
+}

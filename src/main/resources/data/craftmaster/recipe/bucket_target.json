@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:bucket",
+    "minecraft:target"
+  ],
+  "result": {
+    "id": "craftmaster:bucket_target",
+    "count": 1
+  }
+}

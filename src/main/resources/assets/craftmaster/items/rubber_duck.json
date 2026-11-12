@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "craftmaster:item/toy/rubber_duck",
+    "tints": [
+      {
+        "type": "minecraft:dye",
+        "default": -604622
+      }
+    ]
+  }
+}

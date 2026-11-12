@@ -1,0 +1,222 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "glass": "craftmaster:block/toy/measuring_tank",
+    "water": "craftmaster:block/toy/measured_water",
+    "particle": "craftmaster:block/toy/measuring_tank"
+  },
+  "elements": [
+    {
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        16,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            0,
+            14,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            0,
+            14,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            0,
+            14,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            0,
+            14,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            0,
+            14,
+            14
+          ],
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        1,
+        0,
+        14.99
+      ],
+      "to": [
+        15,
+        16,
+        14.99
+      ],
+      "faces": {
+        "north": {
+          "texture": "#glass",
+          "uv": [
+            14,
+            0,
+            0,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        1,
+        0,
+        1.01
+      ],
+      "to": [
+        15,
+        16,
+        1.01
+      ],
+      "faces": {
+        "south": {
+          "texture": "#glass",
+          "uv": [
+            14,
+            0,
+            0,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        14.99,
+        0,
+        1
+      ],
+      "to": [
+        14.99,
+        16,
+        15
+      ],
+      "faces": {
+        "west": {
+          "texture": "#glass",
+          "uv": [
+            14,
+            0,
+            0,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        1.01,
+        0,
+        1
+      ],
+      "to": [
+        1.01,
+        16,
+        15
+      ],
+      "faces": {
+        "east": {
+          "texture": "#glass",
+          "uv": [
+            14,
+            0,
+            0,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        1.5,
+        0.5,
+        1.5
+      ],
+      "to": [
+        14.5,
+        8.0,
+        14.5
+      ],
+      "faces": {
+        "up": {
+          "texture": "#water",
+          "uv": [
+            1.5,
+            1.5,
+            14.5,
+            14.5
+          ]
+        },
+        "north": {
+          "texture": "#water",
+          "uv": [
+            1.5,
+            8.0,
+            14.5,
+            15.5
+          ]
+        },
+        "south": {
+          "texture": "#water",
+          "uv": [
+            1.5,
+            8.0,
+            14.5,
+            15.5
+          ]
+        },
+        "east": {
+          "texture": "#water",
+          "uv": [
+            1.5,
+            8.0,
+            14.5,
+            15.5
+          ]
+        },
+        "west": {
+          "texture": "#water",
+          "uv": [
+            1.5,
+            8.0,
+            14.5,
+            15.5
+          ]
+        }
+      }
+    }
+  ]
+}

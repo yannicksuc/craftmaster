@@ -162,6 +162,17 @@ tools/voice-regie/                          service local de la régie vocale (P
 - `task/Tasks.java` : **bouchon** de `Tasks.openPaper` (chantier D le remplace à la fusion).
 - Ressources : `scripts/gen_trials.py`, appelé par `gen_assets.py`.
 
+### Objets à manipuler (toy/, [Objets](Objets.md))
+- `toy/` : logique pure testée — `ToyKind` (taille et physique de chaque objet), `ToyPhysics` (rebond, hauteur de
+  chute d'un choc, charge d'un lancer, trou de golf, couleurs en français), `ToyTally` (trouvés, prises, lancers,
+  golf, ballons, œufs), `Balloons` (bouffées, limite d'éclatement), `GlassLevel` (mL, trait, comparateur) ; monde —
+  `Toys` (registre, onglet créatif, distributeurs, impulsions redstone, boutons « noter »), `ToyEntity` /
+  `ToyItem`, `BalloonEntity` / `BalloonItem`, `CatchTargetBlock` (+ entité de bloc conteneur), `GolfHoleBlock`,
+  `GolfClubItem`, `MeasuringGlassBlock` (+ entité), `ToyCommands` (`/craftMasterToys`). Branché par une ligne dans
+  `CraftMaster` ; côté client `client/toy/ToysClient` (rendus : le modèle de l'objet, teint par sa couleur).
+- Ressources : `scripts/gen_toys.py` (seul : `python scripts/gen_toys.py`, écrit ses fichiers et **ajoute** ses
+  textes à `lang/*.json` et ses sons à `sounds.json` sans toucher au reste ; sons synthétisés avec numpy + ffmpeg).
+
 ### Effets d'écran (fx/)
 - `fx/ScreenFx` (ids, ordre de dessin, alias français, combinaisons), `fx/FxMixer` (fondus) : logique pure, testée.
 - `fx/FxContent` (composant `craftmaster:screen_fx`, objets à porter), `fx/ScreenEffectsServer` (ordres, mémoire

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "craftmaster:block/toy/golf_hole_top",
+    "side": "craftmaster:block/toy/golf_hole_side",
+    "bottom": "craftmaster:block/toy/golf_hole_bottom"
+  }
+}
