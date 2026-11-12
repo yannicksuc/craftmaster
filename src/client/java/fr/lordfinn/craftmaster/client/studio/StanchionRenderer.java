@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * The velvet ropes between stanchions: from this stanchion's top ring to the next one east and south (each rope is
- * drawn once, by its western / northern end), sagging in the middle.
+ * drawn once, by its western / northern end), sagging in the middle: a twisted velvet cord.
  */
 public class StanchionRenderer implements BlockEntityRenderer<StanchionBlockEntity, StanchionRenderer.State> {
 
@@ -58,42 +58,42 @@ public class StanchionRenderer implements BlockEntityRenderer<StanchionBlockEnti
         if (s.ends.isEmpty()) return;
         int light = s.lightCoords;
         List<Vec3> ends = List.copyOf(s.ends);
-        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (p, c) -> {
+        // One face per side, wound outward, back faces culled: nothing drawn twice in the same place (the old rope
+        // drew every face both ways, which flickered all along it)
+        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutCull(TEXTURE), (p, c) -> {
             for (Vec3 end : ends) rope(c, p, new Vec3(0.5, RING, 0.5), end.add(0.5, RING, 0.5), light);
         });
     }
 
-    /** A sagging rope as a chain of short square tubes (side faces only). */
+    /**
+     * A sagging rope: one continuous square tube through {@link #SEGMENTS} points of the curve. Its four sides keep
+     * the same offsets all along (across the rope horizontally, and up), so neighbouring segments share their edges
+     * exactly: no overlap, no gap. Each side has its own outward normal (lit like a block's sides).
+     */
     private static void rope(VertexConsumer c, PoseStack.Pose p, Vec3 from, Vec3 to, int light) {
         double span = from.distanceTo(to);
         double sag = 0.12 * span;
+        Vec3 along = new Vec3(to.x - from.x, 0, to.z - from.z).normalize();
+        Vec3 up = new Vec3(0, 1, 0);
+        Vec3 across = along.cross(up).normalize();     // horizontal, perpendicular to the rope
+        double h = THICK / 2;
+        // Sides: outward normal n, width axis w = along x n (so that the quad winds outward)
+        Vec3[][] sides = {{up, along.cross(up)}, {up.scale(-1), along.cross(up.scale(-1))},
+                {across, along.cross(across)}, {across.scale(-1), along.cross(across.scale(-1))}};
         Vec3 prev = from;
-        boolean alongX = Math.abs(to.x - from.x) > Math.abs(to.z - from.z);
         for (int i = 1; i <= SEGMENTS; i++) {
             double t = i / (double) SEGMENTS;
             Vec3 cur = from.lerp(to, t).add(0, -4 * sag * t * (1 - t), 0);
-            tube(c, p, prev, cur, alongX, light, (i - 1) * 16f / SEGMENTS, i * 16f / SEGMENTS);
+            float u0 = (i - 1) * 16f / SEGMENTS, u1 = i * 16f / SEGMENTS;
+            for (Vec3[] side : sides) {
+                Vec3 o = side[0].scale(h), w = side[1].normalize().scale(h);
+                Vec3 a0 = prev.add(o).subtract(w), a1 = prev.add(o).add(w), b1 = cur.add(o).add(w), b0 = cur.add(o).subtract(w);
+                Geo.quad(c, p, TEX, (float) a0.x, (float) a0.y, (float) a0.z, (float) a1.x, (float) a1.y, (float) a1.z,
+                        (float) b1.x, (float) b1.y, (float) b1.z, (float) b0.x, (float) b0.y, (float) b0.z,
+                        u0, 6, u1, 8, 0xFFFFFFFF, light, (float) side[0].x, (float) side[0].y, (float) side[0].z);
+            }
             prev = cur;
         }
-    }
-
-    private static void tube(VertexConsumer c, PoseStack.Pose p, Vec3 a, Vec3 b, boolean alongX, int light, float u0, float u1) {
-        float h = (float) THICK / 2;
-        // Side offsets: across the rope horizontally (sx, sz) and vertically
-        float sx = alongX ? 0 : h, sz = alongX ? h : 0;
-        int w = 0xFFFFFFFF;
-        float ax = (float) a.x, ay = (float) a.y, az = (float) a.z, bx = (float) b.x, by = (float) b.y, bz = (float) b.z;
-        // top, bottom, both sides; each with both windings so twists never hide a face
-        face(c, p, ax - sx, ay + h, az - sz, ax + sx, ay + h, az + sz, bx + sx, by + h, bz + sz, bx - sx, by + h, bz - sz, u0, u1, w, light);
-        face(c, p, ax - sx, ay - h, az - sz, ax + sx, ay - h, az + sz, bx + sx, by - h, bz + sz, bx - sx, by - h, bz - sz, u0, u1, w, light);
-        face(c, p, ax - sx, ay + h, az - sz, ax - sx, ay - h, az - sz, bx - sx, by - h, bz - sz, bx - sx, by + h, bz - sz, u0, u1, w, light);
-        face(c, p, ax + sx, ay + h, az + sz, ax + sx, ay - h, az + sz, bx + sx, by - h, bz + sz, bx + sx, by + h, bz + sz, u0, u1, w, light);
-    }
-
-    private static void face(VertexConsumer c, PoseStack.Pose p, float x0, float y0, float z0, float x1, float y1, float z1,
-                             float x2, float y2, float z2, float x3, float y3, float z3, float u0, float u1, int w, int light) {
-        Geo.quad(c, p, TEX, x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3, u0, 6, u1, 8, w, light, 0, 1, 0);
-        Geo.quad(c, p, TEX, x3, y3, z3, x2, y2, z2, x1, y1, z1, x0, y0, z0, u1, 6, u0, 8, w, light, 0, 1, 0);
     }
 
     @Override

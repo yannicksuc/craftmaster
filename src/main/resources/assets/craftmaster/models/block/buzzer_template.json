@@ -1,5 +1,6 @@
 {
   "parent": "minecraft:block/block",
+  "ambientocclusion": false,
   "textures": {
     "particle": "#dome",
     "base": "craftmaster:block/buzzer_base"
@@ -20,55 +21,55 @@
         "north": {
           "texture": "#base",
           "uv": [
-            3,
-            12,
-            13,
-            16
+            0,
+            10,
+            10,
+            14
           ]
         },
         "south": {
           "texture": "#base",
           "uv": [
-            3,
-            12,
-            13,
-            16
+            0,
+            10,
+            10,
+            14
           ]
         },
         "east": {
           "texture": "#base",
           "uv": [
-            3,
-            12,
-            13,
-            16
+            0,
+            10,
+            10,
+            14
           ]
         },
         "west": {
           "texture": "#base",
           "uv": [
-            3,
-            12,
-            13,
-            16
+            0,
+            10,
+            10,
+            14
           ]
         },
         "up": {
           "texture": "#base",
           "uv": [
-            3,
-            3,
-            13,
-            13
+            0,
+            0,
+            10,
+            10
           ]
         },
         "down": {
           "texture": "#base",
           "uv": [
-            3,
-            3,
-            13,
-            13
+            0,
+            0,
+            10,
+            10
           ]
         }
       }
@@ -88,46 +89,46 @@
         "north": {
           "texture": "#dome",
           "uv": [
-            5,
-            10,
-            11,
-            13
+            0,
+            6,
+            6,
+            9
           ]
         },
         "south": {
           "texture": "#dome",
           "uv": [
-            5,
-            10,
-            11,
-            13
+            0,
+            6,
+            6,
+            9
           ]
         },
         "east": {
           "texture": "#dome",
           "uv": [
-            5,
-            10,
-            11,
-            13
+            0,
+            6,
+            6,
+            9
           ]
         },
         "west": {
           "texture": "#dome",
           "uv": [
-            5,
-            10,
-            11,
-            13
+            0,
+            6,
+            6,
+            9
           ]
         },
         "up": {
           "texture": "#dome",
           "uv": [
-            5,
-            5,
-            11,
-            11
+            0,
+            0,
+            6,
+            6
           ]
         }
       }

@@ -14,7 +14,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * One dynamic texture per drawing board: its surface (paper weave, slate dust, white enamel) with the painted
+ * One dynamic texture per drawing board: its surface (paper weave, matte slate, white enamel) with the painted
  * pixels on it. Rebuilt only when the synced drawing changes; released when the board is gone.
  */
 public final class BoardTextures {
@@ -74,7 +74,7 @@ public final class BoardTextures {
         for (int y = 0; y < p.height(); y++)
             for (int x = 0; x < p.width(); x++) {
                 int c = p.get(x, y);
-                img.setPixel(x, y, c == 0 ? surface(v, x, y) : ink(v, c, x, y));
+                img.setPixel(x, y, c == 0 ? surface(v, x, y, p.width(), p.height()) : ink(v, c, x, y));
             }
     }
 
@@ -94,16 +94,28 @@ public final class BoardTextures {
         return 0xFF000000 | r << 16 | g << 8 | b;
     }
 
-    private static int surface(BoardEntity.Variant v, int x, int y) {
-        double n = noise(x, y, v.ordinal());
+    /** Slate tones, light to dark: matte, a little lighter at the top. */
+    private static final int[] SLATE_TONES = {0xFF35423B, 0xFF303C35, 0xFF2B3630, 0xFF27312B};
+    /** Whiteboard enamel, light to dark, and the sheen near the top-left corner. */
+    private static final int[] ENAMEL_TONES = {0xFFFAFBFC, 0xFFF3F5F7, 0xFFECEFF2};
+
+    private static int surface(BoardEntity.Variant v, int x, int y, int w, int h) {
         return switch (v) {
             // Canvas weave: a faint grid and grain
-            case CANVAS -> shade(v.surface, 0.95 + 0.05 * n - ((x % 2 == 0) ^ (y % 2 == 0) ? 0.02 : 0));
-            // Slate: dark, with chalk dust here and there
-            case SLATE -> n > 0.985 ? shade(0xFF6A746E, 1) : shade(v.surface, 0.92 + 0.12 * n);
-            // Whiteboard: clean enamel, a soft sheen
-            case WHITEBOARD -> shade(v.surface, 0.97 + 0.03 * n);
+            case CANVAS -> shade(v.surface, 0.95 + 0.05 * noise(x, y, 0) - ((x % 2 == 0) ^ (y % 2 == 0) ? 0.02 : 0));
+            // Slate: matte, a few tones from top to bottom, blended by short horizontal strokes (no dust, no dots)
+            case SLATE -> SLATE_TONES[tone(x, y, h, SLATE_TONES.length)];
+            // Whiteboard: clean enamel, a soft sheen toward the top left
+            case WHITEBOARD -> ENAMEL_TONES[tone(x + y, y, h, ENAMEL_TONES.length)];
         };
+    }
+
+    /** Index of a top-to-bottom gradient of {@code n} tones, its steps broken by strokes of 2 to 4 pixels. */
+    private static int tone(int x, int y, int h, int n) {
+        double t = (y + 0.5) / h * n;
+        // Each run of 3 pixels on a row moves the step up or down by up to half a tone
+        t += (noise(x / 3, y, 11) - 0.5) * 0.9;
+        return Math.max(0, Math.min(n - 1, (int) t));
     }
 
     private static int ink(BoardEntity.Variant v, int c, int x, int y) {

@@ -1242,9 +1242,15 @@ def d_wax_item(cxp, cyp, r, broken=False):
 
 
 d_save("textures/item/envelope_wax.png", d_wax_item(8, 8.5, 2.7))
-d_save("textures/item/envelope_wax_broken.png", d_wax_item(8, 2.2, 1.9, broken=True))
+# LordFinn's own task icons from his server (scripts/ia_sandbox/textures): the sealed envelope (its seal becomes the
+# tinted wax layer, so the wax colour still shows) and the unfolded task letter
+_IA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ia_sandbox", "textures")
+_paper, _wax = gen_icons.lordfinn_envelope(os.path.join(_IA, "task_enveloppe.png"))
+d_save("textures/item/envelope.png", _paper)
+d_save("textures/item/envelope_wax.png", _wax)
+d_save("textures/item/envelope_open.png", gen_icons.lordfinn_texture(os.path.join(_IA, "task.png")))
 d_item_model("envelope", ["envelope", "envelope_wax"])
-d_item_model("envelope_open", ["envelope_open", "envelope_wax_broken"])
+d_item_model("envelope_open", ["envelope_open"])
 D_TINTS = [{"type": "minecraft:constant", "value": -1},
            {"type": "minecraft:custom_model_data", "index": 0, "default": D_WAX["red"][0]}]
 write_json(os.path.join(A, "items/envelope.json"), {"model": {
@@ -1271,9 +1277,8 @@ seal_rows = [
     "................",
     "................",
 ]
-d_save("textures/item/wax_seal.png", d_art(seal_rows, {"h": d_rgba((150, 96, 56)), "H": d_rgba((118, 72, 40)), "d": d_rgba((82, 48, 26)),
-                                                      "b": d_rgba((150, 104, 30)), "B": d_rgba((214, 160, 44)), "Y": d_rgba((255, 230, 140))}))
-d_save("textures/item/wax_seal_wax.png", d_wax_item(11.5, 11.5, 3.6))
+d_save("textures/item/wax_seal.png", gen_icons.brass_seal())  # a brass seal (scripts/gen_icons.py)
+d_save("textures/item/wax_seal_wax.png", d_wax_item(5.5, 10.5, 2.3))  # the wax on the die
 d_item_model("wax_seal", ["wax_seal", "wax_seal_wax"])
 write_json(os.path.join(A, "items/wax_seal.json"), {"model": {"type": "minecraft:model", "model": "craftmaster:item/wax_seal", "tints": D_TINTS}})
 
@@ -1341,9 +1346,7 @@ lamp_rows = [
     "................",
     "................",
 ]
-d_save("textures/item/uv_lamp.png", d_art(lamp_rows, {
-    "m": d_rgba((52, 46, 66)), "M": d_rgba((92, 84, 112)), "s": d_rgba((200, 60, 60)),
-    "v": d_rgba((122, 76, 255)), "V": d_rgba((176, 140, 255)), "W": d_rgba((240, 230, 255))}))
+d_save("textures/item/uv_lamp.png", gen_icons.uv_torch())  # a UV torch (scripts/gen_icons.py)
 d_item_model("uv_lamp", ["uv_lamp"])
 write_json(os.path.join(A, "items/uv_lamp.json"), {"model": {"type": "minecraft:model", "model": "craftmaster:item/uv_lamp"}})
 

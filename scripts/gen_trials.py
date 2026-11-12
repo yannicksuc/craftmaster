@@ -20,7 +20,7 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
 
     def flat_item(name):
         write_json(os.path.join(A, f"models/item/{name}.json"),
-                   {"parent": "minecraft:item/handheld" if name in ("prop_wand",) else "minecraft:item/generated",
+                   {"parent": "minecraft:item/generated",
                     "textures": {"layer0": f"craftmaster:item/{name}"}})
         item_def(name, f"craftmaster:item/{name}")
 
@@ -160,40 +160,56 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
     write_json(os.path.join(D, "craftmaster/loot_table/blocks/big_red_button.json"), self_drop("big_red_button"))
 
     # ---------------------------------------------------------------- buzzers (one per dye colour)
-    base = metal(CHARCOAL, 3)
-    for x in range(16):
-        base[12][x] = ramp(GOLD, 0.9)
-        base[15][x] = ramp(CHARCOAL, 0)
+    # One model for the 16 colours. Base atlas: top 10 x 10 (0, 0), sides 10 x 4 (0, 10): black lacquer with a gold
+    # rim, light from the top left. Dome atlas (one per colour, lit or not): top 6 x 6 (0, 0), sides 6 x 3 (0, 6),
+    # painted from the same shading map times the colour. No ambient occlusion (it shaded the small dome unevenly).
+    base = [[(0, 0, 0, 0)] * 16 for _ in range(16)]
+    for y in range(10):
+        for x in range(10):
+            ring = x in (0, 9) or y in (0, 9)
+            if ring:
+                base[y][x] = ramp(GOLD, 0.9 if (x == 0 or y == 0) else 0.35)
+            else:
+                base[y][x] = ramp(CHARCOAL, 0.85 - (x + y) / 18 * 0.6)
+    for x in range(10):
+        base[10][x] = ramp(GOLD, 0.9)
+        base[11][x] = ramp(GOLD, 0.45)
+        base[12][x] = ramp(CHARCOAL, 0.7)
+        base[13][x] = ramp(CHARCOAL, 0.2)
     tex("buzzer_base", base)
-    model("buzzer_template", {"parent": "minecraft:block/block",
+    BUZZER_TOP = [[1.30 - 0.07 * (x + y) for x in range(6)] for y in range(6)]
+    BUZZER_SIDE = [1.05, 0.86, 0.68]
+    model("buzzer_template", {"parent": "minecraft:block/block", "ambientocclusion": False,
                               "textures": {"particle": "#dome", "base": "craftmaster:block/buzzer_base"},
                               "elements": [
                                   {"from": [3, 0, 3], "to": [13, 4, 13], "faces": {
-                                      **{d: {"texture": "#base", "uv": [3, 12, 13, 16]} for d in ("north", "south", "east", "west")},
-                                      "up": {"texture": "#base", "uv": [3, 3, 13, 13]},
-                                      "down": {"texture": "#base", "uv": [3, 3, 13, 13]}}},
+                                      **{d: {"texture": "#base", "uv": [0, 10, 10, 14]} for d in ("north", "south", "east", "west")},
+                                      "up": {"texture": "#base", "uv": [0, 0, 10, 10]},
+                                      "down": {"texture": "#base", "uv": [0, 0, 10, 10]}}},
                                   {"from": [5, 4, 5], "to": [11, 7, 11], "faces": {
-                                      **{d: {"texture": "#dome", "uv": [5, 10, 11, 13]} for d in ("north", "south", "east", "west")},
-                                      "up": {"texture": "#dome", "uv": [5, 5, 11, 11]}}},
+                                      **{d: {"texture": "#dome", "uv": [0, 6, 6, 9]} for d in ("north", "south", "east", "west")},
+                                      "up": {"texture": "#dome", "uv": [0, 0, 6, 6]}}},
                               ]})
+
+    def tinted(c, f, lift=0.0):
+        """The colour scaled by f, then pulled toward white by lift (0..1): highlights stay in the colour's hue."""
+        r, g, b = (clamp(v * f) for v in c)
+        return (clamp(r + (255 - r) * lift), clamp(g + (255 - g) * lift), clamp(b + (255 - b) * lift), 255)
+
     for color, (rgb, en_name, fr_name) in colors.items():
         c = ((rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255)
         for lit in (False, True):
-            rows = []
-            for y in range(16):
-                row = []
-                for x in range(16):
-                    d = max(abs(x - 7.5), abs(y - 7.5))
-                    f = (1.05 - d / 8 * 0.35) if y < 10 else (0.95 - (y - 10) / 6 * 0.35)
-                    if lit:
-                        f = f * 1.25 + 0.25
-                        if d < 1.6 and y < 10:
-                            row.append((255, 255, 236, 255))
-                            continue
-                    if 6 <= x <= 7 and 6 <= y <= 7 and not lit:
-                        f += 0.35  # highlight
-                    row.append(sh(c, f) if not lit else (clamp(c[0] * f + 40), clamp(c[1] * f + 40), clamp(c[2] * f + 40), 255))
-                rows.append(row)
+            rows = [[(0, 0, 0, 0)] * 16 for _ in range(16)]
+            k, lift = (1.15, 0.25) if lit else (1.0, 0.0)
+            for y in range(6):
+                for x in range(6):
+                    hl = 0.45 if (x, y) in ((1, 1), (2, 1), (1, 2)) else 0.0
+                    if lit and 2 <= x <= 3 and 2 <= y <= 3:
+                        hl = 0.8
+                    rows[y][x] = tinted(c, BUZZER_TOP[y][x] * k, min(1, lift + hl))
+            for y in range(3):
+                for x in range(6):
+                    rows[6 + y][x] = tinted(c, BUZZER_SIDE[y] * k * (1.06 if x == 0 else 1), lift)
             tex(f"{color}_buzzer_dome" + ("_lit" if lit else ""), rows)
         name = f"{color}_buzzer"
         model(name, {"parent": "craftmaster:block/buzzer_template", "textures": {"dome": f"craftmaster:block/{name}_dome"}})
@@ -229,83 +245,23 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
     shaped("balance", ["GGG", " G ", "PGP"], {"G": "minecraft:gold_ingot", "P": "minecraft:heavy_weighted_pressure_plate"}, "balance")
 
     # ---------------------------------------------------------------- display plinth
-    stone = []
-    for y in range(16):
-        row = []
-        for x in range(16):
-            t = 0.85 - y / 15 * 0.45
-            # A couple of faint marble veins (diagonal strokes)
-            if (x + 2 * y) % 13 == 0 and hash2(x, y, 6) > 0.35:
-                t -= 0.3
-            row.append(ramp(CREAM, t))
-        stone.append(row)
-    tex("plinth_stone", stone)
-    rim = metal(GOLD, 7)
-    tex("plinth_gold", rim)
-    tex("plinth_velvet", velvet(8))
+    # Minecraft's own materials (LordFinn: no flat saturated gold): a smooth quartz base and cap, a quartz pillar,
+    # a red wool cushion on top
     model("display_plinth", {"parent": "minecraft:block/block",
-                             "textures": {"particle": "craftmaster:block/plinth_stone", "s": "craftmaster:block/plinth_stone",
-                                          "g": "craftmaster:block/plinth_gold", "v": "craftmaster:block/plinth_velvet"},
+                             "textures": {"particle": "minecraft:block/quartz_pillar", "q": "minecraft:block/quartz_block_bottom",
+                                          "p": "minecraft:block/quartz_pillar", "pt": "minecraft:block/quartz_pillar_top",
+                                          "w": "minecraft:block/red_wool"},
                              "elements": [
-                                 el([1, 0, 1], [15, 2, 15], "#g"),
-                                 el([3, 2, 3], [13, 12, 13], "#s", skip=("up", "down")),
-                                 el([1, 12, 1], [15, 14, 15], "#g"),
-                                 el([2, 14, 2], [14, 15, 14], "#v", skip=("down",)),
+                                 el([1, 0, 1], [15, 2, 15], "#q"),
+                                 el([3, 2, 3], [13, 12, 13], "#p", skip=("up", "down")),
+                                 el([1, 12, 1], [15, 14, 15], "#q"),
+                                 el([2, 14, 2], [14, 15, 14], "#w", skip=("down",)),
                              ]})
     write_json(os.path.join(A, "blockstates/display_plinth.json"), {"variants": {"": {"model": "craftmaster:block/display_plinth"}}})
     item_def("display_plinth", "craftmaster:block/display_plinth")
     write_json(os.path.join(D, "craftmaster/loot_table/blocks/display_plinth.json"), self_drop("display_plinth"))
     shaped("display_plinth", ["W", "Q", "G"], {"W": "minecraft:red_wool", "Q": "minecraft:quartz_pillar", "G": "minecraft:gold_ingot"},
            "display_plinth", 1, "building")
-
-    # ---------------------------------------------------------------- costume trunk
-    def trunk_face(front, lid=False):
-        rows = velvet(9 if front else 10)
-        for y in range(16):
-            for x in range(16):
-                corner = (x < 3 or x > 12) and (y < 3 or y > 12)
-                if corner:
-                    rows[y][x] = ramp(GOLD, 0.85 if y < 8 else 0.5)
-                if y in (12,) or (lid and y == 15):
-                    rows[y][x] = ramp(GOLD, 0.55)
-                if y == 13 and not corner:
-                    rows[y][x] = ramp(WOOD, 0.3)
-        if front:
-            # Gold clasp in the middle, under the lid line
-            for y in range(1, 6):
-                for x in range(6, 10):
-                    rows[y][x] = ramp(GOLD, 0.95 if y < 3 else 0.6)
-            rows[4][7] = rows[4][8] = ramp(CHARCOAL, 0.2)
-        return rows
-
-    tex("costume_chest_front", trunk_face(True))
-    tex("costume_chest_side", trunk_face(False))
-    lid = velvet(11)
-    border(lid, GOLD)
-    tex("costume_chest_top", lid)
-    model("costume_chest", {"parent": "minecraft:block/block",
-                            "textures": {"particle": "craftmaster:block/costume_chest_side", "f": "craftmaster:block/costume_chest_front",
-                                         "s": "craftmaster:block/costume_chest_side", "t": "craftmaster:block/costume_chest_top"},
-                            "elements": [{"from": [1, 0, 1], "to": [15, 14, 15], "faces": {
-                                "north": {"texture": "#f", "uv": [1, 1, 15, 15]}, "south": {"texture": "#s", "uv": [1, 1, 15, 15]},
-                                "east": {"texture": "#s", "uv": [1, 1, 15, 15]}, "west": {"texture": "#s", "uv": [1, 1, 15, 15]},
-                                "up": {"texture": "#t", "uv": [1, 1, 15, 15]}, "down": {"texture": "#s", "uv": [1, 1, 15, 15]}}}]})
-    FY = {"north": 0, "east": 90, "south": 180, "west": 270}
-    write_json(os.path.join(A, "blockstates/costume_chest.json"), {"variants": {
-        f"facing={f}": {"model": "craftmaster:block/costume_chest", **({"y": y} if y else {})} for f, y in FY.items()}})
-    item_def("costume_chest", "craftmaster:block/costume_chest")
-    write_json(os.path.join(D, "craftmaster/loot_table/blocks/costume_chest.json"), self_drop("costume_chest"))
-    shaped("costume_chest", ["WGW", "WCW", "WWW"], {"W": "minecraft:red_wool", "G": "minecraft:gold_ingot", "C": "minecraft:chest"},
-           "costume_chest", 1, "misc")
-
-    # ---------------------------------------------------------------- board frame materials (entity texture)
-    frame = [[(0, 0, 0, 255)] * 48 for _ in range(16)]
-    for y in range(16):
-        for x in range(16):
-            frame[y][x] = ramp(GOLD, 0.95 - x / 15 * 0.6 + (0.15 if hash2(x, y // 4, 12) > 0.85 else 0))
-            frame[y][16 + x] = ramp(WOOD, 0.9 - x / 15 * 0.5 + (0.2 if (y + x // 2) % 5 == 0 else 0))
-            frame[y][32 + x] = ramp(ALU, 0.95 - x / 15 * 0.5)
-    write_png(os.path.join(A, "textures/entity/board_frame.png"), 48, 16, frame)
 
     # ---------------------------------------------------------------- items (pixel art, light from the top left)
     def art(name, lines, pal):
@@ -319,150 +275,21 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
                 "B": (60, 88, 160, 255), "N": (46, 58, 51, 255), "n": (34, 44, 38, 255), "w": (116, 78, 44, 255),
                 "o": (78, 50, 28, 255), "g": (168, 112, 28, 255), "A": (150, 156, 164, 255), "P": (226, 108, 48, 255),
                 "E": (90, 160, 70, 255)}
-    art("prop_wand", [
-        "................",
-        "...........Y....",
-        "..........YWY...",
-        "........YYYWYYY.",
-        ".........YYYYY..",
-        "..........YGY...",
-        ".........KDYGY..",
-        "........KDK..Y..",
-        ".......KDK......",
-        "......KDK.......",
-        ".....KDK........",
-        "....KGGK........",
-        "...KGYK.........",
-        "..KDK...........",
-        ".KDK............",
-        "..K.............",
-    ], base_pal)
-    art("judge_stopwatch", [
-        "......KKKK......",
-        "......KYGK......",
-        ".......KK.......",
-        ".....KKKKKK.....",
-        "....KYYYYYGK....",
-        "...KYWWWWWWGK...",
-        "..KYWWWKWWWWGK..",
-        "..KYWWWKWWWWGK..",
-        "..KYWWWKKKWWGK..",
-        "..KGWWWWWWWWgK..",
-        "..KGWWWWWWWWgK..",
-        "...KGWWWWWWgK...",
-        "....KGGGGggK....",
-        ".....KKKKKK.....",
-        "................",
-        "................",
-    ], base_pal)
-    art("measuring_tape", [
-        "................",
-        "................",
-        "................",
-        "...KKKKKKKK.....",
-        "..KYYYYYYYYK....",
-        "..KYWYYYYYGK....",
-        "..KYYKKKKYGK....",
-        "..KYYKssKYGK....",
-        "..KYYKssKYGKKKKK",
-        "..KYYKKKKYGWCWCK",
-        "..KYYYYYYYGKKKKK",
-        "..KGGGGGGGGK....",
-        "...KKKKKKKK.....",
-        "................",
-        "................",
-        "................",
-    ], base_pal)
-    art("tally_counter", [
-        "................",
-        "......KKK.......",
-        "......KSK.......",
-        "....KKKKKKK.....",
-        "...KLSSSSSSK....",
-        "..KLSKKKKKSsK...",
-        "..KLSKWWWKSsK...",
-        "..KLSKKKKKSsK...",
-        "..KLSSSSSSSsK...",
-        "..KSSSSSSSSsK...",
-        "..KSssssssssK...",
-        "...KKKKKKKKKKK..",
-        "..........KSSK..",
-        "...........KK...",
-        "................",
-        "................",
-    ], base_pal)
-    art("red_card", [
-        "................",
-        "................",
-        ".....KKKKKK.....",
-        "....KRRRRRrK....",
-        "....KRWRRRrK....",
-        "....KRRRRRrK....",
-        "....KRRRRRrK....",
-        "....KRRRRRrK....",
-        "....KRRRRRrK....",
-        "....KRRRRRrK....",
-        "....KRRRRRrK....",
-        "....KrrrrrrK....",
-        ".....KKKKKK.....",
-        "................",
-        "................",
-        "................",
-    ], base_pal)
-    art("canvas", [
-        "................",
-        ".KKKKKKKKKKKKKK.",
-        ".KYYYYYYYYYYYGK.",
-        ".KYCCCCCCCCCcgK.",
-        ".KYCCCCCPCCCcgK.",
-        ".KYCCCCPPPCCcgK.",
-        ".KYCCCCCPCCCcgK.",
-        ".KYCCCCCCCCCcgK.",
-        ".KYCEECCCCCCcgK.",
-        ".KYEEEEECCCBcgK.",
-        ".KYEEEEEEEBBcgK.",
-        ".KYccccccccccgK.",
-        ".KGgggggggggggK.",
-        ".KKKKKKKKKKKKKK.",
-        "................",
-        "................",
-    ], base_pal)
-    art("slate", [
-        "................",
-        ".KKKKKKKKKKKKKK.",
-        ".KwwwwwwwwwwwoK.",
-        ".KwNNNNNNNNNnoK.",
-        ".KwNWWNNNNNNnoK.",
-        ".KwNNNWNNWWNnoK.",
-        ".KwNNNNWWNNNnoK.",
-        ".KwNNNNNNNNNnoK.",
-        ".KwNWNWNWWNNnoK.",
-        ".KwNNWNNNNNNnoK.",
-        ".KwNNNNNNNNNnoK.",
-        ".KwnnnnnnnnnnoK.",
-        ".KooooooooooooK.",
-        ".KKKKKKKKKKKKKK.",
-        "................",
-        "................",
-    ], base_pal)
-    art("whiteboard", [
-        "................",
-        ".KKKKKKKKKKKKKK.",
-        ".KLLLLLLLLLLLAK.",
-        ".KLWWWWWWWWWLAK.",
-        ".KLWBBBWWWWWLAK.",
-        ".KLWWWWWWWWWLAK.",
-        ".KLWWBBBBBWWLAK.",
-        ".KLWWWWWWWWWLAK.",
-        ".KLWRRWWWWWWLAK.",
-        ".KLWWWWWWWWWLAK.",
-        ".KLLLLLLLLLLLAK.",
-        ".KAAAAAAAAAAAAK.",
-        "...KsK....KsK...",
-        "...KsK....KsK...",
-        "................",
-        "................",
-    ], base_pal)
+    flat_item("prop_wand")
+    flat_item("judge_stopwatch")
+    flat_item("measuring_tape")
+    flat_item("tally_counter")
+    flat_item("canvas")
+    flat_item("slate")
+    flat_item("whiteboard")
+
+    # Cleaner icons drawn from shapes (scripts/gen_icons.py) replace the first pixel-art ones; the organiser's
+    # prop wand is drawn as a clipboard (LordFinn: real objects, no magic wands)
+    import gen_icons
+    for name, fn in (("prop_wand", gen_icons.clipboard), ("judge_stopwatch", gen_icons.judge_stopwatch),
+                     ("measuring_tape", gen_icons.measuring_tape), ("tally_counter", gen_icons.tally_counter),
+                     ("slate", gen_icons.slate_icon), ("whiteboard", gen_icons.whiteboard_icon), ("canvas", gen_icons.canvas_icon)):
+        tex(name, fn(), "item")
 
     # ---------------------------------------------------------------- recipes of the tools
     shaped("big_red_button", ["R", "B", "I"], {"R": "minecraft:red_dye", "B": "minecraft:stone_button", "I": "minecraft:iron_block"},
@@ -471,7 +298,6 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
     shaped("measuring_tape", ["YI", "S "], {"Y": "minecraft:yellow_dye", "I": "minecraft:iron_ingot", "S": "minecraft:string"},
            "measuring_tape", 1, "equipment")
     shaped("tally_counter", ["B", "I"], {"B": "minecraft:stone_button", "I": "minecraft:iron_ingot"}, "tally_counter", 1, "equipment")
-    shaped("red_card", ["P", "R"], {"P": "minecraft:paper", "R": "minecraft:red_dye"}, "red_card", 1, "equipment")
     shaped("canvas", ["GGG", "GWG", "GGG"], {"G": "minecraft:gold_nugget", "W": "minecraft:white_wool"}, "canvas", 1, "misc")
     shaped("slate", ["SSS", "SDS", "SSS"], {"S": "minecraft:stick", "D": "minecraft:polished_deepslate"}, "slate", 1, "misc")
     shaped("whiteboard", ["III", "IQI", "III"], {"I": "minecraft:iron_nugget", "Q": "minecraft:white_concrete"}, "whiteboard", 1, "misc")
@@ -482,10 +308,7 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
         "block.craftmaster.big_red_button": ("Big Red Button", "Gros bouton rouge"),
         "block.craftmaster.balance": ("Scales", "Balance"),
         "block.craftmaster.display_plinth": ("Display Plinth", "Socle d'exposition"),
-        "block.craftmaster.costume_chest": ("Costume Trunk", "Malle à costumes"),
-        "container.craftmaster.costume_chest": ("Costume Trunk", "Malle à costumes"),
-        "container.craftmaster.costume_chest.edit": ("Costume Trunk — stock", "Malle à costumes — stock"),
-        "item.craftmaster.prop_wand": ("Task Prop Wand", "Baguette d'objet d'épreuve"),
+        "item.craftmaster.prop_wand": ("Organiser's Clipboard", "Porte-bloc d'organisateur"),
         "item.craftmaster.prop_wand.hint": ("On a block: puts a task prop there (looks like the item in your other hand)",
                                             "Sur un bloc : y pose un objet d'épreuve (à l'apparence de l'objet dans l'autre main)"),
         "item.craftmaster.prop_wand.hint2": ("On a prop (or sneak + use it): its settings", "Sur un objet (ou accroupi + clic droit) : ses réglages"),
@@ -498,9 +321,6 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
         "item.craftmaster.tally_counter": ("Tally Counter", "Compteur"),
         "item.craftmaster.tally_counter.hint": ("On a chest or a player: counts the items (only the kind held in the other hand, if any)",
                                                 "Sur un coffre ou un joueur : compte les objets (seulement ceux de l'autre main, s'il y en a)"),
-        "item.craftmaster.red_card": ("Red Card", "Carton rouge"),
-        "item.craftmaster.red_card.hint": ("On a contestant: disqualified from this round · Sneak: lift it",
-                                           "Sur un candidat : disqualifié de la manche · Accroupi : lever"),
         "item.craftmaster.canvas": ("Painter's Canvas", "Toile de peintre"),
         "item.craftmaster.slate": ("Slate", "Ardoise"),
         "item.craftmaster.whiteboard": ("Whiteboard", "Tableau blanc"),

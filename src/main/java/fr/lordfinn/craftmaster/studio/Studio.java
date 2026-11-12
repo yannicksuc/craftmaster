@@ -27,7 +27,7 @@ import java.util.Set;
 
 /**
  * The studio set (chantier F, docs/wiki/Plateau.md): throne, lights and spotlights, giant timer, studio screens
- * (/image), contestants' desks, prize table, gong and bells, podium, "EN DIRECT" sign and stanchions. Registered
+ * (/image), contestants' desks, prize table, gong and bells, "EN DIRECT" sign and stanchions. Registered
  * after {@link ModContent} (same creative tab).
  */
 public final class Studio {
@@ -47,7 +47,6 @@ public final class Studio {
     public static PrizeTableBlock PRIZE_TABLE;
     public static GongBlock GONG;
     public static DeskBellBlock DESK_BELL;
-    public static DecorBlock PODIUM_FIRST, PODIUM_SECOND, PODIUM_THIRD;
     public static StanchionBlock STANCHION;
     public static Item STUDIO_SCREEN_ITEM;
 
@@ -97,9 +96,6 @@ public final class Studio {
         DESK_BELL = ModContent.block("desk_bell", DeskBellBlock::new, props(MapColor.GOLD, 1f).sound(SoundType.METAL).noOcclusion());
         GONG = ModContent.block("gong", GongBlock::new, props(MapColor.GOLD, 3f).sound(SoundType.WOOD).noOcclusion());
         PRIZE_TABLE = ModContent.block("prize_table", PrizeTableBlock::new, props(MapColor.COLOR_RED, 2f).sound(SoundType.WOOL).noOcclusion());
-        PODIUM_FIRST = podium("podium_first", 16);
-        PODIUM_SECOND = podium("podium_second", 12);
-        PODIUM_THIRD = podium("podium_third", 8);
         STANCHION = ModContent.block("stanchion", StanchionBlock::new, props(MapColor.GOLD, 2f).sound(SoundType.METAL).noOcclusion());
 
         SPOTLIGHT_BE = blockEntity("spotlight", SpotlightBlockEntity::new, SPOTLIGHT);
@@ -129,9 +125,13 @@ public final class Studio {
     /**
      * Pieces taken out of the set (LordFinn's feedback): worlds that still hold them load without errors. The trophy
      * becomes a player head (LordFinn's trophy is a golden frog head, a skinned player head), the assistant's
-     * armchair and the sofa disappear. Blocks and items alike (in chests, inventories, item frames).
+     * armchair and the sofa disappear; the podium steps become quartz (1st and 2nd: a block, 3rd: a slab). Blocks and
+     * items alike (in chests, inventories, item frames).
      */
     private static void removed() {
+        alias("podium_first", "minecraft:quartz_block");
+        alias("podium_second", "minecraft:quartz_block");
+        alias("podium_third", "minecraft:quartz_slab");
         alias("trophy", "minecraft:player_head");
         alias("assistant_chair", "minecraft:air");
         alias("sofa", "minecraft:air");
@@ -149,11 +149,6 @@ public final class Studio {
 
     private static BlockBehaviour.Properties lamp(MapColor color, int light) {
         return props(color, 1f).sound(SoundType.LANTERN).noOcclusion().lightLevel(s -> s.getValue(LampBlock.LIT) ? light : 0);
-    }
-
-    private static DecorBlock podium(String name, int height) {
-        return ModContent.block(name, p -> new DecorBlock(p, Shapes4.of(new double[]{0, 0, 0, 16, height, 16})),
-                props(MapColor.QUARTZ, 2.5f).sound(SoundType.STONE).noOcclusion());
     }
 
     private static <T extends BlockEntity> BlockEntityType<T> blockEntity(String name, BlockEntityType.BlockEntitySupplier<T> factory, Block... blocks) {

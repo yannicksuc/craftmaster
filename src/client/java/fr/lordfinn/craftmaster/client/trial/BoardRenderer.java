@@ -22,14 +22,19 @@ import java.util.List;
 
 /**
  * Draws a drawing board: its painted surface (a dynamic texture, {@link BoardTextures}), a frame matching its kind
- * (gilded for the canvas, wood for the slate, aluminium for the whiteboard) and the text written on it, centred
- * and as large as it fits.
+ * and the text written on it, centred and as large as it fits. The frame is 2 px wide and stands 2 px proud, in
+ * Minecraft's own materials at 16 texels per block, the grain along each bar: stripped birch for the canvas,
+ * stripped oak for the school slate, iron for the whiteboard; the slate and the whiteboard have a tray at the bottom
+ * (chalk, markers).
  */
 public class BoardRenderer extends EntityRenderer<BoardEntity, BoardRenderer.State> {
 
-    /** Three 16 × 16 frame materials side by side: gold, wood, aluminium (scripts/gen_assets.py). */
-    public static final Identifier FRAME = CraftMaster.id("textures/entity/board_frame.png");
-    private static final float FRAME_W = 1 / 16f, FRAME_D = 1.5f / 16f;
+    /** Frame material of each variant (canvas, slate, whiteboard): Minecraft's block textures. */
+    private static final Identifier[] FRAMES = {
+            Identifier.parse("minecraft:textures/block/stripped_birch_log.png"),
+            Identifier.parse("minecraft:textures/block/stripped_oak_log.png"),
+            Identifier.parse("minecraft:textures/block/iron_block.png")};
+    private static final float PX = 1 / 16f, FRAME_W = 2 * PX, FRAME_D = 2 * PX, BACK = -PX;
 
     public static class State extends EntityRenderState {
         Identifier texture;
@@ -85,14 +90,16 @@ public class BoardRenderer extends EntityRenderer<BoardEntity, BoardRenderer.Sta
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(s.texture), (p, c) -> {
             quad(c, p, -hw, -hh, hw, hh, 0.001f, 0, 0, 1, 1, light);
         });
-        float u0 = s.variant * 16 / 48f, u1 = u0 + 4 / 48f;
-        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(FRAME), (p, c) -> {
-            // Back plate, then the four sides of the frame (a little proud of the surface)
-            back(c, p, -hw, -hh, hw, hh, (float) -BoardEntity.DEPTH, u0, u1, light);
-            box(c, p, -hw - FRAME_W, hh, -0.0625f, hw + FRAME_W, hh + FRAME_W, FRAME_D, u0, u1, light);
-            box(c, p, -hw - FRAME_W, -hh - FRAME_W, -0.0625f, hw + FRAME_W, -hh, FRAME_D, u0, u1, light);
-            box(c, p, -hw - FRAME_W, -hh, -0.0625f, -hw, hh, FRAME_D, u0, u1, light);
-            box(c, p, hw, -hh, -0.0625f, hw + FRAME_W, hh, FRAME_D, u0, u1, light);
+        boolean tray = s.variant != BoardEntity.Variant.CANVAS.ordinal();
+        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutCull(FRAMES[s.variant]), (p, c) -> {
+            back(c, p, -hw, -hh, hw, hh, (float) -BoardEntity.DEPTH, light);
+            // Top and bottom bars run the whole width (they cover the corners), the sides fit between them
+            bar(c, p, -hw - FRAME_W, hh, BACK, hw + FRAME_W, hh + FRAME_W, FRAME_D, true, light);
+            bar(c, p, -hw - FRAME_W, -hh - FRAME_W, BACK, hw + FRAME_W, -hh, FRAME_D, true, light);
+            bar(c, p, -hw - FRAME_W, -hh, BACK, -hw, hh, FRAME_D, false, light);
+            bar(c, p, hw, -hh, BACK, hw + FRAME_W, hh, FRAME_D, false, light);
+            // Tray under the board, 1 px below the bottom bar's top and 3 px deep
+            if (tray) bar(c, p, -hw + 2 * PX, -hh - FRAME_W - PX, FRAME_D, hw - 2 * PX, -hh - PX, FRAME_D + 3 * PX, true, light);
         });
         if (!s.lines.isEmpty()) submitText(s, poseStack, collector, hw, hh, light);
         poseStack.popPose();
@@ -131,29 +138,54 @@ public class BoardRenderer extends EntityRenderer<BoardEntity, BoardRenderer.Sta
         vertex(c, p, x1, y1, z, u1, v0, light, 0, 0, 1);
     }
 
-    private static void back(VertexConsumer c, PoseStack.Pose p, float x0, float y0, float x1, float y1, float z, float u0, float u1, int light) {
-        vertex(c, p, x1, y1, z, u0, 0, light, 0, 0, -1);
-        vertex(c, p, x1, y0, z, u0, 1, light, 0, 0, -1);
-        vertex(c, p, x0, y0, z, u1, 1, light, 0, 0, -1);
-        vertex(c, p, x0, y1, z, u1, 0, light, 0, 0, -1);
+    private static void back(VertexConsumer c, PoseStack.Pose p, float x0, float y0, float x1, float y1, float z, int light) {
+        vertex(c, p, x1, y1, z, 0, 0, light, 0, 0, -1);
+        vertex(c, p, x1, y0, z, 0, (y1 - y0), light, 0, 0, -1);
+        vertex(c, p, x0, y0, z, (x1 - x0), (y1 - y0), light, 0, 0, -1);
+        vertex(c, p, x0, y1, z, (x1 - x0), 0, light, 0, 0, -1);
     }
 
-    /** A frame bar: every face samples the material strip (u0..u1 × the whole height). */
-    private static void box(VertexConsumer c, PoseStack.Pose p, float x0, float y0, float z0, float x1, float y1, float z1, float u0, float u1, int light) {
-        // front (+z), back (-z)
-        vertex(c, p, x0, y1, z1, u0, 0, light, 0, 0, 1); vertex(c, p, x0, y0, z1, u0, 1, light, 0, 0, 1);
-        vertex(c, p, x1, y0, z1, u1, 1, light, 0, 0, 1); vertex(c, p, x1, y1, z1, u1, 0, light, 0, 0, 1);
-        vertex(c, p, x1, y1, z0, u0, 0, light, 0, 0, -1); vertex(c, p, x1, y0, z0, u0, 1, light, 0, 0, -1);
-        vertex(c, p, x0, y0, z0, u1, 1, light, 0, 0, -1); vertex(c, p, x0, y1, z0, u1, 0, light, 0, 0, -1);
-        // top (+y), bottom (-y)
-        vertex(c, p, x0, y1, z0, u0, 0, light, 0, 1, 0); vertex(c, p, x0, y1, z1, u0, 1, light, 0, 1, 0);
-        vertex(c, p, x1, y1, z1, u1, 1, light, 0, 1, 0); vertex(c, p, x1, y1, z0, u1, 0, light, 0, 1, 0);
-        vertex(c, p, x0, y0, z1, u0, 0, light, 0, -1, 0); vertex(c, p, x0, y0, z0, u0, 1, light, 0, -1, 0);
-        vertex(c, p, x1, y0, z0, u1, 1, light, 0, -1, 0); vertex(c, p, x1, y0, z1, u1, 0, light, 0, -1, 0);
-        // left (-x), right (+x)
-        vertex(c, p, x0, y1, z0, u0, 0, light, -1, 0, 0); vertex(c, p, x0, y0, z0, u0, 1, light, -1, 0, 0);
-        vertex(c, p, x0, y0, z1, u1, 1, light, -1, 0, 0); vertex(c, p, x0, y1, z1, u1, 0, light, -1, 0, 0);
-        vertex(c, p, x1, y1, z1, u0, 0, light, 1, 0, 0); vertex(c, p, x1, y0, z1, u0, 1, light, 1, 0, 0);
-        vertex(c, p, x1, y0, z0, u1, 1, light, 1, 0, 0); vertex(c, p, x1, y1, z0, u1, 0, light, 1, 0, 0);
+    /**
+     * A frame bar, cut into pieces of at most one block so the 16 px material never stretches. On every face the
+     * texture's v runs along the bar (the wood's grain follows it) and u across, both in blocks (16 texels each).
+     */
+    private static void bar(VertexConsumer c, PoseStack.Pose p, float x0, float y0, float z0, float x1, float y1, float z1,
+                            boolean horizontal, int light) {
+        float start = horizontal ? x0 : y0, end = horizontal ? x1 : y1;
+        for (float a = start; a < end - 1e-4f; a += 1) {
+            float b = Math.min(end, a + 1);
+            if (horizontal) piece(c, p, a, y0, z0, b, y1, z1, true, light);
+            else piece(c, p, x0, a, z0, x1, b, z1, false, light);
+        }
+    }
+
+    private static void piece(VertexConsumer c, PoseStack.Pose p, float x0, float y0, float z0, float x1, float y1, float z1,
+                              boolean horizontal, int light) {
+        // (u, v) of a corner: v along the bar from the piece's start, u across
+        // front (+z) / back (-z): across = y (horizontal bar) or x (vertical bar)
+        face(c, p, new float[][]{{x0, y1, z1}, {x0, y0, z1}, {x1, y0, z1}, {x1, y1, z1}}, x0, y0, z0, horizontal, 2, light, 0, 0, 1);
+        face(c, p, new float[][]{{x1, y1, z0}, {x1, y0, z0}, {x0, y0, z0}, {x0, y1, z0}}, x0, y0, z0, horizontal, 2, light, 0, 0, -1);
+        face(c, p, new float[][]{{x0, y1, z0}, {x0, y1, z1}, {x1, y1, z1}, {x1, y1, z0}}, x0, y0, z0, horizontal, 1, light, 0, 1, 0);
+        face(c, p, new float[][]{{x0, y0, z1}, {x0, y0, z0}, {x1, y0, z0}, {x1, y0, z1}}, x0, y0, z0, horizontal, 1, light, 0, -1, 0);
+        face(c, p, new float[][]{{x0, y1, z0}, {x0, y0, z0}, {x0, y0, z1}, {x0, y1, z1}}, x0, y0, z0, horizontal, 0, light, -1, 0, 0);
+        face(c, p, new float[][]{{x1, y1, z1}, {x1, y0, z1}, {x1, y0, z0}, {x1, y1, z0}}, x0, y0, z0, horizontal, 0, light, 1, 0, 0);
+    }
+
+    /**
+     * One face; {@code flat} is the axis the face is perpendicular to (0 x, 1 y, 2 z). The long axis gives v, the
+     * remaining one gives u.
+     */
+    private static void face(VertexConsumer c, PoseStack.Pose p, float[][] corners, float ox, float oy, float oz, boolean horizontal,
+                             int flat, int light, float nx, float ny, float nz) {
+        int along = horizontal ? 0 : 1;
+        // A face across the bar (its end): its two own axes
+        int vAxis = flat == along ? (along + 2) % 3 : along;
+        int uAxis = 3 - flat - vAxis;
+        float[] origin = {ox, oy, oz};
+        for (float[] k : corners) {
+            float v = k[vAxis] - origin[vAxis];
+            float u = k[uAxis] - origin[uAxis];
+            vertex(c, p, k[0], k[1], k[2], u, v, light, nx, ny, nz);
+        }
     }
 }

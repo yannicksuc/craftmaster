@@ -190,3 +190,344 @@ def portrait():
     i.set(4, 11, SH); i.set(11, 11, SH)
     i.rect(7, 10, 8, 10, skin)
     return i.p
+
+
+def _read_png(path):
+    """RGBA rows of a small PNG (8-bit RGBA or RGB, no interlace), without any library."""
+    import struct
+    import zlib
+    data = open(path, "rb").read()
+    pos, chunks = 8, {}
+    idat = b""
+    while pos < len(data):
+        n, kind = struct.unpack(">I4s", data[pos:pos + 8])
+        body = data[pos + 8:pos + 8 + n]
+        if kind == b"IHDR":
+            w, h, depth, ctype = struct.unpack(">IIBB", body[:10])
+        elif kind == b"PLTE":
+            chunks["plte"] = body
+        elif kind == b"tRNS":
+            chunks["trns"] = body
+        elif kind == b"IDAT":
+            idat += body
+        pos += 12 + n
+    raw = zlib.decompress(idat)
+    bpp = {6: 4, 2: 3, 3: 1, 4: 2, 0: 1}[ctype]
+    stride = w * bpp
+    rows, prev = [], bytearray(stride)
+    i = 0
+    for _ in range(h):
+        ft = raw[i]
+        line = bytearray(raw[i + 1:i + 1 + stride])
+        i += 1 + stride
+        for x in range(stride):
+            a = line[x - bpp] if x >= bpp else 0
+            b = prev[x]
+            c = prev[x - bpp] if x >= bpp else 0
+            if ft == 1:
+                line[x] = (line[x] + a) & 255
+            elif ft == 2:
+                line[x] = (line[x] + b) & 255
+            elif ft == 3:
+                line[x] = (line[x] + (a + b) // 2) & 255
+            elif ft == 4:
+                p = a + b - c
+                pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+                line[x] = (line[x] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 255
+        prev = line
+        row = []
+        for x in range(w):
+            px = line[x * bpp:(x + 1) * bpp]
+            if ctype == 6:
+                row.append(tuple(px))
+            elif ctype == 2:
+                row.append(tuple(px) + (255,))
+            elif ctype == 3:
+                k = px[0]
+                pl = chunks["plte"][k * 3:k * 3 + 3]
+                alpha = chunks.get("trns", b"")[k] if k < len(chunks.get("trns", b"")) else 255
+                row.append(tuple(pl) + (alpha,))
+            elif ctype == 4:
+                row.append((px[0], px[0], px[0], px[1]))
+            else:
+                row.append((px[0], px[0], px[0], 255))
+        rows.append(row)
+    return rows
+
+
+def lordfinn_envelope(path):
+    """LordFinn's sealed task envelope (his server's task_enveloppe.png), split in two: the paper (layer 0) and the
+    wax seal in grey (layer 1, tinted with the envelope's wax colour). Returns (paper, wax)."""
+    src = _read_png(path)
+    paper = [[T] * 16 for _ in range(16)]
+    wax = [[T] * 16 for _ in range(16)]
+    for y in range(16):
+        for x in range(16):
+            r, g, b, a = src[y][x]
+            if a == 0:
+                continue
+            if r > g + 40 and r > b + 40:      # the red seal
+                v = min(255, int(r * 255 / 180))
+                wax[y][x] = (v, v, v, 255)
+            else:
+                paper[y][x] = (r, g, b, a)
+    return paper, wax
+
+
+def lordfinn_texture(path):
+    return _read_png(path)
+
+
+# ---------------------------------------------------------------------------- organiser tools (second batch)
+BRASS = [(255, 232, 140), (240, 196, 72), (206, 150, 40), (160, 106, 28), (112, 70, 20)]   # light -> dark
+WOOD_L = [(176, 130, 82), (148, 104, 62), (118, 80, 46), (86, 58, 34)]
+STEEL = [(232, 236, 240), (196, 202, 210), (150, 156, 166), (104, 110, 120), (66, 70, 80)]
+CHAR = [(92, 90, 100), (70, 68, 78), (52, 50, 58), (36, 34, 40)]
+PAPER = [(252, 248, 236), (238, 230, 210), (214, 202, 176)]
+
+
+def clipboard():
+    """The organiser's clipboard (was a star wand): a wooden board, a steel clip at the top, a sheet with lines."""
+    O = (54, 36, 22)
+    i = Icon()
+    # Board x 3..12, y 2..14
+    i.rect(3, 2, 12, 14, WOOD_L[1])
+    i.rect(3, 2, 12, 2, WOOD_L[0])
+    i.rect(3, 2, 3, 14, WOOD_L[0])
+    i.rect(12, 3, 12, 14, WOOD_L[3])
+    i.rect(4, 14, 12, 14, WOOD_L[3])
+    # Sheet x 4..11, y 4..13
+    i.rect(4, 4, 11, 13, PAPER[0])
+    i.rect(11, 5, 11, 13, PAPER[2])
+    i.rect(5, 13, 11, 13, PAPER[1])
+    for y, (x0, x1) in ((6, (5, 10)), (8, (5, 9)), (10, (5, 10)), (12, (5, 8))):
+        i.rect(x0, y, x1, y, (120, 116, 130))
+    # Ticks of the checklist
+    i.set(5, 6, (60, 140, 70)); i.set(5, 8, (60, 140, 70))
+    # Steel clip over the top edge
+    i.rect(6, 1, 9, 3, STEEL[2])
+    i.rect(6, 1, 9, 1, STEEL[0])
+    i.rect(9, 2, 9, 3, STEEL[3])
+    i.rect(7, 2, 8, 2, STEEL[1])
+    i.outline(O)
+    return i.p
+
+
+def uv_torch():
+    """UV torch (was a violet wand): black aluminium body with grip rings, a wider head, violet lens and glow."""
+    O = (24, 22, 30)
+    V, v, VL = (150, 90, 230), (104, 56, 170), (214, 186, 255)
+    i = Icon()
+    # Drawn on the diagonal from the bottom left (tail) to the top right (head), 2 px wide body
+    for k in range(7):
+        x, y = 2 + k, 13 - k
+        i.set(x, y, CHAR[1]); i.set(x + 1, y, CHAR[2]); i.set(x, y - 1, CHAR[0]) if k == 0 else None
+        i.set(x + 1, y - 1, CHAR[1])
+    # Grip rings
+    for k in (2, 4):
+        i.set(2 + k, 13 - k, CHAR[3]); i.set(3 + k, 12 - k, CHAR[3])
+    # Head: a 3 x 3 block, then the lens
+    i.rect(9, 4, 11, 6, CHAR[1])
+    i.rect(9, 4, 11, 4, CHAR[0])
+    i.set(11, 6, CHAR[2])
+    i.rect(11, 3, 12, 4, V)
+    i.set(12, 3, VL)
+    i.set(12, 5, v); i.set(10, 3, v)
+    i.outline(O)
+    # Soft glow out of the lens
+    for (x, y) in ((13, 2), (14, 1), (13, 1), (14, 2)):
+        if i.get(x, y)[3] == 0 or i.get(x, y)[:3] == O:
+            i.set(x, y, VL if (x, y) == (13, 2) else (186, 150, 250))
+    return i.p
+
+
+def brass_seal():
+    """Brass seal (layer 0): a turned rosewood handle, a brass collar and the round die. The wax it holds is the
+    tinted layer 1 (gen_assets)."""
+    O = (60, 34, 20)
+    H = [(150, 92, 58), (120, 70, 42), (90, 50, 30)]
+    i = Icon()
+    # Handle along the diagonal, top right
+    for k in range(5):
+        x, y = 9 + k, 6 - k
+        i.set(x, y, H[0]); i.set(x + 1, y, H[1]); i.set(x, y + 1, H[1]); i.set(x + 1, y + 1, H[2])
+    # Knob at the end
+    i.rect(13, 0, 14, 1, H[0]); i.set(14, 1, H[2])
+    # Brass collar
+    i.rect(7, 6, 9, 8, BRASS[1]); i.set(7, 6, BRASS[0]); i.set(9, 8, BRASS[3])
+    # Die: a brass disc (square with soft corners), bottom left
+    i.rect(3, 8, 7, 12, BRASS[2])
+    i.rect(3, 8, 7, 8, BRASS[1]); i.rect(3, 8, 3, 12, BRASS[1])
+    i.rect(7, 9, 7, 12, BRASS[3]); i.rect(4, 12, 7, 12, BRASS[3])
+    i.set(4, 9, BRASS[0])
+    for (x, y) in ((3, 8), (7, 8), (3, 12), (7, 12)):
+        i.set(x, y, T)
+    i.outline(O)
+    return i.p
+
+
+def judge_stopwatch():
+    """Judge's stopwatch: round steel case seen as a soft square, white dial, red hand, crown and button on top."""
+    O = (44, 40, 46)
+    i = Icon()
+    # Crown and side button
+    i.rect(7, 1, 8, 2, STEEL[1]); i.set(7, 1, STEEL[0])
+    i.set(11, 3, STEEL[2])
+    # Case x 3..12, y 3..13, corners cut
+    i.rect(3, 3, 12, 13, STEEL[2])
+    i.rect(3, 3, 12, 3, STEEL[0]); i.rect(3, 3, 3, 13, STEEL[1])
+    i.rect(12, 4, 12, 13, STEEL[3]); i.rect(4, 13, 12, 13, STEEL[3])
+    for (x, y) in ((3, 3), (12, 3), (3, 13), (12, 13)):
+        i.set(x, y, T)
+    # Dial x 4..11, y 4..12, soft corners
+    i.rect(4, 4, 11, 12, PAPER[0])
+    i.rect(5, 12, 11, 12, PAPER[1]); i.rect(11, 5, 11, 12, PAPER[1])
+    for (x, y) in ((4, 4), (11, 4), (4, 12), (11, 12)):
+        i.set(x, y, STEEL[2])
+    # Marks at 12, 3, 6, 9
+    for (x, y) in ((7, 5), (8, 5), (10, 8), (7, 11), (8, 11), (5, 8)):
+        i.set(x, y, (90, 86, 96))
+    # Hands: red seconds hand to the top right, black minute stub
+    i.set(8, 8, (40, 36, 44)); i.set(7, 8, (40, 36, 44))
+    i.set(8, 7, (210, 40, 36)); i.set(9, 6, (210, 40, 36))
+    i.outline(O)
+    return i.p
+
+
+def measuring_tape():
+    """Tape measure: a yellow case with a black grip band, steel hook, the yellow tape pulled out with marks."""
+    O = (60, 40, 14)
+    Y = [(255, 226, 96), (240, 196, 48), (206, 156, 30), (160, 112, 20)]
+    i = Icon()
+    # Case x 1..9, y 4..12
+    i.rect(1, 4, 9, 12, Y[1])
+    i.rect(1, 4, 9, 4, Y[0]); i.rect(1, 4, 1, 12, Y[0])
+    i.rect(9, 5, 9, 12, Y[3]); i.rect(2, 12, 9, 12, Y[3])
+    for (x, y) in ((1, 4), (9, 4), (1, 12), (9, 12)):
+        i.set(x, y, T)
+    # Black grip band round the middle, steel screw
+    i.rect(3, 6, 7, 10, CHAR[2]); i.rect(3, 6, 7, 6, CHAR[1])
+    i.rect(4, 7, 6, 9, CHAR[3])
+    i.set(5, 8, STEEL[1])
+    # Tape out of the case at the bottom right
+    i.rect(10, 10, 14, 11, Y[0])
+    i.rect(10, 11, 14, 11, Y[2])
+    for x in (11, 13):
+        i.set(x, 10, (40, 34, 30))
+    # Hook
+    i.rect(15, 9, 15, 11, STEEL[2]); i.set(15, 9, STEEL[1])
+    i.outline(O)
+    return i.p
+
+
+def tally_counter():
+    """Hand tally counter: chrome round body, the number window, the push button on top, the ring for the finger."""
+    O = (44, 46, 54)
+    i = Icon()
+    # Button on top
+    i.rect(6, 1, 9, 2, STEEL[1]); i.rect(6, 1, 9, 1, STEEL[0])
+    i.rect(7, 3, 8, 3, STEEL[3])
+    # Body x 3..12, y 4..12, soft corners
+    i.rect(3, 4, 12, 12, STEEL[2])
+    i.rect(3, 4, 12, 4, STEEL[0]); i.rect(3, 4, 3, 12, STEEL[1])
+    i.rect(12, 5, 12, 12, STEEL[3]); i.rect(4, 12, 12, 12, STEEL[3])
+    for (x, y) in ((3, 4), (12, 4), (3, 12), (12, 12)):
+        i.set(x, y, T)
+    # Number window: 4 white digits on black
+    i.rect(4, 6, 11, 9, CHAR[3])
+    for x in (5, 7, 9):
+        i.rect(x, 7, x, 8, PAPER[0])
+    i.rect(10, 7, 10, 8, (240, 196, 72))
+    # Finger ring under it
+    i.rect(6, 13, 9, 14, STEEL[2]); i.rect(7, 13, 8, 13, T)
+    i.outline(O)
+    return i.p
+
+
+def _wall_board(frame, surface, mark):
+    """The three drawing boards share one icon: a board on the wall, 2 px frame lit from the top left, no feet."""
+    O = tuple(max(0, c - 40) for c in frame[3])
+    i = Icon()
+    i.rect(1, 3, 14, 13, frame[1])
+    i.rect(1, 3, 14, 3, frame[0]); i.rect(1, 3, 1, 13, frame[0])
+    i.rect(14, 4, 14, 13, frame[3]); i.rect(2, 13, 14, 13, frame[3])
+    i.rect(2, 4, 13, 4, frame[1]); i.rect(2, 4, 2, 12, frame[1])
+    i.rect(13, 5, 13, 12, frame[2]); i.rect(3, 12, 13, 12, frame[2])
+    i.rect(3, 5, 12, 11, surface[0])
+    i.rect(3, 9, 12, 11, surface[1])
+    i.rect(3, 11, 12, 11, surface[2])
+    mark(i)
+    i.outline(O)
+    return i
+
+
+def slate_icon():
+    """School slate: matte dark grey-green, a chalk line, oak frame, chalk tray."""
+    oak = [(196, 160, 106), (170, 134, 84), (142, 110, 66), (110, 84, 50)]
+    sl = [(58, 72, 64), (52, 64, 58), (46, 58, 52)]
+
+    def mark(i):
+        for x, y in ((4, 7), (5, 6), (6, 6), (7, 7), (8, 7), (9, 6)):
+            i.set(x, y, (214, 220, 212))
+        i.rect(4, 9, 7, 9, (170, 178, 170))
+    i = _wall_board(oak, sl, mark)
+    # Chalk tray with a stick of chalk
+    i.rect(3, 14, 12, 14, oak[2])
+    i.rect(9, 14, 10, 14, (240, 240, 232))
+    i.set(2, 14, (70, 52, 30)); i.set(13, 14, (70, 52, 30))
+    return i.p
+
+
+def whiteboard_icon():
+    """Whiteboard on the wall: white enamel, blue and red marker lines, aluminium frame and marker tray, no feet."""
+    alu = [(236, 240, 244), (206, 212, 220), (168, 174, 184), (126, 132, 144)]
+    en = [(250, 251, 252), (240, 243, 246), (226, 230, 236)]
+
+    def mark(i):
+        i.rect(4, 6, 9, 6, (52, 84, 170))
+        i.rect(4, 8, 11, 8, (52, 84, 170))
+        i.rect(4, 10, 7, 10, (196, 50, 46))
+    i = _wall_board(alu, en, mark)
+    i.rect(3, 14, 12, 14, alu[2])
+    i.rect(5, 14, 6, 14, (52, 84, 170))
+    i.set(2, 14, (100, 104, 116)); i.set(13, 14, (100, 104, 116))
+    return i.p
+
+
+def canvas_icon():
+    """Painter's canvas on its stretcher: cream canvas, a little landscape, light birch frame."""
+    birch = [(236, 226, 196), (214, 200, 164), (186, 170, 132), (150, 134, 100)]
+    cv = [(244, 236, 214), (236, 226, 200), (222, 210, 182)]
+
+    def mark(i):
+        i.rect(3, 9, 12, 11, (110, 160, 80))
+        i.rect(3, 11, 12, 11, (84, 130, 60))
+        i.rect(9, 6, 10, 7, (240, 190, 60))
+        i.set(5, 8, (110, 160, 80)); i.set(6, 8, (110, 160, 80)); i.set(6, 7, (110, 160, 80))
+    return _wall_board(birch, cv, mark).p
+
+
+def glasses_base():
+    """The one pair of effect glasses (layer 0): a dark frame with temples, lenses left transparent."""
+    F, f, fl = (52, 48, 58), (36, 34, 42), (86, 82, 94)
+    i = Icon()
+    for x0 in (1, 9):
+        i.rect(x0, 5, x0 + 5, 10, F)
+        i.rect(x0, 5, x0 + 5, 5, fl)
+        i.rect(x0 + 1, 6, x0 + 4, 9, T)
+    i.rect(7, 6, 8, 6, F)
+    i.set(0, 6, f); i.set(15, 6, f)
+    i.rect(1, 10, 6, 10, f); i.rect(9, 10, 14, 10, f)
+    return i.p
+
+
+def glasses_lens():
+    """The lenses (layer 1, grey, tinted with the effect's colour): lighter at the top left, a glint."""
+    i = Icon()
+    for x0 in (2, 10):
+        for y in range(6, 10):
+            for x in range(x0, x0 + 4):
+                v = 230 - (y - 6) * 22 - (x - x0) * 6
+                i.set(x, y, (v, v, v, 255))
+        i.set(x0, 6, (255, 255, 255, 255))
+    return i.p

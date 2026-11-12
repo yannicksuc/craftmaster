@@ -2,7 +2,7 @@
 the throne, the contestants' chair, the frame, the studio lights and softboxes (item models drawn by
 client/studio/FurnitureRenderer like the server's item frames / item displays), the tripod and its rod (block models,
 also drawn under the cameras), the black and white tiles and the globe panel. (ia_sandbox also keeps the server's task icons, task.png and
-task_enveloppe.png, unused here.)
+task_enveloppe.png: the task envelope's icons, see gen_assets.py.)
 
 The models are copied as they are; only their texture names change (sandbox:... -> craftmaster:block/furniture/...).
 Called by gen_assets.py after the studio set.

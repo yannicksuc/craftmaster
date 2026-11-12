@@ -1,10 +1,11 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "craftmaster:block/plinth_stone",
-    "s": "craftmaster:block/plinth_stone",
-    "g": "craftmaster:block/plinth_gold",
-    "v": "craftmaster:block/plinth_velvet"
+    "particle": "minecraft:block/quartz_pillar",
+    "q": "minecraft:block/quartz_block_bottom",
+    "p": "minecraft:block/quartz_pillar",
+    "pt": "minecraft:block/quartz_pillar_top",
+    "w": "minecraft:block/red_wool"
   },
   "elements": [
     {
@@ -20,22 +21,22 @@
       ],
       "faces": {
         "north": {
-          "texture": "#g"
+          "texture": "#q"
         },
         "south": {
-          "texture": "#g"
+          "texture": "#q"
         },
         "east": {
-          "texture": "#g"
+          "texture": "#q"
         },
         "west": {
-          "texture": "#g"
+          "texture": "#q"
         },
         "up": {
-          "texture": "#g"
+          "texture": "#q"
         },
         "down": {
-          "texture": "#g"
+          "texture": "#q"
         }
       }
     },
@@ -52,16 +53,16 @@
       ],
       "faces": {
         "north": {
-          "texture": "#s"
+          "texture": "#p"
         },
         "south": {
-          "texture": "#s"
+          "texture": "#p"
         },
         "east": {
-          "texture": "#s"
+          "texture": "#p"
         },
         "west": {
-          "texture": "#s"
+          "texture": "#p"
         }
       }
     },
@@ -78,22 +79,22 @@
       ],
       "faces": {
         "north": {
-          "texture": "#g"
+          "texture": "#q"
         },
         "south": {
-          "texture": "#g"
+          "texture": "#q"
         },
         "east": {
-          "texture": "#g"
+          "texture": "#q"
         },
         "west": {
-          "texture": "#g"
+          "texture": "#q"
         },
         "up": {
-          "texture": "#g"
+          "texture": "#q"
         },
         "down": {
-          "texture": "#g"
+          "texture": "#q"
         }
       }
     },
@@ -110,19 +111,19 @@
       ],
       "faces": {
         "north": {
-          "texture": "#v"
+          "texture": "#w"
         },
         "south": {
-          "texture": "#v"
+          "texture": "#w"
         },
         "east": {
-          "texture": "#v"
+          "texture": "#w"
         },
         "west": {
-          "texture": "#v"
+          "texture": "#w"
         },
         "up": {
-          "texture": "#v"
+          "texture": "#w"
         }
       }
     }

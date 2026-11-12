@@ -15,10 +15,12 @@ de son serveur (voir [Mobilier du serveur](#mobilier-du-serveur)).
 
 Tous sont posés face à soi (le dossier de l'autre côté), comme les chaises.
 
-**Retirés** (retours de LordFinn, 12/11/2026) : le fauteuil de l'assistant, le canapé de velours et le trophée
-CraftMaster (le trophée de l'émission est une tête de joueur, la grenouille d'or). Un monde qui en contient se
-charge sans erreur : `craftmaster:trophy` devient une **tête de joueur** (bloc et objet), `assistant_chair` et `sofa`
-disparaissent (alias de registre, `Studio.removed()`).
+**Retirés** (retours de LordFinn, 12/11/2026) : le fauteuil de l'assistant, le canapé de velours, le trophée
+CraftMaster (le trophée de l'émission est une tête de joueur, la grenouille d'or) et les marches du podium. Un monde
+qui en contient se charge sans erreur : `craftmaster:trophy` devient une **tête de joueur** (bloc et objet), les
+marches du podium du **quartz** (1er et 2e : bloc, 3e : dalle), `assistant_chair` et `sofa` disparaissent (alias
+de registre, `Studio.removed()`). La révélation de fin (`/craftMasterReveal`) n'en dépendait pas : ses feux
+d'artifice partent des bustes du classement (`/craftMasterAddBust`).
 
 ## Éclairage
 | Objet | Bloc | Utilisation |
@@ -83,7 +85,6 @@ comme des barrières, mais dans les **6 directions** : tours, poutres, angles, T
 | Sonnette de comptoir | `desk_bell` | « Ding » quand un candidat a fini : les organisateurs voient « ♪ Ensuri a sonné (1:42 restantes) » ; impulsion de redstone, une fois par demi-seconde |
 | Gong | `gong` | Disque doré dans un cadre en chêne noir du jeu (montants et poutre en bûche écorcée, pieds en planches). Clic droit (ou impulsion de redstone) : un coup de gong entendu dans tout le studio, le disque se balance. **Un organisateur accroupi** termine en plus la manche en cours (comme `/craftMasterManche end`, annulable) |
 | Table des prix | `prize_table` | Table drapée de velours ; jusqu'à 4 prix posés à plat (un par quart du plateau) : clic droit **sur le dessus** avec l'objet pour le poser, main vide pour le reprendre. Clic droit **sur le drapé** (les côtés) : l'**étagère cachée** dessous, 27 cases. Côte à côte (même sens), les tables forment une seule longue table sous un seul drapé. Casser la table fait tomber les prix et l'étagère |
-| Podium 1er / 2e / 3e | `podium_first`, `podium_second`, `podium_third` | Marches de marbre (1, ¾, ½ bloc) à bandeau or / argent / bronze et numéro |
 | Poteau à cordon | `stanchion` | Poteaux en laiton ; un cordon de velours pend jusqu'au poteau suivant sur la même ligne (est ou sud, jusqu'à 4 blocs, sans mur entre les deux) |
 
 ### Ce qu'affiche le chrono géant
@@ -191,7 +192,6 @@ Ces ordres ne touchent pas aux données (rien à annuler) ; ils marchent aussi e
 | Sonnette | pépite d'or / lingot d'or / dalle de bois |
 | Gong | `BBB` / `BOB` / `B·B` — B bâton, O bloc d'or |
 | Table des prix | `VVV` / `POP` / `P·P` — V laine rouge, P planches, O pépite d'or |
-| Podium 1er / 2e / 3e | `OOO` / `QQQ` / `QQQ` (or) ; `FFF` / `QQQ` (fer) ; `CCC` / dalles de quartz (cuivre) — Q bloc de quartz |
 | Poteau à cordon (×2) | pépite d'or / bâton / lingot d'or |
 
 ## Sons

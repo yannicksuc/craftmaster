@@ -2,8 +2,8 @@
 
 Tout ce qu'il faut pour **monter**, **jouer** et **arbitrer** une épreuve en jeu, comme dans une émission de
 tâches : des objets avec lesquels les candidats interagissent, les outils du juge (feuille de résultats, chrono,
-mètre, compteur, balance, zone, carton rouge) et des objets pour laisser libre cours à l'imagination (tableaux à
-dessiner, socle d'exposition, malle à costumes, objets nommés). Tout est dans l'onglet créatif CraftMaster.
+mètre, compteur, balance, zone) et des objets pour laisser libre cours à l'imagination (tableaux à
+dessiner, socle d'exposition, objets nommés). Tout est dans l'onglet créatif CraftMaster.
 
 « Candidats » = les joueurs (non archivés) de la **saison active**. « Organisateurs » = permission
 `craftmaster:admin` ou opérateur.
@@ -65,7 +65,6 @@ défaut est 5-4-3-2-1 (places au-delà : 0 point ; disqualifié : 0 ; sans valeu
 | **Mètre ruban** | Sur un bloc puis sur un autre : distance entre leurs centres (et à plat, et la hauteur), ligne de poussière dorée. Accroupi : recommencer. Les deux derniers points servent à créer une zone. |
 | **Compteur** | Sur un coffre (tout conteneur) ou un joueur : nombre d'objets et les trois plus nombreux ; seulement le type tenu dans l'autre main s'il y en a un (« combien d'œufs ? »). Marche aussi sur les coffres qui s'ouvrent. |
 | **Balance** (bloc) | Clic droit en tenant un objet : son poids ; main vide : le poids des objets jetés sur le plateau. Table de poids ludique mais cohérente (netherite > or > fer, plume ≈ 0). |
-| **Carton rouge** | Sur un candidat : disqualifié de la manche en cours (feuille, titre, particules) ; accroupi : lever. |
 | **Zones d'épreuve** | `/craftMasterZone create <nom>` (avec les deux points du mètre) ou `… <de> <à>`. Un candidat qui sort a un titre « Hors zone ! », un rappel tant qu'il est dehors, et les organisateurs sont prévenus ; le retour est noté. `players <nom> <joueurs…\|all>`, `show` (contour 15 s), `enable`, `remove`, `list`. Enregistrées dans `config/craftmaster/zones.json`. |
 
 Après chaque mesure (mètre, compteur, balance), un organisateur a dans le chat **« Noter pour : [Ensuri] [Cyllu]… »** :
@@ -80,11 +79,12 @@ un clic écrit la valeur sur la feuille de la manche en cours.
   décrocher. `/craftMasterBoard lock true` réserve un tableau aux organisateurs ; `clear` efface ; `text` écrit.
 - **Socle d'exposition** : poser n'importe quel objet dessus (il flotte et tourne, son nom au-dessus) ; main vide
   pour le reprendre. Idéal pour présenter une création au juge.
-- **Malle à costumes** : chacun s'y sert sans la vider (chaque objet pris est une copie ; reposer un objet le
-  rend à la malle). Une malle neuve contient couronne, capes et vestes teintes, têtes, accessoires… Un organisateur
-  accroupi + clic droit édite le stock.
 - **Nommer** : `/craftMasterName <nom>` (tous) renomme l'objet tenu, codes couleur `&6`, `&l`… sans enclume ni
   XP ; sans nom : retire le nom. Les objets nommés gardent leur nom sur le socle, les props, les tableaux.
+
+**Retirés** (retours de LordFinn, 12/11/2026) : la malle à costumes et le carton rouge. Un monde qui en contient
+se charge sans erreur : la malle devient un coffre vide, le carton rouge disparaît. La disqualification reste là :
+bouton DQ de la feuille de résultats, `/craftMasterResult dq`, la voix (« Ensuri est disqualifié »).
 
 ## 5. À la voix
 

@@ -1,6 +1,6 @@
 """Studio set assets (chantier F, docs/wiki/Plateau.md): models, blockstates, item definitions, textures, recipes,
 loot tables, sounds and translations of the throne, seats, lights, spotlight, giant timer, studio screen, desks,
-prize table, gong, bell, podium, "EN DIRECT" sign and stanchions.
+prize table, gong, bell, "EN DIRECT" sign and stanchions.
 
 Called by scripts/gen_assets.py (generate(g) with the gen_assets module, before the translations are written).
 Textures are painted from each texel's place on the object: limited palettes (gold, red velvet, walnut, black
@@ -332,44 +332,6 @@ def generate(g):
         s.paint(0, 10, 40, 13, lambda x, y, w, h, frame=frame: frame[1] if y == 1 else frame[2] if y == 0 else frame[3])
         s.save(g, "block/studio/on_air" + ("_lit" if lit else ""))
 
-    # Podium sides: white marble, band of the medal colour at the top, big numeral (bottom aligned to the height)
-    # Bold numerals (2 px strokes, 6 x 8) for the 1st and 2nd steps, a small one (3 x 5) for the low 3rd step
-    numerals = {
-        1: ["..##..", ".###..", "####..", "..##..", "..##..", "..##..", "..##..", "######"],
-        2: [".####.", "##..##", "....##", "...##.", "..##..", ".##...", "##....", "######"],
-        3: ["###", "..#", ".##", "..#", "###"],
-    }
-    for rank, (pal, height) in {1: (GOLD, 16), 2: (SILVER, 12), 3: (BRONZE, 8)}.items():
-        s = Img(16, 16, T)
-        top = 16 - height
-        band = 2 if height <= 8 else 3
-
-        def side(x, y, w, h, top=top, pal=pal, band=band):
-            if y < top:
-                return None
-            if y == top:
-                return pal[0]
-            if y < top + band:
-                return pal[1] if y == top + 1 else pal[3]
-            if y == 15:
-                return MARBLE[3]
-            vein = (x * 2 + y * 3) % 13 == 0
-            return MARBLE[2] if vein else MARBLE[1] if x % 8 else MARBLE[0]
-        s.paint(0, 0, 16, 16, side)
-        glyph = numerals[rank]
-        gw, gh = len(glyph[0]), len(glyph)
-        ox = (16 - gw) // 2
-        oy = top + band + max(0, (15 - (top + band) - gh) // 2)
-        for gy, row in enumerate(glyph):
-            for gx, px in enumerate(row):
-                if px == "#":
-                    s.set(ox + gx, oy + gy, pal[2] if gy < gh / 2 else pal[3])
-        s.save(g, f"block/studio/podium_{rank}")
-        topt = Img(16, 16)
-        topt.paint(0, 0, 16, 16, lambda x, y, w, h, pal=pal: pal[1] if x in (0, 15) or y in (0, 15) else MARBLE[1] if (x + y) % 6 else MARBLE[0])
-        topt.save(g, f"block/studio/podium_{rank}_top")
-
-
     # Bell dome: polished gold with a round highlight
     dome = Img(16, 16)
     dome.paint(0, 0, 16, 16, lambda x, y, w, h: GOLD[0] if (x - 6) ** 2 + (y - 6) ** 2 < 5 else GOLD[1] if (x - 7) ** 2 + (y - 7) ** 2 < 30 else GOLD[3])
@@ -466,8 +428,19 @@ def generate(g):
     gong.rect(24, 0, 25, 4, (150, 30, 30))
     gong.save(g, "entity/gong")
 
+    # Stanchion atlas: foot top 6 x 6 (0, 0) and side (0, 6), post side 2 x 12 (6, 0), cap top 4 x 4 (8, 0) and side 4 x 2
+    # (8, 4): polished brass, a light edge on the lit side, darker toward the bottom
+    st = Img(16, 16)
+    st.paint(0, 0, 6, 6, lambda x, y, w, h: bevel(GOLD, x, y, w, h))
+    st.rect(0, 6, 6, 7, GOLD[3])
+    st.paint(6, 0, 8, 12, lambda x, y, w, h: (GOLD[0] if y < 6 else GOLD[1]) if x == 0 else (GOLD[2] if y < 8 else GOLD[3]))
+    st.paint(8, 0, 12, 4, lambda x, y, w, h: bevel(GOLD, x, y, w, h))
+    st.paint(8, 4, 12, 6, lambda x, y, w, h: GOLD[1] if y == 0 else GOLD[3])
+    st.save(g, "block/studio/stanchion")
+
+    # Velvet cord (rows 6..7): a twisted cord, strands running diagonally, lit on the upper row
     rope = Img(16, 16)
-    rope.paint(0, 6, 16, 8, lambda x, y, w, h: VELVET[1] if (x + y) % 3 else VELVET[3])
+    rope.paint(0, 6, 16, 8, lambda x, y, w, h: (VELVET[1] if y == 0 else VELVET[2]) if (x + y) % 4 else (VELVET[3] if y == 0 else VELVET[4]))
     rope.save(g, "entity/velvet_rope")
 
     # ================================================================== models and blockstates
@@ -657,16 +630,14 @@ def generate(g):
                   {"left": ["false", "true"], "right": ["false", "true"]})
     item_block("prize_table")
 
-    for rank, name, height in ((1, "podium_first", 16), (2, "podium_second", 12), (3, "podium_third", 8)):
-        side = tex(f"podium_{rank}")
-        model(name, [el([0, 0, 0], [16, height, 16], "#side", faces={"up": "#top", "down": "#bottom"})],
-              {"particle": side, "side": side, "top": tex(f"podium_{rank}_top"), "bottom": tex(f"podium_{rank}_top")})
-        facing_states(name, lambda c, name=name: name)
-        item_block(name)
-
+    # Rope stanchion: brass foot, post and cap on one atlas (1 texel per pixel, light from the top left), no ambient
+    # occlusion (it darkened the thin post unevenly)
+    ST = tex("stanchion")
     model("stanchion", [
-        el([5, 0, 5], [11, 1, 11], "#brass"), el([7, 1, 7], [9, 13, 9], "#brass"), el([6, 13, 6], [10, 15, 10], "#gold"),
-    ], {"particle": tex("brass"), "brass": tex("brass"), "gold": GP})
+        box([5, 0, 5], [11, 1, 11], "#s", uvs([0, 6, 6, 7], [0, 6, 6, 7], [0, 0, 6, 6], [0, 0, 6, 6])),
+        box([7, 1, 7], [9, 13, 9], "#s", uvs([6, 0, 8, 12], [6, 0, 8, 12])),
+        box([6, 13, 6], [10, 15, 10], "#s", uvs([8, 4, 12, 6], [8, 4, 12, 6], [8, 0, 12, 4], [8, 0, 12, 4])),
+    ], {"particle": ST, "s": ST}, extra={"ambientocclusion": False})
     wj(os.path.join(A, "blockstates/stanchion.json"), {"variants": {"": {"model": "craftmaster:block/stanchion"}}})
     item_block("stanchion")
 
@@ -693,8 +664,7 @@ def generate(g):
 
     # ================================================================== loot, tags, sounds, recipes
     blocks = ["throne", "floor_lamp", "desk_lamp", "ceiling_pendant", "spotlight", "on_air_sign",
-              "timer_display", "contestant_desk", "desk_bell", "gong", "prize_table", "podium_first", "podium_second",
-              "podium_third", "stanchion"]
+              "timer_display", "contestant_desk", "desk_bell", "gong", "prize_table", "stanchion"]
     for b in blocks:
         loot(b)
     # Axe: the chairs (written again with them) and the wooden studio pieces
@@ -703,7 +673,7 @@ def generate(g):
                                                         ("throne", "contestant_desk", "gong", "prize_table")]})
     wj(os.path.join(D, "minecraft/tags/block/mineable/pickaxe.json"), {"replace": False, "values": [
         f"craftmaster:{b}" for b in ("floor_lamp", "desk_lamp", "ceiling_pendant", "spotlight", "on_air_sign", "timer_display",
-                                     "desk_bell", "podium_first", "podium_second", "podium_third", "stanchion")]})
+                                     "desk_bell", "stanchion")]})
 
     # Sounds: vanilla sounds re-pitched, replaceable by a resource pack (same event names)
     g.SOUNDS.update({
@@ -727,9 +697,6 @@ def generate(g):
     shaped("desk_bell", ["N", "G", "S"], {"N": "minecraft:gold_nugget", "G": "minecraft:gold_ingot", "S": "#minecraft:wooden_slabs"}, "desk_bell", 1, "redstone")
     shaped("gong", ["SSS", "SGS", "S S"], {"S": "minecraft:stick", "G": "minecraft:gold_block"}, "gong", 1, "misc")
     shaped("prize_table", ["RRR", "PNP", "P P"], {"R": "minecraft:red_wool", "P": "#minecraft:planks", "N": "minecraft:gold_nugget"}, "prize_table", 1, "building")
-    shaped("podium_first", ["GGG", "QQQ", "QQQ"], {"G": "minecraft:gold_ingot", "Q": "minecraft:quartz_block"}, "podium_first", 1, "building")
-    shaped("podium_second", ["III", "QQQ"], {"I": "minecraft:iron_ingot", "Q": "minecraft:quartz_block"}, "podium_second", 1, "building")
-    shaped("podium_third", ["CCC", "QQQ"], {"C": "minecraft:copper_ingot", "Q": "minecraft:quartz_slab"}, "podium_third", 1, "building")
     shaped("stanchion", ["N", "S", "G"], {"N": "minecraft:gold_nugget", "S": "minecraft:stick", "G": "minecraft:gold_ingot"}, "stanchion", 2, "building")
 
     # ================================================================== translations
@@ -745,9 +712,6 @@ def generate(g):
         "desk_bell": ("Counter Bell", "Sonnette de comptoir"),
         "gong": ("Gong", "Gong"),
         "prize_table": ("Prize Table", "Table des prix"),
-        "podium_first": ("Podium (1st)", "Podium (1er)"),
-        "podium_second": ("Podium (2nd)", "Podium (2e)"),
-        "podium_third": ("Podium (3rd)", "Podium (3e)"),
         "stanchion": ("Rope Stanchion", "Poteau à cordon"),
     }
     for b, (e, f) in names.items():
