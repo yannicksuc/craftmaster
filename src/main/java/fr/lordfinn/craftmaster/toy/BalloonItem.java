@@ -52,6 +52,12 @@ public class BalloonItem extends Item {
         stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(Balloons.fullness(size)), List.of(), List.of(), List.of()));
     }
 
+    /** A balloon dyed an in-between colour takes the nearest dye's (it has one texture per dye). */
+    @Override
+    public void inventoryTick(ItemStack stack, ServerLevel level, net.minecraft.world.entity.Entity owner, net.minecraft.world.entity.EquipmentSlot slot) {
+        Toys.snapDyeColour(stack);
+    }
+
     @Override
     public InteractionResult useOn(UseOnContext ctx) {
         ItemStack stack = ctx.getItemInHand();

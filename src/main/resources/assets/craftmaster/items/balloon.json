@@ -6,14 +6,127 @@
       {
         "when": "none",
         "model": {
-          "type": "minecraft:model",
-          "model": "craftmaster:item/toy/balloon",
-          "tints": [
+          "type": "minecraft:select",
+          "property": "minecraft:component",
+          "component": "minecraft:dyed_color",
+          "cases": [
             {
-              "type": "minecraft:dye",
-              "default": -5231066
+              "when": 16383998,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_white"
+              }
+            },
+            {
+              "when": 16351261,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_orange"
+              }
+            },
+            {
+              "when": 13061821,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_magenta"
+              }
+            },
+            {
+              "when": 3847130,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_light_blue"
+              }
+            },
+            {
+              "when": 16701501,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_yellow"
+              }
+            },
+            {
+              "when": 8439583,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_lime"
+              }
+            },
+            {
+              "when": 15961002,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_pink"
+              }
+            },
+            {
+              "when": 4673362,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_gray"
+              }
+            },
+            {
+              "when": 10329495,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_light_gray"
+              }
+            },
+            {
+              "when": 1481884,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_cyan"
+              }
+            },
+            {
+              "when": 8991416,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_purple"
+              }
+            },
+            {
+              "when": 3949738,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_blue"
+              }
+            },
+            {
+              "when": 8606770,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_brown"
+              }
+            },
+            {
+              "when": 6192150,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_green"
+              }
+            },
+            {
+              "when": 11546150,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_red"
+              }
+            },
+            {
+              "when": 1908001,
+              "model": {
+                "type": "minecraft:model",
+                "model": "craftmaster:item/toy/balloon_black"
+              }
             }
-          ]
+          ],
+          "fallback": {
+            "type": "minecraft:model",
+            "model": "craftmaster:item/toy/balloon_red"
+          }
         }
       }
     ],
@@ -25,39 +138,378 @@
         {
           "threshold": 0.3,
           "model": {
-            "type": "minecraft:model",
-            "model": "craftmaster:item/toy/balloon_1",
-            "tints": [
+            "type": "minecraft:select",
+            "property": "minecraft:component",
+            "component": "minecraft:dyed_color",
+            "cases": [
               {
-                "type": "minecraft:dye",
-                "default": -5231066
+                "when": 16383998,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_white"
+                }
+              },
+              {
+                "when": 16351261,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_orange"
+                }
+              },
+              {
+                "when": 13061821,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_magenta"
+                }
+              },
+              {
+                "when": 3847130,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_light_blue"
+                }
+              },
+              {
+                "when": 16701501,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_yellow"
+                }
+              },
+              {
+                "when": 8439583,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_lime"
+                }
+              },
+              {
+                "when": 15961002,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_pink"
+                }
+              },
+              {
+                "when": 4673362,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_gray"
+                }
+              },
+              {
+                "when": 10329495,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_light_gray"
+                }
+              },
+              {
+                "when": 1481884,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_cyan"
+                }
+              },
+              {
+                "when": 8991416,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_purple"
+                }
+              },
+              {
+                "when": 3949738,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_blue"
+                }
+              },
+              {
+                "when": 8606770,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_brown"
+                }
+              },
+              {
+                "when": 6192150,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_green"
+                }
+              },
+              {
+                "when": 11546150,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_red"
+                }
+              },
+              {
+                "when": 1908001,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_1_black"
+                }
               }
-            ]
+            ],
+            "fallback": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_1_red"
+            }
           }
         },
         {
           "threshold": 0.65,
           "model": {
-            "type": "minecraft:model",
-            "model": "craftmaster:item/toy/balloon_2",
-            "tints": [
+            "type": "minecraft:select",
+            "property": "minecraft:component",
+            "component": "minecraft:dyed_color",
+            "cases": [
               {
-                "type": "minecraft:dye",
-                "default": -5231066
+                "when": 16383998,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_white"
+                }
+              },
+              {
+                "when": 16351261,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_orange"
+                }
+              },
+              {
+                "when": 13061821,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_magenta"
+                }
+              },
+              {
+                "when": 3847130,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_light_blue"
+                }
+              },
+              {
+                "when": 16701501,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_yellow"
+                }
+              },
+              {
+                "when": 8439583,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_lime"
+                }
+              },
+              {
+                "when": 15961002,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_pink"
+                }
+              },
+              {
+                "when": 4673362,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_gray"
+                }
+              },
+              {
+                "when": 10329495,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_light_gray"
+                }
+              },
+              {
+                "when": 1481884,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_cyan"
+                }
+              },
+              {
+                "when": 8991416,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_purple"
+                }
+              },
+              {
+                "when": 3949738,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_blue"
+                }
+              },
+              {
+                "when": 8606770,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_brown"
+                }
+              },
+              {
+                "when": 6192150,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_green"
+                }
+              },
+              {
+                "when": 11546150,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_red"
+                }
+              },
+              {
+                "when": 1908001,
+                "model": {
+                  "type": "minecraft:model",
+                  "model": "craftmaster:item/toy/balloon_2_black"
+                }
               }
-            ]
+            ],
+            "fallback": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_2_red"
+            }
           }
         }
       ],
       "fallback": {
-        "type": "minecraft:model",
-        "model": "craftmaster:item/toy/balloon_0",
-        "tints": [
+        "type": "minecraft:select",
+        "property": "minecraft:component",
+        "component": "minecraft:dyed_color",
+        "cases": [
           {
-            "type": "minecraft:dye",
-            "default": -5231066
+            "when": 16383998,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_white"
+            }
+          },
+          {
+            "when": 16351261,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_orange"
+            }
+          },
+          {
+            "when": 13061821,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_magenta"
+            }
+          },
+          {
+            "when": 3847130,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_light_blue"
+            }
+          },
+          {
+            "when": 16701501,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_yellow"
+            }
+          },
+          {
+            "when": 8439583,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_lime"
+            }
+          },
+          {
+            "when": 15961002,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_pink"
+            }
+          },
+          {
+            "when": 4673362,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_gray"
+            }
+          },
+          {
+            "when": 10329495,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_light_gray"
+            }
+          },
+          {
+            "when": 1481884,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_cyan"
+            }
+          },
+          {
+            "when": 8991416,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_purple"
+            }
+          },
+          {
+            "when": 3949738,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_blue"
+            }
+          },
+          {
+            "when": 8606770,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_brown"
+            }
+          },
+          {
+            "when": 6192150,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_green"
+            }
+          },
+          {
+            "when": 11546150,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_red"
+            }
+          },
+          {
+            "when": 1908001,
+            "model": {
+              "type": "minecraft:model",
+              "model": "craftmaster:item/toy/balloon_0_black"
+            }
           }
-        ]
+        ],
+        "fallback": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/balloon_0_red"
+        }
       }
     }
   }

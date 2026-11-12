@@ -91,7 +91,7 @@ public class ToyEntity extends Entity {
 
     public void setStack(ItemStack stack) {
         ItemStack one = stack.copyWithCount(1);
-        Toys.snapDuckColour(one);
+        Toys.snapDyeColour(one);
         entityData.set(STACK, one);
         if (stack.getItem() instanceof ToyItem t) kind = t.kind();
         refreshDimensions();

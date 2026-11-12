@@ -43,7 +43,9 @@ public class BalloonEntity extends Entity {
 
     public static BalloonEntity create(ServerLevel level, ItemStack stack, float size, Vec3 pos, ServerPlayer by) {
         BalloonEntity b = new BalloonEntity(Toys.BALLOON_ENTITY, level);
-        b.entityData.set(STACK, stack.copyWithCount(1));
+        ItemStack one = stack.copyWithCount(1);
+        Toys.snapDyeColour(one);
+        b.entityData.set(STACK, one);
         b.entityData.set(SIZE, size);
         b.placedBy = Toys.who(by);
         b.setPos(pos);

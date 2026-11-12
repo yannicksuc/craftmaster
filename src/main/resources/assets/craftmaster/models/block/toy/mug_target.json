@@ -3,9 +3,9 @@
   "textures": {
     "tex": "craftmaster:block/toy/mug_target_side",
     "top": "craftmaster:block/toy/mug_target_top",
-    "bottom": "craftmaster:block/toy/mug_target_side",
     "inside": "craftmaster:block/toy/mug_target_inside",
-    "inside_bottom": "craftmaster:block/toy/mug_target_inside",
+    "inside_bottom": "craftmaster:block/toy/mug_target_inside_bottom",
+    "bottom": "craftmaster:block/toy/mug_target_bottom",
     "particle": "craftmaster:block/toy/mug_target_side",
     "handle": "craftmaster:block/toy/mug_target_handle"
   },

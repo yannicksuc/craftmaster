@@ -23,6 +23,13 @@ Canard, balle, sachet, œuf et balle de golf se manient pareil :
 | Marcher dedans | On le pousse (une balle surtout). |
 | Distributeur | Il lance l'objet devant lui (machines qui envoient des balles aux candidats). |
 
+**Apparence** : un seul modèle par objet, le moins de cubes possible. La couleur d'un objet teint (canard, balle,
+sachet, ballon) n'est pas une teinte appliquée sur du gris : chaque couleur de teinture a sa texture peinte, avec le
+même ombrage et des teintes décalées (plus chaudes ou plus violettes dans l'ombre, plus pâles dans la lumière). Un
+objet teint de plusieurs teintures prend la couleur de teinture la plus proche. Les autres reprennent les palettes
+du jeu : l'acier du seau, l'œuf, la vitre, le bloc cible, le quartz ; le trou de golf **est** le bloc d'herbe du jeu
+(mêmes textures, couleur du biome) avec un trou au milieu.
+
 Ils ne sont pas des mobs : pas d'IA, pas de vie, ils ne disparaissent jamais. Dans l'eau, ceux qui flottent
 (canard, balle) restent à la surface et **suivent le courant** ; les autres coulent. La lave les détruit.
 
@@ -111,7 +118,8 @@ cassé (choc d'une chute de 4,3 blocs) » pour les organisateurs.
   d'attaque (la barre sous le viseur : attendre une seconde pour un plein coup, environ vingt-cinq blocs en l'air
   et au sol) ; **accroupi** = un putt, qui reste au sol (une dizaine de blocs au plus fort). « ⛳ Coup 3 (putt) ·
   force 60 % ».
-- **Trou de golf** : un bloc de gazon ras avec un trou au milieu, à poser **à la place** d'un bloc du sol. Une
+- **Trou de golf** : un bloc d'herbe (celui du jeu, à la couleur du biome) avec un trou au milieu, à poser **à la
+  place** d'un bloc du sol. Une
   balle qui passe assez lentement sur le trou y tombe (trop vite, elle passe par-dessus) : « ⛳ Ensuri : dans le
   trou en 3 coups » chez les organisateurs, avec **[noter 3 coups]** et **[noter total …]** (tous ses trous depuis
   la remise à zéro), et « Dans le trou en 3 coups ! » pour le joueur.

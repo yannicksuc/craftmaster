@@ -192,11 +192,12 @@ public final class Toys {
     }
 
     /**
-     * A rubber duck has one painted texture per dye colour: a duck dyed with several dyes (an in-between colour) is
-     * given the nearest of the 16. Returns true if it changed.
+     * The dyeable toys and the balloon have one painted texture per dye colour: one dyed with several dyes (an
+     * in-between colour) is given the nearest of the 16. Returns true if it changed.
      */
-    public static boolean snapDuckColour(ItemStack stack) {
-        if (!(stack.getItem() instanceof ToyItem t) || t.kind() != ToyKind.DUCK) return false;
+    public static boolean snapDyeColour(ItemStack stack) {
+        boolean dyeable = stack.getItem() instanceof ToyItem t ? t.kind().dyeable : stack.is(BALLOON);
+        if (!dyeable) return false;
         DyedItemColor c = stack.get(DataComponents.DYED_COLOR);
         if (c == null) return false;
         int rgb = ToyPhysics.DYE_RGB[ToyPhysics.nearestDye(c.rgb())];

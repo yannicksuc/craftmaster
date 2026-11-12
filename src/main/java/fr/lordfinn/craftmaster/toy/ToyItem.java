@@ -101,10 +101,10 @@ public class ToyItem extends Item {
         return true;
     }
 
-    /** A duck dyed an in-between colour takes the nearest dye's (it has one texture per dye). */
+    /** A toy dyed an in-between colour takes the nearest dye's (it has one texture per dye). */
     @Override
     public void inventoryTick(ItemStack stack, ServerLevel level, net.minecraft.world.entity.Entity owner, net.minecraft.world.entity.EquipmentSlot slot) {
-        if (kind == ToyKind.DUCK) Toys.snapDuckColour(stack);
+        if (kind.dyeable) Toys.snapDyeColour(stack);
     }
 
     @Override

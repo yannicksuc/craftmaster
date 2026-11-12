@@ -371,146 +371,243 @@ def rubber_duck():
         "cases": cases, "fallback": {"type": "minecraft:model", "model": "craftmaster:item/toy/rubber_duck"}}})
 
 
-def small_cube(name, frm, to, side, top, bottom, tint_default=None, disp=None):
-    """A small round object as one cube: a 16×16 texture, side / top / bottom tiles."""
-    w, h, d = to[0] - frm[0], to[1] - frm[1], to[2] - frm[2]
-    im = img(16, 16)
-    paint(im, 0, 0, w, h, side)
-    paint(im, 0, 8, w, d, top)
-    paint(im, 8, 8, w, d, bottom)
-    write_png(os.path.join(A, f"textures/item/toy/{name}.png"), im)
+def hexs(*cs):
+    return [((c >> 16) & 255, (c >> 8) & 255, c & 255) for c in cs]
+
+
+# Ramps (darkest → lightest, 7 levels, 4 = the base) sampled from the game's own textures, so the objects sit
+# next to vanilla blocks: bucket item (steel), egg item, cauldron inside, target block, quartz, glass, dirt.
+STEEL_R = hexs(0x353535, 0x545454, 0x727272, 0x969696, 0xA8A8A8, 0xD8D8D8, 0xFFFFFF)
+EGG_R = hexs(0x554E3B, 0x746B51, 0x8E825B, 0xB3A57D, 0xDFCE9B, 0xF0E6C6, 0xFBF6E6)
+GOLF_R = hexs(0x7E8A94, 0x9CA6AE, 0xBAC2C8, 0xD4DADE, 0xE8ECEE, 0xF7F8F9, 0xFFFFFF)
+INNER_R = hexs(0x1E1E22, 0x27272B, 0x2D2D32, 0x343438, 0x3F3E42, 0x4F4F4F, 0x595858)
+CERAMIC_R = hexs(0x9C968C, 0xB8B2A8, 0xCFCAC0, 0xDDD9CB, 0xE9E5DE, 0xF2EFED, 0xFBFAF8)
+TARGET_RED = hexs(0x8E2424, 0xB93232, 0xC82F2F, 0xD53535)
+TARGET_CREAM = hexs(0xEBD7BA, 0xEFE2D0, 0xF7F2EB)
+GLASS_R = hexs(0x7BAEB7, 0x8BC1CD, 0xA8D0D9, 0xD0EAE9)
+NATURAL_BAG = 0xC9A66B
+# Inside of the mug: tea stains on the ceramic
+TEA_R = hexs(0x6E5A48, 0x7E6852, 0x8C765E, 0x9A8468, 0xA89274, 0xB8A284, 0xC8B296)
+
+
+def levels_img(L, ramp, w=None, h=None):
+    """A texture from a level map: ints index the ramp (clamped), tuples are fixed colours, None is transparent."""
+    h = h or len(L)
+    w = w or len(L[0])
+    im = img(w, h)
+    for y in range(h):
+        for x in range(w):
+            v = L[y][x]
+            if v is None:
+                continue
+            im[y][x] = rgba(v) if isinstance(v, tuple) else rgba(ramp[max(0, min(len(ramp) - 1, v))])
+    return im
+
+
+def lmap(w, h):
+    return [[None] * w for _ in range(h)]
+
+
+def put(L, x0, y0, w, h, fn):
+    for y in range(h):
+        for x in range(w):
+            v = fn(x, y, w, h)
+            L[y0 + y][x0 + x] = v
+
+
+def box_side(rows, salt=0, strokes=True):
+    """A side face of a soft box: one level per row (light on top, dark below, the change broken by 2-3 px
+    strokes of the upper tone), the vertical edges a step darker from the second row down, so the top row meets
+    the top face (painted at rows[0]) with the same pixels."""
+    def fn(x, y, w, h):
+        lv = rows[min(y, len(rows) - 1)]
+        if strokes and y > 0 and lv < rows[min(y - 1, len(rows) - 1)] and hash2(x // 3, y, salt) > 0.55:
+            lv += 1
+        if y > 0 and (x == 0 or x == w - 1):
+            lv -= 1
+        return lv
+    return fn
+
+
+def box_top(level, shine=()):
+    return lambda x, y, w, h: 6 if (x, y) in shine else level
+
+
+def box_bottom(level):
+    """Bottom face: its border at the side faces' bottom row level, the corners a step darker (the side edges)."""
+    return lambda x, y, w, h: level - (1 if x in (0, w - 1) and y in (0, h - 1) else 0)
+
+
+def dye_variants(name, L, w, h, natural=None):
+    """Writes the texture of a dyeable toy in the 16 dye colours (hue-shifted ramps) and, if given, its undyed
+    colour (natural); returns the texture id of the undyed look."""
+    for i, dye in enumerate(DYES):
+        write_png(os.path.join(A, f"textures/item/toy/{name}_{dye}.png"), levels_img(L, hue_ramp(DYE_RGB[i]), w, h))
+    if natural is not None:
+        write_png(os.path.join(A, f"textures/item/toy/{name}_natural.png"), levels_img(L, hue_ramp(natural), w, h))
+        return f"craftmaster:item/toy/{name}_natural"
+    return None
+
+
+def dye_select(model_for, fallback):
+    """Item model picking the model of the dye colour (minecraft:dyed_color); undyed → fallback."""
+    return {"type": "minecraft:select", "property": "minecraft:component", "component": "minecraft:dyed_color",
+            "cases": [{"when": signed(DYE_RGB[i]), "model": {"type": "minecraft:model", "model": model_for(dye)}}
+                      for i, dye in enumerate(DYES)],
+            "fallback": {"type": "minecraft:model", "model": fallback}}
+
+
+def cube_toy(name, frm, to, paint_fn, disp, ramp=None, dyed=False, default_dye=None, natural=None, tex_size=16):
+    """A small toy as one cube. paint_fn(L) fills the level map: side face at (0, 0), top at (0, 8), bottom at
+    (8, 8) (in texels). Dyed: 16 textures + an item model choosing by colour; otherwise one texture from ramp."""
+    w, hgt, d = to[0] - frm[0], to[1] - frm[1], to[2] - frm[2]
+    L = lmap(tex_size, tex_size)
+    paint_fn(L, w, hgt, d)
     t = "#tex"
-    tint = tint_default is not None
+    s = 16 / tex_size
     els = [box(frm, to, {
-        "up": face(t, uv(0, 8, w, d), tint), "down": face(t, uv(8, 8, w, d), tint),
-        "north": face(t, uv(0, 0, w, h), tint), "south": face(t, uv(0, 0, w, h), tint),
-        "east": face(t, uv(0, 0, d, h), tint), "west": face(t, uv(0, 0, d, h), tint)})]
-    model(f"toy/{name}", {"textures": {"tex": f"craftmaster:item/toy/{name}", "particle": f"craftmaster:item/toy/{name}"},
-                          "elements": els, "display": disp})
-    item_def(name, f"craftmaster:item/toy/{name}", tint_default)
+        "up": face(t, uv(0, 8, w, d, s)), "down": face(t, uv(8, 8, w, d, s)),
+        "north": face(t, uv(0, 0, w, hgt, s)), "south": face(t, uv(0, 0, w, hgt, s)),
+        "east": face(t, uv(0, 0, d, hgt, s)), "west": face(t, uv(0, 0, d, hgt, s))})]
+    old = os.path.join(A, f"textures/item/toy/{name}.png")
+    if dyed:
+        nat = dye_variants(name, L, tex_size, tex_size, natural)
+        base_tex = nat or f"craftmaster:item/toy/{name}_{default_dye}"
+        if os.path.exists(old):
+            os.remove(old)
+        model(f"toy/{name}", {"textures": {"tex": base_tex, "particle": base_tex}, "elements": els, "display": disp})
+        for dye in DYES:
+            model(f"toy/{name}_{dye}", {"parent": f"craftmaster:item/toy/{name}",
+                                         "textures": {"tex": f"craftmaster:item/toy/{name}_{dye}",
+                                                      "particle": f"craftmaster:item/toy/{name}_{dye}"}})
+        write_json(os.path.join(A, f"items/{name}.json"), {"model": dye_select(
+            lambda dye: f"craftmaster:item/toy/{name}_{dye}",
+            f"craftmaster:item/toy/{name}" if nat else f"craftmaster:item/toy/{name}_{default_dye}")})
+    else:
+        write_png(old, levels_img(L, ramp, tex_size, tex_size))
+        model(f"toy/{name}", {"textures": {"tex": f"craftmaster:item/toy/{name}", "particle": f"craftmaster:item/toy/{name}"},
+                              "elements": els, "display": disp})
+        item_def(name, f"craftmaster:item/toy/{name}")
 
 
 def toys():
     rubber_duck()
-    # Bouncy ball: 4 px, round shading, a lighter band round the middle (rubber ball)
-    def ball_side(x, y, w, h):
-        c = round_face(TINT, 1.1)(x, y, w, h)
-        return ramp(TINT, 0.999) if (x, y) == (1, 0) else c
-    small_cube("bouncy_ball", [6, 0, 6], [10, 4, 10], ball_side, round_face(TINT, 1.2), round_face(TINT, 0.6), argb(0xB02E26),
-               display(gui=2.2, ground=0.8, hand=1.0, gui_y=2))
 
-    # Bean bag: 6×3×6, cloth with a stitched seam round the top
-    def bag_top(x, y, w, h):
-        edge = min(x, y, w - 1 - x, h - 1 - y)
-        if edge == 0:
-            return ramp(TINT, 0.45 if (x + y) % 2 == 0 else 0.6)   # stitches
-        t = 0.95 - ((x - 2.5) ** 2 + (y - 2.5) ** 2) * 0.03
-        return ramp(TINT, t if hash2(x, y, 7) < 0.85 else t - 0.12)
+    # Bouncy ball, 4 px: smooth rubber, a small shine off the edges
+    def ball(L, w, h, d):
+        put(L, 0, 0, w, h, lambda x, y, ww, hh: 6 if (x, y) == (1, 1) else box_side([5, 5, 4, 3])(x, y, ww, hh))
+        put(L, 0, 8, w, d, box_top(5, shine={(1, 1)}))
+        put(L, 8, 8, w, d, box_bottom(3))
+    cube_toy("bouncy_ball", [6, 0, 6], [10, 4, 10], ball, display(gui=2.2, ground=0.8, hand=1.0, gui_y=2),
+             dyed=True, default_dye="red")
 
-    def bag_side(x, y, w, h):
-        if y == 0:
-            return ramp(TINT, 0.6 if x % 2 == 0 else 0.45)
-        return ramp(TINT, 0.78 - y * 0.18)
-    small_cube("bean_bag", [5, 0, 5], [11, 3, 11], bag_side, bag_top, lambda x, y, w, h: ramp(TINT, 0.3), argb(0xC9A66B),
-               display(gui=1.8, ground=0.7, hand=0.9, gui_y=2.5))
+    # Bean bag, 6×3×6: matte cloth, a running stitch one pixel inside the top's border, no shine
+    def bag(L, w, h, d):
+        put(L, 0, 0, w, h, box_side([5, 4, 4], salt=5))
 
-    # Fragile egg: 4×5×4, cream, rounded by cutting the top corners (cutout), a few faint speckles
-    def egg_side(x, y, w, h):
-        if y == 0 and x in (0, w - 1):
-            return None
-        t = 0.95 - y * 0.12 - (0.12 if x in (0, w - 1) else 0)
-        if (x, y) == (1, 1):
-            t = 0.999
-        if (x, y) in ((2, 3), (1, 4)):
-            t -= 0.2
-        return ramp(CREAM, t)
+        def top(x, y, ww, hh):
+            # The seam: a continuous line one pixel inside the border, the cushion inside it lit
+            if min(x, y, ww - 1 - x, hh - 1 - y) == 1:
+                return 4
+            return 5
+        put(L, 0, 8, w, d, top)
+        put(L, 8, 8, w, d, box_bottom(4))
+    cube_toy("bean_bag", [5, 0, 5], [11, 3, 11], bag, display(gui=1.8, ground=0.7, hand=0.9, gui_y=2.5),
+             dyed=True, natural=NATURAL_BAG)
 
-    def egg_top(x, y, w, h):
-        if x in (0, w - 1) and y in (0, h - 1):
-            return None
-        return ramp(CREAM, 0.95 if (x, y) == (1, 1) else 0.8)
-    small_cube("fragile_egg", [6, 0, 6], [10, 5, 10], egg_side, egg_top, lambda x, y, w, h: ramp(CREAM, 0.35), None,
-               display(gui=2.0, ground=0.8, hand=0.9, gui_y=1.5))
+    # Fragile egg, 4×5×4, the game's egg colours; rounded by cutting the top corners (cut-out)
+    def egg(L, w, h, d):
+        def side(x, y, ww, hh):
+            if y == 0 and x in (0, ww - 1):
+                return None
+            if (x, y) == (1, 1):
+                return 6
+            return box_side([5, 5, 4, 4, 3], salt=7)(x, y, ww, hh)
+        put(L, 0, 0, w, h, side)
+        put(L, 0, 8, w, d, lambda x, y, ww, hh: None if x in (0, ww - 1) and y in (0, hh - 1) else (6 if (x, y) == (1, 1) else 5))
+        put(L, 8, 8, w, d, box_bottom(3))
+    cube_toy("fragile_egg", [6, 0, 6], [10, 5, 10], egg, display(gui=2.0, ground=0.8, hand=0.9, gui_y=1.5), ramp=EGG_R)
 
-    # Golf ball: 3 px, white, dimples by a darker centre pixel
-    def golf(x, y, w, h):
-        if (x, y) == (1, 1):
-            return ramp(WHITE, 0.55)
-        return ramp(WHITE, 0.95 - (0.25 if x == w - 1 or y == h - 1 else 0) - (0.15 if (x, y) == (0, 0) else 0))
-    small_cube("golf_ball", [6, 0, 6], [9, 3, 9], golf, golf, lambda x, y, w, h: ramp(WHITE, 0.3), None,
-               display(gui=2.6, ground=1.0, hand=1.1, gui_y=2.5))
+    # Golf ball, 3 px: white with cool grey shading, a shine on top
+    def golf(L, w, h, d):
+        put(L, 0, 0, w, h, box_side([5, 4, 3], strokes=False))
+        put(L, 0, 8, w, d, box_top(5, shine={(1, 1)}))
+        put(L, 8, 8, w, d, box_bottom(3))
+    cube_toy("golf_ball", [6, 0, 6], [9, 3, 9], golf, display(gui=2.6, ground=1.0, hand=1.1, gui_y=2.5), ramp=GOLF_R)
 
     golf_club()
     balloon()
 
 
 def golf_club():
-    """Flat handheld sprite: black grip bottom left, steel shaft, a putter head top right."""
+    """Flat handheld sprite in the game's tool colours: black rubber grip bottom left, iron shaft, iron putter head
+    top right (light top edge, dark bottom edge, like the iron tools)."""
+    GRIP = hexs(0x181818, 0x2A2A2A, 0x3C3C3C)
     im = img(16, 16)
     for i in range(12):
         x, y = 2 + i, 13 - i
         if i < 4:
-            im[y][x] = rgba(GRIP[2 if i % 2 == 0 else 1])
+            im[y][x] = rgba(GRIP[2] if i % 2 == 0 else GRIP[1])
             im[y + 1][x] = rgba(GRIP[0])
         else:
-            im[y][x] = rgba(STEEL[4])
-            im[y + 1][x] = rgba(STEEL[1])
-    # Head: 5×2 block, light top, dark bottom, outline in the darkest steel
+            im[y][x] = rgba(STEEL_R[5])
+            im[y + 1][x] = rgba(STEEL_R[2])
     for y in range(1, 4):
         for x in range(10, 16):
-            c = STEEL[5] if y == 1 else STEEL[3] if y == 2 else STEEL[1]
+            c = STEEL_R[6] if y == 1 else STEEL_R[4] if y == 2 else STEEL_R[2]
             if x in (10, 15):
-                c = STEEL[0]
+                c = STEEL_R[1]
             im[y][x] = rgba(c)
-    im[0][11:15] = [rgba(STEEL[0])] * 4
-    im[4][11:15] = [rgba(STEEL[0])] * 4
+    im[0][11:15] = [rgba(STEEL_R[1])] * 4
+    im[4][11:15] = [rgba(STEEL_R[0])] * 4
     write_png(os.path.join(A, "textures/item/toy/golf_club.png"), im)
     model("toy/golf_club", {"parent": "minecraft:item/handheld", "textures": {"layer0": "craftmaster:item/toy/golf_club"}})
     item_def("golf_club", "craftmaster:item/toy/golf_club")
 
 
 def balloon():
-    """Body 8×10×8 and knot 2×2×2 (two cubes), all tinted. One shape, three hand sizes by its fullness."""
-    im = img(32, 32)
+    """Body 8×10×8 and knot 2×2×2, one shape for every colour (16 painted textures), three hand sizes."""
+    L = lmap(32, 32)
 
     def side(x, y, w, h):
-        cx, cy = (x + 0.5) / w - 0.36, (y + 0.5) / h - 0.32
-        d = math.sqrt(cx * cx + cy * cy)
-        t = 1.02 - d * 1.25
-        if (x, y) in ((2, 2), (2, 3), (3, 2)):
-            t = 1.2  # shine
-        if y == h - 1 and x in (0, w - 1) or y == 0 and x in (0, w - 1):
-            t -= 0.4
-        elif x in (0, w - 1):
-            t -= 0.12
-        return ramp(TINT, max(0.0, min(0.999, t)))
-    paint(im, 0, 0, 8, 10, side)
-    paint(im, 8, 0, 8, 10, side)
-    paint(im, 16, 0, 8, 8, round_face(TINT, 1.15))
-    paint(im, 16, 8, 8, 8, lambda x, y, w, h: ramp(TINT, 0.2 if 3 <= x <= 4 and 3 <= y <= 4 else 0.35))
-    paint(im, 24, 0, 2, 2, lambda x, y, w, h: ramp(TINT, 0.55 - y * 0.2))
-    write_png(os.path.join(A, "textures/item/toy/balloon.png"), im)
+        if 2 <= x <= 3 and 2 <= y <= 4:
+            return 6       # the shine of stretched rubber: a soft upright patch, top left
+        if x == 4 and 2 <= y <= 3:
+            return 5
+        return box_side([5, 5, 5, 5, 4, 4, 4, 4, 3, 3], salt=9)(x, y, w, h)
+    put(L, 0, 0, 8, 10, side)
+    put(L, 16, 0, 8, 8, box_top(5, shine={(2, 2), (3, 2), (2, 3), (3, 3)}))
+    put(L, 16, 8, 8, 8, lambda x, y, w, h: 2 if 3 <= x <= 4 and 3 <= y <= 4 else box_bottom(3)(x, y, w, h))
+    put(L, 24, 0, 2, 2, lambda x, y, w, h: 3 if y == 0 else 2)
+    dye_variants("balloon", L, 32, 32)
+    old = os.path.join(A, "textures/item/toy/balloon.png")
+    if os.path.exists(old):
+        os.remove(old)
     t, s = "#tex", 0.5
     els = [
-        box([4, 2, 4], [12, 12, 12], {
-            "north": face(t, uv(0, 0, 8, 10, s), True), "south": face(t, uv(8, 0, 8, 10, s), True),
-            "east": face(t, uv(8, 0, 8, 10, s), True), "west": face(t, uv(0, 0, 8, 10, s), True),
-            "up": face(t, uv(16, 0, 8, 8, s), True), "down": face(t, uv(16, 8, 8, 8, s), True)}),
-        box([7, 0, 7], [9, 2, 9], {d: face(t, uv(24, 0, 2, 2, s), True) for d in ("north", "south", "east", "west", "down")}),
+        box([4, 2, 4], [12, 12, 12], {d: face(t, uv(0, 0, 8, 10, s)) for d in ("north", "south", "east", "west")}
+            | {"up": face(t, uv(16, 0, 8, 8, s)), "down": face(t, uv(16, 8, 8, 8, s))}),
+        box([7, 0, 7], [9, 2, 9], {d: face(t, uv(24, 0, 2, 2, s)) for d in ("north", "south", "east", "west", "down")}),
     ]
-    tex = {"tex": "craftmaster:item/toy/balloon", "particle": "craftmaster:item/toy/balloon"}
-    model("toy/balloon", {"textures": tex, "elements": els})
+    red = "craftmaster:item/toy/balloon_red"
+    model("toy/balloon", {"textures": {"tex": red, "particle": red}, "elements": els})
+    sizes = []
     for i, k in enumerate((0.55, 0.85, 1.25)):
         model(f"toy/balloon_{i}", {"parent": "craftmaster:item/toy/balloon",
                                    "display": display(gui=0.55 + i * 0.25, ground=0.4 + i * 0.15, hand=k, gui_y=-1)})
-    tints = [{"type": "minecraft:dye", "default": argb(0xB02E26)}]
+        sizes.append(i)
+    for dye in DYES:
+        tex = {"tex": f"craftmaster:item/toy/balloon_{dye}", "particle": f"craftmaster:item/toy/balloon_{dye}"}
+        model(f"toy/balloon_{dye}", {"parent": "craftmaster:item/toy/balloon", "textures": tex})
+        for i in sizes:
+            model(f"toy/balloon_{i}_{dye}", {"parent": f"craftmaster:item/toy/balloon_{i}", "textures": tex})
+    hand = lambda i: dye_select(lambda dye: f"craftmaster:item/toy/balloon_{i}_{dye}", f"craftmaster:item/toy/balloon_{i}_red")
     write_json(os.path.join(A, "items/balloon.json"), {"model": {
         "type": "minecraft:select", "property": "minecraft:display_context",
-        "cases": [{"when": "none", "model": {"type": "minecraft:model", "model": "craftmaster:item/toy/balloon", "tints": tints}}],
+        "cases": [{"when": "none", "model": dye_select(lambda dye: f"craftmaster:item/toy/balloon_{dye}", "craftmaster:item/toy/balloon_red")}],
         "fallback": {"type": "minecraft:range_dispatch", "property": "minecraft:custom_model_data", "index": 0,
-                     "entries": [{"threshold": 0.3, "model": {"type": "minecraft:model", "model": "craftmaster:item/toy/balloon_1", "tints": tints}},
-                                 {"threshold": 0.65, "model": {"type": "minecraft:model", "model": "craftmaster:item/toy/balloon_2", "tints": tints}}],
-                     "fallback": {"type": "minecraft:model", "model": "craftmaster:item/toy/balloon_0", "tints": tints}}}})
+                     "entries": [{"threshold": 0.3, "model": hand(1)}, {"threshold": 0.65, "model": hand(2)}],
+                     "fallback": hand(0)}}})
 
 
 # ================================================================ blocks
@@ -537,52 +634,54 @@ def loot(name):
         "random_sequence": f"craftmaster:blocks/{name}"})
 
 
-def block_item(name, mdl):
-    item_def(name, mdl)
-
-
 def golf_hole():
-    im = img(16, 16)
-
-    def top(x, y, w, h):
-        # Concentric square rings round the 6 px cup (rim, light ring, dark ring, black centre), corners softened
-        d = max(abs(x - 7.5), abs(y - 7.5))
-        corner = abs(x - 7.5) == abs(y - 7.5)
-        if d <= 2.5:
-            if d <= 1.5:
-                return (14, 12, 12, 255)
-            return (30, 26, 24, 255) if not corner else (44, 40, 36, 255)
-        if d <= 3.5:
-            return rgba(WHITE[3]) if not corner else rgba(FELT[3])
-        # Short mown stripes
-        t = 0.62 if (y // 2) % 2 == 0 else 0.5
-        if hash2(x, y, 3) > 0.9:
-            t += 0.15
-        return ramp(FELT, t)
-    paint(im, 0, 0, 16, 16, top)
-    write_png(os.path.join(A, "textures/block/toy/golf_hole_top.png"), im)
-    side = img(16, 16)
-
-    def sfn(x, y, w, h):
-        if y < 3:
-            return ramp(FELT, 0.6 - y * 0.12 if not (y == 2 and hash2(x, 0, 5) > 0.5) else 0.2)
-        return ramp(SOIL, 0.75 - (y - 3) * 0.04 + (0.15 if hash2(x // 2, y, 9) > 0.85 else 0))
-    paint(side, 0, 0, 16, 16, sfn)
-    write_png(os.path.join(A, "textures/block/toy/golf_hole_side.png"), side)
-    bottom = img(16, 16)
-    paint(bottom, 0, 0, 16, 16, lambda x, y, w, h: ramp(SOIL, 0.5 + (0.2 if hash2(x // 2, y, 4) > 0.8 else 0)))
-    write_png(os.path.join(A, "textures/block/toy/golf_hole_bottom.png"), bottom)
-    model("toy/golf_hole", {"parent": "minecraft:block/cube_bottom_top", "textures": {
-        "top": "craftmaster:block/toy/golf_hole_top", "side": "craftmaster:block/toy/golf_hole_side",
-        "bottom": "craftmaster:block/toy/golf_hole_bottom"}}, "block")
+    """The game's grass block (same textures, tinted by the biome like the grass around it: it disappears into the
+    lawn) with the cup as an overlay on top: square rings of the game's dirt, darker towards the black middle."""
+    DIRT = hexs(0x2A1C12, 0x3E2A1C, 0x593D29, 0x79553A)
+    cup = img(16, 16)
+    for y in range(16):
+        for x in range(16):
+            dx, dy = abs(x - 7.5), abs(y - 7.5)
+            d = max(dx, dy)
+            corner = dx == dy
+            if d > 3.5:
+                continue
+            if d > 2.5:   # the cut edge of the turf, lit on the far side, in shade on the near side
+                c = DIRT[3] if y < 8 else DIRT[2]
+                if corner:
+                    continue  # rounded: the corners stay grass
+            elif d > 1.5:
+                c = DIRT[1]
+            else:
+                c = DIRT[0]
+            cup[y][x] = rgba(c)
+    write_png(os.path.join(A, "textures/block/toy/golf_hole_cup.png"), cup)
+    for old in ("golf_hole_top", "golf_hole_side", "golf_hole_bottom"):
+        p = os.path.join(A, f"textures/block/toy/{old}.png")
+        if os.path.exists(p):
+            os.remove(p)
+    full = {"from": [0, 0, 0], "to": [16, 16, 16], "faces": {
+        "down": {"uv": [0, 0, 16, 16], "texture": "#bottom", "cullface": "down"},
+        "up": {"uv": [0, 0, 16, 16], "texture": "#top", "cullface": "up", "tintindex": 0},
+        **{d: {"uv": [0, 0, 16, 16], "texture": "#side", "cullface": d} for d in ("north", "south", "east", "west")}}}
+    overlay = {"from": [0, 0, 0], "to": [16, 16, 16], "faces": {
+        d: {"uv": [0, 0, 16, 16], "texture": "#overlay", "tintindex": 0, "cullface": d} for d in ("north", "south", "east", "west")}}
+    cup_el = {"from": [0, 16.02, 0], "to": [16, 16.02, 16], "faces": {"up": {"uv": [0, 0, 16, 16], "texture": "#cup", "cullface": "up"}}}
+    model("toy/golf_hole", {"parent": "minecraft:block/block", "textures": {
+        "particle": "minecraft:block/dirt", "bottom": "minecraft:block/dirt", "top": "minecraft:block/grass_block_top",
+        "side": "minecraft:block/grass_block_side", "overlay": "minecraft:block/grass_block_side_overlay",
+        "cup": "craftmaster:block/toy/golf_hole_cup"}, "elements": [full, overlay, cup_el]}, "block")
     simple_blockstate("golf_hole")
-    block_item("golf_hole", "craftmaster:block/toy/golf_hole")
+    write_json(os.path.join(A, "items/golf_hole.json"), {"model": {
+        "type": "minecraft:model", "model": "craftmaster:block/toy/golf_hole",
+        "tints": [{"type": "minecraft:grass", "downfall": 1.0, "temperature": 0.5}]}})
     loot("golf_hole")
 
 
-def hollow(name, a, b, height, wall, out_side, out_top, inside, bottom_tex, extra=(), disp=None):
-    """A hollow container in one cube (outer faces, the top as a ring with a cut-out middle) and planes facing in
-    for the inner walls and floor, a tone darker."""
+def hollow(name, a, b, height, wall, side_fn, rim_level, ramp, inner_ramp, extra=(), disp=None, extra_tex=None):
+    """A hollow container in one cube: outer faces, the top as a ring (the wall's thickness) with a cut-out middle,
+    and planes facing in for the inner walls and floor, in the darker inner ramp. The ring is painted at the side
+    faces' top-row level, so the rim reads as one edge."""
     w = b - a
     t = "#tex"
     els = [box([a, 0, a], [b, height, b], {
@@ -590,148 +689,178 @@ def hollow(name, a, b, height, wall, out_side, out_top, inside, bottom_tex, extr
         "east": face(t, uv(0, 0, w, height, 1.0)), "west": face(t, uv(0, 0, w, height, 1.0)),
         "up": face("#top", [a, a, b, b]), "down": face("#bottom", [a, a, b, b], cull="down")})]
     i0, i1 = a + wall, b - wall
-    # Inner walls: planes facing inwards (a plane is an element of zero thickness on one axis)
     els.append(box([i0, wall, i1], [i1, height, i1], {"north": face("#inside", [i0, 16 - height, i1, 16 - wall])}))
     els.append(box([i0, wall, i0], [i1, height, i0], {"south": face("#inside", [i0, 16 - height, i1, 16 - wall])}))
     els.append(box([i0, wall, i0], [i0, height, i1], {"east": face("#inside", [i0, 16 - height, i1, 16 - wall])}))
     els.append(box([i1, wall, i0], [i1, height, i1], {"west": face("#inside", [i0, 16 - height, i1, 16 - wall])}))
     els.append(box([i0, wall, i0], [i1, wall, i1], {"up": face("#inside_bottom", [i0, i0, i1, i1])}))
     els.extend(extra)
-    model(f"toy/{name}", {"parent": "minecraft:block/block", "textures": {
-        "tex": f"craftmaster:block/toy/{name}_side", "top": f"craftmaster:block/toy/{name}_top",
-        "bottom": bottom_tex, "inside": f"craftmaster:block/toy/{name}_inside",
-        "inside_bottom": f"craftmaster:block/toy/{name}_inside", "particle": f"craftmaster:block/toy/{name}_side",
-        **({"handle": f"craftmaster:block/toy/{name}_handle"} if extra else {})},
-        "elements": els, **({"display": disp} if disp else {})}, "block")
-    # Textures: side (w × height at the top-left), top ring (full 16 × 16 at the block's coordinates), inside
-    side = img(16, 16)
-    paint(side, 0, 0, w, height, out_side)
-    write_png(os.path.join(A, f"textures/block/toy/{name}_side.png"), side)
+    tex = {"tex": f"craftmaster:block/toy/{name}_side", "top": f"craftmaster:block/toy/{name}_top",
+           "inside": f"craftmaster:block/toy/{name}_inside", "inside_bottom": f"craftmaster:block/toy/{name}_inside_bottom",
+           "bottom": f"craftmaster:block/toy/{name}_bottom",
+           "particle": f"craftmaster:block/toy/{name}_side"}
+    if extra_tex:
+        tex.update(extra_tex)
+    model(f"toy/{name}", {"parent": "minecraft:block/block", "textures": tex, "elements": els,
+                          **({"display": disp} if disp else {})}, "block")
+    L = lmap(16, 16)
+    put(L, 0, 0, w, height, side_fn)
+    write_png(os.path.join(A, f"textures/block/toy/{name}_side.png"), levels_img(L, ramp))
+    # Top ring (also used underneath: the ring's outer border is the bottom row's level there is no need to see)
     top = img(16, 16)
     for y in range(16):
         for x in range(16):
-            if a <= x < b and a <= y < b:
-                ring = not (i0 <= x < i1 and i0 <= y < i1)
-                top[y][x] = out_top(x - a, y - a, w, w) if ring else T
-    write_png(os.path.join(A, f"textures/block/toy/{name}_top.png"), top)
+            if a <= x < b and a <= y < b and not (i0 <= x < i1 and i0 <= y < i1):
+                top[y][x] = rgba(ramp[rim_level])
+            elif i0 <= x < i1 and i0 <= y < i1:
+                top[y][x] = rgba(inner_ramp[2])   # the floor seen from below / the hollow (only for the bottom face)
+    # The bottom face reuses the top texture; make the centre of the top transparent by a separate texture
+    ring = [[top[y][x] if not (i0 <= x < i1 and i0 <= y < i1) else T for x in range(16)] for y in range(16)]
+    write_png(os.path.join(A, f"textures/block/toy/{name}_top.png"), ring)
+    bottom = [[rgba(ramp[2]) if a <= x < b and a <= y < b else T for x in range(16)] for y in range(16)]
+    write_png(os.path.join(A, f"textures/block/toy/{name}_bottom.png"), bottom)
+    # Inner walls: dark at the bottom, lighter near the rim (light falls in from above)
     ins = img(16, 16)
-    paint(ins, 0, 0, 16, 16, inside)
+    for y in range(16):
+        for x in range(16):
+            yy = y - (16 - height)   # 0 at the rim
+            ins[y][x] = rgba(inner_ramp[max(0, min(6, 5 - (yy * 4) // max(1, height - 1)))])
     write_png(os.path.join(A, f"textures/block/toy/{name}_inside.png"), ins)
+    fl = img(16, 16)
+    for y in range(16):
+        for x in range(16):
+            edge = min(x - i0, y - i0, i1 - 1 - x, i1 - 1 - y) == 0
+            fl[y][x] = rgba(inner_ramp[0 if edge else 1])
+    write_png(os.path.join(A, f"textures/block/toy/{name}_inside_bottom.png"), fl)
     facing_blockstate(name)
-    block_item(name, f"craftmaster:block/toy/{name}")
+    item_def(name, f"craftmaster:block/toy/{name}")
     loot(name)
 
 
-def bullseye(cx, cy, x, y):
-    """A small red and white target sticker (square rings), or None outside it."""
-    d = max(abs(x - cx), abs(y - cy))
-    if d > 1.5:
-        return None
-    if d <= 0.5:
-        return rgba(RED[2])
-    return rgba(WHITE[4]) if abs(x - cx) != abs(y - cy) else rgba(RED[1])
+def target_sticker(cx, cy):
+    """A 5 px sticker of the game's target block (red ring, cream ring, red middle), square rings with soft corners."""
+    def fn(x, y):
+        dx, dy = abs(x - cx), abs(y - cy)
+        d = max(dx, dy)
+        if d > 2:
+            return None
+        if d == 2:
+            return None if dx == dy else TARGET_RED[1]
+        if d == 1:
+            return TARGET_CREAM[1] if dx != dy else TARGET_CREAM[0]
+        return TARGET_RED[3]
+    return fn
 
 
 def targets():
-    # Bucket: galvanised steel, two ridges, a target sticker on the front, a wire handle (a plane, both faces)
+    # Bucket: the game's bucket steel, a lit rim, a ridge, a target sticker, a wire handle (plane, both faces)
+    st = target_sticker(4, 4)
+
     def bucket_side(x, y, w, h):
-        s = bullseye(4.5, 4.5, x, y)
+        s = st(x, y)
         if s:
             return s
-        t = 0.85 - y * 0.06
-        if y in (0, 8):
-            t += 0.12 if y == 0 else -0.2
-        if y in (2, 6):
-            t -= 0.15
-        if x == 0 or x == w - 1:
-            t -= 0.1
-        return ramp(STEEL, t)
+        rows = [5, 3, 4, 5, 4, 4, 4, 3, 2]
+        lv = rows[y]
+        if y > 0 and (x == 0 or x == w - 1):
+            lv -= 1
+        return lv
     handle_tex = img(16, 16)
     for x in range(3, 13):
-        # an arc of wire from the rim up to 4 px above, round
         k = (x - 7.5) / 5.0
         hy = int(round(3.6 * (1 - k * k)))
-        handle_tex[15 - (9 + hy) + 0][x] = rgba(STEEL[2])
-    handle = box([3, 9, 8], [13, 14, 8], {"north": face("#handle", [3, 2, 13, 7]), "south": face("#handle", [13, 2, 3, 7])})
-    hollow("bucket_target", 3, 13, 9, 1, bucket_side, lambda x, y, w, h: ramp(STEEL, 0.95 if x in (0, w - 1) or y in (0, h - 1) else 0.6),
-           vertical(STEEL, 0.5, 0.15, False), "craftmaster:block/toy/bucket_target_side", [handle])
+        handle_tex[6 - hy][x] = rgba(STEEL_R[3])
     write_png(os.path.join(A, "textures/block/toy/bucket_target_handle.png"), handle_tex)
+    handle = box([3, 9, 8], [13, 14, 8], {"north": face("#handle", [3, 2, 13, 7]), "south": face("#handle", [13, 2, 3, 7])})
+    hollow("bucket_target", 3, 13, 9, 1, bucket_side, 5, STEEL_R, INNER_R, [handle],
+           extra_tex={"handle": "craftmaster:block/toy/bucket_target_handle"})
 
-    # Bin: dark green steel with vertical ribs and a light rim, a target sticker
+    # Bin: green painted steel (the game's green dye, toned down), vertical ribs, a lit rim, a target sticker
+    BIN_R = [(int(r * 0.82), int(g * 0.82), int(b_ * 0.82)) for r, g, b_ in hue_ramp(0x5E7C16)]
+    st2 = target_sticker(5, 6)
+
     def bin_side(x, y, w, h):
-        s = bullseye(5.5, 6.5, x, y)
+        s = st2(x, y)
         if s:
             return s
-        t = 0.75 - y * 0.03
         if y == 0:
-            t = 0.95
+            return 5
         if y == 1:
-            t = 0.4
-        if x % 3 == 1:
-            t += 0.12
-        if x % 3 == 2:
-            t -= 0.08
+            return 3
+        lv = 4 if y < h - 3 else 3
         if y == h - 1:
-            t -= 0.2
-        return ramp(GREEN_BIN, t)
-    hollow("bin_target", 2, 14, 15, 1, bin_side, lambda x, y, w, h: ramp(GREEN_BIN, 0.95),
-           vertical(GREEN_BIN, 0.35, 0.05, False), "craftmaster:block/toy/bin_target_side")
+            lv = 2
+        if 1 <= x <= w - 2 and x % 3 == 1:
+            lv += 1        # rib, lit
+        elif 1 <= x <= w - 2 and x % 3 == 2:
+            lv -= 1        # its shade
+        if x == 0 or x == w - 1:
+            lv -= 1
+        return lv
+    hollow("bin_target", 2, 14, 15, 1, bin_side, 5, BIN_R, INNER_R)
 
-    # Mug: white ceramic with a red band, a handle (plane with a C shape cut out)
+    # Mug: the game's quartz-white ceramic, a red band (target red), a handle (plane with a C shape)
     def mug_side(x, y, w, h):
-        if y in (1,):
-            return rgba(RED[2])
-        t = 0.9 - y * 0.07 - (0.15 if x in (0, w - 1) else 0)
-        return ramp(CERAMIC, t)
-    mug_handle_tex = img(16, 16)
-    for (x, y) in ((11, 11), (12, 11), (12, 12), (12, 13), (12, 14), (11, 14)):
-        mug_handle_tex[y][x] = rgba(CERAMIC[2])
-    mug_handle = box([11, 1, 8], [13, 5, 8], {"north": face("#handle", [11, 11, 13, 15]), "south": face("#handle", [13, 11, 11, 15])})
-    hollow("mug_target", 5, 11, 6, 1, mug_side, lambda x, y, w, h: ramp(CERAMIC, 0.99),
-           vertical(CERAMIC, 0.45, 0.15, False), "craftmaster:block/toy/mug_target_side", [mug_handle],
-           disp={**block_display(), "gui": {"rotation": [30, 225, 0], "translation": [0, 2, 0], "scale": [1.1, 1.1, 1.1]}})
-    write_png(os.path.join(A, "textures/block/toy/mug_target_handle.png"), mug_handle_tex)
+        if y == 1:
+            return TARGET_RED[1] if (x == 0 or x == w - 1) else TARGET_RED[2]
+        return box_side([5, 5, 5, 4, 4, 3], strokes=False)(x, y, w, h)
+    mug_handle = img(16, 16)
+    for (x, y) in ((11, 11), (12, 11), (12, 12), (12, 13), (11, 14), (12, 14)):
+        mug_handle[y][x] = rgba(CERAMIC_R[4] if y < 13 else CERAMIC_R[3])
+    write_png(os.path.join(A, "textures/block/toy/mug_target_handle.png"), mug_handle)
+    mh = box([11, 1, 8], [13, 5, 8], {"north": face("#handle", [11, 11, 13, 15]), "south": face("#handle", [13, 11, 11, 15])})
+    hollow("mug_target", 5, 11, 6, 1, mug_side, 5, CERAMIC_R, TEA_R,
+           [mh], disp={**block_display(), "gui": {"rotation": [30, 225, 0], "translation": [0, 2, 0], "scale": [1.1, 1.1, 1.1]}},
+           extra_tex={"handle": "craftmaster:block/toy/mug_target_handle"})
 
 
 def glasses():
-    """Measuring glass (6×10×6) and tank (14×16×14): translucent glass with white marks, water inside in 8 steps."""
+    """Measuring glass (6×10×6) and tank (14×16×14), drawn like the game's glass: an opaque light frame on the
+    edges and a couple of streaks, the rest clear (cut-out, no sorting trouble), white graduation marks on the
+    left; the tank's frame is the bucket's steel. Water inside in 8 steps, the game's water blue."""
     water = img(16, 16)
-    paint(water, 0, 0, 16, 16, lambda x, y, w, h: (52, 112, 214, 170) if y else (110, 170, 240, 200))
+    for y in range(16):
+        for x in range(16):
+            water[y][x] = (98, 148, 232, 205) if y == 0 else (63, 118, 228, 170)
     write_png(os.path.join(A, "textures/block/toy/measured_water.png"), water)
     for name, a, b, height, marks, frame in (("measuring_glass", 5, 11, 10, 4, False), ("measuring_tank", 1, 15, 16, 8, True)):
         w = b - a
-        glass = img(16, 16)
         top_y = 16 - height
-
-        def gfn(x, y, ww, hh, w=w, height=height, marks=marks, frame=frame):
-            yy = y - (16 - height)  # 0 = top of the glass
-            if yy < 0 or x >= w:
-                return T
-            if frame and (yy in (0, height - 1) or x in (0, w - 1)):
-                return rgba(STEEL[3 if yy == 0 else 1])
-            # Graduation: a long mark every quarter, short ones between, on the left of the face
-            inner = height - 1
-            for k in range(1, marks * 2):
-                my = inner - round(k * (inner - 1) / (marks * 2))
-                if yy == my and x < (3 if k % 2 == 0 else 2) + (1 if frame else 0) and x >= (1 if frame else 0):
-                    return (236, 240, 244, 230)
-            if x == (1 if frame else 0) + 0 and 1 <= yy < height - 1 and not frame:
-                return (210, 226, 236, 120)
-            if yy == (1 if frame else 0) and not frame:
-                return (220, 236, 246, 150)
-            return (200, 222, 236, 70)
-        paint(glass, 0, 0, 16, 16, gfn)
-        write_png(os.path.join(A, f"textures/block/toy/{name}.png"), glass)
+        tex = img(16, 16)
+        F = STEEL_R if frame else [GLASS_R[0], GLASS_R[1], GLASS_R[2], GLASS_R[3], GLASS_R[3], GLASS_R[3], (240, 250, 250)]
+        for y in range(top_y, 16):
+            yy = y - top_y
+            for x in range(w):
+                edge_x, edge_y = x in (0, w - 1), yy in (0, height - 1)
+                c = None
+                if edge_x or edge_y:
+                    # light on top, darker down the edges (as on the game's glass)
+                    lv = 5 if yy == 0 else 2 if yy == height - 1 else (4 if yy < height // 2 else 3)
+                    c = F[lv]
+                elif (x == w - 3 and yy == 2) or (x == w - 2 and yy == 3):
+                    c = GLASS_R[2]                         # a streak of the glass, top right
+                else:
+                    # Graduations: quarters long (2-3 px), eighths on the tank short (1 px), from the left frame
+                    inner = height - 1
+                    steps = 8 if frame else 4
+                    for k in range(1, steps):
+                        my = inner - round(k * (inner - 1) / steps)
+                        long_mark = steps == 4 or k % 2 == 0
+                        if yy == my and x <= (3 if frame and long_mark else 2 if long_mark else 1):
+                            c = (242, 246, 248)
+                if c is not None:
+                    tex[y][x] = c if len(c) == 4 else rgba(c)
+        write_png(os.path.join(A, f"textures/block/toy/{name}.png"), tex)
         g = "#glass"
         shell = box([a, 0, a], [b, height, b], {d: face(g, [0, top_y, w, 16]) for d in ("north", "south", "east", "west")}
                     | {"down": face(g, [0, top_y, w, top_y + w] if w <= height else [0, 0, w, w], cull="down")})
-        inner = [box([a, 0, b - 0.01], [b, height, b - 0.01], {"north": face(g, [w, top_y, 0, 16])}),
-                 box([a, 0, a + 0.01], [b, height, a + 0.01], {"south": face(g, [w, top_y, 0, 16])}),
-                 box([b - 0.01, 0, a], [b - 0.01, height, b], {"west": face(g, [w, top_y, 0, 16])}),
-                 box([a + 0.01, 0, a], [a + 0.01, height, b], {"east": face(g, [w, top_y, 0, 16])})]
+        inner_planes = [box([a, 0, b - 0.01], [b, height, b - 0.01], {"north": face(g, [w, top_y, 0, 16])}),
+                        box([a, 0, a + 0.01], [b, height, a + 0.01], {"south": face(g, [w, top_y, 0, 16])}),
+                        box([b - 0.01, 0, a], [b - 0.01, height, b], {"west": face(g, [w, top_y, 0, 16])}),
+                        box([a + 0.01, 0, a], [a + 0.01, height, b], {"east": face(g, [w, top_y, 0, 16])})]
         variants = {}
         for stage in range(9):
-            els = [shell] + inner
+            els = [shell] + inner_planes
             if stage:
                 top = 0.5 + (height - 1) * stage / 8
                 wa, wb = a + 0.5, b - 0.5
@@ -746,7 +875,7 @@ def glasses():
             model(f"toy/{name}_{stage}", mdl, "block")
             variants[f"fill={stage}"] = {"model": f"craftmaster:block/toy/{name}_{stage}"}
         simple_blockstate(name, variants)
-        block_item(name, f"craftmaster:block/toy/{name}_{3 if name == 'measuring_glass' else 5}")
+        item_def(name, f"craftmaster:block/toy/{name}_{3 if name == 'measuring_glass' else 5}")
         loot(name)
 
 
