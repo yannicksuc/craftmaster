@@ -83,6 +83,8 @@ un clic écrit la valeur sur la feuille de la manche en cours.
 - **Malle à costumes** : chacun s'y sert sans la vider (chaque objet pris est une copie ; reposer un objet le
   rend à la malle). Une malle neuve contient couronne, capes et vestes teintes, têtes, accessoires… Un organisateur
   accroupi + clic droit édite le stock.
+- **Garde-robe** : une armoire qui contient toutes les tenues (vêtements Selfexpression, armures) ; un clic pour
+  enfiler une tenue entière ou une seule pièce, « Mes affaires » pour revenir ([Garde-robe](GardeRobe.md)).
 - **Nommer** : `/craftMasterName <nom>` (tous) renomme l'objet tenu, codes couleur `&6`, `&l`… sans enclume ni
   XP ; sans nom : retire le nom. Les objets nommés gardent leur nom sur le socle, les props, les tableaux.
 
