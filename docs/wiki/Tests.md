@@ -408,3 +408,12 @@ Binaries 3.0.1 dans `run-26.2/mods/`. Plateau posé par RCON, captures MCP.
 | Écran du studio + lien YouTube (WaterMedia) : la vidéo joue | ✔ |
 | Adresse en 404 : « Vidéo indisponible : HTTP 404… » sur la mire | ✔ |
 | Son des vidéos selon la distance, deux joueurs synchronisés | non vérifié (jeu muet, un seul client) |
+| `podium_first` donné : bloc de quartz (alias) ; anciennes lunettes floues données : deviennent `craftmaster:glasses` (effet « flou », verres bleus) | ✔ |
+| Cordon des poteaux : une face par côté, plus de scintillement ; poteau en laiton sans taches d'ombre | ✔ |
+| Buzzers en textures vanilla ; appui : allumé ; bloc de redstone à côté : remis à zéro ; mode `free` : clignote 1 s puis s'éteint ; menu `/craftMasterBuzzer mode` dans le chat | ✔ |
+| Compteur sur un wagonnet à coffre et un porte-armure (API de transfert, entités) | ✔ (utilisé ; total en barre d'action) |
+| Mètre ruban entre deux points visés au sol : « 5,1 m » au milieu, ruban jaune 10 s | ✔ |
+| Ardoise, tableau blanc, toile : cadres en bois / fer vanilla de 2 px, auget ; ardoise mate sans poussière | ✔ |
+| Socle d'exposition en quartz et laine rouge ; pupitre en sapin, laine rouge, baguette dorée | ✔ |
+| Chaises chêne / cerisier / biscornue en 16 directions (vue de dessus), modèle validé par LordFinn | ✔ |
+| Icônes : porte-bloc, lampe torche UV, cachet, chronomètre rond, mètre, compteur, tableaux, enveloppe et lettre de LordFinn | ✔ |
