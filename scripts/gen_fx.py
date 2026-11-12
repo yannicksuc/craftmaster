@@ -226,7 +226,7 @@ def generate(g):
     for y, row in enumerate(GLASSES_FRONT):
         for x, ch in enumerate(row):
             if ch in "LlHS":
-                v = {"H": 255, "L": 220, "l": 186, "S": 220}[ch]
+                v = 255 if ch == "H" else 215   # one flat tone and the glint
                 lens_img.set(x, y, (v, v, v, 255))
             elif ch != ".":
                 frame_img.set(x, y, pal[ch])

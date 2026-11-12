@@ -192,36 +192,8 @@ def generate(g):
     walnut.paint(0, 0, 16, 16, lambda x, y, w, h: wood_grain(WALNUT, x, y, w, h))
     walnut.save(g, "block/studio/walnut")
 
-    # Desk top: walnut with a gold edge, front and back always, on the left (west, x = 0) / right side only where the
-    # desk is not joined to another one; suffix _l / _r / _lr: joined on that side
     def joined_suffix(left, right):
         return ("_" + ("l" if left else "") + ("r" if right else "")) if (left or right) else ""
-    for left in (False, True):
-        for right in (False, True):
-            desk_top = Img(16, 16)
-            desk_top.paint(0, 0, 16, 16, lambda x, y, w, h, left=left, right=right:
-                           GOLD[1] if y in (0, 15) or (x == 0 and not left) or (x == 15 and not right) else wood_grain(WALNUT, x, y, w, h))
-            desk_top.save(g, "block/studio/desk_top" + joined_suffix(left, right))
-
-    # Desk front: velvet panel with gold trims top and bottom and gold side stiles
-    def desk_front(x, y, w, h):
-        if y in (3, 4) or y == 15:
-            return GOLD[1] if y != 4 else GOLD[3]
-        if x in (0, 15):
-            return GOLD[2]
-        if y < 3:
-            return wood_grain(WALNUT, x, y, w, h)
-        return velvet_folds(VELVET, x, y, w, h, 8)
-    # Seen from the front (north face), texture column 0 is the desk's right side (x = 16), column 15 its left
-    def desk_front_joined(x, y, w, h, left, right):
-        if (x == 15 and left) or (x == 0 and right):
-            return desk_front(1, y, w, h)
-        return desk_front(x, y, w, h)
-    for left in (False, True):
-        for right in (False, True):
-            df = Img(16, 16)
-            df.paint(0, 0, 16, 16, lambda x, y, w, h, left=left, right=right: desk_front_joined(x, y, w, h, left, right))
-            df.save(g, "block/studio/desk_front" + joined_suffix(left, right))
 
     # Brass name plate (front 10 x 4 at x 3..13, y 6..10 of the block = rows 6..9 of the texture)
     plate = Img(16, 16, GOLD[2])
@@ -567,23 +539,27 @@ def generate(g):
     facing_states("timer_display", lambda c: "timer_display")
     item_flat("timer_display")
 
-    # Contestant desk (front at north = toward the audience). Desks side by side (same direction) join into one long
-    # desk: no side panel, gold edge or stile between them (left = west when facing north)
+    # Contestant desk (front at north = toward the audience), in Minecraft's own textures (LordFinn): spruce planks,
+    # a red wool front panel, a thin gold-block moulding on the free edges of the top. Desks side by side (same
+    # direction) join into one long desk: no side panel or moulding between them (left = west when facing north)
+    SP, RW, GB = "minecraft:block/spruce_planks", "minecraft:block/red_wool", "minecraft:block/gold_block"
     for left in (False, True):
         for right in (False, True):
             sfx = joined_suffix(left, right)
             skip = tuple(f for f, j in (("west", left), ("east", right)) if j)
             els = [
-                el([0, 13, 0], [16, 16, 16], "#top", faces={"north": "#wood", "south": "#wood", "east": "#wood", "west": "#wood"}, skip=skip),
-                el([0, 0, 1], [16, 13, 4], "#front", faces={"up": "#wood", "down": "#wood", "east": "#wood", "west": "#wood", "south": "#wood"}, skip=skip),
+                el([0, 13, 0], [16, 16, 16], "#wood", skip=skip),
+                el([0, 0, 1], [16, 13, 4], "#wood", faces={"north": "#front"}, skip=skip),
                 el([3, 6, 0], [13, 10, 1], "#plate"),
+                # Moulding: front and back edges always, the ends where not joined (half a pixel proud)
+                el([0, 16, 0], [16, 16.5, 1], "#gold"), el([0, 16, 15], [16, 16.5, 16], "#gold"),
             ]
             if not left:
-                els.append(el([0, 0, 4], [2, 13, 15], "#wood"))
+                els += [el([0, 0, 4], [2, 13, 15], "#wood"), el([0, 16, 1], [1, 16.5, 15], "#gold")]
             if not right:
-                els.append(el([14, 0, 4], [16, 13, 15], "#wood"))
-            model("contestant_desk" + sfx, els, {"particle": W, "top": tex("desk_top" + sfx), "wood": W,
-                                                 "front": tex("desk_front" + sfx), "plate": tex("name_plate")})
+                els += [el([14, 0, 4], [16, 13, 15], "#wood"), el([15, 16, 1], [16, 16.5, 15], "#gold")]
+            model("contestant_desk" + sfx, els, {"particle": SP, "wood": SP, "front": RW, "gold": GB,
+                                                 "plate": tex("name_plate")}, extra={"ambientocclusion": False})
     facing_states("contestant_desk", lambda c: "contestant_desk" + joined_suffix(c["left"] == "true", c["right"] == "true"),
                   {"left": ["false", "true"], "right": ["false", "true"]})
     item_block("contestant_desk")

@@ -1,10 +1,10 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "craftmaster:block/studio/walnut",
-    "top": "craftmaster:block/studio/desk_top_r",
-    "wood": "craftmaster:block/studio/walnut",
-    "front": "craftmaster:block/studio/desk_front_r",
+    "particle": "minecraft:block/spruce_planks",
+    "wood": "minecraft:block/spruce_planks",
+    "front": "minecraft:block/red_wool",
+    "gold": "minecraft:block/gold_block",
     "plate": "craftmaster:block/studio/name_plate"
   },
   "elements": [
@@ -48,7 +48,7 @@
           ]
         },
         "up": {
-          "texture": "#top",
+          "texture": "#wood",
           "uv": [
             0,
             0,
@@ -57,7 +57,7 @@
           ]
         },
         "down": {
-          "texture": "#top",
+          "texture": "#wood",
           "uv": [
             0,
             0,
@@ -197,6 +197,142 @@
     {
       "from": [
         0,
+        16,
+        0
+      ],
+      "to": [
+        16,
+        16.5,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": "#gold",
+          "uv": [
+            0,
+            15.5,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#gold",
+          "uv": [
+            0,
+            15.5,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#gold",
+          "uv": [
+            15,
+            15.5,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#gold",
+          "uv": [
+            0,
+            15.5,
+            1,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#gold",
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ]
+        },
+        "down": {
+          "texture": "#gold",
+          "uv": [
+            0,
+            15,
+            16,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        16,
+        15
+      ],
+      "to": [
+        16,
+        16.5,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#gold",
+          "uv": [
+            0,
+            15.5,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#gold",
+          "uv": [
+            0,
+            15.5,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#gold",
+          "uv": [
+            0,
+            15.5,
+            1,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#gold",
+          "uv": [
+            15,
+            15.5,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#gold",
+          "uv": [
+            0,
+            15,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#gold",
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        0,
         0,
         4
       ],
@@ -261,6 +397,75 @@
           ]
         }
       }
+    },
+    {
+      "from": [
+        0,
+        16,
+        1
+      ],
+      "to": [
+        1,
+        16.5,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#gold",
+          "uv": [
+            15,
+            15.5,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#gold",
+          "uv": [
+            0,
+            15.5,
+            1,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#gold",
+          "uv": [
+            1,
+            15.5,
+            15,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#gold",
+          "uv": [
+            1,
+            15.5,
+            15,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#gold",
+          "uv": [
+            0,
+            1,
+            1,
+            15
+          ]
+        },
+        "down": {
+          "texture": "#gold",
+          "uv": [
+            0,
+            1,
+            1,
+            15
+          ]
+        }
+      }
     }
-  ]
+  ],
+  "ambientocclusion": false
 }

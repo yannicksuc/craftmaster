@@ -1,0 +1,7 @@
+{
+  "parent": "craftmaster:block/chair_template_t1",
+  "textures": {
+    "planks": "minecraft:block/crimson_planks",
+    "log": "minecraft:block/stripped_crimson_stem"
+  }
+}

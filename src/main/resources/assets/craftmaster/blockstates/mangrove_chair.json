@@ -1,19 +1,64 @@
 {
   "variants": {
-    "facing=north": {
-      "model": "craftmaster:block/mangrove_chair"
+    "facing=north,tilt=0": {
+      "model": "craftmaster:block/mangrove_chair_t0"
     },
-    "facing=east": {
-      "model": "craftmaster:block/mangrove_chair",
+    "facing=north,tilt=1": {
+      "model": "craftmaster:block/mangrove_chair_t1"
+    },
+    "facing=north,tilt=2": {
+      "model": "craftmaster:block/mangrove_chair_t2"
+    },
+    "facing=north,tilt=3": {
+      "model": "craftmaster:block/mangrove_chair_tm1",
       "y": 90
     },
-    "facing=south": {
-      "model": "craftmaster:block/mangrove_chair",
+    "facing=east,tilt=0": {
+      "model": "craftmaster:block/mangrove_chair_t0",
+      "y": 90
+    },
+    "facing=east,tilt=1": {
+      "model": "craftmaster:block/mangrove_chair_t1",
+      "y": 90
+    },
+    "facing=east,tilt=2": {
+      "model": "craftmaster:block/mangrove_chair_t2",
+      "y": 90
+    },
+    "facing=east,tilt=3": {
+      "model": "craftmaster:block/mangrove_chair_tm1",
       "y": 180
     },
-    "facing=west": {
-      "model": "craftmaster:block/mangrove_chair",
+    "facing=south,tilt=0": {
+      "model": "craftmaster:block/mangrove_chair_t0",
+      "y": 180
+    },
+    "facing=south,tilt=1": {
+      "model": "craftmaster:block/mangrove_chair_t1",
+      "y": 180
+    },
+    "facing=south,tilt=2": {
+      "model": "craftmaster:block/mangrove_chair_t2",
+      "y": 180
+    },
+    "facing=south,tilt=3": {
+      "model": "craftmaster:block/mangrove_chair_tm1",
       "y": 270
+    },
+    "facing=west,tilt=0": {
+      "model": "craftmaster:block/mangrove_chair_t0",
+      "y": 270
+    },
+    "facing=west,tilt=1": {
+      "model": "craftmaster:block/mangrove_chair_t1",
+      "y": 270
+    },
+    "facing=west,tilt=2": {
+      "model": "craftmaster:block/mangrove_chair_t2",
+      "y": 270
+    },
+    "facing=west,tilt=3": {
+      "model": "craftmaster:block/mangrove_chair_tm1"
     }
   }
 }

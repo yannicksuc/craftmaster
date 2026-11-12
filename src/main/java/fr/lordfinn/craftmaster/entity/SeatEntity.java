@@ -43,10 +43,10 @@ public class SeatEntity extends Entity {
         return !level.getEntitiesOfClass(SeatEntity.class, new AABB(pos).expandTowards(0, 1, 0), Entity::isVehicle).isEmpty();
     }
 
-    public static void sit(ServerLevel level, BlockPos pos, Direction facing, Player player) {
+    public static void sit(ServerLevel level, BlockPos pos, float yaw, Player player) {
         SeatEntity seat = ModContent.SEAT.create(level, EntitySpawnReason.TRIGGERED);
         if (seat == null) return;
-        seat.snapTo(pos.getX() + 0.5, pos.getY() + seatTop(level, pos) - RIDE_OFFSET, pos.getZ() + 0.5, facing.toYRot(), 0);
+        seat.snapTo(pos.getX() + 0.5, pos.getY() + seatTop(level, pos) - RIDE_OFFSET, pos.getZ() + 0.5, yaw, 0);
         level.addFreshEntity(seat);
         if (!player.startRiding(seat)) seat.discard();
     }

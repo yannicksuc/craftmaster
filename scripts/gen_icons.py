@@ -521,12 +521,12 @@ def glasses_base():
 
 
 def glasses_lens():
-    """The lenses (layer 1, grey, tinted with the effect's colour): lighter at the top left, a glint."""
+    """The lenses (layer 1, grey, tinted with the effect's colour): one flat tone and a glint."""
     i = Icon()
     for x0 in (2, 10):
+        # One flat tone (tinted with the effect's colour), one glint: like a vanilla glass pane
         for y in range(6, 10):
             for x in range(x0, x0 + 4):
-                v = 230 - (y - 6) * 22 - (x - x0) * 6
-                i.set(x, y, (v, v, v, 255))
+                i.set(x, y, (215, 215, 215, 255))
         i.set(x0, 6, (255, 255, 255, 255))
     return i.p

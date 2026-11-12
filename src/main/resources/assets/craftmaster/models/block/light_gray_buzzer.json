@@ -1,6 +1,189 @@
 {
-  "parent": "craftmaster:block/buzzer_template",
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
   "textures": {
-    "dome": "craftmaster:block/light_gray_buzzer_dome"
-  }
+    "particle": "minecraft:block/light_gray_concrete",
+    "dome": "minecraft:block/light_gray_concrete",
+    "base": "minecraft:block/polished_blackstone",
+    "band": "minecraft:block/gold_block"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        0,
+        3
+      ],
+      "to": [
+        13,
+        3,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#base",
+          "uv": [
+            3,
+            13,
+            13,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#base",
+          "uv": [
+            3,
+            13,
+            13,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#base",
+          "uv": [
+            3,
+            13,
+            13,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#base",
+          "uv": [
+            3,
+            13,
+            13,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#base",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        3,
+        3,
+        3
+      ],
+      "to": [
+        13,
+        4,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#band",
+          "uv": [
+            3,
+            12,
+            13,
+            13
+          ]
+        },
+        "south": {
+          "texture": "#band",
+          "uv": [
+            3,
+            12,
+            13,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#band",
+          "uv": [
+            3,
+            12,
+            13,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#band",
+          "uv": [
+            3,
+            12,
+            13,
+            13
+          ]
+        },
+        "up": {
+          "texture": "#band",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        4,
+        5
+      ],
+      "to": [
+        11,
+        7,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            9,
+            11,
+            12
+          ]
+        },
+        "south": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            9,
+            11,
+            12
+          ]
+        },
+        "east": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            9,
+            11,
+            12
+          ]
+        },
+        "west": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            9,
+            11,
+            12
+          ]
+        },
+        "up": {
+          "texture": "#dome",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        }
+      }
+    }
+  ]
 }

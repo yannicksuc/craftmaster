@@ -160,60 +160,31 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
     write_json(os.path.join(D, "craftmaster/loot_table/blocks/big_red_button.json"), self_drop("big_red_button"))
 
     # ---------------------------------------------------------------- buzzers (one per dye colour)
-    # One model for the 16 colours. Base atlas: top 10 x 10 (0, 0), sides 10 x 4 (0, 10): black lacquer with a gold
-    # rim, light from the top left. Dome atlas (one per colour, lit or not): top 6 x 6 (0, 0), sides 6 x 3 (0, 6),
-    # painted from the same shading map times the colour. No ambient occlusion (it shaded the small dome unevenly).
-    base = [[(0, 0, 0, 0)] * 16 for _ in range(16)]
-    for y in range(10):
-        for x in range(10):
-            ring = x in (0, 9) or y in (0, 9)
-            if ring:
-                base[y][x] = ramp(GOLD, 0.9 if (x == 0 or y == 0) else 0.35)
-            else:
-                base[y][x] = ramp(CHARCOAL, 0.85 - (x + y) / 18 * 0.6)
-    for x in range(10):
-        base[10][x] = ramp(GOLD, 0.9)
-        base[11][x] = ramp(GOLD, 0.45)
-        base[12][x] = ramp(CHARCOAL, 0.7)
-        base[13][x] = ramp(CHARCOAL, 0.2)
-    tex("buzzer_base", base)
-    BUZZER_TOP = [[1.30 - 0.07 * (x + y) for x in range(6)] for y in range(6)]
-    BUZZER_SIDE = [1.05, 0.86, 0.68]
-    model("buzzer_template", {"parent": "minecraft:block/block", "ambientocclusion": False,
-                              "textures": {"particle": "#dome", "base": "craftmaster:block/buzzer_base"},
-                              "elements": [
-                                  {"from": [3, 0, 3], "to": [13, 4, 13], "faces": {
-                                      **{d: {"texture": "#base", "uv": [0, 10, 10, 14]} for d in ("north", "south", "east", "west")},
-                                      "up": {"texture": "#base", "uv": [0, 0, 10, 10]},
-                                      "down": {"texture": "#base", "uv": [0, 0, 10, 10]}}},
-                                  {"from": [5, 4, 5], "to": [11, 7, 11], "faces": {
-                                      **{d: {"texture": "#dome", "uv": [0, 6, 6, 9]} for d in ("north", "south", "east", "west")},
-                                      "up": {"texture": "#dome", "uv": [0, 0, 6, 6]}}},
-                              ]})
-
-    def tinted(c, f, lift=0.0):
-        """The colour scaled by f, then pulled toward white by lift (0..1): highlights stay in the colour's hue."""
-        r, g, b = (clamp(v * f) for v in c)
-        return (clamp(r + (255 - r) * lift), clamp(g + (255 - g) * lift), clamp(b + (255 - b) * lift), 255)
+    # As Minecraft would (LordFinn: no painted gradients on a small dome): one model in vanilla textures, a polished
+    # blackstone base with a band of gold block, the dome in the concrete of its colour; lit, the dome is the stained
+    # glass of its colour, lighter, and glows (light emission).
+    def buzzer_model(name, dome, lit):
+        dome_el = {"from": [5, 4, 5], "to": [11, 7, 11], "faces": {
+            **{d: {"texture": "#dome", "uv": [5, 9, 11, 12]} for d in ("north", "south", "east", "west")},
+            "up": {"texture": "#dome", "uv": [5, 5, 11, 11]}}}
+        if lit:
+            dome_el["light_emission"] = 15
+        model(name, {"parent": "minecraft:block/block", "ambientocclusion": False,
+                     "textures": {"particle": dome, "dome": dome, "base": "minecraft:block/polished_blackstone",
+                                  "band": "minecraft:block/gold_block"},
+                     "elements": [
+                         {"from": [3, 0, 3], "to": [13, 3, 13], "faces": {
+                             **{d: {"texture": "#base", "uv": [3, 13, 13, 16]} for d in ("north", "south", "east", "west")},
+                             "down": {"texture": "#base", "uv": [3, 3, 13, 13]}}},
+                         {"from": [3, 3, 3], "to": [13, 4, 13], "faces": {
+                             **{d: {"texture": "#band", "uv": [3, 12, 13, 13]} for d in ("north", "south", "east", "west")},
+                             "up": {"texture": "#band", "uv": [3, 3, 13, 13]}}},
+                         dome_el]})
 
     for color, (rgb, en_name, fr_name) in colors.items():
-        c = ((rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255)
-        for lit in (False, True):
-            rows = [[(0, 0, 0, 0)] * 16 for _ in range(16)]
-            k, lift = (1.15, 0.25) if lit else (1.0, 0.0)
-            for y in range(6):
-                for x in range(6):
-                    hl = 0.45 if (x, y) in ((1, 1), (2, 1), (1, 2)) else 0.0
-                    if lit and 2 <= x <= 3 and 2 <= y <= 3:
-                        hl = 0.8
-                    rows[y][x] = tinted(c, BUZZER_TOP[y][x] * k, min(1, lift + hl))
-            for y in range(3):
-                for x in range(6):
-                    rows[6 + y][x] = tinted(c, BUZZER_SIDE[y] * k * (1.06 if x == 0 else 1), lift)
-            tex(f"{color}_buzzer_dome" + ("_lit" if lit else ""), rows)
         name = f"{color}_buzzer"
-        model(name, {"parent": "craftmaster:block/buzzer_template", "textures": {"dome": f"craftmaster:block/{name}_dome"}})
-        model(name + "_lit", {"parent": "craftmaster:block/buzzer_template", "textures": {"dome": f"craftmaster:block/{name}_dome_lit"}})
+        buzzer_model(name, f"minecraft:block/{color}_concrete", False)
+        buzzer_model(name + "_lit", f"minecraft:block/{color}_stained_glass", True)
         write_json(os.path.join(A, f"blockstates/{name}.json"), {"variants": {
             f"lit={lit},powered={pw}": {"model": f"craftmaster:block/{name}" + ("_lit" if lit == "true" else "")}
             for lit in ("false", "true") for pw in ("false", "true")}})
@@ -249,8 +220,8 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
     # Minecraft's own materials (LordFinn: no flat saturated gold): a smooth quartz base and cap, a quartz pillar,
     # a red wool cushion on top
     model("display_plinth", {"parent": "minecraft:block/block",
-                             "textures": {"particle": "minecraft:block/quartz_pillar", "q": "minecraft:block/quartz_block_bottom",
-                                          "p": "minecraft:block/quartz_pillar", "pt": "minecraft:block/quartz_pillar_top",
+                             "textures": {"particle": "minecraft:block/quartz_pillar_side", "q": "minecraft:block/quartz_block_bottom",
+                                          "p": "minecraft:block/quartz_pillar_side", "pt": "minecraft:block/quartz_pillar_top",
                                           "w": "minecraft:block/red_wool"},
                              "elements": [
                                  el([1, 0, 1], [15, 2, 15], "#q"),

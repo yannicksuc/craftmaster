@@ -1,9 +1,9 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "minecraft:block/quartz_pillar",
+    "particle": "minecraft:block/quartz_pillar_side",
     "q": "minecraft:block/quartz_block_bottom",
-    "p": "minecraft:block/quartz_pillar",
+    "p": "minecraft:block/quartz_pillar_side",
     "pt": "minecraft:block/quartz_pillar_top",
     "w": "minecraft:block/red_wool"
   },

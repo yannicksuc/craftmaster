@@ -105,26 +105,54 @@ def self_drop(block):
 
 # ------------------------------------------------------------------ chairs
 # Facing north = the seated player looks north; the backrest is on the south side.
+# One chair for the 12 woods (vanilla planks and stripped log of each): log legs and back posts, a plank seat, a
+# back of a lower rail, two slats and a crest rail, for relief; no ambient occlusion (the turned models)
 chair_template = {
     "parent": "minecraft:block/block",
+    "ambientocclusion": False,
     "textures": {"particle": "#planks"},
     "elements": [
         cube([2, 0, 2], [4, 7, 4], "#log"), cube([12, 0, 2], [14, 7, 4], "#log"),
         cube([2, 0, 12], [4, 7, 14], "#log"), cube([12, 0, 12], [14, 7, 14], "#log"),
         cube([2, 7, 2], [14, 9, 14], "#planks"),                       # seat
-        tall_cube([2, 9, 12], [4, 21, 14], "#log"), tall_cube([12, 9, 12], [14, 21, 14], "#log"),  # back posts
-        tall_cube([4, 12, 12.5], [12, 20, 13.5], "#planks"),           # backrest
-        tall_cube([4, 20, 12], [12, 21, 14], "#log"),                  # top rail
+        tall_cube([2, 9, 12], [4, 22, 14], "#log"), tall_cube([12, 9, 12], [14, 22, 14], "#log"),  # back posts
+        cube([4, 11, 12.5], [12, 13, 13.5], "#log"),                    # lower rail
+        tall_cube([5, 13, 12.5], [7, 18, 13.5], "#planks"), tall_cube([9, 13, 12.5], [11, 18, 13.5], "#planks"),  # slats
+        tall_cube([4, 18, 12], [12, 21, 14], "#planks"),               # crest rail
     ],
 }
 write_json(os.path.join(A, "models/block/chair_template.json"), chair_template)
+# 16 directions (ChairBlock: FACING + TILT): the same model turned by 0, 22.5 or 45 degrees clockwise (seen from
+# above); the 4th step is the next quarter turned back by 22.5 (a model may only turn by -45..45)
+CHAIR_TILTS = {"t0": 0, "t1": -22.5, "t2": -45, "tm1": 22.5}
+for suffix, angle in CHAIR_TILTS.items():
+    t = {"parent": "minecraft:block/block", "textures": {"particle": "#planks"}, "elements": []}
+    for e in chair_template["elements"]:
+        e = dict(e)
+        if angle:
+            e["rotation"] = {"angle": angle, "axis": "y", "origin": [8, 8, 8]}
+        t["elements"].append(e)
+    write_json(os.path.join(A, f"models/block/chair_template_{suffix}.json"), t)
+FACING_ORDER = ["south", "west", "north", "east"]   # clockwise, as the yaw turns
 for wood, (log, _, _) in WOODS.items():
     name = f"{wood}_chair"
+    for suffix in CHAIR_TILTS:
+        write_json(os.path.join(A, f"models/block/{name}_{suffix}.json"), {
+            "parent": f"craftmaster:block/chair_template_{suffix}",
+            "textures": {"planks": f"minecraft:block/{wood}_planks", "log": f"minecraft:block/{log}"}})
     write_json(os.path.join(A, f"models/block/{name}.json"), {
         "parent": "craftmaster:block/chair_template",
         "textures": {"planks": f"minecraft:block/{wood}_planks", "log": f"minecraft:block/{log}"}})
-    write_json(os.path.join(A, f"blockstates/{name}.json"), {"variants": {
-        f"facing={f}": {"model": f"craftmaster:block/{name}", **({"y": y} if y else {})} for f, y in FACING_Y.items()}})
+    variants = {}
+    for f, y in FACING_Y.items():
+        for tilt in range(4):
+            if tilt < 3:
+                model, yy = f"{name}_t{tilt}", y
+            else:
+                nxt = FACING_ORDER[(FACING_ORDER.index(f) + 1) % 4]
+                model, yy = f"{name}_tm1", FACING_Y[nxt]
+            variants[f"facing={f},tilt={tilt}"] = {"model": f"craftmaster:block/{model}", **({"y": yy} if yy else {})}
+    write_json(os.path.join(A, f"blockstates/{name}.json"), {"variants": variants})
     write_json(os.path.join(A, f"items/{name}.json"), {"model": {"type": "minecraft:model", "model": f"craftmaster:block/{name}"}})
     write_json(os.path.join(D, f"craftmaster/loot_table/blocks/{name}.json"), self_drop(name))
 write_json(os.path.join(D, "minecraft/tags/block/mineable/axe.json"),
