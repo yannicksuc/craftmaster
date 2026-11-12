@@ -320,7 +320,13 @@ public class WardrobeScreen extends Screen {
             words.append(' ').append(s.getHoverName().getString()).append(' ').append(BuiltInRegistries.ITEM.getKey(s.getItem()));
         }
         // Tags from the names only: every Selfexpression id ends in _chestplate, _helmet... (not armour, not a helmet)
-        List<OutfitTags.Tag> tags = OutfitTags.of(names.toString(), o.present(), o.tags());
+        List<OutfitTags.Tag> tags = new ArrayList<>(OutfitTags.of(names.toString(), o.present(), o.tags()));
+        // Colours from the pieces themselves (their icon's pixels or their dye), not only from their names
+        for (ItemStack s : o.pieces())
+            for (String colour : PieceColors.of(s)) {
+                OutfitTags.Tag tag = new OutfitTags.Tag("Couleur", colour);
+                if (!tags.contains(tag)) tags.add(tag);
+            }
         for (OutfitTags.Tag tag : tags) words.append(' ').append(tag.name());
         return new Card(index, o, o.key(), name, words.toString(), tags, grey);
     }
@@ -600,19 +606,68 @@ public class WardrobeScreen extends Screen {
         return t("mix");
     }
 
+    /** Categories in the order they matter to find an outfit (the tooltip shows the first tags, Shift: all). */
+    private static final List<String> TAG_ORDER = List.of(OutfitTags.CUSTOM, "Métier", "Thème", "Contexte", "Type", "Couleur",
+            "Matière", "Utilité", "Loisir", OutfitTags.BODY);
+
+    /** The colour of a tag: its own for the colours, its category's for the others. */
+    static int tagColor(OutfitTags.Tag tag) {
+        if (tag.category().equals("Couleur")) {
+            return switch (tag.name()) {
+                case "Rouge" -> 0xFF5555;
+                case "Orange" -> 0xFFA040;
+                case "Jaune", "Doré" -> 0xFFE060;
+                case "Vert" -> 0x70E070;
+                case "Cyan" -> 0x55E0E0;
+                case "Bleu" -> 0x6F9BFF;
+                case "Violet" -> 0xC080FF;
+                case "Rose" -> 0xFF9AC8;
+                case "Marron" -> 0xC08850;
+                case "Noir" -> 0x9A9A9A;
+                case "Gris" -> 0xC0C0C0;
+                default -> 0xFFFFFF;
+            };
+        }
+        return switch (tag.category()) {
+            case "Métier" -> 0xFFC23D;
+            case "Thème" -> 0xD98CFF;
+            case "Contexte" -> 0x6FD8E8;
+            case "Type" -> 0xF1E6C8;
+            case "Matière" -> 0xD9B38C;
+            case "Utilité" -> 0x8CE08C;
+            case "Loisir" -> 0xFF9AC8;
+            case OutfitTags.CUSTOM -> 0xFF8C5A;
+            default -> 0xA0A0A0;
+        };
+    }
+
+    private static List<OutfitTags.Tag> byImportance(List<OutfitTags.Tag> tags) {
+        List<OutfitTags.Tag> out = new ArrayList<>(tags);
+        out.sort(Comparator.comparingInt(t -> {
+            int i = TAG_ORDER.indexOf(t.category());
+            return i < 0 ? TAG_ORDER.size() : i;
+        }));
+        return out;
+    }
+
     private List<FormattedCharSequence> tooltip(Card c) {
         List<FormattedCharSequence> lines = new ArrayList<>();
         boolean fav = favourites.contains(c.key());
         lines.add(c.name().copy().withStyle(ChatFormatting.GOLD).getVisualOrderText());
-        String[] parts = {"head", "body", "legs", "feet"};
-        for (int i = 0; i < 4; i++) {
-            ItemStack s = c.outfit().pieces().get(i);
-            ChatFormatting style = i == hoveredPiece ? ChatFormatting.WHITE : ChatFormatting.GRAY;
-            lines.add(t("piece." + parts[i], s.isEmpty() ? t("nothing") : s.getHoverName()).copy().withStyle(style).getVisualOrderText());
-        }
-        if (!c.tags().isEmpty()) {
-            String tags = String.join(", ", c.tags().stream().map(OutfitTags.Tag::name).toList());
-            lines.addAll(font.split(t("tip.tags", tags).copy().withStyle(ChatFormatting.DARK_AQUA), 220));
+        // Its tags: the three that matter most in colour, the others with Shift
+        List<OutfitTags.Tag> tags = byImportance(c.tags());
+        boolean all = fr.lordfinn.craftmaster.client.compat.ClientCompat.isKeyDown(InputConstants.KEY_LSHIFT)
+                || fr.lordfinn.craftmaster.client.compat.ClientCompat.isKeyDown(InputConstants.KEY_RSHIFT);
+        List<OutfitTags.Tag> shown = all ? tags : tags.subList(0, Math.min(3, tags.size()));
+        if (!shown.isEmpty()) {
+            net.minecraft.network.chat.MutableComponent line = Component.empty();
+            for (int i = 0; i < shown.size(); i++) {
+                if (i > 0) line.append(Component.literal(" · ").withStyle(ChatFormatting.DARK_GRAY));
+                OutfitTags.Tag tag = shown.get(i);
+                line.append(Component.literal(tag.name()).withColor(tagColor(tag)));
+            }
+            lines.addAll(font.split(line, 230));
+            if (!all && tags.size() > 3) lines.add(t("tip.more", tags.size() - 3).copy().withStyle(ChatFormatting.DARK_GRAY).getVisualOrderText());
         }
         Component action = c.grey() ? t("tip.restore")
                 : hoveredStar ? (fav ? t("tip.unfavourite") : t("tip.favourite"))
@@ -689,6 +744,7 @@ public class WardrobeScreen extends Screen {
                     tagsByCategory.computeIfAbsent(tag.category(), k -> new LinkedHashSet<>()).add(tag);
                 }
             }
+            if (net.fabricmc.loader.api.FabricLoader.getInstance().isDevelopmentEnvironment()) dumpTags();
         }
         int right = gridX + rw;
         g.fill(gridX, gridY, right, gridY + gridH, 0x40000000);
@@ -706,7 +762,8 @@ public class WardrobeScreen extends Screen {
                 List<String> order = new ArrayList<>(OutfitTags.CATEGORIES.get(e.getKey()).keySet());
                 tags.sort(Comparator.comparingInt(tag -> order.indexOf(tag.name())));
             }
-            g.text(font, e.getKey(), gridX + 4, y + 2, Theme.GOLD, false);
+            int headerColour = 0xFF000000 | (e.getKey().equals("Couleur") ? 0xF1E6C8 : tagColor(new OutfitTags.Tag(e.getKey(), "")));
+            g.text(font, e.getKey(), gridX + 4, y + 2, headerColour, false);
             y += 12;
             x = gridX + 4;
             for (OutfitTags.Tag tag : tags) {
@@ -725,12 +782,33 @@ public class WardrobeScreen extends Screen {
         tagScroll = Math.max(0, Math.min(tagScroll, y + tagScroll - gridY - gridH));
     }
 
+    /** Development only: every outfit and its tags in wardrobe-tags.txt (run folder), to check them all. */
+    private void dumpTags() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < outfits.size(); i++) {
+            Card c = card(i, outfits.get(i), false);
+            sb.append(c.name().getString()).append(" | ");
+            for (ItemStack s : c.outfit().pieces()) sb.append(s.isEmpty() ? "-" : BuiltInRegistries.ITEM.getKey(s.getItem()).getPath()).append(' ');
+            sb.append("|");
+            String cat = "";
+            for (OutfitTags.Tag t : c.tags()) {
+                if (!t.category().equals(cat)) sb.append(" [").append(cat = t.category()).append("]");
+                sb.append(' ').append(t.name());
+            }
+            sb.append(System.lineSeparator());
+        }
+        try {
+            java.nio.file.Files.writeString(net.fabricmc.loader.api.FabricLoader.getInstance().getGameDir().resolve("wardrobe-tags.txt"), sb.toString());
+        } catch (java.io.IOException ignored) {
+        }
+    }
+
     private void chip(GuiGraphicsExtractor g, int x, int y, int w, Component label, OutfitTags.Tag tag, boolean on, int mouseX, int mouseY) {
         boolean hover = Ui.inside(mouseX, mouseY, x, y, w, 12) && Ui.inside(mouseX, mouseY, gridX, gridY, rw, gridH);
         int face = on ? Theme.BUTTON_ON : hover ? Theme.BUTTON_HOVER : Theme.BUTTON;
         g.fill(x, y, x + w, y + 12, face);
         g.outline(x, y, w, 12, on ? Theme.GOLD : Theme.BORDER_DARK);
-        g.text(font, label, x + 4, y + 2, on ? Theme.TITLE : Theme.TEXT, false);
+        g.text(font, label, x + 4, y + 2, on ? Theme.TITLE : tag == null ? Theme.TEXT : 0xFF000000 | tagColor(tag), false);
         if (y + 12 > gridY && y < gridY + gridH) chips.add(new Chip(x, Math.max(y, gridY), w, Math.min(y + 12, gridY + gridH) - Math.max(y, gridY), tag));
     }
 

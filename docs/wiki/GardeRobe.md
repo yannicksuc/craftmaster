@@ -41,7 +41,13 @@ et le bas de l'écran les rappelle. Les tags comptent aussi dans la recherche et
 tenue.
 
 Ils sont trouvés tout seuls dans les noms de la tenue et de ses pièces (en anglais ou en français, mots entiers ;
-pas dans les identifiants d'objets) :
+pas dans les identifiants d'objets). Les **couleurs** viennent en plus des pièces elles-mêmes : les pixels de leur
+icône (sans le contour, une couleur compte à partir de 12 % de la pièce, trois au plus) ou leur teinture (cuir) ;
+le casque jaune, le haut bleu et les bottes marron de l'Ouvrier du BTP donnent Jaune, Bleu, Marron.
+
+L'infobulle d'une tenue montre ses trois tags les plus parlants (métier, thème, contexte, type, couleur… dans cet
+ordre), chacun dans la couleur de sa catégorie (les couleurs dans leur vraie couleur), et « +N (Maj : tout voir) » :
+Maj enfoncée, tous ses tags. Les catégories du panneau ont les mêmes couleurs.
 
 | Catégorie | Exemples |
 |---|---|
@@ -119,7 +125,9 @@ touche jamais au vrai joueur.
 
 - Code : `wardrobe/` (commun) — `Dressing` (ce que fait un changement de tenue, entière ou pièce par pièce, sans
   Minecraft, testé par `DressingTest`), `OutfitSearch` (recherche et dictionnaire français → anglais,
-  `OutfitSearchTest`), `OutfitTags` (tags par catégorie, `OutfitTagsTest`), `Outfit` (nom, pièces, `key()` = ses pièces), `WardrobeState` (pièce jointe Fabric sur le
+  `OutfitSearchTest`), `OutfitTags` (tags par catégorie, `OutfitTagsTest`), `OutfitColors` (couleur d'un pixel,
+  couleurs d'une image, `OutfitColorsTest`), `client/wardrobe/PieceColors` (l'icône d'une pièce via les packs de
+  ressources), `Outfit` (nom, pièces, `key()` = ses pièces), `WardrobeState` (pièce jointe Fabric sur le
   joueur : vêtements mis de côté, tenue portée, favoris), `Catalogue` (tenues prêtes, `tenues.json`, ensembles du
   jeu), `WardrobeBlock` (deux blocs, portes), `WardrobeBlockEntity`, `WardrobeNetwork`, `Wardrobes` (enregistrement,
   actions) ; `client/wardrobe/` — l'écran.
@@ -127,4 +135,6 @@ touche jamais au vrai joueur.
   modèles (bas / haut, fermé / ouvert), le modèle d'objet (l'armoire entière, réduite et recentrée), les textures,
   la recette, la loot table et les textes, dans `assets/craftmaster_wardrobe/lang/` (Minecraft fusionne les fichiers
   de langue de tous les espaces de noms : pas de conflit avec `gen_assets.py`).
+- En développement, ouvrir le panneau des tags écrit `wardrobe-tags.txt` dans le dossier de lancement : chaque tenue,
+  ses pièces et tous ses tags, pour les relire d'un coup.
 - `DevInput` (client de dev) sait taper du texte : `type mot_avec_des_espaces` (les `_` deviennent des espaces).

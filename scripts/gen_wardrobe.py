@@ -393,6 +393,7 @@ def item_model():
 
 # ---------------------------------------------------------------- texts
 EN = {
+    "screen.craftmaster.wardrobe.tip.more": "+%s (Shift: all)",
     "message.craftmaster.wardrobe.trashed_all": "Everything you wore is deleted",
     "message.craftmaster.wardrobe.trashed": "Costume taken off",
     "message.craftmaster.wardrobe.switched": "Back in your last costume",
@@ -502,6 +503,7 @@ EN = {
     "message.craftmaster.wardrobe.catalogue_missing": "%s is not a ready outfit",
 }
 FR = {
+    "screen.craftmaster.wardrobe.tip.more": "+%s (Maj : tout voir)",
     "message.craftmaster.wardrobe.trashed_all": "Tout ce que tu portais est supprimé",
     "message.craftmaster.wardrobe.trashed": "Costume enlevé",
     "message.craftmaster.wardrobe.switched": "Tu as remis ta dernière tenue",
