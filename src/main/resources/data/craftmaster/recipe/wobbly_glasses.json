@@ -11,7 +11,14 @@
     "P": "minecraft:purple_dye"
   },
   "result": {
-    "id": "craftmaster:wobbly_glasses",
-    "count": 1
+    "id": "craftmaster:glasses",
+    "count": 1,
+    "components": {
+      "craftmaster:screen_fx": "ondule",
+      "minecraft:dyed_color": 12729524,
+      "minecraft:item_name": {
+        "translate": "item.craftmaster.wobbly_glasses"
+      }
+    }
   }
 }

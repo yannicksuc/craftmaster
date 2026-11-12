@@ -12,7 +12,14 @@
     "G": "minecraft:glass_pane"
   },
   "result": {
-    "id": "craftmaster:thermal_goggles",
-    "count": 1
+    "id": "craftmaster:glasses",
+    "count": 1,
+    "components": {
+      "craftmaster:screen_fx": "infrarouge",
+      "minecraft:dyed_color": 14235179,
+      "minecraft:item_name": {
+        "translate": "item.craftmaster.thermal_goggles"
+      }
+    }
   }
 }

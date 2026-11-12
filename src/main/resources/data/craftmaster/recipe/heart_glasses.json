@@ -11,7 +11,14 @@
     "P": "minecraft:pink_dye"
   },
   "result": {
-    "id": "craftmaster:heart_glasses",
-    "count": 1
+    "id": "craftmaster:glasses",
+    "count": 1,
+    "components": {
+      "craftmaster:screen_fx": "reve",
+      "minecraft:dyed_color": 15764671,
+      "minecraft:item_name": {
+        "translate": "item.craftmaster.heart_glasses"
+      }
+    }
   }
 }

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "craftmaster:item/glasses",
+    "layer1": "craftmaster:item/glasses_lens"
+  }
+}

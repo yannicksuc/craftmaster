@@ -11,7 +11,14 @@
     "G": "minecraft:glass"
   },
   "result": {
-    "id": "craftmaster:peephole_glasses",
-    "count": 1
+    "id": "craftmaster:glasses",
+    "count": 1,
+    "components": {
+      "craftmaster:screen_fx": "fisheye+masque_rond",
+      "minecraft:dyed_color": 2536638,
+      "minecraft:item_name": {
+        "translate": "item.craftmaster.peephole_glasses"
+      }
+    }
   }
 }

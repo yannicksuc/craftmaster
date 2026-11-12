@@ -70,24 +70,29 @@ Réservé aux organisateurs.
 
 ## Les lunettes et masques à porter
 
-Dans l'onglet CraftMaster, ou fabriqués à l'établi. Clic droit avec l'objet en main = on le met sur la
-tête (comme une citrouille) ; on voit alors le monde à travers. Les autres le voient sur la tête du joueur, et la
-diffusion aussi.
+**Une seule paire de lunettes** (`craftmaster:glasses`), au même dessin : la **couleur des verres** dit l'effet.
+L'onglet CraftMaster en a une par effet ; elles se fabriquent aussi à l'établi (mêmes recettes qu'avant). Clic droit
+avec les lunettes en main = on les met sur la tête (comme une citrouille) ; on voit alors le monde à travers. Les
+autres les voient sur la tête du joueur, et la diffusion aussi.
 
-| Objet | Effet sur la vue |
-|---|---|
-| Lunettes floues | flou |
-| Lunettes sépia | sépia |
-| Lunettes noir et blanc | noir et blanc |
-| Lunettes pixel | pixel |
-| Lunettes judas | judas (fish-eye + masque rond) |
-| Citrouille sculptée (celle du jeu) | la vue citrouille du jeu, rien à ajouter |
-| Lunettes vintage | vieux film + vignette |
-| Casque VHS | VHS |
-| Lunettes thermiques | infrarouge |
-| Lunettes cœur | rêve |
-| Lunettes tourbillon | ondule |
-| Jumelles frontales | jumelles (avec zoom) |
+| Verres | Nom | Effet sur la vue | Pour `/fx porter` |
+|---|---|---|---|
+| Bleu clair | Lunettes floues | flou | `blurry_glasses` |
+| Marron | Lunettes sépia | sépia | `sepia_glasses` |
+| Gris | Lunettes noir et blanc | noir et blanc | `noir_blanc_glasses` |
+| Vert | Lunettes pixel | pixel | `pixel_glasses` |
+| Cyan | Lunettes judas | judas (fish-eye + masque rond) | `peephole_glasses` |
+| Orange | Lunettes vintage | vieux film + vignette | `vintage_glasses` |
+| Violet | Casque VHS | VHS | `vhs_headset` |
+| Rouge | Lunettes thermiques | infrarouge | `thermal_goggles` |
+| Rose | Lunettes cœur | rêve | `heart_glasses` |
+| Magenta | Lunettes tourbillon | ondule | `wobbly_glasses` |
+| Jaune | Jumelles frontales | jumelles (avec zoom) | `binocular_goggles` |
+| — | Citrouille sculptée (celle du jeu) | la vue citrouille du jeu | — |
+
+L'effet est le composant `craftmaster:screen_fx`, la couleur `minecraft:dyed_color`, le nom `minecraft:item_name`.
+Les onze anciens objets (un dessin chacun) restent connus du jeu : dans l'inventaire d'un joueur, ils deviennent
+tout seuls les nouvelles lunettes, avec le même effet (et un verrou posé par `/fx porter … verrouille` reste).
 
 **Pour une épreuve**, l'organisateur peut les mettre lui-même sur la tête d'un candidat :
 - `/fx porter Ensuri blurry_glasses` : Ensuri porte les lunettes floues (ce qu'il avait sur la tête va dans son

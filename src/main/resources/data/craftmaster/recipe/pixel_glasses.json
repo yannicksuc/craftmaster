@@ -11,7 +11,14 @@
     "B": "minecraft:black_dye"
   },
   "result": {
-    "id": "craftmaster:pixel_glasses",
-    "count": 1
+    "id": "craftmaster:glasses",
+    "count": 1,
+    "components": {
+      "craftmaster:screen_fx": "pixel",
+      "minecraft:dyed_color": 6142783,
+      "minecraft:item_name": {
+        "translate": "item.craftmaster.pixel_glasses"
+      }
+    }
   }
 }

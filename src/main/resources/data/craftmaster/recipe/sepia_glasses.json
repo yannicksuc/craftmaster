@@ -11,7 +11,14 @@
     "S": "minecraft:brown_dye"
   },
   "result": {
-    "id": "craftmaster:sepia_glasses",
-    "count": 1
+    "id": "craftmaster:glasses",
+    "count": 1,
+    "components": {
+      "craftmaster:screen_fx": "sepia",
+      "minecraft:dyed_color": 11039804,
+      "minecraft:item_name": {
+        "translate": "item.craftmaster.sepia_glasses"
+      }
+    }
   }
 }

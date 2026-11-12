@@ -194,51 +194,6 @@ def glasses_pal(frame, lens, lens_alpha=200, highlight=WHITE, second=None):
             "S": rgba(second or lens[0], lens_alpha)}
 
 
-def swirl(img, x0, y0, w, h, c1, c2, alpha):
-    """Hypnotic lens: concentric square rings alternating two colours (only over lens pixels already painted)."""
-    cx, cy = x0 + (w - 1) / 2, y0 + (h - 1) / 2
-    for y in range(y0, y0 + h):
-        for x in range(x0, x0 + w):
-            px = img.get(x, y)
-            if px[3] == 0 or px[3] == 255:
-                continue
-            ring = int(max(abs(x - cx), abs(y - cy)) + 0.5)
-            img.set(x, y, rgba(c1 if ring % 2 == 0 else c2, alpha))
-
-
-GLASSES = {
-    # id: (icon template, front template, palette, post-paint(img, worn?))
-    "blurry_glasses": (GLASSES_ICON, GLASSES_FRONT, glasses_pal(BLACK, [(150, 170, 186), (190, 206, 218), (226, 234, 240)], 210), "frost"),
-    "sepia_glasses": (ROUND_ICON, ROUND_FRONT, glasses_pal(TORTOISE, [(120, 70, 20), (170, 108, 40), (206, 146, 64)], 190), None),
-    "noir_blanc_glasses": (GLASSES_ICON, GLASSES_FRONT, glasses_pal(BLACK, [(30, 30, 30), (60, 60, 60), (90, 90, 90)], 215), "bw"),
-    "pixel_glasses": (SHADES_ICON, SHADES_FRONT, glasses_pal(BLACK, [(8, 8, 10), (16, 16, 20), (26, 26, 32)], 235, (236, 236, 236)), None),
-    "vintage_glasses": (ROUND_ICON, ROUND_FRONT, glasses_pal(GOLD, [(92, 70, 40), (128, 100, 62), (160, 132, 90)], 170), None),
-    "heart_glasses": (HEART_ICON, HEART_FRONT, glasses_pal(PINK, [(200, 40, 100), (236, 80, 140), (255, 140, 186)], 190), None),
-    "wobbly_glasses": (GLASSES_ICON, GLASSES_FRONT, glasses_pal(STEEL, [(120, 40, 160), (160, 80, 200), (220, 220, 240)], 210), "swirl"),
-}
-
-
-def paint_glasses(img, x0, y0, rows, pal, extra):
-    img.art(x0, y0, rows, pal)
-    w, h = len(rows[0]), len(rows)
-    if extra == "frost":
-        # Frosted lenses: milky diagonal streaks
-        for y in range(h):
-            for x in range(w):
-                if rows[y][x] == "L" and (x + y) % 3 == 0:
-                    img.set(x0 + x, y0 + y, (250, 252, 255, 225))
-    elif extra == "bw":
-        # Left lens black, right lens white
-        for y in range(h):
-            for x in range(w // 2, w):
-                if rows[y][x] in "Ll":
-                    img.set(x0 + x, y0 + y, (232, 232, 228, 225) if rows[y][x] == "L" else (196, 196, 192, 225))
-    elif extra == "swirl":
-        half = w // 2
-        swirl(img, x0, y0, half, h, (140, 50, 190), (236, 236, 250), 215)
-        swirl(img, x0 + half, y0, half, h, (140, 50, 190), (236, 236, 250), 215)
-
-
 def generate(g):
     A, D = g.A, g.D
     wj, wp = g.write_json, g.write_png
@@ -258,217 +213,58 @@ def generate(g):
     def face(tex, uv):
         return {"texture": tex, "uv": uv}
 
-    # ---------------------------------------------------------------- glasses (frame + two arms, 3 cubes)
-    for name, (icon, front, pal, extra) in GLASSES.items():
-        sprite = Img(16, 16)
-        paint_glasses(sprite, 0, 0, icon, pal, extra)
-        save(sprite, f"item/{name}")
-        worn = Img(16, 16)
-        paint_glasses(worn, 0, 0, front, pal, extra)  # rows 0-4: front / back of the frame
-        # rows 6-7: the arms (side, then top), frame colour with a light top edge
-        for x in range(12):
-            worn.set(x, 6, pal["f"])
-            worn.set(x, 7, pal["F"])
-        worn.set(11, 6, pal["o"])  # temple tip, darker
-        save(worn, f"item/fx/{name}_worn")
-        tex = "#t"
-        # Top and bottom of the frame: row 0 / row 4 of the front, 1 px deep
-        frame = {"from": [0, 5, -0.5], "to": [16, 10, 0.5], "faces": {
-            "north": face(tex, [0, 0, 16, 5]), "south": face(tex, [16, 0, 0, 5]),
-            "up": face(tex, [0, 0, 16, 1]), "down": face(tex, [0, 4, 16, 5]),
-            "east": face(tex, [15, 0, 16, 5]), "west": face(tex, [0, 0, 1, 5])}}
-        arms = []
-        for x1 in (0, 15):
-            arms.append({"from": [x1, 7, 0.5], "to": [x1 + 1, 8, 12], "faces": {
-                "east": face(tex, [0, 6, 11.5, 7]), "west": face(tex, [11.5, 6, 0, 7]),
-                "up": face(tex, [0, 7, 11.5, 8], ) | {"rotation": 90}, "down": face(tex, [0, 7, 11.5, 8]) | {"rotation": 90},
-                "south": face(tex, [11, 6, 12, 7])}})
-        wj(os.path.join(A, f"models/item/fx/{name}_worn.json"), {
-            "textures": {"t": f"craftmaster:item/fx/{name}_worn", "particle": f"craftmaster:item/{name}"},
-            "elements": [frame] + arms})
-        item_def(name, f"craftmaster:item/fx/{name}_worn")
-
-    # ---------------------------------------------------------------- goggles (box on the eyes + strap)
-    # Texture 32 x 32; model UVs are in 16ths of the texture, so pixel coordinates are halved.
-    def U(*px):
-        return [v / 2 for v in px]
-
-    def goggles(name, body, strap, front_painter, tubes=()):
-        img = Img(32, 32)
-        o, f, F, L = body
-        # box: north (front) 12x6 at (0,0); up 12x4 at (0,6); down 12x4 at (0,10); east/west 4x6 at (12,0)/(16,0)
-        img.rect(0, 0, 12, 6, f)
-        front_painter(img)
-        img.rect(0, 6, 12, 4, F)
-        for x in range(12):
-            img.set(x, 9, f)
-        img.rect(0, 10, 12, 4, o)
-        for side in (12, 16):
-            img.rect(side, 0, 4, 6, f)
-            for y in range(6):
-                img.set(side + 3, y, o)
-            for x in range(4):
-                img.set(side + x, 0, F)
-                img.set(side + x, 5, o)
-        # strap: 15 x 2 at (0,16): light top row, dark bottom row, a buckle
-        so, sf = strap
-        for x in range(15):
-            img.set(x, 16, sf)
-            img.set(x, 17, so)
-        img.rect(6, 16, 3, 2, (170, 170, 178))
-        img.set(7, 16, so)
-        # tubes: front 4x4 at (20,0), sides 3x4 at (24,0), top 4x3 at (20,4)
-        tl = (34, 36, 42)
-        img.rect(20, 0, 4, 4, tl)
-        img.rect(21, 1, 2, 2, (120, 190, 230))
-        img.set(21, 1, (230, 245, 255))
-        img.rect(24, 0, 3, 4, (52, 54, 62))
-        img.rect(20, 4, 4, 3, (70, 72, 82))
-        save(img, f"item/fx/{name}_worn")
-        t = "#t"
-        box = {"from": [2, 4, -3], "to": [14, 10, 1], "faces": {
-            "north": face(t, U(0, 0, 12, 6)), "up": face(t, U(0, 6, 12, 10)), "down": face(t, U(0, 10, 12, 14)),
-            "east": face(t, U(12, 0, 16, 6)), "west": face(t, U(16, 0, 20, 6))}}
-        band = {"from": [0.5, 6, 0.5], "to": [15.5, 8, 15.5], "faces": {
-            "east": face(t, U(0, 16, 15, 18)), "west": face(t, U(0, 16, 15, 18)), "south": face(t, U(0, 16, 15, 18))}}
-        els = [box, band]
-        for (x1, y1, w, h, depth) in tubes:
-            els.append({"from": [x1, y1, -3 - depth], "to": [x1 + w, y1 + h, -3], "faces": {
-                "north": face(t, U(20, 0, 24, 4)), "east": face(t, U(24, 0, 27, 4)), "west": face(t, U(24, 0, 27, 4)),
-                "up": face(t, U(20, 4, 24, 7)), "down": face(t, U(20, 4, 24, 7))}})
-        wj(os.path.join(A, f"models/item/fx/{name}_worn.json"), {
-            "textures": {"t": f"craftmaster:item/fx/{name}_worn", "particle": f"craftmaster:item/{name}"},
-            "elements": els})
-        item_def(name, f"craftmaster:item/fx/{name}_worn")
-
-    body_black = (rgba(BLACK[0]), rgba(BLACK[1]), rgba(BLACK[2]), None)
-
-    def vhs_front(img):
-        # A tape seen from the front: label strip, two reel windows with their hubs
-        img.rect(0, 0, 12, 6, rgba(BLACK[1]))
-        img.rect(1, 1, 10, 1, (236, 228, 204))
-        img.set(2, 1, (210, 60, 50))
-        img.set(3, 1, (210, 60, 50))
-        for cx in (3, 8):
-            img.rect(cx - 1, 2, 3, 3, (60, 58, 70))
-            img.set(cx, 3, (210, 206, 196))
-        img.rect(5, 3, 2, 1, (44, 40, 52))
-        for x in range(12):
-            img.set(x, 5, rgba(BLACK[0]))
-    goggles("vhs_headset", body_black, (rgba(BLACK[0]), rgba(BLACK[2])), vhs_front)
-
-    def thermal_front(img):
-        img.rect(0, 0, 12, 6, rgba(STEEL[1]))
-        for cx in (3, 8):
-            img.rect(cx - 2, 1, 4, 4, rgba(STEEL[0]))
-            img.rect(cx - 1, 2, 2, 2, (220, 60, 30))
-            img.set(cx - 1, 2, (255, 200, 80))
-        for x in range(12):
-            img.set(x, 0, rgba(STEEL[2]))
-            img.set(x, 5, rgba(STEEL[0]))
-        img.set(5, 1, (90, 220, 90))
-    goggles("thermal_goggles", (rgba(STEEL[0]), rgba(STEEL[1]), rgba(STEEL[2]), None), (rgba(BLACK[0]), rgba(BLACK[2])), thermal_front)
-
-    def brass_front(img):
-        img.rect(0, 0, 12, 6, rgba(BRASS[1]))
-        for x in range(12):
-            img.set(x, 0, rgba(BRASS[2]))
-            img.set(x, 5, rgba(BRASS[0]))
-        for (x, y) in [(1, 1), (10, 1), (1, 4), (10, 4)]:
-            img.set(x, y, rgba(BRASS[3]))  # rivets
-    goggles("peephole_glasses", (rgba(BRASS[0]), rgba(BRASS[1]), rgba(BRASS[2]), None), (rgba(TORTOISE[0]), rgba(TORTOISE[2])),
-            brass_front, tubes=[(6, 5, 4, 4, 2)])
-
-    def bino_front(img):
-        img.rect(0, 0, 12, 6, rgba(BLACK[2]))
-        for x in range(12):
-            img.set(x, 0, rgba(BLACK[3]))
-            img.set(x, 5, rgba(BLACK[0]))
-    goggles("binocular_goggles", body_black, (rgba(BLACK[0]), rgba(BLACK[2])), bino_front,
-            tubes=[(3, 5, 4, 4, 3), (9, 5, 4, 4, 3)])
-
-    # Sprites of the goggles (front view, three-quarter top)
-    def sprite(name, rows, pal):
-        img = Img(16, 16)
-        img.art(0, 0, rows, pal)
-        save(img, f"item/{name}")
-
-    sprite("vhs_headset", [
-        "................",
-        "................",
-        "................",
-        "...ssssssssss...",
-        "..s..........s..",
-        ".oFFFFFFFFFFFFo.",
-        ".fwwwwrwwwwwwwf.",
-        ".fbbhbbbbbhbbbf.",
-        ".fbhkhbbbhkhbbf.",
-        ".fbbhbbbbbhbbbf.",
-        ".ffffffffffffff.",
-        ".oooooooooooooo.",
-        "................",
-        "................",
-        "................",
-        "................",
-    ], {"s": rgba(BLACK[2]), "o": rgba(BLACK[0]), "f": rgba(BLACK[1]), "F": rgba(BLACK[3]), "w": (236, 228, 204, 255),
-        "r": (210, 60, 50, 255), "b": (52, 50, 62, 255), "h": (200, 196, 186, 255), "k": (24, 22, 28, 255)})
-    sprite("thermal_goggles", [
-        "................",
-        "................",
-        "................",
-        "...ssssssssss...",
-        "..s..........s..",
-        ".oFFFFFFFFFFFFo.",
-        ".fooooffooooof..",
-        ".foyrroforrrof..",
-        ".forrrofforrrof.",
-        ".fooooffoooooof.",
-        ".ffffffgffffff..",
-        "..oooooooooooo..",
-        "................",
-        "................",
-        "................",
-        "................",
-    ], {"s": rgba(BLACK[2]), "o": rgba(STEEL[0]), "f": rgba(STEEL[1]), "F": rgba(STEEL[3]), "r": (220, 60, 30, 255),
-        "y": (255, 200, 80, 255), "g": (90, 220, 90, 255)})
-    sprite("peephole_glasses", [
-        "................",
-        "................",
-        "...ssssssssss...",
-        "..s..........s..",
-        ".oFFFFFFFFFFFFo.",
-        ".fRffkkkkkkffRf.",
-        ".fffkbbbbbbkfff.",
-        ".fffkbhbbbbkfff.",
-        ".fffkbbbbbbkfff.",
-        ".fRffkkkkkkffRf.",
-        ".oooooooooooooo.",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-    ], {"s": rgba(TORTOISE[2]), "o": rgba(BRASS[0]), "f": rgba(BRASS[1]), "F": rgba(BRASS[3]), "R": rgba(BRASS[3]),
-        "k": (34, 36, 42, 255), "b": (90, 160, 210, 255), "h": (230, 245, 255, 255)})
-    sprite("binocular_goggles", [
-        "................",
-        "................",
-        "..kkkk....kkkk..",
-        ".kbbbbk..kbbbbk.",
-        ".kbhbbk..kbhbbk.",
-        ".kbbbbk..kbbbbk.",
-        ".kkkkkkkkkkkkkk.",
-        ".oFFFFFFFFFFFFo.",
-        ".ffffffffffffff.",
-        ".ffffffffffffff.",
-        ".oooooooooooooo.",
-        "..s..........s..",
-        "...ssssssssss...",
-        "................",
-        "................",
-        "................",
-    ], {"s": rgba(BLACK[2]), "o": rgba(BLACK[0]), "f": rgba(BLACK[2]), "F": rgba(BLACK[3]), "k": (34, 36, 42, 255),
-        "b": (90, 160, 210, 255), "h": (230, 245, 255, 255)})
+    # ---------------------------------------------------------------- the one pair of effect glasses
+    # LordFinn: "pour toutes les lunettes un seul item coloré". One drawing, the lenses tinted with the effect's
+    # colour (minecraft:dyed_color, set by FxContent). Icon: frame (layer 0) + grey lenses (layer 1, tinted). Worn:
+    # the frame and its arms (3 cubes), the lenses on their own faces of the same box, tinted too.
+    import gen_icons
+    save_rows = lambda rows, path: wp(os.path.join(A, f"textures/{path}.png"), 16, 16, rows)
+    save_rows(gen_icons.glasses_base(), "item/glasses")
+    save_rows(gen_icons.glasses_lens(), "item/glasses_lens")
+    pal = glasses_pal(BLACK, [(150, 150, 150), (190, 190, 190), (226, 226, 226)], 255)
+    frame_img, lens_img = Img(16, 16), Img(16, 16)
+    for y, row in enumerate(GLASSES_FRONT):
+        for x, ch in enumerate(row):
+            if ch in "LlHS":
+                v = {"H": 255, "L": 220, "l": 186, "S": 220}[ch]
+                lens_img.set(x, y, (v, v, v, 255))
+            elif ch != ".":
+                frame_img.set(x, y, pal[ch])
+    for x in range(12):
+        frame_img.set(x, 6, pal["f"])
+        frame_img.set(x, 7, pal["F"])
+    frame_img.set(11, 6, pal["o"])
+    save(frame_img, "item/fx/glasses_worn")
+    save(lens_img, "item/fx/glasses_worn_lens")
+    tex = "#t"
+    frame = {"from": [0, 5, -0.5], "to": [16, 10, 0.5], "faces": {
+        "north": face(tex, [0, 0, 16, 5]), "south": face(tex, [16, 0, 0, 5]),
+        "up": face(tex, [0, 0, 16, 1]), "down": face(tex, [0, 4, 16, 5]),
+        "east": face(tex, [15, 0, 16, 5]), "west": face(tex, [0, 0, 1, 5])}}
+    lenses = {"from": [0, 5, -0.5], "to": [16, 10, 0.5], "faces": {
+        "north": {"texture": "#l", "uv": [0, 0, 16, 5], "tintindex": 1},
+        "south": {"texture": "#l", "uv": [16, 0, 0, 5], "tintindex": 1}}}
+    arms = []
+    for x1 in (0, 15):
+        arms.append({"from": [x1, 7, 0.5], "to": [x1 + 1, 8, 12], "faces": {
+            "east": face(tex, [0, 6, 11.5, 7]), "west": face(tex, [11.5, 6, 0, 7]),
+            "up": face(tex, [0, 7, 11.5, 8]) | {"rotation": 90}, "down": face(tex, [0, 7, 11.5, 8]) | {"rotation": 90},
+            "south": face(tex, [11, 6, 12, 7])}})
+    wj(os.path.join(A, "models/item/fx/glasses_worn.json"), {
+        "textures": {"t": "craftmaster:item/fx/glasses_worn", "l": "craftmaster:item/fx/glasses_worn_lens",
+                     "particle": "craftmaster:item/glasses"},
+        "elements": [frame, lenses] + arms})
+    wj(os.path.join(A, "models/item/glasses.json"),
+       {"parent": "minecraft:item/generated", "textures": {"layer0": "craftmaster:item/glasses", "layer1": "craftmaster:item/glasses_lens"}})
+    tints = [{"type": "minecraft:constant", "value": -1}, {"type": "minecraft:dye", "default": -1}]
+    glasses_def = {"model": {
+        "type": "minecraft:select", "property": "minecraft:display_context",
+        "cases": [{"when": "head", "model": {"type": "minecraft:model", "model": "craftmaster:item/fx/glasses_worn", "tints": tints}}],
+        "fallback": {"type": "minecraft:model", "model": "craftmaster:item/glasses", "tints": tints}}}
+    wj(os.path.join(A, "items/glasses.json"), glasses_def)
+    # The old items (kept for old worlds) look exactly the same
+    for name in WEARABLES:
+        wj(os.path.join(A, f"items/{name}.json"), glasses_def)
 
     # (No pumpkin mask item: the vanilla carved pumpkin already gives the "citrouille" view)
 
@@ -531,17 +327,26 @@ def generate(g):
         wj(os.path.join(A, f"post_effect/fx/{fx_id}.json"), chain)
 
     # ---------------------------------------------------------------- recipes (simple, optional)
-    g.shaped("blurry_glasses", ["I I", "GSG"], {"I": "minecraft:iron_nugget", "G": "minecraft:glass_pane", "S": "minecraft:snowball"}, "blurry_glasses", category="equipment")
-    g.shaped("sepia_glasses", ["I I", "GSG"], {"I": "minecraft:iron_nugget", "G": "minecraft:glass_pane", "S": "minecraft:brown_dye"}, "sepia_glasses", category="equipment")
-    g.shaped("noir_blanc_glasses", ["I I", "BGW"], {"I": "minecraft:iron_nugget", "G": "minecraft:glass_pane", "B": "minecraft:black_dye", "W": "minecraft:white_dye"}, "noir_blanc_glasses", category="equipment")
-    g.shaped("pixel_glasses", ["I I", "GBG"], {"I": "minecraft:iron_nugget", "G": "minecraft:tinted_glass", "B": "minecraft:black_dye"}, "pixel_glasses", category="equipment")
-    g.shaped("vintage_glasses", ["N N", "GPG"], {"N": "minecraft:gold_nugget", "G": "minecraft:glass_pane", "P": "minecraft:paper"}, "vintage_glasses", category="equipment")
-    g.shaped("heart_glasses", ["I I", "GPG"], {"I": "minecraft:iron_nugget", "G": "minecraft:glass_pane", "P": "minecraft:pink_dye"}, "heart_glasses", category="equipment")
-    g.shaped("wobbly_glasses", ["I I", "GPG"], {"I": "minecraft:iron_nugget", "G": "minecraft:glass_pane", "P": "minecraft:purple_dye"}, "wobbly_glasses", category="equipment")
-    g.shaped("peephole_glasses", ["LCL", " G "], {"L": "minecraft:leather", "C": "minecraft:copper_ingot", "G": "minecraft:glass"}, "peephole_glasses", category="equipment")
-    g.shaped("thermal_goggles", ["LIL", "RGR"], {"L": "minecraft:leather", "I": "minecraft:iron_ingot", "R": "minecraft:redstone", "G": "minecraft:glass_pane"}, "thermal_goggles", category="equipment")
-    g.shaped("vhs_headset", ["LBL", "BRB"], {"L": "minecraft:leather", "B": "minecraft:black_dye", "R": "minecraft:redstone"}, "vhs_headset", category="equipment")
-    g.shaped("binocular_goggles", ["LIL", "GIG"], {"L": "minecraft:leather", "I": "minecraft:iron_ingot", "G": "minecraft:glass"}, "binocular_goggles", category="equipment")
+    # Each recipe gives the one pair of glasses with its effect, lens colour and name (FxContent.COLORS)
+    GLASSES_COLORS = {'blurry_glasses': 10275052, 'sepia_glasses': 11039804, 'noir_blanc_glasses': 9342606, 'pixel_glasses': 6142783, 'peephole_glasses': 2536638, 'vintage_glasses': 14912044, 'vhs_headset': 9129942, 'thermal_goggles': 14235179, 'heart_glasses': 15764671, 'wobbly_glasses': 12729524, 'binocular_goggles': 15911226}
+
+    def glasses_recipe(name, pattern, key):
+        wj(os.path.join(D, f"craftmaster/recipe/{name}.json"), {
+            "type": "minecraft:crafting_shaped", "category": "equipment", "pattern": pattern, "key": key,
+            "result": {"id": "craftmaster:glasses", "count": 1, "components": {
+                "craftmaster:screen_fx": WEARABLES[name][0], "minecraft:dyed_color": GLASSES_COLORS[name],
+                "minecraft:item_name": {"translate": f"item.craftmaster.{name}"}}}})
+    glasses_recipe("blurry_glasses", ["I I", "GSG"], {"I": "minecraft:iron_nugget", "G": "minecraft:glass_pane", "S": "minecraft:snowball"})
+    glasses_recipe("sepia_glasses", ["I I", "GSG"], {"I": "minecraft:iron_nugget", "G": "minecraft:glass_pane", "S": "minecraft:brown_dye"})
+    glasses_recipe("noir_blanc_glasses", ["I I", "BGW"], {"I": "minecraft:iron_nugget", "G": "minecraft:glass_pane", "B": "minecraft:black_dye", "W": "minecraft:white_dye"})
+    glasses_recipe("pixel_glasses", ["I I", "GBG"], {"I": "minecraft:iron_nugget", "G": "minecraft:tinted_glass", "B": "minecraft:black_dye"})
+    glasses_recipe("vintage_glasses", ["N N", "GPG"], {"N": "minecraft:gold_nugget", "G": "minecraft:glass_pane", "P": "minecraft:paper"})
+    glasses_recipe("heart_glasses", ["I I", "GPG"], {"I": "minecraft:iron_nugget", "G": "minecraft:glass_pane", "P": "minecraft:pink_dye"})
+    glasses_recipe("wobbly_glasses", ["I I", "GPG"], {"I": "minecraft:iron_nugget", "G": "minecraft:glass_pane", "P": "minecraft:purple_dye"})
+    glasses_recipe("peephole_glasses", ["LCL", " G "], {"L": "minecraft:leather", "C": "minecraft:copper_ingot", "G": "minecraft:glass"})
+    glasses_recipe("thermal_goggles", ["LIL", "RGR"], {"L": "minecraft:leather", "I": "minecraft:iron_ingot", "R": "minecraft:redstone", "G": "minecraft:glass_pane"})
+    glasses_recipe("vhs_headset", ["LBL", "BRB"], {"L": "minecraft:leather", "B": "minecraft:black_dye", "R": "minecraft:redstone"})
+    glasses_recipe("binocular_goggles", ["LIL", "GIG"], {"L": "minecraft:leather", "I": "minecraft:iron_ingot", "G": "minecraft:glass"})
 
     # ---------------------------------------------------------------- texts
     for name, (effect, en_name, fr_name) in WEARABLES.items():
@@ -550,6 +355,8 @@ def generate(g):
     for fx_id, (en_name, fr_name) in EFFECTS.items():
         en[f"fx.craftmaster.{fx_id}"] = en_name
         fr[f"fx.craftmaster.{fx_id}"] = fr_name
+    en["item.craftmaster.glasses"] = "Glasses"
+    fr["item.craftmaster.glasses"] = "Lunettes"
     en["item.craftmaster.screen_fx.effect"] = "Worn: %s"
     fr["item.craftmaster.screen_fx.effect"] = "Porté : %s"
     en["item.craftmaster.screen_fx.hint"] = "Wear it on your head to see the world through it"

@@ -11,7 +11,14 @@
     "S": "minecraft:snowball"
   },
   "result": {
-    "id": "craftmaster:blurry_glasses",
-    "count": 1
+    "id": "craftmaster:glasses",
+    "count": 1,
+    "components": {
+      "craftmaster:screen_fx": "flou",
+      "minecraft:dyed_color": 10275052,
+      "minecraft:item_name": {
+        "translate": "item.craftmaster.blurry_glasses"
+      }
+    }
   }
 }

@@ -12,7 +12,14 @@
     "W": "minecraft:white_dye"
   },
   "result": {
-    "id": "craftmaster:noir_blanc_glasses",
-    "count": 1
+    "id": "craftmaster:glasses",
+    "count": 1,
+    "components": {
+      "craftmaster:screen_fx": "noir_blanc",
+      "minecraft:dyed_color": 9342606,
+      "minecraft:item_name": {
+        "translate": "item.craftmaster.noir_blanc_glasses"
+      }
+    }
   }
 }
