@@ -105,6 +105,61 @@ public final class MediaNetwork {
         public Type<Piece> type() { return TYPE; }
     }
 
+    // ---------------------------------------------------------------- chat wall (ChatWall)
+
+    /**
+     * Client → server: the broadcast game forwards its Twitch chat (organisers only). {@code kind}: 0 a message
+     * ({@code id}, {@code author}, {@code color} 0xRRGGBB or -1, {@code text}), 1 a message deleted ({@code id}),
+     * 2 a user timed out or banned ({@code author}), 3 the whole chat cleared.
+     */
+    public record TwitchChatIn(int kind, String id, String author, int color, String text) implements CustomPacketPayload {
+        public static final int MESSAGE = 0, DELETE = 1, BAN = 2, CLEAR = 3;
+        public static final Type<TwitchChatIn> TYPE = new Type<>(CraftMaster.id("chat_wall_twitch"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, TwitchChatIn> CODEC = CustomPacketPayload.codec(
+                (p, b) -> {
+                    b.writeVarInt(p.kind);
+                    b.writeUtf(p.id, 64);
+                    b.writeUtf(p.author, 64);
+                    b.writeInt(p.color);
+                    b.writeUtf(p.text, 600);
+                },
+                b -> new TwitchChatIn(b.readVarInt(), b.readUtf(64), b.readUtf(64), b.readInt(), b.readUtf(600)));
+
+        @Override
+        public Type<TwitchChatIn> type() { return TYPE; }
+    }
+
+    /** Server → client: chat wall messages, oldest first; {@code reset}: they replace everything the game had. */
+    public record ChatLines(boolean reset, java.util.List<ChatWall.Line> lines) implements CustomPacketPayload {
+        public static final Type<ChatLines> TYPE = new Type<>(CraftMaster.id("chat_wall_lines"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, ChatLines> CODEC = CustomPacketPayload.codec(
+                (p, b) -> {
+                    b.writeBoolean(p.reset);
+                    b.writeVarInt(p.lines.size());
+                    for (ChatWall.Line l : p.lines) {
+                        b.writeVarInt(l.source().ordinal());
+                        b.writeUtf(l.id(), 64);
+                        b.writeUtf(l.author(), 64);
+                        b.writeInt(l.color());
+                        b.writeUtf(l.text(), 600);
+                    }
+                },
+                b -> {
+                    boolean reset = b.readBoolean();
+                    int n = Math.min(b.readVarInt(), 4 * ChatWall.HISTORY);
+                    java.util.List<ChatWall.Line> lines = new java.util.ArrayList<>(n);
+                    ChatWall.Source[] sources = ChatWall.Source.values();
+                    for (int i = 0; i < n; i++) {
+                        ChatWall.Source s = sources[Math.floorMod(b.readVarInt(), sources.length)];
+                        lines.add(new ChatWall.Line(s, b.readUtf(64), b.readUtf(64), b.readInt(), b.readUtf(600)));
+                    }
+                    return new ChatLines(reset, lines);
+                });
+
+        @Override
+        public Type<ChatLines> type() { return TYPE; }
+    }
+
     public static void register() {
         PayloadTypeRegistry.serverboundPlay().register(UploadBegin.TYPE, UploadBegin.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(UploadPiece.TYPE, UploadPiece.CODEC);
@@ -112,5 +167,7 @@ public final class MediaNetwork {
         PayloadTypeRegistry.clientboundPlay().register(UploadReply.TYPE, UploadReply.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(Fetch.TYPE, Fetch.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(Piece.TYPE, Piece.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(TwitchChatIn.TYPE, TwitchChatIn.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(ChatLines.TYPE, ChatLines.CODEC);
     }
 }

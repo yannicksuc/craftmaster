@@ -27,7 +27,8 @@ import net.minecraft.world.phys.Vec3;
  * downloaded from a URL by every player's game (see client/studio/ScreenImages), or a video (YouTube, Twitch, MP4...)
  * played by WaterMedia when the players have it (client/studio/ScreenVideos). Replaces the Paper plugin's
  * {@code /image} (ImageFrame). The entity's position is the centre of the picture; its size is in blocks.
- * Without an image (or while it loads, or if it cannot be shown) the screen shows the CraftMaster test card.
+ * Without an image (or while it loads, or if it cannot be shown) the screen shows the CraftMaster test card. The
+ * address {@code chat:twitch}, {@code chat:jeu} or {@code chat:tout} makes it a chat wall (media/ChatWall).
  *
  * <p>Video playback is the same for everyone: the server keeps the game tick the video started at ({@code START}),
  * or the position it was paused at ({@code PAUSED_AT}, -1 while playing); each game plays (and seeks) to match.
@@ -157,12 +158,18 @@ public class ImageScreenEntity extends Entity {
         return Direction.from2DDataValue(entityData.get(FACING));
     }
 
-    /** New address; the same one again restarts its video from the beginning for everyone. */
+    /**
+     * New address; the same one again restarts its video from the beginning for everyone. A chat wall address
+     * ("chat:twitch"...) is written the canonical way, and the players who see the screen get the chat's history.
+     */
     public void setUrl(String url) {
         String u = url == null ? "" : url.trim();
+        fr.lordfinn.craftmaster.media.ChatWall.Mode chat = fr.lordfinn.craftmaster.media.ChatWall.mode(u);
+        if (chat != null) u = chat.address();
         if (!u.equals(url())) restartVideo();
         entityData.set(URL, u);
         entityData.set(SHOWN_AT, level().getGameTime());
+        if (chat != null && !level().isClientSide()) fr.lordfinn.craftmaster.media.ChatWallServer.screenShown(this);
     }
 
     public void setFit(boolean fit) {
