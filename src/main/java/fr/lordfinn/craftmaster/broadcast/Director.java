@@ -695,7 +695,8 @@ public final class Director {
                 lines.add(credits || intro ? (intro ? "Intro de manche arrêtée." : "Générique arrêté.") : "Aucun générique en cours.");
             }
             // Resolved by show.Actions (it knows the rounds): {manche: id}
-            case "intro.play" -> lines.add(MancheIntros.play(server, String.valueOf(a.get("manche"))));
+            case "intro.play" -> lines.add(MancheIntros.play(server, String.valueOf(a.get("manche")),
+                    a.get("from") instanceof Number n ? n.intValue() : 1));
             default -> lines.add("⚠ Action de réalisation inconnue : " + type);
         }
     }

@@ -131,6 +131,7 @@ prend le relais.
 | Couper sur la musique | `/tv intro <m> rythme intro` (musique d'intro, 120 BPM) · `rythme theme` (tempo du thème, 112 BPM) · `rythme 96` · `rythme 120 4` (4 temps par plan) · `rythme 120 4 0,4` (1er temps à 0,4 s) · `rythme off` |
 | Lancement enchaîné | `/tv intro <m> enchaine on\|off` (on par défaut, avec `auto on`) |
 | Voir / jouer | `/tv intro <m> voir` · `/tv intro <m>` · « lance l'intro du pont » · `/tv stop` l'arrête |
+| Éditeur | `/tv intro <m> voir` (cliquable) · `plan 3 essayer` (jouer à partir du plan 3, sans musique) · `plan 3 monter\|descendre` · `plan 3 camera <caméra>` · `plan 3 tache` |
 
 - Les caméras d'un plan se lisent **dans le lieu de la manche** : `large`, `2`, `ensuri:1`, ou `studio:3`.
 - **Coupé sur la musique** (`rythme`) : chaque plan dure un nombre entier de temps, donc chaque coupe tombe sur un
@@ -163,6 +164,11 @@ prend le relais.
   le plan « lieu de la tâche » (ou le dernier plan), sur la diffusion seulement.
 - **Musique d'intro** (`musique intro`) : une petite pièce provisoire (pizzicato, basson, glockenspiel), générée par
   `scripts/gen_intro_music.py`, remplaçable dans un pack de ressources (`assets/craftmaster/sounds/show/intro.ogg`).
+- **Éditeur** : `/tv intro <m> voir` montre la frise de l'intro sur la musique (un pavé par temps, une couleur par
+  plan ; survoler = le plan, cliquer = l'essayer) et dit si elle finit sur l'accord de la musique d'intro. Chaque
+  plan a ses boutons : ▶ (jouer à partir de lui, sans la musique), ↑ ↓ (changer sa place), caméra, effet,
+  transition, durée (la commande est proposée, à compléter), ✖ (retirer). En bas : tout jouer, ajouter une caméra
+  ou le lieu de la tâche, construire, replacer le lieu de la tâche. Tout est annulable.
 - Tout réglage d'intro est **annulable** (« annule », `/craftMasterUndo`) : il est rangé avec la manche.
 - `/tv intro` seul lance toujours le générique d'ouverture de l'émission.
 

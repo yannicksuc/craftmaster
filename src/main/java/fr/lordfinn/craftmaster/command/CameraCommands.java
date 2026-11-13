@@ -678,6 +678,13 @@ public final class CameraCommands {
                                         .executes(c -> run(c, intro(c, "intro.shot.add", "task", true, "seconds", DoubleArgumentType.getDouble(c, "seconds")))))))
                 .then(literal("plan").then(argument("index", integer(1, MancheIntro.MAX_SHOTS))
                         .then(literal("retirer").executes(c -> run(c, intro(c, "intro.shot.remove", "index", getInteger(c, "index")))))
+                        // The intro editor (clickable in /tv intro <m> voir): try from here, reorder, other camera
+                        .then(literal("essayer").executes(c -> run(c, intro(c, "intro.play", "from", getInteger(c, "index")))))
+                        .then(literal("monter").executes(c -> run(c, intro(c, "intro.shot.move", "index", getInteger(c, "index"), "to", getInteger(c, "index") - 1))))
+                        .then(literal("descendre").executes(c -> run(c, intro(c, "intro.shot.move", "index", getInteger(c, "index"), "to", getInteger(c, "index") + 1))))
+                        .then(literal("camera").then(argument("ref", word()).suggests(CAMERAS)
+                                .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "camera", str(c, "ref"))))))
+                        .then(literal("tache").executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "task", true))))
                         .then(literal("duree").then(argument("seconds", DoubleArgumentType.doubleArg(0, MancheIntro.MAX_SECONDS))
                                 .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "seconds", DoubleArgumentType.getDouble(c, "seconds"))))))
                         .then(literal("transition").then(argument("transition", word()).suggests(TRANSITIONS)
@@ -713,6 +720,45 @@ public final class CameraCommands {
                 // Places the task location camera again (after moving the TP point or the envelope)
                 .then(literal("lieu").executes(CameraCommands::taskCamera))
                 .then(literal("effacer").executes(c -> run(c, intro(c, "intro.clear"))));
+    }
+
+    /** "[label]" that runs or (suggest) proposes {@code command}, with a hover text. */
+    private static Component button(String label, String command, boolean suggest, String hover, ChatFormatting color) {
+        net.minecraft.network.chat.ClickEvent click = suggest ? new net.minecraft.network.chat.ClickEvent.SuggestCommand(command)
+                : new net.minecraft.network.chat.ClickEvent.RunCommand(command);
+        return Component.literal("[" + label + "]").withStyle(st -> st.withColor(color).withClickEvent(click)
+                .withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(Component.literal(hover + "\n" + command)))).append(" ");
+    }
+
+    /**
+     * The intro as a strip on the music: one block per beat (or per half second without a rhythm), each shot in its
+     * colour, hover = the shot; the music's sting under its 40th beat when the intro music plays.
+     */
+    private static Component strip(Manche m, MancheIntro in, List<MancheIntro.Timed> timeline) {
+        ChatFormatting[] colors = {ChatFormatting.AQUA, ChatFormatting.LIGHT_PURPLE, ChatFormatting.YELLOW, ChatFormatting.GREEN,
+                ChatFormatting.BLUE, ChatFormatting.GOLD, ChatFormatting.RED, ChatFormatting.DARK_AQUA};
+        double unit = in.beatSeconds() > 0 ? in.beatSeconds() : 0.5;
+        net.minecraft.network.chat.MutableComponent out = Component.literal("  ");
+        int cells = 0;
+        for (MancheIntro.Timed t : timeline) {
+            int n = (int) Math.max(1, Math.round(t.length() / unit));
+            cells += n;
+            if (cells > 80) n = Math.max(1, n - (cells - 80));
+            ChatFormatting col = colors[t.index() % colors.length];
+            String hover = (t.index() + 1) + " · " + t.shot().describe(t, in.beatSeconds());
+            out.append(Component.literal("█".repeat(n)).withStyle(st -> st.withColor(col)
+                    .withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(Component.literal(hover)))
+                    .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/tv intro " + m.id + " plan " + (t.index() + 1) + " essayer"))));
+            if (cells >= 80) break;
+        }
+        if (in.music.equals(MancheIntro.INTRO_MUSIC) && in.bpm == MancheIntro.INTRO_BPM) {
+            double total = timeline.isEmpty() ? 0 : timeline.getLast().start() + timeline.getLast().length();
+            double diff = total - MancheIntro.INTRO_MUSIC_SECONDS;
+            out.append(Component.literal(Math.abs(diff) < 0.01 ? "  ♪ finit sur l'accord" : diff < 0
+                    ? "  ♪ " + MancheIntro.fmtNumber(-diff) + " s avant l'accord" : "  ♪ " + MancheIntro.fmtNumber(diff) + " s après la musique")
+                    .withStyle(ChatFormatting.DARK_GRAY));
+        }
+        return out;
     }
 
     private static int taskCamera(CommandContext<CommandSourceStack> c) {
@@ -758,10 +804,30 @@ public final class CameraCommands {
             CameraPath p = CameraPaths.get(n);
             return p == null ? 0 : p.duration();
         });
-        for (int i = 0; i < in.shots.size(); i++)
-            c.getSource().sendSystemMessage(Component.literal("  " + (i + 1) + " · " + in.shots.get(i).describe(timeline.get(i), in.beatSeconds())
-                            + (i == auto ? ", titre (automatique)" : ""))
-                    .withStyle(ChatFormatting.GRAY));
+        if (!in.shots.isEmpty()) c.getSource().sendSystemMessage(strip(m, in, timeline));
+        String base = "/tv intro " + m.id + " ";
+        for (int i = 0; i < in.shots.size(); i++) {
+            MancheIntro.Shot s = in.shots.get(i);
+            String plan = base + "plan " + (i + 1) + " ";
+            net.minecraft.network.chat.MutableComponent line = Component.literal("  " + (i + 1) + " ").withStyle(ChatFormatting.WHITE)
+                    .append(button("▶", base + "plan " + (i + 1) + " essayer", false, "Jouer l'intro à partir de ce plan (sans la musique)", ChatFormatting.GREEN))
+                    .append(Component.literal(" " + s.describe(timeline.get(i), in.beatSeconds()) + (i == auto ? ", titre (automatique)" : "") + " ")
+                            .withStyle(ChatFormatting.GRAY));
+            if (i > 0) line.append(button("↑", plan + "monter", false, "Avancer ce plan d'une place", ChatFormatting.AQUA));
+            if (i < in.shots.size() - 1) line.append(button("↓", plan + "descendre", false, "Reculer ce plan d'une place", ChatFormatting.AQUA));
+            line.append(button("caméra", plan + "camera ", true, "Remplacer par une autre caméra du lieu", ChatFormatting.YELLOW))
+                    .append(button("effet", plan + "effet ", true, "Effet d'image de ce plan (aucun pour l'enlever)", ChatFormatting.YELLOW))
+                    .append(button("transition", plan + "transition ", true, "Transition vers ce plan", ChatFormatting.YELLOW))
+                    .append(button("durée", plan + "duree ", true, "Durée en secondes (arrondie aux temps de la musique)", ChatFormatting.YELLOW))
+                    .append(button("✖", plan + "retirer", false, "Retirer ce plan (annulable)", ChatFormatting.RED));
+            c.getSource().sendSystemMessage(line);
+        }
+        c.getSource().sendSystemMessage(Component.literal("  ")
+                .append(button("▶ tout jouer", base + "jouer", false, "Jouer l'intro entière, avec la musique", ChatFormatting.GREEN))
+                .append(button("+ caméra", base + "ajouter camera ", true, "Ajouter un plan sur une caméra", ChatFormatting.YELLOW))
+                .append(button("+ lieu de la tâche", base + "ajouter tache", false, "Ajouter le plan « lieu de la tâche »", ChatFormatting.YELLOW))
+                .append(button("construire", base + "construire", true, "Refaire toute l'intro à partir des caméras de la manche (remplace les plans)", ChatFormatting.GOLD))
+                .append(button("lieu", base + "lieu", false, "Replacer la caméra « lieu de la tâche » (TP ou enveloppe déplacés)", ChatFormatting.GOLD)));
         return in.shots.size();
     }
 }

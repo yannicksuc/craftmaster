@@ -271,6 +271,29 @@ class MancheIntroTest {
     }
 
     @Test
+    void editorMovesShotsAndTriesFromOne() {
+        assertTrue(run(a("intro.shot.add", "manche", "Le Pont", "camera", "large"), a("intro.shot.add", "manche", "Le Pont", "camera", "2"),
+                a("intro.shot.add", "manche", "Le Pont", "task", true)).ok());
+        Actions.Outcome o = run(a("intro.shot.move", "manche", "Le Pont", "index", 3, "to", 1));
+        assertTrue(o.ok(), o.lines().toString());
+        assertEquals(MancheIntro.TASK, pont().intro.shots.getFirst().kind());
+        assertEquals("2", pont().intro.shots.getLast().ref());
+        assertFalse(run(a("intro.shot.move", "manche", "Le Pont", "index", 1, "to", 1)).ok());
+        assertTrue(run(a("undo")).ok());
+        assertEquals(MancheIntro.TASK, pont().intro.shots.getLast().kind());
+        // Replacing a shot's camera keeps the rest of it
+        assertTrue(run(a("intro.shot.set", "manche", "Le Pont", "index", 2, "camera", "3", "effect", "sepia")).ok());
+        assertTrue(run(a("intro.shot.set", "manche", "Le Pont", "index", 2, "camera", "4")).ok());
+        assertEquals("4", pont().intro.shots.get(1).ref());
+        assertEquals("sepia", pont().intro.shots.get(1).effect());
+
+        Actions.Outcome play = run(a("intro.play", "manche", "Le Pont", "from", 2));
+        assertTrue(play.ok(), play.lines().toString());
+        assertEquals(2, ((Actions.Broadcast) play.effects().getFirst()).action().get("from"));
+        assertFalse(run(a("intro.play", "manche", "Le Pont", "from", 9)).ok());
+    }
+
+    @Test
     void newCameraActionsAreChecked() {
         assertEquals("2", BroadcastActions.validate("camera.cut", Map.of("camera", 2.0)).get("camera"));
         assertEquals("sepia", BroadcastActions.validate("camera.cut", Map.of("camera", "1", "effect", "sépia")).get("effect"));

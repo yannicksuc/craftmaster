@@ -94,6 +94,14 @@ public final class MancheIntros {
 
     /** Starts the intro of round {@code mancheId}; returns the line for the organiser. */
     public static String play(MinecraftServer server, String mancheId) {
+        return play(server, mancheId, 1);
+    }
+
+    /**
+     * Starts the intro of round {@code mancheId} from shot {@code from} (1 = the whole intro; later = a try-out of the
+     * end, without the music, which would not be in time); returns the line for the organiser.
+     */
+    public static String play(MinecraftServer server, String mancheId, int from) {
         Manche m = Lieux.manche(mancheId);
         if (m == null) return "⚠ Manche « " + mancheId + " » introuvable.";
         MancheIntro intro = m.intro;
@@ -104,21 +112,24 @@ public final class MancheIntros {
         stop(server);
         Credits.stop(server);
         running = m.id;
-        music = !intro.music.isEmpty();
+        int first = Math.max(0, Math.min(intro.shots.size() - 1, from - 1));
+        music = !intro.music.isEmpty() && first == 0;
         Director.cue(server, new ShowCue(Cues.CLEAR, "", "", "", 0));
         if (music) Director.cue(server, new ShowCue(Cues.THEME, "play", soundOf(intro.music), "", 0));
         String title = m.name, subtitle = subtitle(m);
         List<String> problems = new ArrayList<>();
         int autoCard = intro.autoCardShot();
         List<MancheIntro.Timed> timeline = intro.timeline(MancheIntros::pathSeconds);
+        double shift = timeline.get(first).start();
         for (MancheIntro.Timed t : timeline) {
+            if (t.index() < first) continue;
             MancheIntro.Shot s = t.shot();
             Director.ShotRequest request = request(server, m, s, intro.effectOf(s), problems, t.index());
             int ticks = (int) Math.round(t.length() * 20);
             String card = t.index() == autoCard ? MancheIntro.TITLE : s.card();
             String[] text = s.text().isEmpty() ? new String[]{title, subtitle} : s.text().split("\\|", 2);
             String cardTitle = text[0].trim(), cardSub = text.length > 1 ? text[1].trim() : s.text().isEmpty() ? subtitle : "";
-            at(server, t.start(), () -> {
+            at(server, t.start() - shift, () -> {
                 if (request != null) Director.take(server, request);
                 if (card.equals(MancheIntro.TITLE))
                     Director.cue(server, new ShowCue(Cues.TITLE_CARD, cardTitle, cardSub, "", Math.max(40, ticks - 10)));
@@ -130,17 +141,18 @@ public final class MancheIntros {
         // The task typed at the bottom of the picture over the last shots (the task location shot, else the last one)
         String typed = typedTask(m);
         if (!typed.isEmpty() && !timeline.isEmpty()) {
-            double from = timeline.getLast().start();
-            for (MancheIntro.Timed t : timeline) if (t.shot().kind().equals(MancheIntro.TASK)) from = t.start();
-            from = Math.min(from + 0.5, Math.max(0, end - 3));
-            int ticks = (int) Math.round((end - from) * 20);
-            at(server, from, () -> Director.cue(server, new ShowCue(Cues.TASK_TYPE, typed, "", "", ticks)));
+            double typeAt = timeline.getLast().start();
+            for (MancheIntro.Timed t : timeline) if (t.shot().kind().equals(MancheIntro.TASK)) typeAt = t.start();
+            typeAt = Math.max(shift, Math.min(typeAt + 0.5, Math.max(0, end - 3)));
+            int ticks = (int) Math.round((end - typeAt) * 20);
+            at(server, typeAt - shift, () -> Director.cue(server, new ShowCue(Cues.TASK_TYPE, typed, "", "", ticks)));
         }
-        at(server, end, () -> finish(server, true));
+        at(server, end - shift, () -> finish(server, true));
         Director.sync(server);
         CraftMaster.LOG.info("[Réalisation] Intro de la manche {} lancée", m.id);
-        return "Intro de « " + m.name + " » lancée (" + timeline.size() + " plan" + (timeline.size() > 1 ? "s" : "") + ", "
-                + CameraPath.seconds(Math.round(end * 10) / 10.0) + ")" + (problems.isEmpty() ? "." : " — ⚠ " + String.join(" ; ", problems));
+        int count = timeline.size() - first;
+        return "Intro de « " + m.name + " » lancée" + (first > 0 ? " depuis le plan " + (first + 1) + " (sans musique)" : "")
+                + " (" + count + " plan" + (count > 1 ? "s" : "") + ", " + CameraPath.seconds(Math.round((end - shift) * 10) / 10.0) + ")" + (problems.isEmpty() ? "." : " — ⚠ " + String.join(" ; ", problems));
     }
 
     /** The intro's music cue as a sound id for the clients ("" = the show's theme). */

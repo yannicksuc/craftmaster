@@ -339,7 +339,7 @@ public final class MancheIntro {
         return fmtNumber(s) + " s";
     }
 
-    static String fmtNumber(double s) {
+    public static String fmtNumber(double s) {
         return s == Math.rint(s) ? String.valueOf((long) s) : String.format(Locale.ROOT, "%.1f", s).replace('.', ',');
     }
 

@@ -130,7 +130,7 @@ public final class Actions {
             // TV direction, lieux / travellings / intros (chantier E): no data change for these four
             "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu",
             // ... and the round intros, which are round data (undoable), and playing one
-            "intro.set", "intro.shot.add", "intro.shot.set", "intro.shot.remove", "intro.clear", "intro.play", "intro.auto");
+            "intro.set", "intro.shot.add", "intro.shot.set", "intro.shot.remove", "intro.clear", "intro.play", "intro.auto", "intro.shot.move");
 
     /**
      * Applies the actions. {@code undo} is only accepted as the first action (it is done, then the rest is applied
@@ -374,6 +374,7 @@ public final class Actions {
                 case "intro.shot.remove" -> introShotRemove(a);
                 case "intro.clear" -> introClear(a);
                 case "intro.auto" -> introAuto(a);
+                case "intro.shot.move" -> introShotMove(a);
                 case "intro.play" -> introPlay(a);
                 // Screen effects (fx/): world only, nothing in the data changes
                 case "fx.set" -> screenEffect(a, false);
@@ -1400,6 +1401,17 @@ public final class Actions {
             line("Intro de « " + r.name + " » : plan " + (i + 1) + " retiré (" + r.intro.shots.size() + " restant(s)).");
         }
 
+        /** intro.shot.move {manche?, index, to}: the shot goes to place {@code to} (1 = first). */
+        private void introShotMove(Map<String, Object> a) {
+            Manche r = introManche(a);
+            int i = introIndex(r, a);
+            int to = Math.max(1, Math.min(r.intro.shots.size(), requiredInt(a, "to"))) - 1;
+            if (to == i) throw new Invalid("le plan " + (i + 1) + " est déjà à cette place.");
+            fr.lordfinn.craftmaster.data.MancheIntro.Shot s = r.intro.shots.remove(i);
+            r.intro.shots.add(to, s);
+            line("Intro de « " + r.name + " » : plan " + (i + 1) + " déplacé en " + (to + 1) + " (" + s.describe() + ").");
+        }
+
         /** intro.clear {manche?} */
         private void introClear(Map<String, Object> a) {
             Manche r = introManche(a);
@@ -1445,6 +1457,12 @@ public final class Actions {
             Map<String, Object> play = new LinkedHashMap<>();
             play.put("type", "intro.play");
             play.put("manche", r.id);
+            Integer from = integer(a, "from");
+            if (from != null) {
+                if (from < 1 || from > r.intro.shots.size())
+                    throw new Invalid("plan " + from + " inexistant (l'intro de « " + r.name + " » a " + r.intro.shots.size() + " plan(s)).");
+                play.put("from", from);
+            }
             effects.add(new Broadcast(play));
         }
 
