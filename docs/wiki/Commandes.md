@@ -114,6 +114,7 @@ Les scores changés ici sont en direct : les joueurs les voient après `/craftMa
 | `/cfpt poses` | Liste les poses |
 | `/cfpt publish <saison>` | Réarrange les galeries de la saison selon le classement |
 | `/cfpt highlight <saison> <rang>` | Illumine le tableau de ce rang (5 s) |
+| `/cfpt hoist <saison> <blocs\|auto> [secondes]` · `/cfpt set [cibles] hoist <blocs\|auto> [secondes]` | Monte ou descend les tableaux (toute une galerie, ou ceux visés) jusqu'à cette longueur de ficelle, en douceur (1 bloc/s sans durée) |
 
 ## Épreuves (admin)
 Détail et usage : [Épreuves](Epreuves.md). Ce qui touche aux données (feuille, chronos notés) passe par

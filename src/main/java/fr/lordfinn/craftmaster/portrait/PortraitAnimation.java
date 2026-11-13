@@ -49,4 +49,12 @@ public final class PortraitAnimation {
         if (t < STEP_TICKS) return new double[]{1, 1 - ease(t / STEP_TICKS)};
         return new double[]{1, 0};
     }
+
+    /** String length (blocks) from {@code from} to {@code to}, started at {@code start} for {@code length} ticks, at {@code ticks}. */
+    public static double hoisted(double from, double to, long start, int length, double ticks) {
+        double t = length <= 0 ? 1 : (ticks - start) / length;
+        if (t >= 1) return to;
+        if (t <= 0) return from;
+        return from + (to - from) * t * t * (3 - 2 * t); // starts and stops gently, like a winch
+    }
 }

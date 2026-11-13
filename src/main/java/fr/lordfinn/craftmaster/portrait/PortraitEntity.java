@@ -64,6 +64,10 @@ public class PortraitEntity extends Entity {
     private static final EntityDataAccessor<Integer> ANIM_PLANE = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Long> ANIM_START = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.LONG);
     private static final EntityDataAccessor<Integer> ANIM_SLIDE = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.INT);
+    /** Raised or lowered (hoist): the string length it starts from, the game tick it starts and how long it takes. */
+    private static final EntityDataAccessor<Float> HOIST_FROM = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Long> HOIST_START = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.LONG);
+    private static final EntityDataAccessor<Integer> HOIST_TICKS = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Long> HIGHLIGHT_UNTIL = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.LONG);
 
     /** Default string length and how much the automatic one varies from a portrait to the next (blocks). */
@@ -112,6 +116,9 @@ public class PortraitEntity extends Entity {
         b.define(ANIM_PLANE, 0);
         b.define(ANIM_START, Long.MIN_VALUE / 2);
         b.define(ANIM_SLIDE, 0);
+        b.define(HOIST_FROM, 0f);
+        b.define(HOIST_START, Long.MIN_VALUE / 2);
+        b.define(HOIST_TICKS, 0);
         b.define(HIGHLIGHT_UNTIL, Long.MIN_VALUE / 2);
     }
 
@@ -213,9 +220,39 @@ public class PortraitEntity extends Entity {
 
     /** String length in blocks: the setting, or the automatic one (each portrait differs a little). */
     public double hangLength() {
-        float set = hangSetting();
+        return hangFor(hangSetting());
+    }
+
+    private double hangFor(float set) {
         if (set >= 0) return set;
         return AUTO_HANG + AUTO_HANG_VARIATION * variation(getUUID().getLeastSignificantBits());
+    }
+
+    /** Default hoist speed (blocks per second) when no duration is given. */
+    public static final double HOIST_SPEED = 1.0;
+
+    /**
+     * Raises or lowers the portrait to a string of {@code blocks} (negative: automatic) in {@code ticks} game ticks
+     * (0: at {@link #HOIST_SPEED}), from wherever it is now, even halfway through another hoist.
+     *
+     * @return the duration in ticks
+     */
+    public int hoist(float blocks, int ticks) {
+        long now = level().getGameTime();
+        double from = hangLengthAt(now);
+        float target = blocks < 0 ? -1f : (float) Math.min(MAX_HANG, blocks);
+        double to = hangFor(target);
+        if (ticks <= 0) ticks = (int) Math.max(10, Math.round(Math.abs(to - from) / HOIST_SPEED * 20));
+        entityData.set(HOIST_FROM, (float) from);
+        entityData.set(HOIST_TICKS, ticks);
+        entityData.set(HOIST_START, now);
+        setHang(target);
+        return ticks;
+    }
+
+    /** The string length shown at game tick {@code ticks} (fractional for smooth frames): eased while hoisting. */
+    public double hangLengthAt(double ticks) {
+        return PortraitAnimation.hoisted(entityData.get(HOIST_FROM), hangLength(), entityData.get(HOIST_START), entityData.get(HOIST_TICKS), ticks);
     }
 
     /** A stable value in [-1, 1] for each portrait. */

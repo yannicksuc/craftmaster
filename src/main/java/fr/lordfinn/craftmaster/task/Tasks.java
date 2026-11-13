@@ -586,7 +586,8 @@ public final class Tasks {
         ServerPlayNetworking.send(p, state);
     }
 
-    static void later(MinecraftServer server, int ticks, Runnable r) {
+    /** Runs {@code r} on the server thread in {@code ticks} ticks. */
+    public static void later(MinecraftServer server, int ticks, Runnable r) {
         SCHEDULED.add(new Scheduled(server.getTickCount() + ticks, r));
     }
 

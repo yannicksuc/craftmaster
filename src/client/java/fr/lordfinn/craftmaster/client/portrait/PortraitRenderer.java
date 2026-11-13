@@ -199,7 +199,7 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         s.skin = e.anonymous() ? PortraitSkins.defaultSkin() : PortraitSkins.resolve(e.shownPlayer(), e.skinUrl());
         s.hookOffset = currentHook(e, partialTick).subtract(s.x, s.y, s.z);
         s.yaw = e.getFacing().toYRot();
-        s.hangLength = e.hangLength();
+        s.hangLength = e.hangLengthAt(PortraitClock.ticks(e.level().getGameTime()));
         s.window = e.window();
         s.windowDepth = e.windowDepth();
         s.windowSize = e.windowSize();

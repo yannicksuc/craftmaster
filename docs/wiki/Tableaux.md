@@ -38,6 +38,16 @@ Mêmes réglages en commande, sur le tableau regardé ou sur des entités visée
 `windowSize 180`).
 Exemple : `/cfpt set @e[type=craftmaster:portrait,sort=nearest,limit=1] height 3.5`.
 
+## Monter et descendre (scénographie)
+Un tableau peut **monter ou descendre** jusqu'à la longueur de ficelle voulue, en douceur, comme sur un treuil
+(départ et arrêt progressifs, bruit de chaîne au départ et à l'arrivée) :
+- `/cfpt hoist <saison> <blocs|auto> [secondes]` : toute la galerie d'une saison, par exemple
+  `/cfpt hoist 4 6 5` descend les tableaux de la saison 4 à 6 blocs de ficelle en 5 s ;
+- `/cfpt set [cibles] hoist <blocs|auto> [secondes]` : le tableau regardé, ou les entités visées.
+
+Sans durée, il va à 1 bloc par seconde. On peut relancer pendant un mouvement : il repart d'où il est. La longueur
+d'arrivée est enregistrée comme le réglage « Ficelle » (0 à 16 blocs).
+
 ## Accrochage et balancement
 - La ficelle est **une seule ligne droite verticale** du chariot jusqu'au cadre, quelle que soit sa longueur,
   pendant le balancement comme pendant un réarrangement.

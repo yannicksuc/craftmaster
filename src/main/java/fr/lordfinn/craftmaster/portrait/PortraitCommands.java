@@ -1,6 +1,7 @@
 package fr.lordfinn.craftmaster.portrait;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -20,6 +21,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -78,6 +81,11 @@ public final class PortraitCommands {
             ok(c, "Tableaux de la saison " + getInteger(c, "season") + " réarrangés.");
             return 1;
         })));
+        // Raise / lower a whole gallery (stage scenery): /cfpt hoist <season> <blocks|auto> [seconds]
+        root.then(literal("hoist").then(argument("season", integer()).then(argument("length", StringArgumentType.word()).suggests(LENGTHS)
+                .executes(c -> hoistGallery(c, 0))
+                .then(argument("seconds", DoubleArgumentType.doubleArg(0.5, 120))
+                        .executes(c -> hoistGallery(c, DoubleArgumentType.getDouble(c, "seconds")))))));
         root.then(literal("highlight").then(argument("season", integer()).then(argument("rank", integer(1)).executes(c -> {
             Portraits.highlight(c.getSource().getServer(), getInteger(c, "season"), getInteger(c, "rank"));
             ok(c, "Tableau du rang " + getInteger(c, "rank") + " illuminé.");
@@ -86,7 +94,75 @@ public final class PortraitCommands {
         return root;
     }
 
-    /** set [targets] season|rank|player|name|skin|pose|window|windowDepth|windowSize|height value */
+    private static final SuggestionProvider<CommandSourceStack> LENGTHS =
+            (c, b) -> SharedSuggestionProvider.suggest(List.of("auto", "0.5", "1", "2", "4", "8"), b);
+
+    /** "auto" gives -1, else a length in blocks; NaN (with a message) when invalid. */
+    private static float length(CommandContext<CommandSourceStack> c, String v) {
+        if (v.equalsIgnoreCase("auto")) return -1;
+        float h;
+        try {
+            h = Float.parseFloat(v.replace(',', '.'));
+        } catch (NumberFormatException e) {
+            fail(c, "Longueur de ficelle : « auto » ou un nombre de blocs.");
+            return Float.NaN;
+        }
+        if (!(h >= 0 && h <= PortraitEntity.MAX_HANG)) {
+            fail(c, "Longueur de ficelle entre 0 et " + (int) PortraitEntity.MAX_HANG + " blocs.");
+            return Float.NaN;
+        }
+        return h;
+    }
+
+    private static String lengthText(float h) {
+        return h < 0 ? "la ficelle automatique" : "une ficelle de " + (h == Math.rint(h) ? String.valueOf((int) h) : String.valueOf(h).replace('.', ',')) + " bloc(s)";
+    }
+
+    private static String seconds(int ticks) {
+        return String.valueOf(Math.round(ticks / 2.0) / 10.0).replace('.', ',') + " s";
+    }
+
+    private static int hoistGallery(CommandContext<CommandSourceStack> c, double seconds) {
+        float h = length(c, StringArgumentType.getString(c, "length"));
+        if (Float.isNaN(h)) return 0;
+        int season = getInteger(c, "season"), n = 0, longest = 0;
+        for (ServerLevel level : c.getSource().getServer().getAllLevels())
+            for (PortraitEntity p : Portraits.gallery(level, season)) {
+                longest = Math.max(longest, hoist(p, h, seconds));
+                n++;
+            }
+        if (n == 0) {
+            fail(c, "Aucun tableau dans la galerie de la saison " + season + ".");
+            return 0;
+        }
+        ok(c, n + " tableau(x) de la saison " + season + " : en route vers " + lengthText(h) + " (" + seconds(longest) + ").");
+        return n;
+    }
+
+    private static int hoistSet(CommandContext<CommandSourceStack> c, boolean targeted, double seconds) throws CommandSyntaxException {
+        float h = length(c, StringArgumentType.getString(c, "value"));
+        if (Float.isNaN(h)) return 0;
+        List<PortraitEntity> list = targets(c, targeted);
+        int longest = 0;
+        for (PortraitEntity p : list) longest = Math.max(longest, hoist(p, h, seconds));
+        if (!list.isEmpty()) ok(c, list.size() + " tableau(x) : en route vers " + lengthText(h) + " (" + seconds(longest) + ").");
+        return list.size();
+    }
+
+    /** Starts a hoist, with the winch sounds at its start and its end. */
+    static int hoist(PortraitEntity p, float blocks, double seconds) {
+        int ticks = p.hoist(blocks, (int) Math.round(seconds * 20));
+        if (p.level() instanceof ServerLevel level) {
+            Vec3 at = p.position();
+            level.playSound(null, at.x, at.y, at.z, SoundEvents.CHAIN_STEP, SoundSource.BLOCKS, 0.6f, 0.8f);
+            fr.lordfinn.craftmaster.task.Tasks.later(level.getServer(), ticks, () -> {
+                if (!p.isRemoved()) level.playSound(null, at.x, at.y, at.z, SoundEvents.CHAIN_PLACE, SoundSource.BLOCKS, 0.7f, 1.1f);
+            });
+        }
+        return ticks;
+    }
+
+    /** set [targets] season|rank|player|name|skin|pose|window|windowDepth|windowSize|height|hoist value */
     private static void addSettings(com.mojang.brigadier.builder.ArgumentBuilder<CommandSourceStack, ?> node, boolean targeted) {
         node.then(literal("season").then(argument("value", integer()).executes(c ->
                 apply(c, targeted, p -> p.setSeason(getInteger(c, "value")), "saison " + getInteger(c, "value")))));
@@ -126,26 +202,17 @@ public final class PortraitCommands {
                 apply(c, targeted, p -> p.setWindowDepth(getInteger(c, "value")), "profondeur de la fenêtre " + getInteger(c, "value") + " px"))));
         node.then(literal("windowSize").then(argument("value", integer(PortraitEntity.MIN_WINDOW_SIZE, PortraitEntity.MAX_WINDOW_SIZE)).executes(c ->
                 apply(c, targeted, p -> p.setWindowSize(getInteger(c, "value")), "taille de la pièce " + getInteger(c, "value") + " %"))));
-        node.then(literal("height").then(argument("value", StringArgumentType.word()).suggests((c, b) -> SharedSuggestionProvider.suggest(List.of("auto", "0.5", "1", "1.5"), b))
+        node.then(literal("height").then(argument("value", StringArgumentType.word()).suggests(LENGTHS)
                 .executes(c -> {
-                    String v = StringArgumentType.getString(c, "value");
-                    float h;
-                    if (v.equalsIgnoreCase("auto")) h = -1;
-                    else {
-                        try {
-                            h = Float.parseFloat(v.replace(',', '.'));
-                        } catch (NumberFormatException e) {
-                            fail(c, "Longueur de ficelle : « auto » ou un nombre de blocs.");
-                            return 0;
-                        }
-                        if (!(h >= 0 && h <= PortraitEntity.MAX_HANG)) {
-                            fail(c, "Longueur de ficelle entre 0 et " + (int) PortraitEntity.MAX_HANG + " blocs.");
-                            return 0;
-                        }
-                    }
-                    float hang = h;
+                    float hang = length(c, StringArgumentType.getString(c, "value"));
+                    if (Float.isNaN(hang)) return 0;
                     return apply(c, targeted, p -> p.setHang(hang), hang < 0 ? "ficelle automatique" : "ficelle de " + hang + " bloc(s)");
                 })));
+        // The same, raised or lowered smoothly: hoist <length> [seconds]
+        node.then(literal("hoist").then(argument("value", StringArgumentType.word()).suggests(LENGTHS)
+                .executes(c -> hoistSet(c, targeted, 0))
+                .then(argument("seconds", DoubleArgumentType.doubleArg(0.5, 120))
+                        .executes(c -> hoistSet(c, targeted, DoubleArgumentType.getDouble(c, "seconds"))))));
     }
 
     // ---------------------------------------------------------------- targets
