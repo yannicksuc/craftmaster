@@ -163,3 +163,14 @@ def test_screen_effect_targets(ctx):
                          {"type": "fx.set", "target": "JustEdible", "effect": "flou"},
                          {"type": "fx.clear"}]
     assert any("Machin" in w for w in r.warnings)
+
+
+def test_tele_show_chat_wall(ctx):
+    """The chat wall on a named screen: chat = twitch | jeu | tout, kept as given."""
+    tools = {t["name"]: t for t in claude_tools()}
+    assert "chat" in tools["tele_show"]["input_schema"]["properties"]
+    r = check([{"type": "tele.show", "tele": "plateau", "chat": "twitch"},
+               {"type": "tele.show", "tele": "gauche", "chat": "tout"}], ctx)
+    assert r.warnings == []
+    assert r.actions == [{"type": "tele.show", "tele": "plateau", "chat": "twitch"},
+                         {"type": "tele.show", "tele": "gauche", "chat": "tout"}]

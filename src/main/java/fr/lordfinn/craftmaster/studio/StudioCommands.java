@@ -39,7 +39,8 @@ import static net.minecraft.commands.Commands.literal;
  * <ul>
  *   <li>{@code /craftMasterImage <URL> [largeur] [hauteur]} (aliases {@code /image}, {@code /cfim}, permission
  *   {@code craftmaster:image} like the plugin's craftmaster.image): the screen you look at shows the image, or a new
- *   screen is hung on the wall you look at; {@code clear}, {@code remove}, {@code fit}, {@code size}.</li>
+ *   screen is hung on the wall you look at; {@code clear}, {@code remove}, {@code fit}, {@code size}. The address
+ *   {@code chat:twitch}, {@code chat:jeu} or {@code chat:tout} makes the screen a chat wall (media/ChatWall).</li>
  *   <li>{@code /craftMasterSpotlight} ({@code /cfsp}, admin): follow a player, stop, on / off, colour, aim at me;
  *   on the spotlight you look at, or on all of them with {@code all}.</li>
  *   <li>{@code /craftMasterDesk name <nom>} ({@code /cfdk}, admin): the name on the desk you look at.</li>
@@ -150,7 +151,7 @@ public final class StudioCommands {
                             });
                         }))))
                 .then(argument("url", StringArgumentType.greedyString())
-                        .suggests((c, b) -> SharedSuggestionProvider.suggest(List.of("https://"), b))
+                        .suggests((c, b) -> SharedSuggestionProvider.suggest(List.of("https://", "chat:twitch", "chat:jeu", "chat:tout"), b))
                         .executes(StudioCommands::showImage));
     }
 
@@ -174,7 +175,7 @@ public final class StudioCommands {
             ImageScreenEntity s = looked.get();
             s.setUrl(req.url());
             if (given.length > 1) s.resize(req.width(), req.height());
-            ok(c, "Image affichée sur l'écran (" + s.width() + " × " + s.height() + " blocs).");
+            ok(c, (chatWall(req) ? "Mur de chat affiché" : "Image affichée") + " sur l'écran (" + s.width() + " × " + s.height() + " blocs).");
             return 1;
         }
         BlockHitResult hit = lookedBlock(player);
@@ -187,8 +188,14 @@ public final class StudioCommands {
         screen.setUrl(req.url());
         level.addFreshEntity(screen);
         screen.playSound(SoundEvents.PAINTING_PLACE, 1f, 0.8f);
-        ok(c, "✅ Écran de " + req.width() + " × " + req.height() + " blocs posé : l'image se charge chez chaque joueur.");
+        ok(c, "✅ Écran de " + req.width() + " × " + req.height() + " blocs posé : "
+                + (chatWall(req) ? "il affiche les derniers messages du chat." : "l'image se charge chez chaque joueur."));
         return 1;
+    }
+
+    /** The address is a chat wall (chat:twitch, chat:jeu, chat:tout), not an image. */
+    private static boolean chatWall(ImageRequest req) {
+        return fr.lordfinn.craftmaster.media.ChatWall.mode(req.url()) != null;
     }
 
     private static String clock(long ms) {
