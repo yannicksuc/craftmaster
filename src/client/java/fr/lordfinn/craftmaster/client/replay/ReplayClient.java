@@ -69,6 +69,16 @@ public final class ReplayClient {
     public static void init() {
         for (KeyMapping k : KEYS) KeyMappingHelper.registerKeyMapping(k);
         ClientPlayNetworking.registerGlobalReceiver(ReplayStatus.TYPE, (payload, ctx) -> onStatus(payload));
+        // A direction order from the server (moderators' régie, site): run here, like the voice control's
+        ClientPlayNetworking.registerGlobalReceiver(fr.lordfinn.craftmaster.replay.ReplayNetwork.ReplayDirect.TYPE, (payload, ctx) -> {
+            if (!active()) return;
+            try {
+                var r = ReplayControl.run(com.google.gson.JsonParser.parseString(payload.json()).getAsJsonObject());
+                if (!r.ok()) CraftMaster.LOG.info("[Replay] Ordre de réalisation refusé : {}", r.line());
+            } catch (RuntimeException e) {
+                CraftMaster.LOG.warn("[Replay] Ordre de réalisation illisible : {}", e.toString());
+            }
+        });
         ClientPlayConnectionEvents.DISCONNECT.register((h, c) -> c.execute(() -> {
             status = null;
             switchingUntil = 0;

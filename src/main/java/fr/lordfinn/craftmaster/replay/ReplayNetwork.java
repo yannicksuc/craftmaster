@@ -82,7 +82,22 @@ public final class ReplayNetwork {
         public Type<ReplayStatus> type() { return TYPE; }
     }
 
+    /**
+     * Server → the game watching: a direction order for its replay, as the voice control's actions
+     * ({@code replay.control}, {@code camera.cut}, {@code camera.follow}, {@code camera.pov}, {@code camera.auto}), run
+     * there by {@code ReplayControl}. Sent by {@link ReplayViewing#directFor} (moderators' régie, site).
+     */
+    public record ReplayDirect(String json) implements CustomPacketPayload {
+        public static final Type<ReplayDirect> TYPE = new Type<>(CraftMaster.id("replay_direct"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, ReplayDirect> CODEC = CustomPacketPayload.codec(
+                (p, buf) -> buf.writeUtf(p.json), buf -> new ReplayDirect(buf.readUtf()));
+
+        @Override
+        public Type<ReplayDirect> type() { return TYPE; }
+    }
+
     public static void registerTypes() {
         PayloadTypeRegistry.clientboundPlay().register(ReplayStatus.TYPE, ReplayStatus.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(ReplayDirect.TYPE, ReplayDirect.CODEC);
     }
 }

@@ -100,6 +100,7 @@ public final class ReplayViewing {
             clock = null;
             WATCHING.clear();
             SWITCHES.clear();
+            DIRECT_LATER.clear();
             JUMPS.clear();
         });
     }
@@ -324,6 +325,17 @@ public final class ReplayViewing {
                 p.sendSystemMessage(net.minecraft.network.chat.Component.literal("Replay : fichier introuvable (" + s.view().folder() + ")."));
         }
         applyJumps(server, now);
+        for (Iterator<Map.Entry<UUID, List<String>>> it = DIRECT_LATER.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<UUID, List<String>> e = it.next();
+            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+            ServerReplayBridge.Viewer v = p == null ? null : ServerReplayBridge.viewerOf(p);
+            boolean waiting = p != null && SWITCHES.stream().anyMatch(s -> s.player().equals(e.getKey()));
+            if (v != null && !JUMPS.containsKey(e.getKey())) {
+                for (String json : e.getValue())
+                    ServerReplayBridge.sendToViewer(v, new ClientboundCustomPayloadPacket(new ReplayNetwork.ReplayDirect(json)));
+                it.remove();
+            } else if (v == null && !waiting) it.remove();
+        }
         for (Iterator<Map.Entry<UUID, Seeking>> it = SEEKING.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<UUID, Seeking> e = it.next();
             ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
@@ -406,6 +418,18 @@ public final class ReplayViewing {
      * player watches no replay. Server thread only.
      */
 
+    /**
+     * The player of this name watching a replay, else on the server, else null. Watching takes them off the server's
+     * player list: player selectors ({@code @p}, a name argument) and {@code getPlayerByName} no longer find them.
+     */
+    public static ServerPlayer watcher(MinecraftServer server, String name) {
+        for (ServerReplayBridge.Viewer v : ServerReplayBridge.viewers()) {
+            ServerPlayer p = ServerReplayBridge.player(v);
+            if (p != null && p.getGameProfile().name().equalsIgnoreCase(name)) return p;
+        }
+        return server.getPlayerList().getPlayerByName(name);
+    }
+
     /** Goes to {@code ms} in the file being watched. */
     public static boolean seekFor(ServerPlayer watcher, long ms) {
         UUID id = watcher.getUUID();
@@ -455,6 +479,28 @@ public final class ReplayViewing {
         switchView(watcher.level().getServer(), v, view);
         return true;
     }
+
+    /**
+     * A direction order for the replay this player watches ({@code {"type": "replay.control", "do": "mode", "mode":
+     * "auto"}}, {@code camera.cut}, {@code camera.follow}, {@code camera.pov}, {@code camera.auto}): sent to their game,
+     * which runs it (the replay's direction lives there). During a reopening it waits for the new viewer. False if
+     * the player watches no replay, or their game has no CraftMaster.
+     */
+    public static boolean directFor(ServerPlayer watcher, Map<String, Object> action) {
+        if (!ServerPlayNetworking.canSend(watcher, ReplayNetwork.ReplayDirect.TYPE)) return false;
+        String json = new com.google.gson.Gson().toJson(action);
+        ServerReplayBridge.Viewer v = ServerReplayBridge.viewerOf(watcher);
+        if (v == null) {
+            if (SWITCHES.stream().noneMatch(s -> s.player().equals(watcher.getUUID()))) return false;
+            DIRECT_LATER.computeIfAbsent(watcher.getUUID(), k -> new ArrayList<>()).add(json);
+            return true;
+        }
+        ServerReplayBridge.sendToViewer(v, new ClientboundCustomPayloadPacket(new ReplayNetwork.ReplayDirect(json)));
+        return true;
+    }
+
+    /** Direction orders waiting for a reopening to end. */
+    private static final Map<UUID, List<String>> DIRECT_LATER = new HashMap<>();
 
     /** Applies an order to a reopening (or to the jump of a viewer just opened). True if there was one. */
     private static boolean pending(UUID id, java.util.function.UnaryOperator<Switch> onSwitch, java.util.function.UnaryOperator<Jump> onJump) {

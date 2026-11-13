@@ -75,6 +75,22 @@ public final class ReplayCommands {
                             return say(c, "Morceaux : zone " + Replays.settings().zonePieceSeconds + " s, joueurs " + Replays.settings().playerPieceSeconds
                                     + " s (au plus ça de perdu après un crash ; plus court = plus lourd).");
                         }))))
+                .then(literal("realisation").then(argument("joueur", StringArgumentType.word())
+                        .then(argument("action", StringArgumentType.greedyString()).executes(c -> {
+                            // A direction order for the replay this player watches (JSON, as the voice control's actions)
+                            java.util.Map<String, Object> action;
+                            try {
+                                action = new com.google.gson.Gson().fromJson(StringArgumentType.getString(c, "action"),
+                                        new com.google.gson.reflect.TypeToken<java.util.Map<String, Object>>() {}.getType());
+                            } catch (RuntimeException e) {
+                                return say(c, "Action illisible (JSON attendu, ex. {\"type\":\"camera.cut\",\"camera\":\"2\"}).");
+                            }
+                            // Not a player selector: someone watching a replay is off the server's player list
+                            var p = fr.lordfinn.craftmaster.replay.ReplayViewing.watcher(c.getSource().getServer(), StringArgumentType.getString(c, "joueur"));
+                            if (p == null) return say(c, StringArgumentType.getString(c, "joueur") + " ne regarde aucun replay.");
+                            return say(c, fr.lordfinn.craftmaster.replay.ReplayViewing.directFor(p, action)
+                                    ? "Envoyé au replay de " + p.getGameProfile().name() + "." : p.getGameProfile().name() + " ne regarde aucun replay.");
+                        }))))
                 .then(literal("disque").executes(c -> {
                     for (String line : fr.lordfinn.craftmaster.replay.ReplayDisk.report())
                         c.getSource().sendSuccess(() -> Component.literal(line).withStyle(ChatFormatting.GRAY), false);

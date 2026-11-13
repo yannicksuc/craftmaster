@@ -143,6 +143,7 @@ casse WaterMedia (écrans vidéo du studio) : pas les deux dans le même jeu.
 | `/cmreplay disque` | Place prise par les replays, place libre, réglages de purge |
 | `/cmreplay garder <jours>` · `max <Go>` · `alerte <Go>` | Purge automatique par l'âge, plafond, alerte de place libre (0 = aucun) |
 | `/cmreplay purge <jours>` | Supprime maintenant les replays de plus de tant de jours |
+| `/cmreplay realisation <joueur> <json>` | Un ordre de réalisation pour le replay que ce joueur regarde (ex. `{"type":"camera.follow","player":"Ensuri"}`, `{"type":"replay.control","do":"mode","mode":"auto"}`) ; c'est ce qu'utilise la régie des modos |
 | `/cmreplay repere <texte>` | Un repère maintenant, dans tous les fichiers en cours |
 | `/cmreplay voir` · `voir <n> [zone\|joueur]` | Les enregistrements ; en regarder un (barre de lecture, voir plus haut) |
 
