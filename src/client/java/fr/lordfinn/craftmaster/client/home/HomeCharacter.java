@@ -41,7 +41,7 @@ public final class HomeCharacter {
      * Where the figure sits on the cushion, toward the backrest (blocks, -z): his back against it. Measured on the
      * throne model (scripts / screenshots), see docs/wiki/Accueil.md.
      */
-    private static final float SEAT_BACK = 0.1f;
+    private static final float SEAT_BACK = 0.18f;
 
     private static ModelPart wide, slim, cape;
     private static final ItemStackRenderState THRONE = new ItemStackRenderState();
@@ -102,7 +102,8 @@ public final class HomeCharacter {
         // Thighs on the cushion (the legs' pivot, 12 px above the feet, sits 2 px above it), back to the backrest
         pose.translate(0, 0, -SEAT_BACK);
         pose.scale(figureScale, figureScale, figureScale);
-        pose.translate(0, -10 / 16f, 0);
+        // 3 px lower than the thighs' own thickness would put him: sunk into the cushion, not floating above it
+        pose.translate(0, -13 / 16f, 0);
         // Like LivingEntityRenderer: model space is y down, 1/16 block, the feet 24 px under the origin
         pose./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(180));
         pose.scale(-1, -1, 1);
@@ -124,28 +125,38 @@ public final class HomeCharacter {
         pose.popPose();
     }
 
-    /** Sitting with a slow idle motion; never a frown: the head stays level or looks up. */
+    /**
+     * A king on his throne, solemn and alive: leaning back, chin up, the right hand on the armrest, the left arm
+     * raised toward the frames as if presenting them, legs apart and planted; a slow breath and a gentle sway of the
+     * raised hand. Never a frown: the head stays level or looks up.
+     */
     private static void pose(ModelPart root, double t, double lookX, double lookY) {
         root.getAllParts().forEach(ModelPart::resetPose);
         ModelPart head = root.getChild("head"), body = root.getChild("body");
         ModelPart rightArm = root.getChild("right_arm"), leftArm = root.getChild("left_arm");
         ModelPart rightLeg = root.getChild("right_leg"), leftLeg = root.getChild("left_leg");
         float breathe = (float) Math.sin(t * 2 * Math.PI / 4.2);
-        head.yRot = (float) Math.toRadians(9 * Math.sin(t * 2 * Math.PI / 9.5) + 10 * lookX);
-        head.xRot = (float) Math.toRadians(-2 - 2.5 * Math.sin(t * 2 * Math.PI / 6.3 + 1) + 5 * lookY);
+        double sway = Math.sin(t * 2 * Math.PI / 6.0);
+        // Leaning back against the backrest, chin up, looking a little toward the frames and the mouse
+        body.xRot = (float) Math.toRadians(-7);
+        head.xRot = (float) Math.toRadians(-9 - 2 * Math.sin(t * 2 * Math.PI / 6.3 + 1) + 4 * lookY);
+        head.yRot = (float) Math.toRadians(-14 + 5 * Math.sin(t * 2 * Math.PI / 9.5) + 8 * lookX);
+        head.zRot = (float) Math.toRadians(-3);
         head.y += 0.25f * breathe;
         body.y += 0.15f * breathe;
         rightArm.y += 0.15f * breathe;
         leftArm.y += 0.15f * breathe;
-        // Hands on the armrests, sliding a little
-        rightArm.xRot = (float) Math.toRadians(-36 + 2 * Math.sin(t * 2 * Math.PI / 5.1));
-        leftArm.xRot = (float) Math.toRadians(-36 + 2 * Math.sin(t * 2 * Math.PI / 5.7 + 2));
-        rightArm.zRot = (float) Math.toRadians(10);
-        leftArm.zRot = (float) Math.toRadians(-10);
-        // Thighs flat on the cushion, the shins hanging down (the knees bent over the cushion's edge)
-        rightLeg.xRot = (float) Math.toRadians(-90);
-        leftLeg.xRot = (float) Math.toRadians(-90);
-        rightLeg.yRot = (float) Math.toRadians(6);
-        leftLeg.yRot = (float) Math.toRadians(-6);
+        // Right hand on the armrest, the elbow out
+        rightArm.xRot = (float) Math.toRadians(-38 + 1.5 * Math.sin(t * 2 * Math.PI / 5.1));
+        rightArm.zRot = (float) Math.toRadians(22);
+        // Left arm raised toward the frames, presenting them, the hand drifting slowly
+        leftArm.xRot = (float) Math.toRadians(-112 + 4 * sway);
+        leftArm.yRot = (float) Math.toRadians(-28 + 3 * sway);
+        leftArm.zRot = (float) Math.toRadians(-14);
+        // Legs apart and planted, one a little further forward
+        rightLeg.xRot = (float) Math.toRadians(-88);
+        leftLeg.xRot = (float) Math.toRadians(-80);
+        rightLeg.yRot = (float) Math.toRadians(16);
+        leftLeg.yRot = (float) Math.toRadians(-14);
     }
 }
