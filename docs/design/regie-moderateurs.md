@@ -50,11 +50,15 @@ Changements dans la couche (petits, tout le reste en profite) :
    - `tablet.start|pause|toggle|reset|restart {group?}` (remplace la commande envoyée par le Stream Deck) ;
    - `tv.show {tv, clip|url|twitch|live: pseudo|image}`, `tv.clear {tv}` — à écrire **directement en actions**
      dans la branche clips (je le signale à cette session), pas en commandes à part ;
-   - `replay.control {do, …}` côté **serveur** : le serveur trouve le jeu de diffusion qui regarde le replay et
-     agit sur son lecteur (saut, vitesse, pause) ; les ordres de réalisation (caméra du replay, vue d'un joueur)
-     lui sont envoyés par l'envoi direct du lecteur. Le Stream Deck et la voix gardent leur chemin local qui
-     marche déjà ; ils passeront par le serveur aussi, pour qu'un ordre d'un modo et un ordre de LordFinn ne se
-     contredisent pas.
+   - `replay.control {do, …}` pour un modo : le joueur qui regarde ne peut envoyer que des commandes, mais un
+     modo, lui, est sur le vrai serveur (ou passe par le site). Saut, vitesse, pause et changement de fichier
+     sont **déjà exécutés côté serveur** dans la branche replays (`ReplayViewing` → `ServerReplayBridge.jumpTo /
+     setSpeed / setPaused` sur l'objet du lecteur ; le client ne fait que déclencher `/replay view cm …`). L'action
+     d'un modo appelle ces mêmes fonctions sur le lecteur du jeu de diffusion. Seule la réalisation du replay
+     (Direct / Auto / Manuel, caméra 1–9, vue d'un joueur) vit sur le client qui regarde : le serveur la lui envoie
+     par l'envoi direct du lecteur (le chemin qui porte déjà l'état de lecture 5×/s), et ce client exécute ensuite
+     `ReplayControl.run` comme pour le Stream Deck. **La voix et le Stream Deck de LordFinn ne changent pas**
+     (ils tournent sur le jeu qui regarde et passent déjà).
 4. **Journal** : chaque liste exécutée est notée (heure, acteur, origine, lignes). LordFinn le voit dans la
    régie (onglet Journal) et peut annuler la dernière action d'un modo.
 5. **Garde-fous** : pour un modo, `scores.publish` et `reveal.start` demandent deux appuis (comme le Stream
