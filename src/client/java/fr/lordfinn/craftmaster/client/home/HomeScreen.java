@@ -3,6 +3,7 @@ package fr.lordfinn.craftmaster.client.home;
 import com.mojang.math.Axis;
 import fr.lordfinn.craftmaster.client.portrait.PortraitRenderer;
 import fr.lordfinn.craftmaster.client.portrait.PortraitSkins;
+import fr.lordfinn.craftmaster.client.ui.Theme;
 import fr.lordfinn.craftmaster.client.ui.UiButton;
 import fr.lordfinn.craftmaster.home.HomeConfig;
 import fr.lordfinn.craftmaster.home.HomeLayout;
@@ -24,6 +25,7 @@ import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.resolver.ServerAddress;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import org.joml.Matrix3d;
 import org.joml.Vector3d;
 
@@ -38,15 +40,18 @@ import java.util.List;
  *   <li>at the top, the players' portraits drawn exactly like the hanging ones ({@link PortraitRenderer}), one row
  *   seen in real (weak) perspective, the nearest (player 1) at the top right, the row receding toward the throne,
  *   each frame turned three quarters toward it and swaying gently, the far ones fading into the background;</li>
- *   <li>at the bottom right, the CraftMaster title and the buttons (Jouer connects to the show's server).</li>
+ *   <li>at the bottom right, a fixed panel as wide as the row above it, with the CraftMaster logo and the buttons
+ *   (Jouer connects to the show's server).</li>
  * </ul>
- * The mouse moves three layers at different speeds (background, row, front), eased.
+ * The mouse moves three layers at different speeds (background, row, the master), eased; the panel stays.
  */
 public class HomeScreen extends Screen {
 
     private static final double FRAME_W = PortraitGeometry.FRAME_W / 16, FRAME_H = PortraitGeometry.FRAME_H / 16;
-    private static final int BUTTON_W = 150, BUTTON_H = 20, GAP = 4;
-    private static final Component TITLE = Component.literal("CRAFTMASTER").withStyle(ChatFormatting.BOLD);
+    private static final int BUTTON_H = 20, GAP = 4, MIN_PANEL_W = 150;
+    /** The CraftMaster logo of the old server's resource pack (white pixel art with its grey depth), 256 × 30. */
+    private static final Identifier LOGO = fr.lordfinn.craftmaster.CraftMaster.id("textures/gui/title_logo.png");
+    private static final int LOGO_W = 256, LOGO_H = 30;
 
     private HomeConfig config;
     /** accueil.json's date when it was read, to read it again when coming back from another screen. */
@@ -58,7 +63,11 @@ public class HomeScreen extends Screen {
     private double mouseX, mouseY;
     /** The portraits' preset poses ("classique", "salut", "trône"...). */
     private final PoseLibrary poses = PoseLibrary.withPresets();
-    private int buttonsTop;
+    /** The panel (GUI pixels), its padding, the logo's scale (GUI pixels per texel) and bottom. */
+    private int panelLeft, panelRight, panelTop, panelBottom, logoBottom, PAD = 6;
+    private double logoScale = 1;
+    /** The background, loaded at each init (opening, coming back, resize): an edited file shows then. */
+    private HomeBackground.Picture picture;
 
     HomeScreen(HomeConfig config, Screen vanilla) {
         super(Component.translatable("screen.craftmaster.home"));
@@ -83,11 +92,12 @@ public class HomeScreen extends Screen {
                 fr.lordfinn.craftmaster.CraftMaster.LOG.warn("[Accueil] accueil.json illisible, réglages précédents gardés : {}", e.toString());
             }
         }
-        int right = width - 14, left = right - BUTTON_W, half = (BUTTON_W - GAP) / 2;
-        int y = height - 14 - 3 * BUTTON_H - 2 * GAP;
-        buttonsTop = y;
+        picture = null;
+        layoutPanel();
+        int left = panelLeft + PAD, right = panelRight - PAD, w = right - left, half = (w - GAP) / 2;
+        int y = logoBottom + GAP + 2;
         String address = config.server;
-        UiButton play = addRenderableWidget(UiButton.of(left, y, BUTTON_W, BUTTON_H,
+        UiButton play = addRenderableWidget(UiButton.of(left, y, w, BUTTON_H,
                 Component.translatable("screen.craftmaster.home.play").withStyle(ChatFormatting.BOLD), this::play));
         play.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.home.play.tip", config.serverName, address)));
         y += BUTTON_H + GAP;
@@ -100,6 +110,29 @@ public class HomeScreen extends Screen {
                 this::options));
         addRenderableWidget(UiButton.of(right - half, y, half, BUTTON_H, Component.translatable("screen.craftmaster.home.quit"),
                 () -> minecraft.stop()));
+    }
+
+    /**
+     * The panel at the bottom right (fixed, no parallax): as wide as the row of frames above it unless accueil.json
+     * sets its edges; inside, the logo fills the width (pixel perfect when it can) and the buttons under it.
+     */
+    private void layoutPanel() {
+        HomeConfig.Panel cfg = config.panel;
+        PAD = (int) cfg.padding();
+        double f = HomeLayout.focal(config.row.fov(), height);
+        double[] span = HomeLayout.rowSpan(rowCentres(f), FRAME_W, width, height, f);
+        // Automatic left edge: the row's, but never over the master's group (throne, table and frog)
+        span[0] = Math.max(span[0], groupRight(f) + 8);
+        double[] edges = HomeLayout.panelEdges(span, cfg.left(), cfg.right(), width, 4, MIN_PANEL_W);
+        panelLeft = (int) Math.round(edges[0]);
+        panelRight = (int) Math.round(edges[1]);
+        int inner = panelRight - panelLeft - 2 * PAD;
+        logoScale = HomeLayout.fitScale(LOGO_W, inner, minecraft.getWindow().getGuiScale());
+        int logoH = (int) Math.ceil(LOGO_H * logoScale);
+        int buttons = 3 * BUTTON_H + 2 * GAP;
+        panelBottom = height - (int) cfg.bottom();
+        panelTop = panelBottom - PAD - buttons - GAP - 2 - logoH - PAD;
+        logoBottom = panelTop + PAD + logoH;
     }
 
     private void options() {
@@ -165,7 +198,7 @@ public class HomeScreen extends Screen {
             }
             addScene(g, List.of(character(f, seconds)));
             g.nextStratum();
-            logo(g);
+            panel(g);
         } catch (Throwable t) {
             HomeScreens.failed(t);
             return;
@@ -184,8 +217,14 @@ public class HomeScreen extends Screen {
 
     /** The stage picture, cover fit, zoomed, moved by the slowest layer. */
     private HomeBackground.Picture background(GuiGraphicsExtractor g) {
-        java.nio.file.Path file = config.background.isEmpty() ? null : HomeScreens.resolve(config.background);
-        HomeBackground.Picture p = HomeBackground.get(file);
+        if (picture == null) {
+            // accueil.json's file, else config/craftmaster/accueil-fond.png when there is one, else the mod's picture
+            java.nio.file.Path file = config.background.isEmpty() ? HomeScreens.resolve(HomeScreens.DEFAULT_BACKGROUND)
+                    : HomeScreens.resolve(config.background);
+            if (config.background.isEmpty() && !java.nio.file.Files.isRegularFile(file)) file = null;
+            picture = HomeBackground.get(file);
+        }
+        HomeBackground.Picture p = picture;
         double[] c = HomeLayout.cover(p.width(), p.height(), width, height, config.zoom);
         double ox = clamp(-mouseX * config.parallax.background(), c[2]), oy = clamp(-mouseY * config.parallax.background(), c[3]);
         g.fill(0, 0, width, height, 0xFF000000);
@@ -205,9 +244,7 @@ public class HomeScreen extends Screen {
     private List<HomeSceneState.Piece> row(double f, double seconds, int haze) {
         List<HomeConfig.Player> players = config.shownPlayers();
         HomeConfig.Row r = config.row;
-        List<Vector3d> centres = HomeLayout.row(players.size(), r.first()[0] * width, r.first()[1] * height,
-                r.vanish()[0] * width, r.vanish()[1] * height, r.size() * height, FRAME_W, FRAME_H, r.spacing(), r.farthest(),
-                width, height, f);
+        List<Vector3d> centres = rowCentres(f);
         List<HomeSceneState.Piece> pieces = new ArrayList<>();
         if (centres.isEmpty()) return pieces;
         // Middle layer: the row moves, and pivots a little around its middle so the depth reads
@@ -243,48 +280,88 @@ public class HomeScreen extends Screen {
      */
     private HomeSceneState.Piece character(double f, double seconds) {
         HomeConfig.Character ch = config.character;
-        boolean seated = ch.seated();
-        double depth = f * HomeCharacter.height(seated) / (ch.size() * height);
+        boolean throne = ch.throne();
+        // The group's size: the throne's height (or the seated figure's) as a share of the screen's
+        double blocks = throne ? HomeCharacter.THRONE_HEIGHT : HomeCharacter.FIGURE_HEIGHT * ch.scale();
+        double depth = f * blocks / (ch.size() * height);
         double cx = ch.x() * width - mouseX * config.parallax.front(), cy = ch.y() * height - mouseY * config.parallax.front();
-        Vector3d middle = HomeLayout.unproject(cx, cy, depth, width, height, f);
+        Vector3d seat = HomeLayout.unproject(cx, cy, depth, width, height, f);
         PortraitSkins.Skin skin = PortraitSkins.resolve(ch.pseudo(), HomeScreens.skinSource(ch.skin()));
-        float x = (float) middle.x, y = (float) middle.y - HomeCharacter.middle(seated), z = (float) middle.z;
+        float x = (float) seat.x, y = (float) seat.y, z = (float) seat.z, scale = (float) ch.scale();
         // Turned by the angle asked, from facing the eye
-        float yaw = (float) (HomeLayout.facingYaw(middle) + ch.angle());
+        float yaw = (float) (HomeLayout.facingYaw(seat) + ch.angle());
         double lookX = mouseX, lookY = mouseY;
+        HomeConfig.Table table = config.table;
         return (ps, collector, camera) -> {
             ps.translate(x, y, z);
             ps./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(yaw));
-            HomeCharacter.submit(ps, collector, skin, seated, seconds, lookX, lookY);
+            HomeCharacter.submit(ps, collector, skin, throne, scale, seconds, lookX, lookY);
+            if (table.enabled()) {
+                // On the throne's floor, true proportions times its own size
+                ps.pushPose();
+                ps.translate((float) table.x(), -HomeCharacter.SEAT_TOP, (float) table.z());
+                ps./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees((float) table.angle()));
+                ps.scale((float) table.scale(), (float) table.scale(), (float) table.scale());
+                HomeTable.submit(ps, collector, table.block(), (float) table.frogAngle());
+                ps.popPose();
+            }
         };
     }
 
-    /** The title above the buttons, in the show's gold, moved with the front layer. */
-    private void logo(GuiGraphicsExtractor g) {
-        int textW = font.width(TITLE);
-        float scale = Math.max(1.5f, Math.min(4f, (BUTTON_W + 30f) / textW));
-        float cx = width - 14 - BUTTON_W / 2f - (float) (mouseX * config.parallax.front() * 0.6);
-        float top = buttonsTop - 10 - 9 * scale - (float) (mouseY * config.parallax.front() * 0.6);
-        g.pose().pushMatrix();
-        g.pose().translate(cx, top);
-        g.pose().scale(scale, scale);
-        int x = -textW / 2;
-        // Dark outline and drop shadow, then the gold in three bands (light at the top, deeper at the bottom)
-        g.text(font, TITLE, x, 2, 0xFF14050A, false);
-        for (int dx = -1; dx <= 1; dx++)
-            for (int dy = -1; dy <= 1; dy++)
-                if (dx != 0 || dy != 0) g.text(font, TITLE, x + dx, dy, 0xFF3E0A12, false);
-        int[][] bands = {{-1, 3, 0xFFFFF0B4}, {3, 5, 0xFFFFC83F}, {5, 9, 0xFFE0921E}};
-        for (int[] b : bands) {
-            g.enableScissor(x - 2, b[0], x + textW + 2, b[1]);
-            g.text(font, TITLE, x, 0, b[2], false);
-            g.disableScissor();
+    /**
+     * The right edge on screen (GUI pixels) of the master's group at rest (no parallax): the throne's right side, and
+     * the table's when it is shown.
+     */
+    private double groupRight(double f) {
+        HomeConfig.Character ch = config.character;
+        double blocks = ch.throne() ? HomeCharacter.THRONE_HEIGHT : HomeCharacter.FIGURE_HEIGHT * ch.scale();
+        double depth = f * blocks / (ch.size() * height);
+        Vector3d seat = HomeLayout.unproject(ch.x() * width, ch.y() * height, depth, width, height, f);
+        double yaw = Math.toRadians(HomeLayout.facingYaw(seat) + ch.angle());
+        List<double[]> points = new ArrayList<>();
+        // Throne space corners (x right, z toward the player) at the cushion's height
+        double half = ch.throne() ? 0.85 : 0.5 * ch.scale();
+        points.add(new double[]{half, half});
+        points.add(new double[]{half, -half});
+        HomeConfig.Table t = config.table;
+        if (t.enabled()) {
+            double r = 0.5 * t.scale();
+            points.add(new double[]{t.x() + r, t.z() + r});
+            points.add(new double[]{t.x() + r, t.z() - r});
         }
+        double right = -Double.MAX_VALUE;
+        for (double[] p : points) {
+            // Turned around the vertical axis like the pose stack (rotateY: x' = x cos + z sin, z' = -x sin + z cos)
+            Vector3d q = new Vector3d(seat.x + p[0] * Math.cos(yaw) + p[1] * Math.sin(yaw), seat.y,
+                    seat.z - p[0] * Math.sin(yaw) + p[1] * Math.cos(yaw));
+            right = Math.max(right, HomeLayout.project(q, width, height, f)[0]);
+        }
+        return right;
+    }
+
+    /** Where the frames hang (camera space), before the parallax. */
+    private List<Vector3d> rowCentres(double f) {
+        HomeConfig.Row r = config.row;
+        return HomeLayout.row(config.shownPlayers().size(), r.first()[0] * width, r.first()[1] * height,
+                r.vanish()[0] * width, r.vanish()[1] * height, r.size() * height, FRAME_W, FRAME_H, r.spacing(), r.farthest(),
+                width, height, f);
+    }
+
+    /** The panel in the show's colours (velvet, golden edge) and the logo in it; the buttons are its widgets. */
+    private void panel(GuiGraphicsExtractor g) {
+        g.fill(panelLeft + 2, panelTop + 2, panelRight + 2, panelBottom + 2, 0x80000000);
+        g.fill(panelLeft, panelTop, panelRight, panelBottom, (Theme.VELVET_DARK & 0xFFFFFF) | 0xE8000000);
+        g.outline(panelLeft, panelTop, panelRight - panelLeft, panelBottom - panelTop, Theme.BORDER);
+        g.outline(panelLeft + 1, panelTop + 1, panelRight - panelLeft - 2, panelBottom - panelTop - 2, Theme.BORDER_DARK);
+        double w = LOGO_W * logoScale;
+        float x = (float) ((panelLeft + panelRight - w) / 2);
+        // On whole screen pixels, so the pixel art stays crisp
+        int gs = minecraft.getWindow().getGuiScale();
+        x = Math.round(x * gs) / (float) gs;
+        g.pose().pushMatrix();
+        g.pose().translate(x, panelTop + PAD);
+        g.pose().scale((float) logoScale, (float) logoScale);
+        g.blit(LOGO, 0, 0, LOGO_W, LOGO_H, 0, 1, 0, 1);
         g.pose().popMatrix();
-        // A thin golden rule under the title
-        int ruleY = (int) (top + 9 * scale + 3);
-        int half = (int) (textW * scale / 2);
-        g.fill((int) cx - half, ruleY, (int) cx + half, ruleY + 1, 0xFFD4A53A);
-        g.fill((int) cx - half / 3, ruleY + 2, (int) cx + half / 3, ruleY + 3, 0x90D4A53A);
     }
 }

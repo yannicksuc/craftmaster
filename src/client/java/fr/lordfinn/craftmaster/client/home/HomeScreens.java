@@ -29,6 +29,9 @@ public final class HomeScreens {
         PictureInPictureRendererRegistry.register(ctx -> new HomeSceneRenderer());
     }
 
+    /** Background picked up when accueil.json names none (in config/craftmaster/). */
+    static final String DEFAULT_BACKGROUND = "accueil-fond.png";
+
     public static Path configFile() {
         return FabricLoader.getInstance().getConfigDir().resolve("craftmaster/accueil.json");
     }

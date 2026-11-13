@@ -13,17 +13,22 @@ class HomeConfigTest {
         assertTrue(c.enabled);
         assertEquals("109.239.154.4:25600", c.server);
         assertEquals("LordFinn", c.character.pseudo());
-        assertTrue(c.character.seated());
-        assertFalse(HomeConfig.parse("{\"personnage\": {\"assis\": false}}").character.seated());
+        assertTrue(c.character.throne());
+        assertEquals(d.character, c.character);
+        assertFalse(HomeConfig.parse("{\"personnage\": {\"trone\": false}}").character.throne());
         assertEquals(5, c.players.size());
         assertEquals("Ensuri", c.players.getFirst().pseudo());
-        assertEquals(35, c.row.angle());
-        assertEquals(6, c.row.sway());
+        assertEquals(18, c.row.angle());
+        assertEquals(4, c.row.sway());
         assertEquals(d.row.spacing(), c.row.spacing());
         assertArrayEquals(d.row.first(), c.row.first());
         assertArrayEquals(d.row.vanish(), c.row.vanish());
         assertEquals(d.parallax, c.parallax);
         assertEquals(d.zoom, c.zoom);
+        assertEquals(d.panel, c.panel);
+        assertEquals(d.table, c.table);
+        assertFalse(HomeConfig.parse("{\"table\": {\"actif\": false}}").table.enabled());
+        assertEquals(new HomeConfig.Panel(0.5, -1, 20, 6), HomeConfig.parse("{\"panneau\": {\"gauche\": 0.5, \"droite\": -7, \"marge\": 20}}").panel);
     }
 
     @Test
@@ -54,7 +59,7 @@ class HomeConfigTest {
         assertEquals(2, c.zoom);
         assertEquals("109.239.154.4:25600", c.server, "blank address: default");
         assertEquals(12, c.row.max());
-        assertEquals(35, c.row.angle());
+        assertEquals(18, c.row.angle());
         assertEquals(0, c.row.sway());
         assertArrayEquals(new double[]{1, 0}, c.row.first());
         assertArrayEquals(HomeConfig.defaults().row.vanish(), c.row.vanish());

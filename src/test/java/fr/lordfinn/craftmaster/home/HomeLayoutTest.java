@@ -142,6 +142,33 @@ class HomeLayoutTest {
     }
 
     @Test
+    void panelFollowsTheRow() {
+        double f = HomeLayout.focal(14, H);
+        List<Vector3d> row = defaultRow(5, f);
+        double[] span = HomeLayout.rowSpan(row, FW, W, H, f);
+        double[] first = HomeLayout.project(row.getFirst(), W, H, f);
+        assertEquals(first[0] + f * FW / -row.getFirst().z / 2, span[1], 1e-9, "right edge: the nearest frame's");
+        assertTrue(span[0] < HomeLayout.project(row.getLast(), W, H, f)[0]);
+        // Automatic edges are the row's; set ones are screen fractions; always on screen and wide enough
+        assertArrayEquals(span, HomeLayout.panelEdges(span, -1, -1, W, 0, 10), 1e-9);
+        assertArrayEquals(new double[]{0.5 * W, 0.9 * W}, HomeLayout.panelEdges(span, 0.5, 0.9, W, 4, 10), 1e-9);
+        double[] narrow = HomeLayout.panelEdges(new double[]{400, 410}, -1, -1, W, 4, 150);
+        assertEquals(150, narrow[1] - narrow[0], 1e-9);
+        double[] off = HomeLayout.panelEdges(new double[]{-50, 900}, -1, -1, W, 4, 150);
+        assertEquals(4, off[0], 1e-9);
+        assertEquals(W - 4, off[1], 1e-9);
+    }
+
+    @Test
+    void logoIsPixelPerfectWhenItFills() {
+        // 256 texels in 290 GUI px at scale 3: 3 screen px per texel = 256 GUI px (88%): exact fit instead
+        assertEquals(290 / 256.0, HomeLayout.fitScale(256, 290, 3), 1e-12);
+        // 256 texels in 270 GUI px at scale 3: 3 px per texel = 256 GUI px (95%): pixel perfect
+        assertEquals(1.0, HomeLayout.fitScale(256, 270, 3), 1e-12);
+        assertEquals(100 / 256.0, HomeLayout.fitScale(256, 100, 2), 1e-12, "smaller than one pixel per texel");
+    }
+
+    @Test
     void mouseIsNormalised() {
         assertArrayEquals(new double[]{0, 0}, HomeLayout.mouse(240, 135, W, H), 1e-12);
         assertArrayEquals(new double[]{-1, 1}, HomeLayout.mouse(-50, 999, W, H), 1e-12);

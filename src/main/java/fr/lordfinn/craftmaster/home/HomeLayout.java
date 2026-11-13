@@ -130,6 +130,42 @@ public final class HomeLayout {
         return Double.isFinite(v) ? Math.max(-1, Math.min(1, v)) : 0;
     }
 
+    /**
+     * Horizontal extent {left, right} of a row of frames on screen (pixels): the frames' centres plus or minus half
+     * their width seen at their depth.
+     */
+    public static double[] rowSpan(List<Vector3d> centres, double frameW, double w, double h, double f) {
+        double left = Double.MAX_VALUE, right = -Double.MAX_VALUE;
+        for (Vector3d c : centres) {
+            double x = project(c, w, h, f)[0], half = f * frameW / -c.z / 2;
+            left = Math.min(left, x - half);
+            right = Math.max(right, x + half);
+        }
+        return centres.isEmpty() ? new double[]{w * 0.55, w * 0.97} : new double[]{left, right};
+    }
+
+    /**
+     * The panel's {left, right} (pixels): each edge from the settings (a screen fraction) or, when negative,
+     * from the row above; kept on screen with {@code margin}, at least {@code minWidth} wide (grown leftward).
+     */
+    public static double[] panelEdges(double[] rowSpan, double left, double right, double w, double margin, double minWidth) {
+        double l = left >= 0 ? left * w : rowSpan[0], r = right >= 0 ? right * w : rowSpan[1];
+        r = Math.min(w - margin, Math.max(r, margin + minWidth));
+        l = Math.max(margin, Math.min(l, r - minWidth));
+        return new double[]{l, r};
+    }
+
+    /**
+     * GUI pixels per texel for a picture {@code texW} texels wide filling {@code width} GUI pixels at GUI scale
+     * {@code guiScale}: a whole number of screen pixels per texel (pixel perfect) when that fills at least 90% of
+     * the width, else exactly the width.
+     */
+    public static double fitScale(int texW, double width, int guiScale) {
+        int screenPx = (int) Math.floor(width * guiScale / texW);
+        if (screenPx >= 1 && screenPx * texW >= 0.9 * width * guiScale) return screenPx / (double) guiScale;
+        return width / texW;
+    }
+
     /** A screen offset of (dx, dy) pixels at {@code depth}, as a camera space move. */
     public static Vector3d screenShift(double dx, double dy, double depth, double f) {
         return new Vector3d(dx * depth / f, -dy * depth / f, 0);
