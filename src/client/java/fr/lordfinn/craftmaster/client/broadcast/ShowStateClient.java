@@ -58,7 +58,10 @@ public final class ShowStateClient {
     /** Seconds left on the round timer (fractional, for smooth animations), or -1 when none runs. */
     public static double timerSeconds() {
         if (state.timerEnd() < 0) return -1;
-        double elapsedTicks = (System.currentTimeMillis() - receivedAt) / 50.0;
+        // The game frozen (show waiting for the go after a crash): the timer stands still, the server sends what is left
+        Minecraft mc = Minecraft.getInstance();
+        boolean frozen = mc.level != null && mc.level.tickRateManager().isFrozen();
+        double elapsedTicks = frozen ? 0 : (System.currentTimeMillis() - receivedAt) / 50.0;
         double left = state.timerEnd() - state.serverTick() - elapsedTicks;
         return Math.max(0, left / 20.0);
     }

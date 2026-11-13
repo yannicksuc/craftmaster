@@ -19,6 +19,13 @@ public final class Stopwatch {
     private final Map<String, Long> running = new LinkedHashMap<>();
     /** Last time measured per player (kept after the stop, shown until the next start). */
     private final Map<String, Long> last = new LinkedHashMap<>();
+    /** When the show was frozen (every stopwatch stands still), -1 when it runs. */
+    private long frozenAt = -1;
+
+    /** The clock the stopwatches see: it stops at the freeze. */
+    private long clock(long now) {
+        return frozenAt >= 0 ? frozenAt : now;
+    }
 
     /** Starts (or restarts from 0) the player's stopwatch. */
     public void start(String player, long now) {
@@ -30,7 +37,7 @@ public final class Stopwatch {
     public long stop(String player, long now) {
         Long t0 = running.remove(player);
         if (t0 == null) return -1;
-        long elapsed = Math.max(0, now - t0);
+        long elapsed = Math.max(0, clock(now) - t0);
         last.put(player, elapsed);
         return elapsed;
     }
@@ -38,7 +45,7 @@ public final class Stopwatch {
     /** Elapsed time of a running stopwatch (it keeps running), or -1. */
     public long peek(String player, long now) {
         Long t0 = running.get(player);
-        return t0 == null ? -1 : Math.max(0, now - t0);
+        return t0 == null ? -1 : Math.max(0, clock(now) - t0);
     }
 
     public boolean isRunning(String player) {
@@ -58,6 +65,45 @@ public final class Stopwatch {
     public void resetAll() {
         running.clear();
         last.clear();
+    }
+
+    // ---------------------------------------------------------------- freeze after a crash (reprise)
+
+    /** Every stopwatch stands still from {@code now} (they keep their time until {@link #thaw}). */
+    public void freeze(long now) {
+        if (frozenAt < 0) frozenAt = now;
+    }
+
+    /** They run again from {@code now}, each with exactly the time it had at the freeze. */
+    public void thaw(long now) {
+        if (frozenAt < 0) return;
+        running.replaceAll((p, t0) -> now - Math.max(0, frozenAt - t0));
+        frozenAt = -1;
+    }
+
+    public boolean frozen() {
+        return frozenAt >= 0;
+    }
+
+    /** Time of every running stopwatch at {@code now} (frozen time while frozen), in start order. */
+    public Map<String, Long> runningTimes(long now) {
+        Map<String, Long> out = new LinkedHashMap<>();
+        for (String p : running.keySet()) out.put(p, peek(p, now));
+        return out;
+    }
+
+    /** Last measured times. */
+    public Map<String, Long> lastTimes() {
+        return new LinkedHashMap<>(last);
+    }
+
+    /** Puts back stopwatches saved before a restart: {@code runningTimes} keep counting from their time. */
+    public void restore(Map<String, Long> runningTimes, Map<String, Long> lastTimes, long now) {
+        running.clear();
+        last.clear();
+        long c = clock(now);
+        runningTimes.forEach((p, ms) -> running.put(p, c - Math.max(0, ms)));
+        last.putAll(lastTimes);
     }
 
     /** Players whose stopwatch runs, in start order. */

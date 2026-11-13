@@ -62,6 +62,7 @@ Redémarrer le jeu après modification. `token` facultatif : s'il est rempli, aj
 | `/season/next` · `/season/prev` | Saison suivante / précédente dans l'écran de saisie ou de classement ouvert |
 | `/points?player=Ensuri&delta=1` | Points pour l'épreuve en cours, **tout de suite** (pas de brouillon) ; plusieurs appuis rapides sur le même joueur partent en un seul « +3 » annoncé (0,8 s) ; `delta=-1` pour retirer |
 | `/round/next` · `/round/start?manche=pont` · `/round/end` · `/timer/stop` | Épreuve suivante (titre, TP, chrono) · une épreuve précise · fin · arrêter le chrono |
+| `/resume` · `/resume/force` | Show gelé après un crash : reprise (**deux appuis en 3 s**) ; refusée si un candidat manque, sauf `/resume/force` ([Épreuves](Epreuves.md#6-après-un-crash--le-show-gelé)) |
 | `/publish` · `/reveal/start` | Publier les scores · lancer la révélation : **deux appuis en 3 s** (le premier répond `"armed": true`) |
 | `/camera/cut?camera=2` · `/camera/auto` | Couper sur une caméra (numéro ou nom) · réalisation automatique (`?enabled=false` pour l'arrêter) |
 | `/tablet/start` · `/pause` · `/toggle` · `/reset` · `/restart` | Tablettes chrono (`?group=nom` : seulement ce groupe ; [Plateau](Plateau.md#tablette-chrono)) |

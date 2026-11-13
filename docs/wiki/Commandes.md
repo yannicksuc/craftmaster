@@ -28,6 +28,9 @@ passe par le même exécuteur que la régie vocale : même comportement, et **to
 | `/craftMasterHistory` | cfhi | Les 10 dernières modifications |
 | `/craftMasterStatus` | cfst | Saison, manche en cours, dernier score, scores non publiés, chrono, révélation |
 | `/craftMasterStatus context` | | Le contexte envoyé à la régie vocale, en JSON (vérification) |
+| `/craftMasterReprise [statut]` | cfrp | Après un crash : show gelé ou non, chronos, candidats qui manquent ([Épreuves](Epreuves.md#6-après-un-crash--le-show-gelé)) |
+| `/craftMasterReprise reprendre [force]` | | Feu vert : chaque chrono repart avec le temps qui lui restait ; refusé si un candidat manque, sauf `force` |
+| `/craftMasterReprise geler` | | Gèle le show à la main (joueurs, entités, chronos) |
 
 ## Saisons (admin)
 | Commande | Alias | Effet |

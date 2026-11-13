@@ -28,7 +28,8 @@ import java.util.UUID;
 
 /**
  * What everyone sees and hears during the show: round titles, teleports, the round timer (boss bar, countdown of
- * the last 10 seconds), the live "+3" announcements. Runtime state only (a restart forgets a running timer).
+ * the last 10 seconds), the live "+3" announcements. Runtime state; the round timer can be paused (show frozen after
+ * a crash) and is saved by {@link fr.lordfinn.craftmaster.reprise.Reprise} to be put back after a restart.
  */
 public final class Show {
 
@@ -152,6 +153,9 @@ public final class Show {
     private static String timerName;
     private static long timerEnd, timerTotal;
     private static int lastShownSecond;
+    /** Paused (show frozen): the ticks that were left when it stopped, and the last tick seen. */
+    private static boolean paused;
+    private static long pausedLeft, lastTick;
 
     public static boolean timerRunning() {
         return bar != null;
@@ -164,7 +168,8 @@ public final class Show {
 
     /** Server tick when the running timer ends, or -1; and its total length in ticks (TV overlay, chantier E). */
     public static long timerEndTick() {
-        return bar == null ? -1 : timerEnd;
+        // Paused: always "the ticks left from now" (the clients do not count down while the game is frozen)
+        return bar == null ? -1 : paused ? lastTick + pausedLeft : timerEnd;
     }
 
     public static int timerTotalTicks() {
@@ -173,7 +178,52 @@ public final class Show {
 
     /** Seconds left on the round timer, or -1 when none runs. */
     public static int timerRemaining(MinecraftServer server) {
-        return bar == null ? -1 : (int) Math.ceil(Math.max(0, timerEnd - server.getTickCount()) / 20.0);
+        return bar == null ? -1 : (int) Math.ceil(timerLeftTicks(server) / 20.0);
+    }
+
+    /** Ticks left on the round timer (exact, standing still while paused), or -1 when none runs. */
+    public static long timerLeftTicks(MinecraftServer server) {
+        return bar == null ? -1 : paused ? pausedLeft : Math.max(0, timerEnd - server.getTickCount());
+    }
+
+    public static boolean timerPaused() {
+        return bar != null && paused;
+    }
+
+    /** The round timer stands still where it is (show frozen). @return true if one was running */
+    public static boolean pauseTimer(MinecraftServer server) {
+        if (bar == null || paused) return false;
+        pausedLeft = Math.max(0, timerEnd - server.getTickCount());
+        paused = true;
+        lastTick = server.getTickCount();
+        bar.setColor(BossEvent.BossBarColor.WHITE);
+        return true;
+    }
+
+    /** It counts down again from the ticks it had left. @return true if one was paused */
+    public static boolean resumeTimer(MinecraftServer server) {
+        if (bar == null || !paused) return false;
+        paused = false;
+        timerEnd = server.getTickCount() + pausedLeft;
+        bar.setColor(lastShownSecond <= 10 ? BossEvent.BossBarColor.RED : BossEvent.BossBarColor.YELLOW);
+        return true;
+    }
+
+    /** Puts back, paused, a timer saved before a restart: its round's name, total and ticks left. */
+    public static void restoreTimer(MinecraftServer server, String name, long totalTicks, long leftTicks) {
+        stopTimer(server);
+        timerName = name;
+        timerTotal = Math.max(1, totalTicks);
+        long left = Math.max(0, Math.min(leftTicks, timerTotal));
+        int seconds = (int) Math.ceil(left / 20.0);
+        lastShownSecond = seconds;
+        paused = true;
+        pausedLeft = left;
+        lastTick = server.getTickCount();
+        timerEnd = lastTick + left;
+        bar = new ServerBossEvent(UUID.randomUUID(), barName(seconds), BossEvent.BossBarColor.WHITE, BossEvent.BossBarOverlay.PROGRESS);
+        bar.setProgress(Mth.clamp(left / (float) timerTotal, 0f, 1f));
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) bar.addPlayer(p);
     }
 
     public static void startTimer(MinecraftServer server, String name, int seconds) {
@@ -184,6 +234,8 @@ public final class Show {
         lastShownSecond = seconds + 1;
         bar = new ServerBossEvent(UUID.randomUUID(), barName(seconds), BossEvent.BossBarColor.YELLOW, BossEvent.BossBarOverlay.PROGRESS);
         for (ServerPlayer p : server.getPlayerList().getPlayers()) bar.addPlayer(p);
+        // Started while the show is frozen: it waits for the go like the others
+        if (fr.lordfinn.craftmaster.reprise.Reprise.frozen()) pauseTimer(server);
     }
 
     /** @return true if a timer was running */
@@ -191,6 +243,7 @@ public final class Show {
         if (bar == null) return false;
         bar.removeAllPlayers();
         bar = null;
+        paused = false;
         return true;
     }
 
@@ -205,7 +258,8 @@ public final class Show {
 
     public static void tick(MinecraftServer server) {
         Reveal.tick(server);
-        if (bar == null) return;
+        lastTick = server.getTickCount();
+        if (bar == null || paused) return;
         long left = timerEnd - server.getTickCount();
         int seconds = (int) Math.ceil(Math.max(0, left) / 20.0);
         bar.setProgress(Mth.clamp(left / (float) timerTotal, 0f, 1f));
@@ -237,7 +291,7 @@ public final class Show {
     /** Lines describing what runs now, for the organisers. */
     public static List<String> status(MinecraftServer server) {
         List<String> out = new ArrayList<>();
-        if (bar != null) out.add("Chrono : " + timerName + " — " + Actions.clock(timerRemaining(server)) + " restant");
+        if (bar != null) out.add("Chrono : " + timerName + " — " + Actions.clock(timerRemaining(server)) + " restant" + (paused ? " (en pause)" : ""));
         if (Reveal.running()) out.add("Révélation en cours.");
         return out;
     }
