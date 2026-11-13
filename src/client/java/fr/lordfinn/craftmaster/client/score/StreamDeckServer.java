@@ -254,6 +254,17 @@ public final class StreamDeckServer {
             case "/publish" -> {
                 return armed("publish") ? send(action("scores.publish")) : armedAnswer("publish the scores");
             }
+            case "/resume", "/resume/force" -> {
+                // The show frozen after a crash goes on (the server refuses while a contestant is missing, unless forced)
+                if (!armed("resume")) return armedAnswer("resume the show");
+                boolean force = path.endsWith("/force");
+                return onGame(() -> {
+                    Minecraft mc = Minecraft.getInstance();
+                    if (!connected() || mc.player == null) return error("not connected");
+                    mc.player.connection.sendCommand("craftMasterReprise reprendre" + (force ? " force" : ""));
+                    return ok();
+                });
+            }
             case "/reveal/start" -> {
                 return armed("reveal") ? send(action("reveal.start")) : armedAnswer("start the reveal");
             }

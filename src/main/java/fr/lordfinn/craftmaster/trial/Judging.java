@@ -161,6 +161,20 @@ public final class Judging {
         });
     }
 
+    /** Bars for the stopwatches put back after a restart ({@link Stopwatch#restore}). */
+    public static void restoreBars(MinecraftServer server) {
+        long now = System.currentTimeMillis();
+        for (String player : Stopwatch.SHARED.runningPlayers()) {
+            if (BARS.containsKey(player)) continue;
+            long ms = Math.max(0, Stopwatch.SHARED.peek(player, now));
+            ServerBossEvent e = new ServerBossEvent(UUID.randomUUID(), barName(player, ms, true), BossEvent.BossBarColor.GREEN,
+                    BossEvent.BossBarOverlay.NOTCHED_10);
+            e.setProgress((ms % 60_000) / 60_000f);
+            for (ServerPlayer p : server.getPlayerList().getPlayers()) e.addPlayer(p);
+            BARS.put(player, new Bar(e));
+        }
+    }
+
     public static void onJoin(ServerPlayer p) {
         BARS.values().forEach(b -> b.event.addPlayer(p));
     }

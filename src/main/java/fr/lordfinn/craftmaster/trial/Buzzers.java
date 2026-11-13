@@ -142,6 +142,17 @@ public final class Buzzers {
         return false;
     }
 
+    /** Buzzers lit since the last reset (saved for a restart after a crash). */
+    public static Set<GlobalPos> lit() {
+        return Set.copyOf(LIT);
+    }
+
+    /** Buzzers lit before a restart, to switch them off at the next reset. */
+    public static void restoreLit(java.util.Collection<GlobalPos> lit) {
+        LIT.clear();
+        LIT.addAll(lit);
+    }
+
     /** Switches every buzzer off and opens the game again. @return the number of buzzers switched off */
     public static int reset(MinecraftServer server) {
         rearmAt = -1;

@@ -90,7 +90,10 @@ public final class ShowStateClient {
             // A replay whose file says its first tick: the timer is exactly the recorded one, at any speed or seek
             left = state.timerEnd() - replayTick;
         } else {
-            double elapsedTicks = ReplayClient.active() && receivedReplayMs >= 0
+            // The game frozen (show waiting for the go after a crash): the timer stands still, the server sends what is left
+            Minecraft mc = Minecraft.getInstance();
+            boolean frozen = !ReplayClient.active() && mc.level != null && mc.level.tickRateManager().isFrozen();
+            double elapsedTicks = frozen ? 0 : ReplayClient.active() && receivedReplayMs >= 0
                     ? (ReplayClient.nowMs() - receivedReplayMs) / 50.0 : (System.currentTimeMillis() - receivedAt) / 50.0;
             left = state.timerEnd() - state.serverTick() - elapsedTicks;
         }

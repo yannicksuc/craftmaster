@@ -47,6 +47,8 @@ public final class CraftMaster implements ModInitializer {
     @Override
     public void onInitialize() {
         ModContent.register();
+        // The show frozen after a crash: first, so its stop listener saves the clocks before the others forget them
+        fr.lordfinn.craftmaster.reprise.Reprise.register();
         // Studio set (chantier F): blocks, screens, timer sync, commands
         fr.lordfinn.craftmaster.studio.Studio.register();
         Network.register();
@@ -85,6 +87,7 @@ public final class CraftMaster implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.ModoCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.FxCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.ReplayCommands.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.RepriseCommands.register(dispatcher));
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             FabricLoader fl = FabricLoader.getInstance();

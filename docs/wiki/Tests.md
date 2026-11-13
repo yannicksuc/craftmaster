@@ -494,3 +494,23 @@ rouge entre deux piliers de quartz, moteur au milieu du linteau.
   le sable flotter (un bloc posé à côté le fait tomber, comme prévu).
 - Non vérifié : client 26.3 en jeu (compilé et testé unitairement), deux joueurs, très grande porte, `/cfwe perf on`
   suivi d'une reconnexion.
+
+### Show gelé après un crash (vérifié en jeu sur 26.2, le 13/11/2026)
+Serveur `:26.2:runServer` (jeu 26201, RCON 26202) + LordFinn (admin et candidat) et Joueur2 (`dev-client.ps1
+-Version 26.2`, MCP Fabric). Saison de test avec les deux candidats, manche « Pont » (chrono 10:00), une tablette
+chrono de 5:00, un chrono candidat pour Joueur2, une vache.
+- Manche lancée, `save-all` (comme la sauvegarde auto), 15 s plus tard serveur tué (`taskkill /F`) : dernier
+  `reprise.json` à moins d'une seconde du crash (9 819 ticks restants, 108,95 s pour Joueur2, tablette 32,2 s).
+- Redémarrage : « Show gelé après le redémarrage » ; `tick query` : jeu gelé ; statut « Chrono de manche : 8:11 (en
+  pause) », « Joueur2 1:49,0 », « Manquent : LordFinn, Joueur2 » ; `reprendre` refusé.
+- LordFinn revient : statut dans son chat, sprint de 3 s sans bouger, vache immobile, barre blanche figée,
+  « ⏸ Pause » en gris ; tablette 4:28 (= 300 − 32,2 s). Joueur2 revient : « tout le monde est là [Reprendre] ».
+- 10 s plus tard, rien n'a bougé ; `reprendre` : 10 s après, 8:11 → 8:01, tablette 4:28 → 4:18, Joueur2
+  1:49,0 → 1:59,3 ; la vache et les joueurs bougent.
+- Tablette hors des chunks chargés (plus personne à côté) : gardée dans `reprise.json` et qui compte ; crash, puis
+  redémarrage : « 1 hors des zones chargées », puis 4:34 exactement quand LordFinn revient (le monde, lui, avait
+  gardé un temps faux). `reprendre force` avec Joueur2 absent : accepté.
+- Arrêt propre (`stop`) en pleine manche : état écrit à l'arrêt, show gelé au redémarrage.
+- Corrigé grâce à ces essais : le joueur qui se connecte se comptait parmi les absents ; une tablette dont le chunk
+  se déchargeait disparaissait de la sauvegarde.
+Pas vérifié en jeu : le Stream Deck `/resume`, les buzzers (testés en unitaire, `RepriseTest`), les dégâts bloqués.

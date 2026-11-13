@@ -108,11 +108,45 @@ bouton DQ de la feuille de résultats, `/craftMasterResult dq`, la voix (« Ensu
 « applique le barème », « barème 3 2 1 », « top chrono pour Ensuri », « stop Ensuri », « remets les buzzers ».
 Les quatre plus simples marchent aussi hors ligne ([Régie vocale](RegieVocale.md)).
 
+## 6. Après un crash : le show gelé
+
+Une épreuve peut durer plus d'une heure : si le serveur plante ou est arrêté en pleine manche, **rien ne repart
+tout seul**. Au redémarrage, si une manche était en cours, le show est **gelé** jusqu'au feu vert de l'organisateur :
+
+- les candidats (et les joueurs qui ne sont pas organisateurs) ne bougent plus et n'agissent plus : pas de
+  déplacement ni de saut, pas de casse ni de pose de blocs, pas d'interaction (blocs, objets, entités, buzzers),
+  pas d'attaque ; personne ne prend de dégâts ;
+- les mobs et toutes les entités sont figés (le gel du jeu, comme `/tick freeze`), le temps et la redstone aussi ;
+- tous les chronos sont arrêtés : le chrono de manche (barre de boss blanche, chrono géant et bandeau TV figés),
+  les tablettes chrono, les chronos des candidats, le délai des buzzers ;
+- à l'écran, seulement « ⏸ Pause » en gris dans la barre d'action des joueurs retenus ; rien pour les caméras.
+
+Les organisateurs qui ne sont pas candidats et les spectateurs (caméras de la réalisation) restent libres.
+
+`/craftMasterReprise` (cfrp) dit si le show est gelé, la manche, le temps de chaque chrono et **qui manque encore**
+(les candidats non archivés de la saison qui ne sont pas connectés). Un organisateur qui se connecte reçoit ce
+statut ; à chaque retour ou départ d'un candidat, les organisateurs voient « Ensuri est revenu — manque encore : … »
+ou « tout le monde est là » avec un bouton **[Reprendre]**.
+
+`/craftMasterReprise reprendre` donne le feu vert : refusé tant qu'un candidat manque, sauf
+`/craftMasterReprise reprendre force`. Chaque chrono repart alors avec **exactement** le temps qui lui restait (au
+tick près pour le chrono de manche) ; le temps passé serveur éteint ou gelé ne compte jamais. Aussi au Stream Deck :
+`/resume` (deux appuis en 3 s, [Saisie](Saisie.md)). `/craftMasterReprise geler` gèle le show à la main (même effet).
+
+Pour cela, l'état des chronos est enregistré **chaque seconde** dans `config/craftmaster/reprise.json` (chrono de
+manche en ticks restants, chronos des candidats, buzzers, chaque tablette avec sa position et son temps, y compris
+celles dont le chunk n'est plus chargé) : un crash fait perdre au plus une seconde de chrono. Un arrêt propre
+(`/stop`) en pleine manche l'écrit au dernier moment et gèle aussi au redémarrage. Hors manche, rien n'est gelé.
+
+Limites : le monde lui-même (blocs, positions des joueurs, entités) revient à sa dernière sauvegarde automatique du
+jeu (toutes les 5 minutes) ; les objets jetés (touche Q) ne sont pas bloqués pendant le gel ; la régie vocale ne
+sait pas encore donner le feu vert.
+
 ## Commandes
 
 Voir [Commandes](Commandes.md#épreuves-admin) : `/craftMasterResult` (cfre), `/craftMasterChrono` (cfch),
 `/craftMasterBuzzer` (cfbz), `/craftMasterZone` (cfzo), `/craftMasterTrial` (cftr), `/craftMasterBoard` (cfbd),
-`/craftMasterName` (cfnm).
+`/craftMasterName` (cfnm), `/craftMasterReprise` (cfrp).
 
 ## Exemple : « Le premier à sonner la cloche »
 1. `/craftMasterManche create "La Cloche"` puis `/craftMasterResult kind temps`.
