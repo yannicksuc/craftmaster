@@ -122,10 +122,13 @@ prend le relais.
 
 | Faire | Commande (`<m>` = la manche) |
 |---|---|
-| Ajouter un plan | `/tv intro <m> ajouter camera large 4` · `ajouter trajet survol` · `ajouter suivi Ensuri 5` (+ `[transition] [effet]`) |
+| Faire l'intro toute seule | `/tv intro <m> construire` (à partir des caméras de la manche, sur la musique d'intro ; remplace les plans) |
+| Ajouter un plan | `/tv intro <m> ajouter camera large 4` · `ajouter trajet survol` · `ajouter suivi Ensuri 5` (+ `[transition] [effet]`) · `ajouter tache [s]` (lieu de la tâche) |
 | Régler un plan | `/tv intro <m> plan 2 duree 3` · `plan 2 transition coupe` · `plan 2 effet sepia` · `plan 1 carte synthe Le Pont \| Épreuve 1` · `plan 3 retirer` |
-| Réglages | `/tv intro <m> musique theme\|aucune\|<son>` · `titre on\|off` · `auto on` (jouée toute seule au lancement de la manche) · `effacer` |
-| Couper sur la musique | `/tv intro <m> rythme theme` (tempo du thème, 112 BPM) · `rythme 96` · `rythme 120 4` (4 temps par plan) · `rythme 120 4 0,4` (1er temps à 0,4 s) · `rythme off` |
+| Réglages | `/tv intro <m> musique intro\|theme\|aucune\|<son>` · `titre on\|off` · `auto on` (jouée toute seule au lancement de la manche) · `effacer` |
+| Look, consigne | `/tv intro <m> look look_intro\|aucun` (effet ajouté à tous les plans) · `consigne on\|off` (la tâche tapée en bas à la fin) |
+| Lieu de la tâche | `/tv intro <m> lieu` (replace la caméra du plan « lieu de la tâche ») |
+| Couper sur la musique | `/tv intro <m> rythme intro` (musique d'intro, 120 BPM) · `rythme theme` (tempo du thème, 112 BPM) · `rythme 96` · `rythme 120 4` (4 temps par plan) · `rythme 120 4 0,4` (1er temps à 0,4 s) · `rythme off` |
 | Lancement enchaîné | `/tv intro <m> enchaine on\|off` (on par défaut, avec `auto on`) |
 | Voir / jouer | `/tv intro <m> voir` · `/tv intro <m>` · « lance l'intro du pont » · `/tv stop` l'arrête |
 
@@ -143,6 +146,23 @@ prend le relais.
   moment-là. `/tv stop` pendant l'intro la saute : on passe directement au noir. Un joueur sans le mod a une
   cécité pendant le noir et le titre habituel. `enchaine off` : la manche démarre tout de suite et l'intro joue
   par-dessus (ancien comportement).
+- **Intro construite toute seule** (`construire`, « fais l'intro du pont toute seule ») : sur la musique d'intro
+  d'épreuve (120 BPM, 20 s, finit sur un accord), 40 temps en tout. Le plan large de la manche en timelapse, sorti du
+  plateau par la transition miroir ; jusqu'à 4 autres caméras du lieu en inserts, longs et courts en alternance
+  (macro, bascule de mise au point, stop motion) ; la caméra trône du studio, courte et sombre ; puis le **lieu de
+  la tâche** sur un flash blanc, le plan le plus long, avec le titre de la manche. Look « vieux reportage »
+  (`look_intro`) sur tout, jouée au lancement et enchaînée. Tout se retouche ensuite plan par plan (`voir`, `plan …`).
+- **Lieu de la tâche** (`ajouter tache`) : le plan qui montre où les joueurs vont arriver et l'enveloppe qui les y
+  attend. Sa caméra est faite la première fois : le premier point de TP de la manche, l'enveloppe posée la plus
+  proche (16 blocs au plus), et un point de vue dégagé derrière l'arrivée qui voit les deux. C'est une caméra du lieu
+  de la manche nommée « Lieu de la tâche », **sans trépied** (rien ne gêne les joueurs). Une fois faite elle ne
+  bouge plus : on peut la retoucher avec `/cam`. Après avoir déplacé le point de TP ou l'enveloppe :
+  `/tv intro <m> lieu`. Sans enveloppe posée, le plan montre l'arrivée.
+- **Consigne tapée** (`consigne on`, le défaut) : si la tâche de la manche est révélée au lancement, sa première
+  phrase (sans titre, sans partie secrète, 110 caractères au plus) est tapée à la machine en bas de l'image pendant
+  le plan « lieu de la tâche » (ou le dernier plan), sur la diffusion seulement.
+- **Musique d'intro** (`musique intro`) : une petite pièce provisoire (pizzicato, basson, glockenspiel), générée par
+  `scripts/gen_intro_music.py`, remplaçable dans un pack de ressources (`assets/craftmaster/sounds/show/intro.ogg`).
 - Tout réglage d'intro est **annulable** (« annule », `/craftMasterUndo`) : il est rangé avec la manche.
 - `/tv intro` seul lance toujours le générique d'ouverture de l'émission.
 
