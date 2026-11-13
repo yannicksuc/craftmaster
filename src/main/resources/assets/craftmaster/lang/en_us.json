@@ -888,5 +888,12 @@
   "screen.craftmaster.modo_desk.scene.follow.nearest.tip": "Follow the nearest player",
   "screen.craftmaster.modo_desk.scene.follow.none": "Fixed",
   "screen.craftmaster.modo_desk.scene.follow.none.tip": "Stop following, keep their direction",
-  "screen.craftmaster.modo_desk.scene.empty": "No look yet: /ambiance enregistrer <name>"
+  "screen.craftmaster.modo_desk.scene.empty": "No look yet: /ambiance enregistrer <name>",
+  "screen.craftmaster.home": "CraftMaster",
+  "screen.craftmaster.home.play": "Play",
+  "screen.craftmaster.home.play.tip": "Join %s (%s)",
+  "screen.craftmaster.home.solo": "Singleplayer",
+  "screen.craftmaster.home.multiplayer": "Multiplayer",
+  "screen.craftmaster.home.options": "Options",
+  "screen.craftmaster.home.quit": "Quit"
 }

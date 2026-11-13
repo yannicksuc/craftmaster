@@ -59,6 +59,8 @@ public final class CraftMasterClient implements ClientModInitializer {
         fr.lordfinn.craftmaster.client.score.ScoreEntryClient.init();
         // In-game clips (F9 / F10) and videos on the studio screens, through WaterMedia when installed (media/)
         fr.lordfinn.craftmaster.client.media.Clips.init();
+        // CraftMaster's title screen (config/craftmaster/accueil.json), in place of Minecraft's
+        fr.lordfinn.craftmaster.client.home.HomeScreens.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (RANKING_KEY.consumeClick()) openRanking(mc, -1);
