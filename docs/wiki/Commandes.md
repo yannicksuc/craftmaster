@@ -15,7 +15,8 @@ passe par le même exécuteur que la régie vocale : même comportement, et **to
 | `/craftMasterManche next` | | Lance la manche suivante |
 | `/craftMasterManche end` | | Fin de la manche en cours (titre et son) |
 | `/craftMasterGive <pseudo> <points> [manche]` | cfg | Points pour la manche en cours (ou nommée), annoncés « LordFinn +3 (Le Pont) » ; pseudo ou surnom |
-| `/craftMasterTimer stop` | cfti | Arrête le chrono |
+| `/craftMasterTimer stop` | cfti | Arrête le chrono (et libère les joueurs figés) |
+| `/craftMasterTimer go` | cfti | Lance tout de suite le chrono d'une manche qui attend sa lettre ou son bouton, libère les joueurs figés |
 | `/craftMasterPublish [saison]` | cfpu | Publie les scores : busts, étiquettes, écrans et classement des joueurs se mettent à jour |
 | `/craftMasterReveal start [saison]` | cfrv | Révélation mise en scène ([Émission](Emission.md)) |
 | `/craftMasterReveal stop` | | Interrompt la révélation (rideau rouvert) |
@@ -54,6 +55,7 @@ passe par le même exécuteur que la régie vocale : même comportement, et **to
 | `/craftMasterManche aliases <manche> [surnoms…]` | Surnoms pour la voix (séparés par des virgules ou espaces ; rien = aucun) |
 | `/craftMasterManche order <manche> <position>` | Change l'ordre |
 | `/craftMasterManche timer <manche> <secondes>` | Chrono (0 = aucun) |
+| `/craftMasterManche depart <manche> <lancement\|lettre\|bouton>` | Quand le chrono démarre : au lancement (défaut) ; quand un joueur de la manche ouvre la lettre de la tâche ; ou au bouton « Commencer l'épreuve » de la lettre : la lettre s'ouvre seule devant chaque joueur au lancement, il reste figé (ni marcher, ni casser, ni poser, ni utiliser, sauf la lettre) jusqu'à son clic, le premier clic lance le chrono. Le même bouton est dans le chat (jeu sans le mod), J rouvre la lettre |
 | `/craftMasterManche stage <manche> <true\|false>` | Se joue sur scène |
 | `/craftMasterManche scene <manche> <décor\|aucun>` | Décor posé au lancement (si sur scène) |
 | `/craftMasterManche tp add <manche>` | Ajoute l'endroit où l'on se tient (et la direction du regard) comme point de TP |

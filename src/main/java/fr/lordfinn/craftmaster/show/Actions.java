@@ -39,11 +39,14 @@ public final class Actions {
     public record ScoreGiven(int season, String player, int delta, String manche) implements Effect {}
 
     /** A round starts: title, teleports, timer. {@code cast}: the season's players (not archived), in order. */
-    public record MancheStarted(int season, int number, String name, int timer, List<Spot> tp, List<String> cast) implements Effect {}
+    public record MancheStarted(int season, int number, String name, int timer, List<Spot> tp, List<String> cast, String mancheId,
+                                String timerStart) implements Effect {}
 
     public record MancheEnded(String name) implements Effect {}
 
     public record TimerStopped() implements Effect {}
+    /** The organiser starts a round's held timer now (timer.go): everyone frozen is free. */
+    public record TimerGo() implements Effect {}
 
     public record Published(int season) implements Effect {}
 
@@ -117,7 +120,7 @@ public final class Actions {
             "season.create", "season.update", "season.archive", "season.delete", "season.activate",
             "partie.create", "partie.update", "partie.archive", "partie.delete", "partie.activate",
             "manche.create", "manche.update", "manche.archive", "manche.delete", "manche.tp.add", "manche.tp.clear",
-            "manche.start", "manche.end", "timer.stop", "curtain.open", "curtain.close", "scene.set", "say",
+            "manche.start", "manche.end", "timer.stop", "timer.go", "curtain.open", "curtain.close", "scene.set", "say",
             // chantier H
             "result.set", "result.dq", "result.remove", "results.clear", "results.config", "results.apply",
             "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset",
@@ -338,6 +341,7 @@ public final class Actions {
                 case "manche.start" -> mancheStart(a);
                 case "manche.end" -> mancheEnd();
                 case "timer.stop" -> effects.add(new TimerStopped());
+                case "timer.go" -> effects.add(new TimerGo());
                 case "curtain.open" -> curtain(a, true);
                 case "curtain.close" -> curtain(a, false);
                 case "scene.set" -> sceneSet(a);
@@ -797,6 +801,7 @@ public final class Actions {
             if (bool(a, "onStage") != null) r.onStage = bool(a, "onStage");
             if (a.containsKey("scene")) r.scene = sceneField(a);
             if (integer(a, "timer") != null) r.timer = Math.max(0, integer(a, "timer"));
+            if (str(a, "timerStart") != null) r.timerStart = timerStart(a);
             String after = str(a, "after");
             if (after != null) {
                 Manche ref = manche(s, a, after).manche();
@@ -814,7 +819,17 @@ public final class Actions {
             if (r.onStage) b.append(", sur scène");
             if (r.scene != null) b.append(", décor ").append(r.scene);
             if (r.timer > 0) b.append(", chrono ").append(clock(r.timer));
+            if (!r.timerStart.equals(fr.lordfinn.craftmaster.task.RoundStart.LAUNCH))
+                b.append(", départ ").append(fr.lordfinn.craftmaster.task.RoundStart.describe(r.timerStart));
             return b.toString();
+        }
+
+        /** The "timerStart" field: lancement, lettre or bouton. */
+        private static String timerStart(Map<String, Object> a) {
+            String v = str(a, "timerStart");
+            String mode = fr.lordfinn.craftmaster.task.RoundStart.parse(v);
+            if (mode == null) throw new Invalid("départ du chrono « " + v + " » inconnu (lancement, lettre ou bouton).");
+            return mode;
         }
 
         private void mancheUpdate(Map<String, Object> a) {
@@ -862,6 +877,11 @@ public final class Actions {
                 any = true;
                 r.timer = Math.max(0, timer);
                 line("Chrono de « " + r.name + " » : " + (r.timer == 0 ? "aucun" : clock(r.timer)));
+            }
+            if (str(a, "timerStart") != null) {
+                any = true;
+                r.timerStart = timerStart(a);
+                line("Chrono de « " + r.name + " » lancé " + fr.lordfinn.craftmaster.task.RoundStart.describe(r.timerStart) + ".");
             }
             Integer order = integer(a, "order");
             if (order != null) {
@@ -941,10 +961,12 @@ public final class Actions {
             s.activePartie = p.id;
             if (p.status.equals(Partie.PREPARATION)) p.status = Partie.EN_COURS;
             List<String> cast = s.players.values().stream().filter(x -> !x.archived).map(x -> x.name).toList();
-            effects.add(new MancheStarted(s.id, p.number(r), r.name, r.timer, List.copyOf(r.tp), cast));
+            effects.add(new MancheStarted(s.id, p.number(r), r.name, r.timer, List.copyOf(r.tp), cast, r.id, r.timerStart));
             // Starting the round reveals its task, unless only the envelopes may (chantier D)
             if (r.task != null && r.task.revealOnStart && !r.task.isEmpty()) effects.add(new TaskRevealed(s.id, r.id, false));
-            line("Manche " + p.number(r) + " — " + r.name + " lancée" + (r.timer > 0 ? " (chrono " + clock(r.timer) + ")" : "") + ".");
+            line("Manche " + p.number(r) + " — " + r.name + " lancée" + (r.timer > 0 ? " (chrono " + clock(r.timer)
+                    + (r.timerStart.equals(fr.lordfinn.craftmaster.task.RoundStart.LAUNCH) ? "" : ", départ " + fr.lordfinn.craftmaster.task.RoundStart.describe(r.timerStart)) + ")"
+                    : r.timerStart.equals(fr.lordfinn.craftmaster.task.RoundStart.BUTTON) ? " (joueurs figés jusqu'au bouton « Commencer »)" : "") + ".");
         }
 
         private void mancheEnd() {

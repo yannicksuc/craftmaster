@@ -31,6 +31,7 @@ seasons:
           onStage: true
           scene: foret
           timer: 180
+          timerStart: bouton   # facultatif : lancement (défaut) | lettre | bouton (joueurs figés jusqu'au clic)
           tp: [{world: minecraft:overworld, x: 10.5, y: 64, z: -3.5, yaw: 90, pitch: 0}]
           archived: true       # facultatif
           task:                # facultatif (v4) : la tâche lue sur la carte de l'enveloppe

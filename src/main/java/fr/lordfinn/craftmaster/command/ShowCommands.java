@@ -281,6 +281,13 @@ public final class ShowCommands {
                 .then(literal("timer").then(argument("manche", word()).suggests(MANCHES)
                         .then(argument("seconds", integer(0))
                                 .executes(c -> run(c, action("manche.update", "manche", str(c, "manche"), "timer", getInteger(c, "seconds")))))))
+                // When its timer starts: lancement (default), lettre (first reading), bouton (frozen until « Commencer »)
+                .then(literal("depart").then(argument("manche", word()).suggests(MANCHES)
+                        .then(argument("mode", word()).suggests((c, b) -> {
+                                    fr.lordfinn.craftmaster.task.RoundStart.MODES.forEach(b::suggest);
+                                    return b.buildFuture();
+                                })
+                                .executes(c -> run(c, action("manche.update", "manche", str(c, "manche"), "timerStart", str(c, "mode")))))))
                 .then(literal("order").then(argument("manche", word()).suggests(MANCHES)
                         .then(argument("position", integer(1))
                                 .executes(c -> run(c, action("manche.update", "manche", str(c, "manche"), "order", getInteger(c, "position")))))))
@@ -419,7 +426,9 @@ public final class ShowCommands {
 
     private static LiteralArgumentBuilder<CommandSourceStack> timer(String name) {
         return literal(name).requires(ADMIN)
-                .then(literal("stop").executes(c -> run(c, action("timer.stop"))));
+                .then(literal("stop").executes(c -> run(c, action("timer.stop"))))
+                // A round whose timer waits for a letter: start it now, free the frozen players
+                .then(literal("go").executes(c -> run(c, action("timer.go"))));
     }
 
     // ---------------------------------------------------------------- stage set-up

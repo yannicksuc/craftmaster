@@ -105,6 +105,7 @@ public final class Tasks {
         ServerPlayNetworking.registerGlobalReceiver(TaskNetwork.Seal.TYPE, (p, ctx) -> seal(ctx.player(), p));
         ServerPlayNetworking.registerGlobalReceiver(TaskNetwork.SaveNote.TYPE, (p, ctx) -> Notes.save(ctx.player(), p.note()));
         ServerPlayNetworking.registerGlobalReceiver(TaskNetwork.NoteOrder.TYPE, (p, ctx) -> Notes.order(ctx.player(), p.id(), p.order()));
+        RoundStart.register();
     }
 
     // ---------------------------------------------------------------- rounds
@@ -252,6 +253,14 @@ public final class Tasks {
     }
 
     static void send(ServerPlayer player, TaskNetwork.Paper paper) {
+        if (!paper.mancheId().isEmpty() && !paper.has(TaskNetwork.PREVIEW)) {
+            // A round held for its start button: its letter carries the button for those still frozen
+            if (RoundStart.awaitsButton(player, paper.season(), paper.mancheId()))
+                paper = new TaskNetwork.Paper(paper.kind(), paper.header(), paper.title(), paper.text(), paper.rules(), paper.seconds(), paper.wax(),
+                        paper.look(), paper.flags() | TaskNetwork.START, paper.pieces(), paper.mancheId(), paper.season(), paper.from());
+            // Read without a seal to tear (J, a letter read again): it counts as read now
+            if (!paper.has(TaskNetwork.SECRET) && !paper.has(TaskNetwork.ENVELOPE)) RoundStart.letterRead(player, paper.season(), paper.mancheId());
+        }
         if (ServerPlayNetworking.canSend(player, TaskNetwork.Paper.TYPE)) {
             ServerPlayNetworking.send(player, paper);
             return;
@@ -340,6 +349,7 @@ public final class Tasks {
                 }
             }
             if (located != null) reveal(server, located, player, false);
+            if (env.linked()) RoundStart.letterRead(player, env.season(), env.manche());
         };
         if (ServerPlayNetworking.canSend(player, TaskNetwork.Paper.TYPE)) {
             // The reader tears the seal off: the task is revealed (and announced) when it pops (SealBroken), or
@@ -353,6 +363,22 @@ public final class Tasks {
         } else {
             later(server, ENVELOPE_ANIMATION_TICKS, torn);
         }
+    }
+
+    /**
+     * The letter put in front of a player of a round held for its start button (RoundStart): the round's sealed
+     * envelope, opened on their screen (tearing it reveals the task, as any envelope); without a task written, a
+     * card with the round's name. Either carries « Commencer l'épreuve ».
+     */
+    static void openStartLetter(ServerPlayer player, int season, String mancheId, String name) {
+        Located l = locate(season, mancheId);
+        if (l != null && l.hasTask()) {
+            Task t = l.manche().task;
+            openEnvelope(player, new TaskComponents.Envelope(season, mancheId, l.manche().name, "", "", WaxColor.of(t.wax).id(), "", false, false), e -> {});
+            return;
+        }
+        send(player, new TaskNetwork.Paper("text", Component.translatable("paper.craftmaster.round", l == null ? 0 : l.number(), name), name,
+                "Prêt ? Clique sur « Commencer l'épreuve ».", List.of(), 0, Task.DEFAULT_WAX, "paper", 0, List.of(), mancheId, season, ""));
     }
 
     /** The reader's seal popped: what waited for it (reveal, announce) happens now. */

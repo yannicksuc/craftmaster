@@ -68,6 +68,28 @@ class ActionsTest {
     }
 
     @Test
+    void theTimerStartsAtTheLaunchTheLetterOrItsButton() {
+        prepare();
+        assertEquals("lancement", partie().manches.get(1).timerStart, "as before by default");
+        assertTrue(run(a("manche.update", "manche", "La Tour", "timerStart", "bouton")).ok());
+        assertTrue(run(a("manche.update", "manche", "pont", "timerStart", "à l'ouverture")).ok());
+        assertFalse(run(a("manche.update", "manche", "pont", "timerStart", "demain")).ok(), "unknown mode");
+        assertEquals("lettre", partie().manches.get(0).timerStart);
+
+        Actions.MancheStarted started = (Actions.MancheStarted) run(a("manche.start", "manche", "La Tour")).effects().getFirst();
+        assertEquals("bouton", started.timerStart());
+        assertEquals("la-tour", started.mancheId());
+        assertTrue(run(a("timer.go")).effects().contains(new Actions.TimerGo()));
+
+        // Kept in the file
+        data.save();
+        CraftMasterData again = new CraftMasterData(dir.resolve("config.yml"), LoggerFactory.getLogger("test"));
+        again.load(null);
+        assertEquals("bouton", again.activeSeason().activePartie().manches.get(1).timerStart);
+        assertEquals("lancement", again.activeSeason().activePartie().manches.get(2).timerStart);
+    }
+
+    @Test
     void preparationCreatesAnInvisibleGame() {
         prepare();
         assertEquals("Saison 4", season().name);

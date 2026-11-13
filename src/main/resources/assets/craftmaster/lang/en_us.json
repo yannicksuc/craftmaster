@@ -243,6 +243,8 @@
   "screen.craftmaster.task.preview": "Preview",
   "screen.craftmaster.task.preview.tip": "Plays the envelope opening with the text as typed (only on your screen)",
   "screen.craftmaster.task.reveal": "Reveal to all",
+  "screen.craftmaster.task.start": "▶ Start the task",
+  "screen.craftmaster.task.start.tip": "You can move and play once you click: the first click starts the timer",
   "screen.craftmaster.task.reveal.tip": "Everybody (spectators, broadcast) can now read it",
   "screen.craftmaster.task.reveal_short": "Reveal",
   "screen.craftmaster.task.show_short": "On screens",

@@ -24,6 +24,7 @@ import java.util.List;
  *                  PaperUpdate(round, text)   a [secret] part revealed: an open letter takes the new text
  * client → server  RequestTask()              J pressed: open the task of the moment
  *                  SealBroken()               the reader tore the seal off (reveal + announce now)
+ *                  StartRound(round)          « Commencer l'épreuve » clicked in the letter (RoundStart)
  *                  RunActions(json)           organisers' screens: actions for ActionExecutor
  *                  SaveNote(note)             organisers: create / change a note
  *                  NoteOrder(id, order)       organisers: give the tool, bottle, reset, unhide, delete
@@ -107,7 +108,9 @@ public final class TaskNetwork {
     /** Flags of a {@link Paper}. */
     public static final int ENVELOPE = 1, INK = 2, LIT = 4, SECRET = 8, CAN_REVEAL = 16, FOUND = 32, CAN_EDIT = 64,
     /** An organiser's preview of a letter (/tache apercu): nothing is revealed. */
-    PREVIEW = 128;
+    PREVIEW = 128,
+    /** The reader must click « Commencer l'épreuve » to play (RoundStart, button mode). */
+    START = 256;
 
     /**
      * Something to read on the paper screen. {@code kind}: "task", "note" or "text". {@code header}: small line
@@ -333,6 +336,19 @@ public final class TaskNetwork {
         public Type<Seal> type() { return TYPE; }
     }
 
+    /** « Commencer l'épreuve » clicked in the letter of a round. */
+    public record StartRound(int season, String mancheId) implements CustomPacketPayload {
+        public static final Type<StartRound> TYPE = new Type<>(CraftMaster.id("task_start_round"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, StartRound> CODEC = CustomPacketPayload.codec(
+                (p, buf) -> {
+                    buf.writeVarInt(p.season);
+                    buf.writeUtf(p.mancheId);
+                }, buf -> new StartRound(buf.readVarInt(), buf.readUtf()));
+
+        @Override
+        public Type<StartRound> type() { return TYPE; }
+    }
+
     static void registerTypes() {
         PayloadTypeRegistry.clientboundPlay().register(State.TYPE, State.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(Paper.TYPE, Paper.CODEC);
@@ -347,5 +363,6 @@ public final class TaskNetwork {
         PayloadTypeRegistry.serverboundPlay().register(SaveNote.TYPE, SaveNote.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(NoteOrder.TYPE, NoteOrder.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(Seal.TYPE, Seal.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(StartRound.TYPE, StartRound.CODEC);
     }
 }

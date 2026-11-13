@@ -100,6 +100,17 @@ public class LetterScreen extends Screen {
         buttons.forEach(this::removeWidget);
         buttons.clear();
         if (secret) return;
+        // Frozen until the reader is ready: the round's timer starts with the first click
+        Button start = null;
+        if (!preview && paper.has(TaskNetwork.START)) {
+            start = Button.builder(Component.translatable("screen.craftmaster.task.start").withStyle(net.minecraft.ChatFormatting.BOLD), b -> {
+                TaskClient.startRound(paper.season(), paper.mancheId());
+                paper = new TaskNetwork.Paper(paper.kind(), paper.header(), paper.title(), paper.text(), paper.rules(), paper.seconds(), paper.wax(),
+                        paper.look(), paper.flags() & ~TaskNetwork.START, paper.pieces(), paper.mancheId(), paper.season(), paper.from());
+                onClose();
+            }).tooltip(Tooltip.create(Component.translatable("screen.craftmaster.task.start.tip"))).build();
+            buttons.add(start);
+        }
         if (!preview && paper.has(TaskNetwork.CAN_REVEAL) && "task".equals(paper.kind()))
             buttons.add(Button.builder(Component.translatable("screen.craftmaster.task.reveal"), b -> {
                 TaskClient.runActions(List.of(Map.of("type", "task.reveal", "manche", paper.mancheId(), "season", paper.season())));
@@ -113,14 +124,15 @@ public class LetterScreen extends Screen {
             buttons.add(Button.builder(Component.translatable("screen.craftmaster.task.edit"), b -> TaskClient.requestEditor(paper.mancheId()))
                     .tooltip(Tooltip.create(Component.translatable("screen.craftmaster.task.edit.tip"))).build());
         }
-        int bw = 104, gap = 6;
-        int total = buttons.size() * bw + (buttons.size() - 1) * gap;
+        int bw = 104, startW = 160, gap = 6;
+        int total = (buttons.size() - 1) * gap;
+        for (Button b : buttons) total += b == start ? startW : bw;
         int x = (width - total) / 2;
         for (Button b : buttons) {
-            b.setRectangle(bw, 20, x, height - 26);
+            b.setRectangle(b == start ? startW : bw, 20, x, height - 26);
             b.visible = false;
             addRenderableWidget(b);
-            x += bw + gap;
+            x += (b == start ? startW : bw) + gap;
         }
     }
 

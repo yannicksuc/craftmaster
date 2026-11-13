@@ -243,6 +243,8 @@
   "screen.craftmaster.task.preview": "Aperçu",
   "screen.craftmaster.task.preview.tip": "Joue l'ouverture de l'enveloppe avec le texte tapé (sur ton écran seulement)",
   "screen.craftmaster.task.reveal": "Révéler à tous",
+  "screen.craftmaster.task.start": "▶ Commencer l'épreuve",
+  "screen.craftmaster.task.start.tip": "Tu peux bouger et jouer une fois cliqué : le premier clic lance le chrono",
   "screen.craftmaster.task.reveal.tip": "Tout le monde (spectateurs, diffusion) peut maintenant la lire",
   "screen.craftmaster.task.reveal_short": "Révéler",
   "screen.craftmaster.task.show_short": "À l'écran",

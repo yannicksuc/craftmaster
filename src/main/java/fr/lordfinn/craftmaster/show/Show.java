@@ -108,16 +108,19 @@ public final class Show {
         if (title) for (ServerPlayer p : server.getPlayerList().getPlayers()) roundTitle(p, m);
         soundAll(server, SoundEvents.GOAT_HORN_SOUND_VARIANTS.getFirst(), 1f, 1f);
         stopTimer(server);
-        if (m.timer() > 0) startTimer(server, m.name(), m.timer());
+        // Its timer now, or when a letter is read / its start button clicked (task.RoundStart)
+        if (!fr.lordfinn.craftmaster.task.RoundStart.arm(server, m) && m.timer() > 0) startTimer(server, m.name(), m.timer());
     }
 
     /** What else starts with a round: the timer tablets set to, and the show's listeners (direction, recordings…). */
     public static void roundStarted(MinecraftServer server, Actions.MancheStarted m) {
-        fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundStart(server);
+        // Held timer: the tablets start with it (task.RoundStart)
+        if (!fr.lordfinn.craftmaster.task.RoundStart.waiting()) fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundStart(server);
         ShowEvents.onMancheStarted(server, m.season(), m.number(), m.name());
     }
 
     public static void endManche(MinecraftServer server, String name) {
+        fr.lordfinn.craftmaster.task.RoundStart.clear(server);
         stopTimer(server);
         titleAll(server, Component.translatable("show.craftmaster.manche_end").withStyle(ChatFormatting.GOLD),
                 Component.literal(name).withStyle(ChatFormatting.YELLOW), 5, 40, 15);
@@ -239,6 +242,7 @@ public final class Show {
         List<String> out = new ArrayList<>();
         if (bar != null) out.add("Chrono : " + timerName + " — " + Actions.clock(timerRemaining(server)) + " restant");
         if (Reveal.running()) out.add("Révélation en cours.");
+        out.addAll(fr.lordfinn.craftmaster.task.RoundStart.status(server));
         return out;
     }
 }

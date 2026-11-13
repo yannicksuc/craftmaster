@@ -91,8 +91,12 @@ public final class ActionExecutor {
                 Show.endManche(server, m.name());
                 fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundEnd(server);
             }
+            case Actions.TimerGo g -> lines.add(fr.lordfinn.craftmaster.task.RoundStart.goNow(server)
+                    ? "Chrono lancé, joueurs libérés." : "Aucune manche n'attend son départ.");
             case Actions.TimerStopped t -> {
-                lines.add(Show.stopTimer(server) ? "Chrono arrêté." : "Aucun chrono ne tournait.");
+                boolean held = fr.lordfinn.craftmaster.task.RoundStart.waiting();
+                fr.lordfinn.craftmaster.task.RoundStart.clear(server);
+                lines.add(Show.stopTimer(server) ? "Chrono arrêté." : held ? "Départ annulé, joueurs libérés." : "Aucun chrono ne tournait.");
                 fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onTimerStopped(server);
             }
             case Actions.Published p -> {

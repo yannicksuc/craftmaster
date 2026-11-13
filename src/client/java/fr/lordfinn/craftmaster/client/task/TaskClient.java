@@ -105,6 +105,11 @@ public final class TaskClient {
         mc.player.connection.sendCommand(mancheId == null || mancheId.isEmpty() ? "craftMasterTask edit" : "craftMasterTask edit " + mancheId);
     }
 
+    /** « Commencer l'épreuve »: the player is ready, the round may start (RoundStart on the server). */
+    static void startRound(int season, String mancheId) {
+        if (ClientPlayNetworking.canSend(TaskNetwork.StartRound.TYPE)) ClientPlayNetworking.send(new TaskNetwork.StartRound(season, mancheId));
+    }
+
     static void noteOrder(String id, String order) {
         if (ClientPlayNetworking.canSend(TaskNetwork.NoteOrder.TYPE)) ClientPlayNetworking.send(new TaskNetwork.NoteOrder(id, order));
     }
