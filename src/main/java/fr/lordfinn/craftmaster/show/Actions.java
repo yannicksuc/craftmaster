@@ -51,6 +51,9 @@ public final class Actions {
     /** A flag on the replay's timeline, now (coloured by who is on air); {@code text} may be empty. */
     public record ReplayFlagged(String text) implements Effect {}
 
+    /** Timer tablets of a group ("" = all): start, pause, toggle, reset, restart. */
+    public record TabletOrder(String order, String group) implements Effect {}
+
     public record Published(int season) implements Effect {}
 
     public record RevealStarted(int season) implements Effect {}
@@ -347,6 +350,11 @@ public final class Actions {
                 case "timer.stop" -> effects.add(new TimerStopped());
                 case "timer.go" -> effects.add(new TimerGo());
                 case "replay.flag" -> effects.add(new ReplayFlagged(str(a, "text") == null ? "" : str(a, "text")));
+                case "tablet.start", "tablet.pause", "tablet.toggle", "tablet.reset", "tablet.restart" -> {
+                    String g = str(a, "group");
+                    // The tablets compare their group in lower case
+                    effects.add(new TabletOrder(type.substring("tablet.".length()), g == null ? "" : g.toLowerCase(Locale.ROOT)));
+                }
                 case "curtain.open" -> curtain(a, true);
                 case "curtain.close" -> curtain(a, false);
                 case "scene.set" -> sceneSet(a);

@@ -336,13 +336,8 @@ public final class StreamDeckServer {
             String what = path.substring("/tablet/".length());
             if (!java.util.List.of("start", "pause", "toggle", "reset", "restart").contains(what)) return error("tablet: start, pause, toggle, reset, restart");
             String g = group.replaceAll("[^A-Za-z0-9_-]", "");
-            return onGame(() -> {
-                Minecraft mc = Minecraft.getInstance();
-                if (!connected() || mc.player == null) return error("not connected");
-                // The server checks the permission (organisers only)
-                mc.player.connection.sendCommand("craftMasterTablet " + what + (g.isEmpty() ? "" : " " + g));
-                return ok();
-            });
+            // A show action like the others: the server checks the right (jeu) and writes it in the journal
+            return g.isEmpty() ? send(action("tablet." + what)) : send(action("tablet." + what, "group", g));
         }
         return switch (path) {
             case "", "/status" -> onGame(StreamDeckServer::status);

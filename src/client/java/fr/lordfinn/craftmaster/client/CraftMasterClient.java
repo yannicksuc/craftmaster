@@ -37,6 +37,8 @@ public final class CraftMasterClient implements ClientModInitializer {
         DevInput.init();
         KeyMappingHelper.registerKeyMapping(RANKING_KEY);
         VoiceRegie.init();
+        // Moderators' director (key ;): orders checked by the server, never shown on the broadcast
+        fr.lordfinn.craftmaster.client.regie.ModoDeskClient.init();
         // Chantier H: task props, results sheet, drawing boards, plinth
         fr.lordfinn.craftmaster.client.trial.TrialClient.init();
         // TV direction (chantier E): broadcast mode, director's shots, overlay, camera tripods

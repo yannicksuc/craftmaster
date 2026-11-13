@@ -31,7 +31,37 @@ public final class ActionExecutor {
     /** Entry point of the voice control: checks that {@code admin} is an organiser, then runs the actions. */
     public static Result execute(ServerPlayer admin, List<Map<String, Object>> actions) {
         if (!Permissions.isAdmin(admin)) return new Result(List.of("Réservé aux organisateurs."), false);
-        return execute(admin.level().getServer(), actions);
+        return execute(admin.level().getServer(), Actor.of(admin, "jeu"), actions);
+    }
+
+    /** Lists a moderator may send per second (the organiser has no limit). */
+    private static final int MODO_PER_SECOND = 5;
+    private static final Map<String, java.util.ArrayDeque<Long>> RECENT = new java.util.HashMap<>();
+
+    /**
+     * Entry point of every director (voice, Stream Deck, moderators in game and on the site): checks the actor's right
+     * for each action ({@link Rights}), then runs the list; done or refused, it goes to the {@link ActionJournal}.
+     */
+    public static Result execute(MinecraftServer server, Actor actor, List<Map<String, Object>> actions) {
+        String refused = Rights.refusal(actor.rights(), actions);
+        if (refused == null && !actor.isAdmin() && tooFast(actor.name())) refused = "✗ Trop d'ordres à la suite, attends une seconde.";
+        if (refused != null) {
+            Result r = new Result(List.of(refused), false);
+            ActionJournal.add(actor, false, r.lines());
+            return r;
+        }
+        Result r = execute(server, actions);
+        ActionJournal.add(actor, r.ok(), r.lines());
+        return r;
+    }
+
+    private static synchronized boolean tooFast(String who) {
+        long now = System.currentTimeMillis();
+        java.util.ArrayDeque<Long> q = RECENT.computeIfAbsent(who.toLowerCase(java.util.Locale.ROOT), k -> new java.util.ArrayDeque<>());
+        while (!q.isEmpty() && now - q.peekFirst() > 1000) q.removeFirst();
+        if (q.size() >= MODO_PER_SECOND) return true;
+        q.addLast(now);
+        return false;
     }
 
     /** Runs the actions (the caller has checked the permission). */
@@ -47,12 +77,24 @@ public final class ActionExecutor {
 
     /** For commands: runs the actions and prints the lines to the source (green when done, red otherwise). */
     public static int execute(CommandSourceStack source, List<Map<String, Object>> actions) {
-        Result r = execute(source.getServer(), actions);
+        Result r = command(source, actions);
         for (String line : r.lines()) {
             if (r.ok()) source.sendSuccess(() -> Component.literal(line).withStyle(ChatFormatting.GREEN), true);
             else source.sendFailure(Component.literal(line));
         }
         return r.ok() ? 1 : 0;
+    }
+
+    /**
+     * A command's actions, written in the journal under who typed it (the console: "console"). No right is checked
+     * again: each command already has its permission (Brigadier's {@code requires}). For commands that show the lines
+     * their own way (e.g. /cmtele).
+     */
+    public static Result command(CommandSourceStack source, List<Map<String, Object>> actions) {
+        Result r = execute(source.getServer(), actions);
+        String who = source.getPlayer() != null ? source.getPlayer().getPlainTextName() : source.getTextName();
+        ActionJournal.add(new Actor(who, "commande", java.util.EnumSet.of(Rights.Right.ADMIN)), r.ok(), r.lines());
+        return r;
     }
 
     /** Busts, labels and open ranking screens follow the data. */
@@ -94,6 +136,11 @@ public final class ActionExecutor {
             case Actions.TimerGo g -> lines.add(fr.lordfinn.craftmaster.task.RoundStart.goNow(server)
                     ? "Chrono lancé, joueurs libérés." : "Aucune manche n'attend son départ.");
             case Actions.ReplayFlagged f -> lines.add(fr.lordfinn.craftmaster.replay.ReplayMoments.flag(null, f.text()));
+            case Actions.TabletOrder t -> {
+                int n = fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.controlAll(t.group(), t.order());
+                lines.add(n == 0 ? "Aucune tablette chargée" + (t.group().isEmpty() ? "." : " dans le groupe « " + t.group() + " ».")
+                        : "Tablettes : " + t.order() + " (" + n + ")");
+            }
             case Actions.TimerStopped t -> {
                 boolean held = fr.lordfinn.craftmaster.task.RoundStart.waiting();
                 fr.lordfinn.craftmaster.task.RoundStart.clear(server);

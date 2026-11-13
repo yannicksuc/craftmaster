@@ -53,6 +53,7 @@ public final class CraftMaster implements ModInitializer {
         // The referee's score entry screen
         fr.lordfinn.craftmaster.network.ScoreEntryNetwork.register();
         RegieServer.register();
+        fr.lordfinn.craftmaster.regie.ModoDesk.register();
         Portraits.register();
         // Chantier H: task props, judging tools, creative objects
         fr.lordfinn.craftmaster.trial.Trials.register();
@@ -72,6 +73,7 @@ public final class CraftMaster implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> CraftMasterCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> PortraitCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> CameraCommands.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.ModoCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.FxCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.ReplayCommands.register(dispatcher));
 
@@ -82,12 +84,17 @@ public final class CraftMaster implements ModInitializer {
             data.load(fl.getGameDir().resolve("plugins/CraftMaster/config.yml"));
             Cameras.load(fl.getConfigDir().resolve("craftmaster/cameras.json"));
             fr.lordfinn.craftmaster.camera.CameraPaths.load(fl.getConfigDir().resolve("craftmaster/trajets.json"));
+            fr.lordfinn.craftmaster.show.Moderators.load(fl.getConfigDir().resolve("craftmaster/moderateurs.json"));
+            fr.lordfinn.craftmaster.regie.SiteLink.load(fl.getConfigDir().resolve("craftmaster/site.json"));
         });
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             Busts.updateAll(server);
             ActionExecutor.onServerStarted();
+            // Moderators' page on lordfinn.fr: this server calls the site (never the reverse)
+            fr.lordfinn.craftmaster.regie.SiteLink.start(server);
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            fr.lordfinn.craftmaster.regie.SiteLink.stop();
             Show.reset(server);
             if (data != null) data.save();
             Curtains.clear();

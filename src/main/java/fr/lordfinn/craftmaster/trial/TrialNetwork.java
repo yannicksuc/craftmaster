@@ -378,7 +378,9 @@ public final class TrialNetwork {
     }
 
     private static void runActions(ServerPlayer player, String json) {
-        if (!Permissions.isAdmin(player)) return;
+        // Organisers and moderators (show.Rights: the executor checks each action against the player's rights)
+        fr.lordfinn.craftmaster.show.Actor actor = fr.lordfinn.craftmaster.show.Actor.of(player, "jeu");
+        if (!actor.any()) return;
         List<Map<String, Object>> actions = new ArrayList<>();
         try {
             JsonElement e = JsonParser.parseString(json);
@@ -397,7 +399,7 @@ public final class TrialNetwork {
         }
         // 200: the score entry screen sends a whole board (8 players × its rounds) as one undoable change
         if (actions.isEmpty() || actions.size() > 200) return;
-        ActionExecutor.Result r = ActionExecutor.execute(player, actions);
+        ActionExecutor.Result r = ActionExecutor.execute(player.level().getServer(), actor, actions);
         // Errors in red in the chat; what was done in the action bar (the screen shows the result)
         if (!r.ok()) for (String l : r.lines()) player.sendSystemMessage(Component.literal(l).withStyle(ChatFormatting.RED));
         else if (!r.lines().isEmpty()) player.sendOverlayMessage(Component.literal(r.lines().getLast()).withStyle(ChatFormatting.GREEN));
