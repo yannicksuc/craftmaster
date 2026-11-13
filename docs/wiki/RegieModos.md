@@ -70,9 +70,11 @@ Le lien n'accepte que `https://` (ou `http://127.0.0.1` / `localhost` pour les e
 ## Ce qui viendra avec les autres branches
 - **Télés** (clips, liens Twitch, direct d'un candidat, image) : un onglet Télés dès que la branche clips/télés écrit
   ses ordres comme des actions `tv.*`.
-- **Replays** : un onglet Replay. Saut, vitesse et pause s'exécutent déjà sur le serveur dans la branche replays ;
-  l'action d'un modo appellera ces fonctions sur le lecteur du jeu de diffusion, et la réalisation du replay (caméra,
-  vue d'un joueur) sera envoyée à ce jeu.
+- **Replays** : un onglet Replay. L'action d'un modo appellera, sur le jeu de diffusion qui regarde, l'API serveur de la
+  branche replays : `ReplayViewing.seekFor` / `pausedFor` / `speedFor` / `viewFor` (et pas `ServerReplayBridge` : pendant
+  la réouverture d'un fichier, il n'y a plus de lecteur et l'ordre serait perdu ; ces fonctions l'appliquent à la
+  réouverture). La réalisation du replay (Direct, Auto, Manuel, caméra, vue d'un joueur) sera envoyée à ce jeu par
+  `ServerReplayBridge.sendToViewer`, puis `ReplayControl.run` côté client (payload ajouté par la branche replays).
 
 ## Vérifié (13/11/2026, 26.2)
 Serveur de dev + Joueur2 (non opérateur) dans la liste : régie ouverte par `/regie` avec le seul onglet Caméras, coupe

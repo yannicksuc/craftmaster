@@ -59,7 +59,8 @@ Changements dans la couche (petits, tout le reste en profite) :
      modo, lui, est sur le vrai serveur (ou passe par le site). Saut, vitesse, pause et changement de fichier
      sont **déjà exécutés côté serveur** dans la branche replays (`ReplayViewing` → `ServerReplayBridge.jumpTo /
      setSpeed / setPaused` sur l'objet du lecteur ; le client ne fait que déclencher `/replay view cm …`). L'action
-     d'un modo appelle ces mêmes fonctions sur le lecteur du jeu de diffusion. Seule la réalisation du replay
+     d'un modo appelle, sur le lecteur du jeu de diffusion, `ReplayViewing.seekFor / pausedFor / speedFor / viewFor`
+     (API ajoutée par la branche replays, sûre pendant la réouverture d'un fichier, contrairement à `ServerReplayBridge`). Seule la réalisation du replay
      (Direct / Auto / Manuel, caméra 1–9, vue d'un joueur) vit sur le client qui regarde : le serveur la lui envoie
      par l'envoi direct du lecteur (le chemin qui porte déjà l'état de lecture 5×/s), et ce client exécute ensuite
      `ReplayControl.run` comme pour le Stream Deck. **La voix et le Stream Deck de LordFinn ne changent pas**
