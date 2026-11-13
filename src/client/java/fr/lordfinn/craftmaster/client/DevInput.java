@@ -27,6 +27,8 @@ import java.util.Locale;
  * key NAME [mods]                NAME: a letter, a digit, LEFT, RIGHT, UP, DOWN, HOME, END, PAGEUP, PAGEDOWN, ESCAPE, ENTER, SPACE
  * hold NAME seconds              the key reads as held down ({@link #held}) for that long (pressed once too)
  * quit                           closes the game (stops a test client cleanly)
+ * screenshot                     saves the picture to screenshots/ like F2 (any screen, no world needed)
+ * hover x y                      screens that follow the mouse read this position instead ("hover" alone: the real one)
  * slowmo factor                  animations that ask {@link #timeScale} run this many times slower (1 = normal)
  * use seconds                    holds the "use" key in the world that long, then lets go (charge a throw, a bow…)
  * </pre>
@@ -44,6 +46,13 @@ public final class DevInput {
     public static boolean held(int key) {
         Long until = HELD.get(key);
         return until != null && System.nanoTime() < until;
+    }
+
+    /** A mouse position (GUI coordinates) set by a {@code hover} line, null when none; always null outside development. */
+    private static double[] hover;
+
+    public static double[] hover() {
+        return hover;
     }
 
     /** Speed factor of the animations (1 normal, 0.1 = ten times slower with "slowmo 10"); 1 outside development. */
@@ -75,6 +84,16 @@ public final class DevInput {
                 }
                 if (line.strip().toLowerCase(Locale.ROOT).startsWith("slowmo")) {
                     slow = Math.max(0.01f, Float.parseFloat(line.strip().split("\\s+")[1]));
+                    continue;
+                }
+                if (line.strip().toLowerCase(Locale.ROOT).startsWith("screenshot")) {
+                    // Like F2, into <run dir>/screenshots (works on every screen, without a world)
+                    net.minecraft.client.Screenshot.grab(mc, false);
+                    continue;
+                }
+                if (line.strip().toLowerCase(Locale.ROOT).startsWith("hover")) {
+                    String[] a = line.strip().split("\\s+");
+                    hover = a.length > 2 ? new double[]{Double.parseDouble(a[1]), Double.parseDouble(a[2])} : null;
                     continue;
                 }
                 if (line.strip().toLowerCase(Locale.ROOT).startsWith("use")) {

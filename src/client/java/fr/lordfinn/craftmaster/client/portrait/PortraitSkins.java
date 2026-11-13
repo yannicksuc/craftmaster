@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * The skin a portrait wears: the shown player's own (looked up from the name by the game, like a player head),
- * or an image downloaded from the portrait's URL. Downloads are asynchronous and cached per URL; the image must
+ * or an image downloaded from the portrait's URL (or read from a PNG file, for the title screen). Downloads are asynchronous and cached per URL; the image must
  * be a skin PNG, 64×64 or legacy 64×32, or an HD one (128×128, 256×256... up to 1024, see {@link SkinFormat});
  * anything else (or an unreachable link) falls back to the default skin. A player's own skin brings their cape.
  */
@@ -83,13 +83,20 @@ public final class PortraitSkins {
     private static void download(String url, Entry entry) {
         CompletableFuture.supplyAsync(() -> {
             try {
-                HttpRequest req = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(15))
-                        .header("User-Agent", "CraftMaster-Portraits").GET().build();
-                HttpResponse<InputStream> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofInputStream());
-                if (resp.statusCode() / 100 != 2) throw new IOException("HTTP " + resp.statusCode());
                 byte[] bytes;
-                try (InputStream in = resp.body()) {
-                    bytes = in.readNBytes(SkinFormat.MAX_BYTES + 1);
+                if (isWeb(url)) {
+                    HttpRequest req = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(15))
+                            .header("User-Agent", "CraftMaster-Portraits").GET().build();
+                    HttpResponse<InputStream> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofInputStream());
+                    if (resp.statusCode() / 100 != 2) throw new IOException("HTTP " + resp.statusCode());
+                    try (InputStream in = resp.body()) {
+                        bytes = in.readNBytes(SkinFormat.MAX_BYTES + 1);
+                    }
+                } else {
+                    // A PNG file on this computer (the title screen's skins, see client.home)
+                    try (InputStream in = java.nio.file.Files.newInputStream(url.startsWith("file:") ? java.nio.file.Path.of(URI.create(url)) : java.nio.file.Path.of(url))) {
+                        bytes = in.readNBytes(SkinFormat.MAX_BYTES + 1);
+                    }
                 }
                 if (bytes.length > SkinFormat.MAX_BYTES) throw new IOException("image too large");
                 NativeImage image = NativeImage.read(bytes);
@@ -116,6 +123,11 @@ public final class PortraitSkins {
         }));
     }
 
+    private static boolean isWeb(String url) {
+        String u = url.toLowerCase(Locale.ROOT);
+        return u.startsWith("http://") || u.startsWith("https://");
+    }
+
     private static String rootMessage(Throwable t) {
         while (t.getCause() != null) t = t.getCause();
         return t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage();
@@ -138,6 +150,18 @@ public final class PortraitSkins {
         img.fillRect(0, half, w, half, 0);
         for (int[] c : SkinFormat.legacyCopies(k)) img.copyRect(c[0], c[1], c[2], c[3], c[4], c[5], true, false);
         return img;
+    }
+
+    /**
+     * Forgets one skin once it is loaded or has failed (not while it loads): the next {@link #resolve} reads it
+     * again. The title screen calls it for its own skins each time it opens, so an edited file or a link that was
+     * down shows up without restarting.
+     */
+    public static void forget(String url) {
+        Entry e = URL_CACHE.get(url);
+        if (e == null || e.state == State.LOADING) return;
+        URL_CACHE.remove(url);
+        if (e.skin != null) Minecraft.getInstance().getTextureManager().release(e.skin.texture());
     }
 
     /** Forgets downloaded skins (leaving a world): a new visit downloads them again. */

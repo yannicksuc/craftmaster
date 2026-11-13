@@ -89,6 +89,11 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         boolean frameSelected, frameHovered;
         /** Portrait space → preview view space (the editor's turntable). */
         Matrix4f view = new Matrix4f();
+
+        // Title screen (client.home): the painting alone (frame, canvas, cut figure) at the pose stack's origin,
+        // portrait space in blocks, no hook, string or label; tinted (multiply) to fade it into the background
+        boolean menu;
+        int tint = 0xFFFFFFFF;
     }
 
     /** A render state for the pose editor's preview of {@code pose} with {@code skin}. */
@@ -98,6 +103,22 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         s.preview = true;
         s.pose = pose;
         s.skin = skin;
+        s.lightCoords = LightCoordsUtil.FULL_BRIGHT;
+        return s;
+    }
+
+    /**
+     * A render state for the title screen: the painting of {@code pose} worn by {@code skin}, drawn exactly like a
+     * hanging portrait (same frame, canvas cut and figure) but without its hook, string and label, centred on the
+     * pose stack's origin (portrait space, in blocks) and multiplied by {@code tint}.
+     */
+    public static State menuState(Pose pose, PortraitSkins.Skin skin, int tint) {
+        State s = new State();
+        s.entityType = fr.lordfinn.craftmaster.registry.ModContent.PORTRAIT;
+        s.menu = true;
+        s.pose = pose;
+        s.skin = skin;
+        s.tint = tint;
         s.lightCoords = LightCoordsUtil.FULL_BRIGHT;
         return s;
     }
@@ -261,6 +282,13 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
             submitPreview(s, poseStack, collector);
             return;
         }
+        if (s.menu) {
+            poseStack.pushPose();
+            poseStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
+            submitPainting(s, s.pose, false, poseStack, collector, s.lightCoords, s.tint);
+            poseStack.popPose();
+            return;
+        }
         Pose pose = s.pose;
         boolean window = s.window;
         Vector3d origin = PortraitGeometry.portraitOrigin(pose, window, s.hangLength);
@@ -285,7 +313,21 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
 
         poseStack.translate(origin.x, origin.y, origin.z);
         poseStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
+        Matrix4f frameToCamera = submitPainting(s, pose, window, poseStack, collector, light, 0xFFFFFFFF);
 
+        // The label is a plaque on the front: nothing of it shows from behind
+        if (PortraitClipper.cameraInFront(frameToCamera, (float) (PortraitGeometry.DEPTH / 2 + 0.6))) submitLabel(s, pose, poseStack, collector);
+        poseStack.popPose();
+        super.submit(s, poseStack, collector, camera);
+    }
+
+    /**
+     * The painting, portrait space in pixels at the pose stack's origin: the frame (and the highlight, the window's
+     * room), then the figure cut by the canvas or seen through the window. Shared by the hanging portraits and the
+     * title screen. Returns frame space → camera space (for the label).
+     */
+    private Matrix4f submitPainting(State s, Pose pose, boolean window, PoseStack poseStack, SubmitNodeCollector collector,
+                                    int light, int tint) {
         // Frame: portrait space -> frame space (tilt), then model space (half turn around X), parts in px/16
         poseStack.pushPose();
         poseStack.mulPose(new Matrix4f(PortraitGeometry.frameMatrix(pose)));
@@ -317,8 +359,8 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         }
         poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotation((float) Math.PI));
         poseStack.scale(16, 16, 16);
-        submitPart(mouldings, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, null);
-        if (!window) submitPart(canvas, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, null);
+        submitPart(mouldings, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, tint, null);
+        if (!window) submitPart(canvas, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, tint, null);
         poseStack.popPose();
 
         // Figure (baby proportions, see PortraitGeometry): cut by the canvas, or seen through the window
@@ -337,22 +379,18 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
                 poseStack.pushPose();
                 poseStack.mulPose(new Matrix4f(PortraitGeometry.partMatrix(pose, part, window)));
                 poseStack.scale(16, 16, 16);
-                submitPart(parts.get(part), poseStack, collector, figure, light, clipper);
+                submitPart(parts.get(part), poseStack, collector, figure, light, tint, clipper);
                 poseStack.popPose();
             }
             if (skin.cape() != null && !pose.isHidden(Part.BODY)) {
                 poseStack.pushPose();
                 poseStack.mulPose(new Matrix4f(PortraitGeometry.partMatrix(pose, Part.BODY, window)));
                 poseStack.scale(16, 16, 16);
-                submitPart(cape, poseStack, collector, RenderTypes.entityCutout(skin.cape()), light, clipper);
+                submitPart(cape, poseStack, collector, RenderTypes.entityCutout(skin.cape()), light, tint, clipper);
                 poseStack.popPose();
             }
         }
-
-        // The label is a plaque on the front: nothing of it shows from behind
-        if (PortraitClipper.cameraInFront(frameToCamera, (float) (PortraitGeometry.DEPTH / 2 + 0.6))) submitLabel(s, pose, poseStack, collector);
-        poseStack.popPose();
-        super.submit(s, poseStack, collector, camera);
+        return frameToCamera;
     }
 
     /**
@@ -403,15 +441,15 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
 
     /** Model parts are drawn when the frame is rendered; nothing shared changes in between (their pose is fixed). */
     private static void submitPart(ModelPart part, PoseStack poseStack, OrderedSubmitNodeCollector collector, RenderType type, int light,
-                                   java.util.function.Function<VertexConsumer, PortraitClipper> clipper) {
+                                   int tint, java.util.function.Function<VertexConsumer, PortraitClipper> clipper) {
         collector.submitCustomGeometry(poseStack, type, (p, c) -> {
             PoseStack ps = new PoseStack();
             ps.last().set(p);
             if (clipper == null) {
-                part.render(ps, c, light, OverlayTexture.NO_OVERLAY);
+                part.render(ps, c, light, OverlayTexture.NO_OVERLAY, tint);
             } else {
                 PortraitClipper clip = clipper.apply(c);
-                part.render(ps, clip, light, OverlayTexture.NO_OVERLAY);
+                part.render(ps, clip, light, OverlayTexture.NO_OVERLAY, tint);
                 clip.flush();
             }
         });

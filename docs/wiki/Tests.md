@@ -147,7 +147,9 @@ l'interface, bouton 0 gauche / 1 droit, mods 1 Maj, 2 Ctrl, 4 Alt ; `DevInput`).
 `["!input", "click 351 106\nkey Z 2", délai]`. Hors dev, rien n'est lu. Le survol (infobulles) suit la vraie
 souris et reste à voir à la main. Aussi : `hold NOM secondes` (touche tenue, ex. `hold SPACE 2` pour arracher le
 sceau d'une lettre), `slowmo 4` (animations 4 fois plus lentes, pour capturer chaque phase ; `slowmo 1` remet),
-`quit` (ferme le client de test proprement), `use secondes` (tient la touche « utiliser » dans le monde, même sans
+`quit` (ferme le client de test proprement), `screenshot` (capture dans `screenshots/` comme F2, même sur l'écran
+titre où l'outil `screenshot` de MCP Fabric refuse faute de monde), `hover x y` (position de souris lue par les
+écrans qui la suivent, ex. la parallaxe de l'[écran d'accueil](Accueil.md) ; `hover` seul rend la vraie), `use secondes` (tient la touche « utiliser » dans le monde, même sans
 écran ouvert : charger un lancer, gonfler un ballon, tirer à l'arc ; `stop_using_item` de MCP Fabric ne relâche que
 côté client, le serveur ne voit pas le relâchement).
 
