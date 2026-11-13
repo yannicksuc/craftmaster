@@ -134,3 +134,10 @@ def test_offline_replay(transcript, expected):
 def test_pause_is_not_a_replay_order_without_a_replay(ctx):
     r = OfflineUnderstander().understand(ctx, "Pause.")
     assert all(a["type"] == "say" for a in r.actions)
+def test_clips_and_screens(ctx):
+    def a(t):
+        return OfflineUnderstander().understand(ctx, t).actions
+    assert a("Lance un clip.") == [{"type": "clip.start"}]
+    assert a("Coupe le clip.") == [{"type": "clip.stop"}]
+    assert a("Mets le clip sur la télé de gauche.") == [{"type": "tele.show", "tele": "gauche", "clip": "dernier"}]
+    assert a("Mets le direct d'Ensuri sur la télé plateau.") == [{"type": "tele.show", "tele": "plateau", "live": "ensuri"}]

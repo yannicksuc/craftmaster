@@ -52,6 +52,8 @@ public final class CraftMasterClient implements ClientModInitializer {
         fr.lordfinn.craftmaster.client.fx.FxClient.init();
         // Referee's score entry screen (key U), player frame in the HUD, StreamDeck API (after TaskClient: config)
         fr.lordfinn.craftmaster.client.score.ScoreEntryClient.init();
+        // In-game clips (F9 / F10) and videos on the studio screens, through WaterMedia when installed (media/)
+        fr.lordfinn.craftmaster.client.media.Clips.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (RANKING_KEY.consumeClick()) openRanking(mc, -1);

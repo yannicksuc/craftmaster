@@ -22,6 +22,14 @@ public abstract class GameRendererMixin {
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/render/GuiRenderer;render()V"))
     private void craftmaster$mosaicTile(CallbackInfo ci) {
         if (Broadcast.active()) fr.lordfinn.craftmaster.client.broadcast.Mosaic.afterLevel();
+        // In-game clip: the world picture, without the interface
+        fr.lordfinn.craftmaster.client.media.Clips.afterLevel();
+    }
+
+    /** Videos of the studio screens: WaterMedia's OpenGL work and the newest pictures, before anything is drawn. */
+    @Inject(method = "render", at = @At("HEAD"))
+    private void craftmaster$videoFrame(CallbackInfo ci) {
+        fr.lordfinn.craftmaster.client.media.Media.frameStart();
     }
 
     @Inject(method = "bobHurt", at = @At("HEAD"), cancellable = true)

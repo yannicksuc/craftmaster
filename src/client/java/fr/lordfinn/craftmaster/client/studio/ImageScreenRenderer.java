@@ -60,7 +60,25 @@ public class ImageScreenRenderer extends EntityRenderer<ImageScreenEntity, Image
         s.pictureW = 16;
         s.pictureH = 9;
         s.message = null;
-        if (ScreenVideos.plays(e.url())) {
+        if (!e.url().isEmpty() && fr.lordfinn.craftmaster.client.media.Media.isClipOrStream(e.url())) {
+            // In-game clip, Twitch clip or live: the clips' WaterMedia player (test card until the first picture)
+            if (!fr.lordfinn.craftmaster.client.media.Media.available()) {
+                s.message = Component.literal(fr.lordfinn.craftmaster.client.media.Media.unavailableReason()).withStyle(ChatFormatting.YELLOW);
+                return;
+            }
+            fr.lordfinn.craftmaster.client.media.VideoScreens.View v = fr.lordfinn.craftmaster.client.media.VideoScreens.view(
+                    e.getId(), e.url(), e.shownAt(), e.getX(), e.getY(), e.getZ());
+            if (v.texture() != null) {
+                s.picture = v.texture();
+                s.pictureW = v.width();
+                s.pictureH = v.height();
+            } else if (v.message() != null) {
+                s.message = Component.literal(v.message()).withStyle(v.error() ? ChatFormatting.YELLOW : ChatFormatting.WHITE);
+            } else {
+                s.message = Component.translatable("screen.craftmaster.studio_screen.loading").withStyle(ChatFormatting.WHITE);
+            }
+        } else if (ScreenVideos.plays(e.url())) {
+            // Any other video (YouTube, MP4...): the screens' player, with pause, seek, loop and volume
             ScreenVideos.Frame f = ScreenVideos.frame(e, partialTick);
             switch (f.status()) {
                 case READY -> {

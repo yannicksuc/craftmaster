@@ -40,6 +40,8 @@ besoin de rien).
 | « révèle la tâche » / « montre la tâche » / « donne les enveloppes » | révéler, carte à l'écran, enveloppes aux candidats |
 | Pendant un replay : « pause », « recule de 10 secondes », « vitesse 2 », « repère suivant », « l'écran d'Ensuri », « la zone », « les plans du direct », « que les morts », « les moments d'Ensuri », « enlève le filtre », « ferme le replay » | piloter le replay, sur ton jeu ([Replays](Replays.md)) |
 | « marque ce moment », « drapeau pour belle chute » | un drapeau sur la timeline de l'enregistrement en cours ([Replays](Replays.md#les-moments-clés)) |
+| « lance un clip » / « coupe le clip » | clip de la vue de ce jeu, enregistré puis envoyé au serveur ([Clips](Clips.md)) |
+| « mets le clip sur la télé de gauche » / « le direct d'Ensuri sur la télé plateau » / « éteins la télé de gauche » | télés du studio ([Clips](Clips.md)) |
 
 ## Ce qu'elle comprend
 - **Pseudos approximatifs** : surnoms (définis par joueur), fautes de transcription (« l'or fine » → LordFinn,

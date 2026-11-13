@@ -70,6 +70,36 @@ public final class RegieJson {
         return write(kept);
     }
 
+    /** Actions this game runs itself (the in-game clip records this game's view): "clip.start", "clip.stop". */
+    public static final List<String> LOCAL = List.of("clip.start", "clip.stop");
+
+    /** The local actions' types of a list, in order (see {@link #LOCAL}). */
+    public static List<String> localTypes(String json) {
+        List<String> out = new ArrayList<>();
+        try {
+            List<Object> raw = GSON.fromJson(json, new TypeToken<List<Object>>() {}.getType());
+            if (raw != null) for (Object o : raw)
+                if (o instanceof Map<?, ?> m && LOCAL.contains(String.valueOf(m.get("type")))) out.add(String.valueOf(m.get("type")));
+        } catch (JsonParseException e) {
+            // nothing local
+        }
+        return out;
+    }
+
+    /** The list without the local actions (sent to the server). */
+    public static String withoutLocal(String json) {
+        List<Object> raw;
+        try {
+            raw = GSON.fromJson(json, new TypeToken<List<Object>>() {}.getType());
+        } catch (JsonParseException e) {
+            return "[]";
+        }
+        if (raw == null) return "[]";
+        List<Object> kept = new ArrayList<>();
+        for (Object o : raw) if (!(o instanceof Map<?, ?> m && LOCAL.contains(String.valueOf(m.get("type"))))) kept.add(normalize(o));
+        return write(kept);
+    }
+
     /** Map / List / number normalization, recursively (Long that fits → Integer). */
     static Object normalize(Object o) {
         if (o instanceof Long l) return l >= Integer.MIN_VALUE && l <= Integer.MAX_VALUE ? (Object) l.intValue() : l;

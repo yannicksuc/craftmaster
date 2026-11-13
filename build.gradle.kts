@@ -23,7 +23,7 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 repositories {
-    // WaterMedia (videos on the studio screens), from Modrinth
+    // WaterMedia (videos on the studio screens, clips): optional, only compiled against
     exclusiveContent {
         forRepository { maven("https://api.modrinth.com/maven") { name = "Modrinth" } }
         filter { includeGroup("maven.modrinth") }
@@ -32,14 +32,13 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
+    // Optional at runtime (the modpack ships it with its Binaries, 26.2 only): every use goes through
+    // client/media/Media.available(); the dev client loads it from run-26.2/mods
+    compileOnly("maven.modrinth:watermedia:${property("watermedia_version")}")
     implementation("net.fabricmc:fabric-loader:${property("fabric_loader_version")}")
     implementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
 
     // YAML reader/writer for config/craftmaster/config.yml (same file format as the old Paper plugin), shipped inside the jar
-    // Optional: with WaterMedia (and its binaries) in the game, the studio screens also play videos. Not shipped,
-    // not required (client/studio/ScreenVideos); for the dev game, drop both jars in run-26.2/mods
-    compileOnly("maven.modrinth:watermedia:${property("watermedia_version")}")
-
     implementation("org.yaml:snakeyaml:${property("snakeyaml_version")}")
     include("org.yaml:snakeyaml:${property("snakeyaml_version")}")
 

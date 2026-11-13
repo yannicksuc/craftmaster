@@ -45,6 +45,10 @@ public class ImageScreenEntity extends Entity {
     private static final EntityDataAccessor<Long> PAUSED_AT = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.LONG);
     private static final EntityDataAccessor<Boolean> LOOP = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> VOLUME = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.INT);
+    /** Name given by the organisers ("gauche", "plateau"...) to pick this screen from a command, the voice or the Stream Deck. */
+    private static final EntityDataAccessor<String> NAME = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.STRING);
+    /** Game time the address was set: a video starts there for everyone, someone arriving later joins it where it is. */
+    private static final EntityDataAccessor<Long> SHOWN_AT = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.LONG);
 
     /** Thickness of the screen (blocks): it stands out of the wall like a flat TV. */
     public static final double DEPTH = 2 / 16.0;
@@ -90,6 +94,8 @@ public class ImageScreenEntity extends Entity {
         b.define(PAUSED_AT, -1L);
         b.define(LOOP, true);
         b.define(VOLUME, 100);
+        b.define(NAME, "");
+        b.define(SHOWN_AT, -1L);
     }
 
     public String url() { return entityData.get(URL); }
@@ -112,6 +118,7 @@ public class ImageScreenEntity extends Entity {
     public void restartVideo() {
         entityData.set(START, level().getGameTime());
         entityData.set(PAUSED_AT, -1L);
+        entityData.set(SHOWN_AT, level().getGameTime());
     }
 
     public void pauseVideo() {
@@ -139,14 +146,23 @@ public class ImageScreenEntity extends Entity {
         entityData.set(VOLUME, Math.max(0, Math.min(100, volume)));
     }
 
+    public String screenName() { return entityData.get(NAME); }
+    public long shownAt() { return entityData.get(SHOWN_AT); }
+
+    public void setScreenName(String name) {
+        entityData.set(NAME, name == null ? "" : name.strip());
+    }
+
     public Direction getFacing() {
         return Direction.from2DDataValue(entityData.get(FACING));
     }
 
+    /** New address; the same one again restarts its video from the beginning for everyone. */
     public void setUrl(String url) {
         String u = url == null ? "" : url.trim();
         if (!u.equals(url())) restartVideo();
         entityData.set(URL, u);
+        entityData.set(SHOWN_AT, level().getGameTime());
     }
 
     public void setFit(boolean fit) {
@@ -263,6 +279,7 @@ public class ImageScreenEntity extends Entity {
         entityData.set(START, level().getGameTime() - position / 50);
         entityData.set(LOOP, in.getBooleanOr("VideoLoop", true));
         entityData.set(VOLUME, Math.max(0, Math.min(100, in.getIntOr("VideoVolume", 100))));
+        entityData.set(NAME, in.getStringOr("Name", ""));
         setFacing(Direction.byName(in.getStringOr("Facing", "south")) instanceof Direction d ? d : Direction.SOUTH);
         refreshBox();
     }
@@ -277,6 +294,7 @@ public class ImageScreenEntity extends Entity {
         out.putBoolean("VideoPaused", paused());
         out.putBoolean("VideoLoop", loop());
         out.putInt("VideoVolume", volume());
+        if (!screenName().isEmpty()) out.putString("Name", screenName());
         out.putString("Facing", getFacing().getSerializedName());
     }
 }

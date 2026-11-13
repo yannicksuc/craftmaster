@@ -66,6 +66,8 @@ Redémarrer le jeu après modification. `token` facultatif : s'il est rempli, aj
 | `/camera/cut?camera=2` · `/camera/auto` | Couper sur une caméra (numéro ou nom) · réalisation automatique (`?enabled=false` pour l'arrêter) |
 | `/replay/toggle` · `back?s=10` · `forward?s=10` · `speed?x=2` · `marker/next` · `view?name=Ensuri` · `mode?m=auto` · … | Pendant un replay : le piloter (liste complète : [Replays](Replays.md#regarder-la-régie-de-replay)) ; `/camera/cut` et `/camera/auto` agissent alors sur le replay |
 | `/tablet/start` · `/pause` · `/toggle` · `/reset` · `/restart` | Tablettes chrono (`?group=nom` : seulement ce groupe ; [Plateau](Plateau.md#tablette-chrono)) |
+| `/clip/start` · `/clip/stop` · `/clip/toggle` · `/clip/status` | Clip de la vue de ce jeu ([Clips](Clips.md)) |
+| `/tele?nom=gauche&clip=dernier` · `&lien=URL` · `&direct=Ensuri` · `&image=URL` · `&chat` · `&off` | Ce que montre une télé du studio ; `chat` = dernier clip Twitch posté par les viewers ([Clips](Clips.md)) |
 | `/status` | JSON : connecté, organisateur, écran ouvert, saison affichée, annulations / refaire possibles |
 
 Réponse toujours en JSON `{"ok": true}` ou `{"ok": false, "error": "…"}` (409 : pas connecté ou aucun écran ouvert,

@@ -41,6 +41,8 @@ public final class TwitchChat {
         public fr.lordfinn.craftmaster.client.score.StreamDeckServer.Settings streamDeck = new fr.lordfinn.craftmaster.client.score.StreamDeckServer.Settings();
         /** The player frame in the HUD (own face and score). */
         public fr.lordfinn.craftmaster.client.score.PlayerFrameHud.Settings playerFrame = new fr.lordfinn.craftmaster.client.score.PlayerFrameHud.Settings();
+        /** In-game clips (F9 / F10): frame rate, quality, sending to the server. */
+        public fr.lordfinn.craftmaster.client.media.Clips.Settings clips = new fr.lordfinn.craftmaster.client.media.Clips.Settings();
     }
 
     public static final class Twitch {
@@ -90,6 +92,7 @@ public final class TwitchChat {
             if (config.twitch == null) config.twitch = new Twitch();
             if (config.streamDeck == null) config.streamDeck = new fr.lordfinn.craftmaster.client.score.StreamDeckServer.Settings();
             if (config.playerFrame == null) config.playerFrame = new fr.lordfinn.craftmaster.client.score.PlayerFrameHud.Settings();
+            if (config.clips == null) config.clips = new fr.lordfinn.craftmaster.client.media.Clips.Settings();
             // Written back so new settings show up in the file
             Files.createDirectories(f.getParent());
             try (Writer w = Files.newBufferedWriter(f, StandardCharsets.UTF_8)) {
@@ -154,6 +157,7 @@ public final class TwitchChat {
                     }
                     TwitchIrc.Message m = TwitchIrc.parse(line);
                     if (m != null && TwitchIrc.isCommand(m.text(), config.twitch.commands)) trigger(m.user());
+                    if (m != null) clipLinks(m.user(), m.text());
                 }
             } catch (IOException e) {
                 if (!running) break;
@@ -170,6 +174,40 @@ public final class TwitchChat {
             backoff = Math.min(60, backoff * 2);
         }
         if (!running) status = "arrêté";
+    }
+
+    // ---------------------------------------------------------------- Twitch clip links posted by viewers
+
+    /** A Twitch clip link seen in the chat: who posted it, the clean address, when (ms). */
+    public record ClipLink(String user, String url, long at) {}
+
+    private static final int MAX_LINKS = 20;
+    private static final java.util.ArrayDeque<ClipLink> LINKS = new java.util.ArrayDeque<>();
+
+    /** Keeps the Twitch clip links of a chat message (newest first, each link once). Nothing is shown by itself. */
+    public static void clipLinks(String user, String text) {
+        for (String url : fr.lordfinn.craftmaster.media.ClipLinks.twitchClips(text)) {
+            synchronized (LINKS) {
+                LINKS.removeIf(l -> l.url().equals(url));
+                LINKS.addFirst(new ClipLink(user, url, System.currentTimeMillis()));
+                while (LINKS.size() > MAX_LINKS) LINKS.removeLast();
+            }
+            CraftMaster.LOG.info("[Twitch] Lien de clip de {} : {}", user, url);
+        }
+    }
+
+    /** The Twitch clip links seen in the chat, newest first. */
+    public static java.util.List<ClipLink> clipLinks() {
+        synchronized (LINKS) {
+            return java.util.List.copyOf(LINKS);
+        }
+    }
+
+    /** The newest Twitch clip link of the chat, or null. */
+    public static String lastClipLink() {
+        synchronized (LINKS) {
+            return LINKS.isEmpty() ? null : LINKS.peekFirst().url();
+        }
     }
 
     /** Someone typed !tache: the card, unless it was shown less than cooldownSeconds ago. */

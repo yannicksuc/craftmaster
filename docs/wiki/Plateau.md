@@ -126,8 +126,10 @@ dégradé avec biseau. Chevalet de peintre en chêne : pieds derrière la tablet
   `http://127.0.0.1:25710/tablet/start?group=plateau` ([Saisie](Saisie.md)).
 - Tenue en main, c'est un petit cadre « 25.7 » fixe : les chiffres vivants ne s'affichent que posée (à venir).
 
-### `/image` : images (et vidéos) sur les écrans
-Remplace le `/image <URL>` du plugin (qui passait par ImageFrame).
+### `/image` : images et vidéos sur les écrans
+Remplace le `/image <URL>` du plugin (qui passait par ImageFrame). Avec WaterMedia (modpack, 26.2), un écran passe
+aussi des vidéos, des clips Twitch, des directs et les clips enregistrés en jeu : écrans nommés et `/cmtele`, voir
+[Clips et télés](Clips.md).
 
 **Vidéos** : avec [WaterMedia](https://modrinth.com/mod/watermedia) 3.0.1+ (et ses binaires, WaterMedia Binaries)
 dans le jeu des joueurs, une adresse qui n'est pas une image (.png, .jpg, .jpeg, .gif, .bmp, .webp) est **lue comme
