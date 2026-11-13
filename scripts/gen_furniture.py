@@ -182,6 +182,9 @@ def rig(g):
         {"from": [6, 6, 6], "to": [10, 10, 10], "faces": {
             f: {"uv": [12, 4, 8, 8] if f == "down" else [12, 4, 8, 0], "texture": "#0"} for f in SIDES}},
     ]})
+    # Also drawn by CameraRenderer where a camera's own arm meets a rod at an angle
+    wj(os.path.join(A, "items/furniture/rig_knuckle.json"),
+       {"model": {"type": "minecraft:model", "model": "craftmaster:block/furniture/rig_knuckle"}})
 
     parts = []
     for side in SIDES:

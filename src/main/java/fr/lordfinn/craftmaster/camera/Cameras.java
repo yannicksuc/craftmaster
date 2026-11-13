@@ -31,7 +31,8 @@ import java.util.function.UnaryOperator;
  * the clients by {@link Director}.
  *
  * <p>File: {@code {"version": 2, "cameras": [{number, name, role, world, x, y, z, yaw, pitch, fov, motion, lieu?,
- * zone?, prop?}]}}; a file of v4 without {@code lieu} puts every camera in the studio. Unknown keys are ignored.
+ * zone?, mount?, prop?}]}}; without {@code mount} a camera is on its floor tripod ({@link CameraMount}); a file of v4
+ * without {@code lieu} puts every camera in the studio. Unknown keys are ignored.
  */
 public final class Cameras {
 
@@ -69,7 +70,7 @@ public final class Cameras {
                     CameraSpot s = new CameraSpot(o.get("number").getAsInt(), str(o, "name"), str(o, "role"), str(o, "world"),
                             o.get("x").getAsDouble(), o.get("y").getAsDouble(), o.get("z").getAsDouble(),
                             o.get("yaw").getAsFloat(), o.get("pitch").getAsFloat(), o.has("fov") ? o.get("fov").getAsFloat() : 0,
-                            str(o, "motion"), str(o, "lieu"), str(o, "zone"));
+                            str(o, "motion"), str(o, "lieu"), str(o, "zone"), CameraMount.parse(str(o, "mount")));
                     list.put(s);
                     if (o.has("prop")) props.put(s.key(), UUID.fromString(o.get("prop").getAsString()));
                 } catch (RuntimeException e) {
@@ -103,6 +104,7 @@ public final class Cameras {
             o.addProperty("motion", s.motion());
             o.addProperty("lieu", s.lieu());
             if (!s.zone().isEmpty()) o.addProperty("zone", s.zone());
+            if (!s.mount().legs()) o.addProperty("mount", s.mount().id());
             UUID prop = props.get(s.key());
             if (prop != null) o.addProperty("prop", prop.toString());
             arr.add(o);
@@ -242,6 +244,6 @@ public final class Cameras {
             return;
         }
         if (c.lens().distanceToSqr(spot.x(), spot.y(), spot.z()) > 1e-4 || c.lensYaw() != spot.yaw() || c.lensPitch() != spot.pitch()
-                || !c.cameraName().equals(spot.name()) || !c.cameraKey().equals(spot.key())) c.apply(spot);
+                || !c.cameraName().equals(spot.name()) || !c.cameraKey().equals(spot.key()) || !c.mount().equals(spot.mount())) c.apply(spot);
     }
 }
