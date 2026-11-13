@@ -888,5 +888,10 @@
   "screen.craftmaster.modo_desk.scene.follow.nearest.tip": "Follow the nearest player",
   "screen.craftmaster.modo_desk.scene.follow.none": "Fixed",
   "screen.craftmaster.modo_desk.scene.follow.none.tip": "Stop following, keep their direction",
-  "screen.craftmaster.modo_desk.scene.empty": "No look yet: /ambiance enregistrer <name>"
+  "screen.craftmaster.modo_desk.scene.empty": "No look yet: /ambiance enregistrer <name>",
+  "screen.craftmaster.portrait.turn": "Angle",
+  "screen.craftmaster.portrait.turn_tip": "Angle of the picture in degrees from its wall (0 = straight, 30 = turned right, -30 left)",
+  "screen.craftmaster.portrait.face_me": "◎",
+  "screen.craftmaster.portrait.face_me_tip": "Turn the picture toward you (from your look)",
+  "screen.craftmaster.portrait.bad_turn": "Angle: a number of degrees."
 }

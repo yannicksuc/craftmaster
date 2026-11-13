@@ -28,14 +28,14 @@ public class PortraitScreen extends Screen {
     private static final int PANEL = 0xD0101018, BORDER = 0xFFFFC23D, LABEL = 0xFFBFBFCF;
 
     private final PortraitEntity portrait;
-    private EditBox season, rankOrPlayer, displayName, skinUrl, hang, windowDepth, windowSize;
+    private EditBox season, rankOrPlayer, displayName, skinUrl, hang, turn, windowDepth, windowSize;
     private CycleButton<Boolean> followsRank, window;
     private CycleButton<String> pose;
     private Component error;
     private int left, top;
 
     // Values kept across re-inits (resize, coming back from the pose editor)
-    private String seasonV, rankV, playerV, nameV, urlV, hangV, poseV, depthV, sizeV;
+    private String seasonV, rankV, playerV, nameV, urlV, hangV, poseV, depthV, sizeV, turnV;
     private boolean rankMode, windowV;
 
     public PortraitScreen(PortraitEntity portrait) {
@@ -48,6 +48,7 @@ public class PortraitScreen extends Screen {
         nameV = portrait.displayName();
         urlV = portrait.skinUrl();
         hangV = portrait.hangSetting() < 0 ? "auto" : String.valueOf(portrait.hangSetting());
+        turnV = String.valueOf(Math.round(portrait.turn()));
         poseV = portrait.poseName();
         windowV = portrait.window();
         depthV = String.valueOf(portrait.windowDepth());
@@ -80,6 +81,7 @@ public class PortraitScreen extends Screen {
         nameV = displayName.getValue();
         urlV = skinUrl.getValue();
         hangV = hang.getValue();
+        turnV = turn.getValue();
         windowV = window.getValue();
         depthV = windowDepth.getValue();
         sizeV = windowSize.getValue();
@@ -135,6 +137,16 @@ public class PortraitScreen extends Screen {
         y += step;
         hang = box(x, y, 50, hangV, "hang");
         tip(hang, "hang_tip");
+        // Exact angle from the wall direction (degrees), and "face me" from the look of the player editing
+        turn = box(x + 80, y, 30, turnV, "turn");
+        tip(turn, "turn_tip");
+        addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.portrait.face_me"), b -> {
+            var me = minecraft.player;
+            if (me == null) return;
+            float t = net.minecraft.util.Mth.wrapDegrees(me.getYRot() + 180 - portrait.getFacing().toYRot());
+            // Beyond ±90° the wall direction would be the wrong one: the server picks the nearest facing
+            turn.setValue(String.valueOf(Math.round(t)));
+        }).bounds(x + 112, y, 18, 20).tooltip(Tooltip.create(Component.translatable("screen.craftmaster.portrait.face_me_tip"))).build());
         y += step;
         // Window look: on / off, depth of the room behind the opening (px), its size (% of the opening)
         window = addRenderableWidget(CycleButton.onOffBuilder(windowV).displayOnlyValue()
@@ -237,8 +249,15 @@ public class PortraitScreen extends Screen {
             error = Component.translatable("screen.craftmaster.portrait.bad_window");
             return;
         }
+        float tr;
+        try {
+            tr = Float.parseFloat(turn.getValue().replace(',', '.').replace("°", "").trim());
+        } catch (NumberFormatException e) {
+            error = Component.translatable("screen.craftmaster.portrait.bad_turn");
+            return;
+        }
         ClientPlayNetworking.send(new PortraitNetwork.Update(portrait.getId(), s, rank, player, displayName.getValue().trim(), url,
-                pose.getValue(), h, window.getValue(), depth, size));
+                pose.getValue(), h, window.getValue(), depth, size, tr));
         onClose();
     }
 
@@ -274,7 +293,7 @@ public class PortraitScreen extends Screen {
         g.text(font, Component.translatable("screen.craftmaster.portrait.pose"), left + 8, y, LABEL);
         y += step;
         g.text(font, Component.translatable("screen.craftmaster.portrait.hang"), left + 8, y, LABEL);
-        g.text(font, Component.translatable("screen.craftmaster.portrait.hang_hint").withStyle(ChatFormatting.DARK_GRAY), left + 150, y, LABEL);
+        g.text(font, Component.translatable("screen.craftmaster.portrait.turn").withStyle(ChatFormatting.GRAY), left + 92 + 54, y, LABEL);
         y += step;
         g.text(font, Component.translatable("screen.craftmaster.portrait.window_label"), left + 8, y, LABEL);
         if (error != null) g.text(font, error.copy().withStyle(ChatFormatting.RED), left + 8, top + h - 14, 0xFFFF5555);

@@ -41,6 +41,8 @@ public class PortraitItem extends Item {
         BlockPos ceiling = ctx.getClickedPos();
         int season = Portraits.defaultSeason();
         PortraitEntity p = PortraitEntity.create(level, ceiling, ctx.getHorizontalDirection().getOpposite(), season, Portraits.nextRank(level, season));
+        // Facing the one who hangs it, exactly (not only the nearest of four directions)
+        if (ctx.getPlayer() != null) p.faceLook(ctx.getPlayer().getYRot());
         Portraits.refresh(p);
         level.addFreshEntity(p);
         p.playSound(SoundEvents.PAINTING_PLACE, 1f, 1f);

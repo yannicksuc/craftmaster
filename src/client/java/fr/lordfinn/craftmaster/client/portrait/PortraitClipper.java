@@ -225,7 +225,37 @@ public final class PortraitClipper implements VertexConsumer {
         }
         // Behind the canvas only, then flattened along the lines of sight, then cut to the opening
         if (d >= 0) return;
-        poly = clip(poly, keep);
+        // Flattening is a projection: a big quad would get its texture bent by the GPU's interpolation (it moves
+        // with the point of view). Small pieces keep it straight; each is flattened on its own.
+        int n = pieces(poly);
+        if (n > 1) {
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                    flattenAndEmit(List.of(at(poly, i / (float) n, j / (float) n), at(poly, (i + 1) / (float) n, j / (float) n),
+                            at(poly, (i + 1) / (float) n, (j + 1) / (float) n), at(poly, i / (float) n, (j + 1) / (float) n)));
+            return;
+        }
+        flattenAndEmit(poly);
+    }
+
+    /** Pieces per side: about one every 2 px (1/8 block), at most 12. */
+    private static int pieces(List<V> q) {
+        float max = 0;
+        for (int i = 0; i < 4; i++) {
+            V a = q.get(i), b = q.get((i + 1) % 4);
+            max = Math.max(max, (float) Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z)));
+        }
+        return Math.max(1, Math.min(12, (int) Math.ceil(max / 0.125f)));
+    }
+
+    /** Bilinear point of quad (a, b, c, d) at (s along a→b, t along a→d), every attribute interpolated. */
+    private static V at(List<V> q, float s, float t) {
+        V top = V.lerp(q.get(0), q.get(1), s), bottom = V.lerp(q.get(3), q.get(2), s);
+        return V.lerp(top, bottom, t);
+    }
+
+    private void flattenAndEmit(List<V> in) {
+        List<V> poly = clip(new ArrayList<>(in), keep);
         if (poly.size() < 3) return;
         for (V p : poly) {
             float along = n.x * p.x + n.y * p.y + n.z * p.z;     // < d: behind the plane

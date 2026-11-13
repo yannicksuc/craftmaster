@@ -888,5 +888,10 @@
   "screen.craftmaster.modo_desk.scene.follow.nearest.tip": "Suivent le joueur le plus proche",
   "screen.craftmaster.modo_desk.scene.follow.none": "Fixes",
   "screen.craftmaster.modo_desk.scene.follow.none.tip": "Arrêtent de suivre et gardent leur direction",
-  "screen.craftmaster.modo_desk.scene.empty": "Aucune ambiance : /ambiance enregistrer <nom>"
+  "screen.craftmaster.modo_desk.scene.empty": "Aucune ambiance : /ambiance enregistrer <nom>",
+  "screen.craftmaster.portrait.turn": "Angle",
+  "screen.craftmaster.portrait.turn_tip": "Angle du tableau en degrés par rapport à son mur (0 = droit, 30 = tourné vers la droite, -30 vers la gauche)",
+  "screen.craftmaster.portrait.face_me": "◎",
+  "screen.craftmaster.portrait.face_me_tip": "Tourner le tableau vers toi (d'après ton regard)",
+  "screen.craftmaster.portrait.bad_turn": "Angle : un nombre de degrés."
 }

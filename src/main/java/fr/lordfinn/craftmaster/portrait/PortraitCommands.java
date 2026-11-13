@@ -162,7 +162,7 @@ public final class PortraitCommands {
         return ticks;
     }
 
-    /** set [targets] season|rank|player|name|skin|pose|window|windowDepth|windowSize|height|hoist value */
+    /** set [targets] season|rank|player|name|skin|pose|window|windowDepth|windowSize|height|hoist|angle value */
     private static void addSettings(com.mojang.brigadier.builder.ArgumentBuilder<CommandSourceStack, ?> node, boolean targeted) {
         node.then(literal("season").then(argument("value", integer()).executes(c ->
                 apply(c, targeted, p -> p.setSeason(getInteger(c, "value")), "saison " + getInteger(c, "value")))));
@@ -207,6 +207,29 @@ public final class PortraitCommands {
                     float hang = length(c, StringArgumentType.getString(c, "value"));
                     if (Float.isNaN(hang)) return 0;
                     return apply(c, targeted, p -> p.setHang(hang), hang < 0 ? "ficelle automatique" : "ficelle de " + hang + " bloc(s)");
+                })));
+        // Exact angle: "angle 20" turns the picture 20° from its wall direction; "angle moi" faces whoever types it
+        node.then(literal("angle").then(argument("value", StringArgumentType.word())
+                .suggests((c, b) -> SharedSuggestionProvider.suggest(List.of("0", "15", "-15", "30", "-30", "45", "-45", "moi"), b))
+                .executes(c -> {
+                    String v = StringArgumentType.getString(c, "value");
+                    if (v.equalsIgnoreCase("moi") || v.equalsIgnoreCase("me")) {
+                        ServerPlayer me = c.getSource().getPlayer();
+                        if (me == null) {
+                            fail(c, "« angle moi » se tape en jeu.");
+                            return 0;
+                        }
+                        float look = me.getYRot();
+                        return apply(c, targeted, p -> p.faceLook(look), "tourné vers toi");
+                    }
+                    float deg;
+                    try {
+                        deg = Float.parseFloat(v.replace(',', '.').replace("°", ""));
+                    } catch (NumberFormatException e) {
+                        fail(c, "Angle : un nombre de degrés (−180 à 180) ou « moi ».");
+                        return 0;
+                    }
+                    return apply(c, targeted, p -> p.setTurn(deg), "tourné de " + Math.round(net.minecraft.util.Mth.wrapDegrees(deg)) + "° par rapport à son mur");
                 })));
         // The same, raised or lowered smoothly: hoist <length> [seconds]
         node.then(literal("hoist").then(argument("value", StringArgumentType.word()).suggests(LENGTHS)
@@ -270,7 +293,11 @@ public final class PortraitCommands {
             fail(c, "Regardez le bloc du plafond (8 blocs max).");
             return 0;
         }
-        return place(c, player.level(), bh.getBlockPos(), player.getDirection().getOpposite());
+        int n = place(c, player.level(), bh.getBlockPos(), player.getDirection().getOpposite());
+        // Facing the one who places it, exactly
+        for (PortraitEntity p : player.level().getEntitiesOfClass(PortraitEntity.class, new AABB(bh.getBlockPos()).inflate(0.5, 17, 0.5)))
+            if (p.ceiling().equals(bh.getBlockPos()) && p.tickCount == 0) p.faceLook(player.getYRot());
+        return n;
     }
 
     private static int placeAt(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
