@@ -93,11 +93,15 @@ public class CurtainRenderer implements BlockEntityRenderer<CurtainBlockEntity, 
         s.top = !(level.getBlockState(pos.above()).getBlock() instanceof CurtainBlock);
         s.bottom = state.getValue(CurtainBlock.BOTTOM);
         int column = Curtains.column(pos, layout.side()) - layout.minColumn();
+        // At rest, a discreet ripple: a soft draught, still at the rail, a third of a pixel at the hem; slow waves
+        // along the curtain, each curtain with its own phase
+        double seconds = now / 20.0, seed = layout.minColumn() * 1.37;
         for (int edge = 0; edge < 2; edge++) {
             // The trailing and the billowing grow smoothly down the curtain: computed at the block's top and bottom
             double depth = layout.depth(pos.getY() + 1 - edge);
             double open = CurtainClient.openness(pos, state, now, depth);
             double amp = billow * (0.25 + 0.75 * depth);
+            double idle = IDLE_PX * Math.pow(depth, 1.3);
             for (int k = 0; k < CurtainCloth.PLEATS_PER_BLOCK; k++) {
                 int j = column * CurtainCloth.PLEATS_PER_BLOCK + k;
                 CurtainCloth.Pleat p = CurtainCloth.pleat(j, layout.columns(), open);
@@ -106,11 +110,20 @@ public class CurtainRenderer implements BlockEntityRenderer<CurtainBlockEntity, 
                 s.pleats[o + 1] = (float) (p.x1() / 16 - column);
                 s.pleats[o + 2] = (float) (p.z0() / 16);
                 s.pleats[o + 3] = (float) (p.z1() / 16);
-                s.pleats[o + 4] = (float) (amp * Math.sin(p.x0() * 0.18 + now * 0.45) / 16);
-                s.pleats[o + 5] = (float) (amp * Math.sin(p.x1() * 0.18 + now * 0.45) / 16);
+                s.pleats[o + 4] = (float) ((amp * Math.sin(p.x0() * 0.18 + now * 0.45) + idle * ripple(p.x0(), seconds, seed)) / 16);
+                s.pleats[o + 5] = (float) ((amp * Math.sin(p.x1() * 0.18 + now * 0.45) + idle * ripple(p.x1(), seconds, seed)) / 16);
                 s.slices[k] = k;
             }
         }
+    }
+
+    /** Largest idle ripple at the hem (pixels). */
+    private static final double IDLE_PX = 0.35;
+
+    /** The draught at rest, -1..1, at {@code x} px along the curtain: two slow waves crossing. */
+    static double ripple(double x, double seconds, double seed) {
+        return 0.65 * Math.sin(x * 0.22 + seconds * 2 * Math.PI / 6.5 + seed)
+                + 0.35 * Math.sin(x * 0.09 - seconds * 2 * Math.PI / 11.0 + seed * 1.7);
     }
 
     @Override

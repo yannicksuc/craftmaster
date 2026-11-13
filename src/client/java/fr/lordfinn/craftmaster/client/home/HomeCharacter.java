@@ -147,8 +147,10 @@ public final class HomeCharacter {
         rightArm.y += 0.15f * breathe;
         leftArm.y += 0.15f * breathe;
         // Right hand on the armrest, the elbow out
-        rightArm.xRot = (float) Math.toRadians(-38 + 1.5 * Math.sin(t * 2 * Math.PI / 5.1));
-        rightArm.zRot = (float) Math.toRadians(22);
+        // (raised a little: the figure sits 3 px into the cushion, the hand must rest ON the armrest)
+        rightArm.xRot = (float) Math.toRadians(-54 + 1.5 * Math.sin(t * 2 * Math.PI / 5.1));
+        rightArm.zRot = (float) Math.toRadians(26);
+        rightArm.y -= 1.2f;
         // Left arm raised toward the frames, presenting them, the hand drifting slowly
         leftArm.xRot = (float) Math.toRadians(-112 + 4 * sway);
         leftArm.yRot = (float) Math.toRadians(-28 + 3 * sway);
