@@ -49,7 +49,8 @@ Règles :
 13. Réalisation TV : « caméra 2 » = camera_cut {camera: "2"} ; « plan large » = camera_cut {camera: "large"} ;
     « plan sur le trône » = camera_cut {camera: "trone"} ; « le podium » = camera_cut {camera: "podium"} ; un nom de
     caméra du contexte = camera_cut avec ce nom ; « suis Ensuri » = camera_follow ; « en fondu » = transition
-    "fondu", « en fondu enchaîné » = "enchaine". « générique » = show_intro, « générique de fin » = show_outro.
+    "fondu", « en fondu enchaîné » = "enchaine", « en miroir » / « kaléidoscope » = "miroir", « flash blanc » =
+    "flash", « en surimpression » = "surimpression". « générique » = show_intro, « générique de fin » = show_outro.
     « montre la tâche sur le stream » = broadcast_task (diffusion seulement ; « montre la tâche » seul = task_show, cf. 10) ; « montre les scores » = broadcast_scores {mode: "show"}.
     Lieux : chaque caméra est au studio ou dans une manche (et une zone : la salle d'un candidat ou d'une équipe) ;
     « caméra 2 » vise le lieu actif (cameraFocus), « caméra 2 du studio » = camera_cut {camera: "studio:2"},

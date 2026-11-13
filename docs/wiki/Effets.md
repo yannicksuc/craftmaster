@@ -28,14 +28,36 @@ douceur (environ une demi-seconde) : un fish-eye se courbe petit à petit, le ma
 | `jumelles` | Vue aux jumelles (deux ronds) et zoom ×2 |
 | `bd` | Bande dessinée : aplats, contours à l'encre, trame |
 | `negatif` | Négatif photo |
+| `look_intro` | Look intro d'épreuve (« vieux reportage ») : deux teintes (ombres brun sombre tirant sur le bleu-vert, hautes lumières crème), couleurs un peu éteintes, grain fin, vignette et bords flous. Plus léger que `vieux_film` |
+| `macro` | Faible profondeur de champ : net sur ce qui est **au centre de l'image**, tout le reste très flou (flou en disques, comme un objectif macro). Se règle tout seul sur la distance du sujet au centre |
+| `mise_au_point` | Bascule de mise au point : le plan commence net sur le fond (le sujet au centre est flou), puis après 0,4 s la mise au point glisse vers le sujet en 1,2 s et y reste. Rejouée à chaque nouveau plan |
+| `stop_motion` | Stop motion : l'image ne se renouvelle que 7 fois par seconde, chaque image un peu décalée et plus ou moins exposée, comme une animation faite à la main |
+| `timelapse` | Timelapse : le temps du monde file (une journée en 20 s) : ciel, soleil, lune, lumière du jour et nuages. Sur la diffusion seulement, le temps du serveur ne bouge pas ; tout revient à l'heure dès que l'effet s'arrête |
 
 **Combiner** : on les met bout à bout avec `+`, dans n'importe quel ordre (le mod les dessine toujours dans le bon :
-d'abord les déformations, les couleurs, puis les masques) : `fisheye+masque_rond+sepia`. Six effets au plus.
+d'abord la profondeur de champ, le stop motion, les déformations, les couleurs, puis les masques) :
+`fisheye+masque_rond+sepia`. Six effets au plus.
 
 **Combinaisons prêtes** : `judas` (fisheye + masque rond), `camera_cachee` (fisheye + VHS + vignette),
 `souvenir` (sépia + rêve + vignette), `film_muet` (vieux film + vignette), `cauchemar` (ondule + négatif + vignette).
 
-Les noms français marchent aussi : « noir et blanc », « sépia », « fish-eye », « thermique », « pixelisé »…
+Les noms français marchent aussi : « noir et blanc », « sépia », « fish-eye », « thermique », « pixelisé »,
+« look intro » (ou « taskmaster », « vieux reportage »), « bascule de mise au point », « profondeur de champ »,
+« temps accéléré »…
+
+### Pour les intros d'épreuve
+
+Les effets `look_intro`, `macro`, `mise_au_point`, `stop_motion` et `timelapse` sont faits pour les intros façon
+Taskmaster (docs/design/intro-epreuve.md) : `look_intro` sur toute l'intro (par la régie : `/fx diffusion
+look_intro`), puis un traitement par plan (`/tv intro <m> plan 3 effet macro`, `plan 4 effet mise_au_point`,
+`plan 2 effet timelapse`…). Ils se combinent : `look_intro+macro`.
+
+- `macro` et `mise_au_point` lisent la **profondeur** de l'image : ils marchent sur toutes les vues (caméras,
+  trajets, joueur suivi). Le sujet est ce qui est au centre de l'image : on cadre l'objet au centre. Pour un vrai
+  rendu macro, réduire aussi le champ de vision (`/cam zoom 20`).
+- `mise_au_point` repart de zéro à chaque nouveau plan, même si le plan d'avant l'avait déjà.
+- `timelapse` ne dessine rien : il avance l'heure **sur le jeu qui l'affiche** (le jeu de diffusion). Les joueurs
+  et le serveur gardent leur heure.
 
 ## Combiner les effets
 - Plusieurs d'un coup : `/fx diffusion fisheye+masque_rond+sepia` (6 au plus).
@@ -115,3 +137,5 @@ fondu. C'est le même emplacement que `/fx diffusion` : le dernier ordre gagne.
 
 Chaque effet coûte une ou deux passes plein écran (quatre pour le flou et le rêve), très légères. Mesuré en jeu :
 pas de baisse d'images par seconde visible, même avec six effets à la fois (fenêtre de diffusion en 1920 × 1080).
+`macro` et `mise_au_point` sont les plus lourds (64 lectures par pixel pour le flou en disques) ; `stop_motion`
+garde une image en mémoire ; `timelapse` ne coûte rien. (Ces cinq-là ne sont pas encore mesurés en jeu.)

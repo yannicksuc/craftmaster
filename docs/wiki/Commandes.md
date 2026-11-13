@@ -140,7 +140,7 @@ l'exécuteur des actions : **annulable** et identique à la voix.
 
 ## Réalisation TV (organisateur ou permission `craftmaster:camera`)
 Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`large`, `trone`, `podium`) ;
-`[transition]` = `coupe`, `fondu` ou `enchaine`.
+`[transition]` = `coupe`, `fondu`, `enchaine`, `miroir`, `flash` ou `surimpression`.
 | Commande | Alias | Effet |
 |---|---|---|
 | `/craftMasterCamera [list]` | cam | Les caméras (● à l'antenne), le plan en cours, la réalisation auto |

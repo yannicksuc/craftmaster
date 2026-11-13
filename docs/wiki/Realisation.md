@@ -45,7 +45,17 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
 - Les touches et la molette du client de diffusion demandent la coupe au serveur : elle n'est faite que si ce
   joueur est organisateur ou a la permission **`craftmaster:camera`**. Suivre la réalisation ne demande rien.
 - **Transitions** : *coupe* (sèche, par défaut), *fondu* (passage par le noir), *enchaîné* (l'image précédente se
-  fond dans la nouvelle). Par plan (`/cam cut 2 enchaine`) ou par défaut (`/cam transition fondu`).
+  fond dans la nouvelle), et pour les intros d'épreuve :
+  - *miroir* (« kaléidoscope ») : l'image se replie en six segments en miroir qui tournent, la coupe se fait au plus
+    fort, puis la nouvelle image se déplie (1 s) ;
+  - *flash* (« flash blanc ») : coupe sous un flash blanc qui s'éteint en une demi-seconde ;
+  - *surimpression* (« double exposition ») : la nouvelle image monte par-dessus l'ancienne, figée, les deux restent
+    superposées un moment, puis l'ancienne s'efface (1,6 s ; par exemple un plan du trône par-dessus le ciel).
+
+  Par plan (`/cam cut 2 enchaine`, `/cam cut trone surimpression`) ou par défaut (`/cam transition fondu`). Partout
+  où une transition se donne : coupes, trajets, plans d'intro (`/tv intro <m> plan 1 transition miroir`), voix
+  (« caméra 2 en miroir », « flash blanc sur le trône »). Un jeu de diffusion d'une version plus ancienne du mod
+  joue ces trois-là en coupe.
 - **Plan qui suit un joueur** (`/cam follow`) : de trois quarts face, un peu au-dessus, lissé (le cadre suit sans
   à-coups), jamais derrière un mur. Son nom s'affiche en synthé quelques secondes.
 - **Réalisation automatique** (`/cam auto on|off`, « réalisation automatique ») : coupe sur le candidat qui marque
@@ -113,8 +123,10 @@ douce (pas de cassure aux étapes), démarre et s'arrête en douceur, et peut ma
 
 ## L'intro animée d'une manche
 Chaque manche peut avoir son **intro** : une suite de plans (caméras, trajets, joueurs suivis), chacun avec sa durée,
-sa transition (enchaîné par défaut, fondu pour le premier), un **effet d'image** facultatif (`sepia`, `noir_blanc`,
-`pixel`, `fisheye`, `vignette`, `masque_rond`, `citrouille`) et une **carte** facultative : *titre* (grand titre au
+sa transition (enchaîné par défaut, fondu pour le premier ; aussi miroir, flash ou surimpression), un **effet
+d'image** facultatif (`sepia`, `noir_blanc`, `pixel`, `fisheye`, `vignette`, `masque_rond`, `citrouille`, et pour
+les intros d'épreuve `look_intro`, `macro`, `mise_au_point`, `stop_motion`, `timelapse` : voir [Effets](Effets.md))
+et une **carte** facultative : *titre* (grand titre au
 centre) ou *synthé* (bandeau en bas), avec le nom de la manche ou un texte (`Titre | sous-titre`). Sans carte, le
 dernier plan montre le titre de la manche. Musique facultative (le thème, ou n'importe quel son). Pendant l'intro, le
 logo et le bandeau de la manche se retirent, la réalisation automatique attend, puis le plan large de la manche
