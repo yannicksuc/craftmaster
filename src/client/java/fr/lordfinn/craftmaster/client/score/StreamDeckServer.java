@@ -348,32 +348,27 @@ public final class StreamDeckServer {
 
     /**
      * /tele?nom=gauche&amp;clip=dernier · &amp;lien=URL · &amp;direct=Ensuri · &amp;image=URL · &amp;off · &amp;chat (newest
-     * Twitch clip link from the chat): what a named studio screen shows (/cmtele on the server, which checks).
+     * Twitch clip link from the chat): what a named studio screen shows, as a tele.show action (the server checks the
+     * right and writes it in the journal, like the voice and the control room).
      */
     private static JsonObject tele(URI uri) {
         String name = query(uri, "nom").isEmpty() ? query(uri, "tele") : query(uri, "nom");
         if (!name.matches("[A-Za-z0-9_-]{1,32}")) return error("nom=<télé> needed (/cmtele liste)");
         String q = uri.getRawQuery() == null ? "" : uri.getRawQuery();
-        String cmd;
-        if (!query(uri, "clip").isEmpty()) cmd = "clip " + query(uri, "clip").replaceAll("[^A-Za-z0-9-]", "");
-        else if (!query(uri, "lien").isEmpty()) cmd = "lien " + query(uri, "lien").replaceAll("\\s", "");
-        else if (!query(uri, "image").isEmpty()) cmd = "image " + query(uri, "image").replaceAll("\\s", "");
-        else if (!query(uri, "direct").isEmpty()) cmd = "direct " + query(uri, "direct").replaceAll("[^A-Za-z0-9_]", "");
+        JsonObject a;
+        if (!query(uri, "clip").isEmpty()) a = action("tele.show", "tele", name, "clip", query(uri, "clip"));
+        else if (!query(uri, "lien").isEmpty()) a = action("tele.show", "tele", name, "link", query(uri, "lien").replaceAll("\\s", ""));
+        else if (!query(uri, "image").isEmpty()) a = action("tele.show", "tele", name, "image", query(uri, "image").replaceAll("\\s", ""));
+        else if (!query(uri, "direct").isEmpty()) a = action("tele.show", "tele", name, "live", query(uri, "direct"));
         else if (q.matches("(^|.*&)chat(=[^&]*)?(&.*|$)")) {
             String link = fr.lordfinn.craftmaster.client.task.TwitchChat.lastClipLink();
             if (link == null) return error("no Twitch clip link seen in the chat yet");
-            cmd = "lien " + link;
-        } else if (q.matches("(^|.*&)off(=[^&]*)?(&.*|$)")) cmd = "off";
+            a = action("tele.show", "tele", name, "link", link);
+        } else if (q.matches("(^|.*&)off(=[^&]*)?(&.*|$)")) a = action("tele.show", "tele", name, "off", true);
         else return error("tele: clip=… | lien=… | direct=… | image=… | chat | off");
-        String full = "cmtele " + name + " " + cmd;
-        return onGame(() -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (!connected() || mc.player == null) return error("not connected");
-            mc.player.connection.sendCommand(full);
-            JsonObject o = ok();
-            o.addProperty("command", "/" + full);
-            return o;
-        });
+        JsonObject o = send(a);
+        if (o.get("ok").getAsBoolean()) o.add("action", a);
+        return o;
     }
 
     private static boolean connected() {

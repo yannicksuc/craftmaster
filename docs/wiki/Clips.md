@@ -114,8 +114,16 @@ Voix ([Régie vocale](RegieVocale.md)) :
 - « le direct d'Ensuri sur la télé plateau » ;
 - « éteins la télé de gauche ».
 
-Le clip tourne sur le jeu qui l'a demandé. Les télés passent par le serveur (action `tele.show`), comme les
-commandes et le Stream Deck.
+Le clip tourne sur le jeu qui l'a demandé : la régie web ne peut pas le lancer, sauf par le Stream Deck local.
+Les ordres des télés du Stream Deck et de la voix sont des actions `tele.show`, comme ceux de la régie des
+modérateurs. Le serveur vérifie le droit de chacune et la note dans le journal (`/modo journal`). `/cmtele` en
+commande, elle, passe à côté des deux.
+
+Action `tele.show` : `{tele, clip | link | live | image | off}`. Un seul champ parmi les cinq ; sans aucun, c'est le
+dernier clip. `off: true` remet la mire.
+
+La réponse du Stream Deck redonne l'action envoyée. Une télé inconnue est signalée dans le chat de l'organisateur
+(« ⚠ Aucune télé nommée … »).
 
 ## Pourquoi un enregistrement dans le jeu (et pas OBS)
 LordFinn veut un clip « comme l'outil de Flashback », de la vue actuelle :
