@@ -68,7 +68,7 @@ public final class HomeConfig {
     public String background = "";
     /** Background zoom (cover fit times this), so the parallax never shows its edges. */
     public double zoom = 1.12;
-    public Character character = new Character("LordFinn", "", true, 1.1, 1.35, 20, 0.17, 0.92);
+    public Character character = new Character("LordFinn", "", true, 1.1, 1.35, 20, 0.17, 0.98);
     public List<Player> players = new ArrayList<>(List.of(
             new Player("Ensuri", "", ""), new Player("Cyllu", "", ""), new Player("Juste", "", ""),
             new Player("Arreaubaz", "", ""), new Player("Notch", "", "")));
