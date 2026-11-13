@@ -283,6 +283,14 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
             return;
         }
         if (s.menu) {
+            // The string, straight up from the knot past the top of the screen
+            Vector3d knot = PortraitGeometry.portraitOrigin(s.pose, false, 0).negate();
+            float up = 12;
+            int stringLight = s.lightCoords;
+            poseStack.pushPose();
+            poseStack.translate(knot.x, knot.y + up, knot.z);
+            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(FRAME_TEXTURE), (p, c) -> string(c, p, -up, stringLight));
+            poseStack.popPose();
             poseStack.pushPose();
             poseStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
             submitPainting(s, s.pose, false, poseStack, collector, s.lightCoords, s.tint);
@@ -382,7 +390,7 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
                 submitPart(parts.get(part), poseStack, collector, figure, light, tint, clipper);
                 poseStack.popPose();
             }
-            if (skin.cape() != null && !pose.isHidden(Part.BODY)) {
+            if (false && skin.cape() != null && !pose.isHidden(Part.BODY)) { // no capes on portraits (LordFinn's choice)
                 poseStack.pushPose();
                 poseStack.mulPose(new Matrix4f(PortraitGeometry.partMatrix(pose, Part.BODY, window)));
                 poseStack.scale(16, 16, 16);

@@ -261,7 +261,10 @@ public class HomeScreen extends Screen {
             double yaw = HomeLayout.facingYaw(centres.get(i)) - HomeLayout.swayAngle(r.angle(), r.sway(), seconds, i) + mouseX * pivot;
             double fade = centres.size() == 1 ? 0 : r.haze() * i / (centres.size() - 1);
             HomeConfig.Player player = players.get(i);
-            Pose pose = poses.get(player.pose().isEmpty() ? config.defaultPose : player.pose());
+            // No pose given: each frame its own, in turn (a varied wall rather than five times the same)
+            String poseName = !player.pose().isEmpty() ? player.pose() : !config.defaultPose.isEmpty() ? config.defaultPose
+                    : HomeScreens.VARIED_POSES.get(i % HomeScreens.VARIED_POSES.size());
+            Pose pose = poses.get(poseName);
             PortraitSkins.Skin skin = PortraitSkins.resolve(player.pseudo(), HomeScreens.skinSource(player.skin()));
             PortraitRenderer.State state = PortraitRenderer.menuState(pose, skin, HomeLayout.hazeTint(haze, fade));
             float x = (float) p.x, y = (float) p.y, z = (float) p.z, turnDeg = (float) yaw;
@@ -286,7 +289,9 @@ public class HomeScreen extends Screen {
         double depth = f * blocks / (ch.size() * height);
         double cx = ch.x() * width - mouseX * config.parallax.front(), cy = ch.y() * height - mouseY * config.parallax.front();
         Vector3d seat = HomeLayout.unproject(cx, cy, depth, width, height, f);
-        PortraitSkins.Skin skin = PortraitSkins.resolve(ch.pseudo(), HomeScreens.skinSource(ch.skin()));
+        // LordFinn's CraftMaster skin ships with the mod: used when no other skin is given
+        PortraitSkins.Skin skin = ch.skin().isBlank() && ch.pseudo().equalsIgnoreCase("LordFinn") ? HomeScreens.LORDFINN_SKIN
+                : PortraitSkins.resolve(ch.pseudo(), HomeScreens.skinSource(ch.skin()));
         float x = (float) seat.x, y = (float) seat.y, z = (float) seat.z, scale = (float) ch.scale();
         // Turned by the angle asked, from facing the eye
         float yaw = (float) (HomeLayout.facingYaw(seat) + ch.angle());

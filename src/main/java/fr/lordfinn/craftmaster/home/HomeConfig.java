@@ -68,7 +68,7 @@ public final class HomeConfig {
     public String background = "";
     /** Background zoom (cover fit times this), so the parallax never shows its edges. */
     public double zoom = 1.12;
-    public Character character = new Character("LordFinn", "", true, 1.1, 1.35, 20, 0.17, 0.98);
+    public Character character = new Character("LordFinn", "", true, 1.1, 1.35, 20, 0.17, 0.86);
     public List<Player> players = new ArrayList<>(List.of(
             new Player("Ensuri", "", ""), new Player("Cyllu", "", ""), new Player("Juste", "", ""),
             new Player("Arreaubaz", "", ""), new Player("Notch", "", "")));
@@ -76,8 +76,8 @@ public final class HomeConfig {
     public Parallax parallax = new Parallax(7, 13, 20, 3, 5);
     public Panel panel = new Panel(-1, -1, 12, 6);
     public Table table = new Table(true, "mcwfurnitures:spruce_coffee_table", 1.7, 0.35, 0, 22, 1.3);
-    /** Pose of a player who has none ("" in their entry). */
-    public String defaultPose = "classique";
+    /** Pose of a player who has none ("" in their entry); "" = a different one for each frame, in turn. */
+    public String defaultPose = "";
 
     /** The defaults, written to the file on first launch. */
     public static HomeConfig defaults() {
