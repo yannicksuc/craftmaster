@@ -90,6 +90,8 @@ un clic écrit la valeur sur la feuille de la manche en cours.
   décrocher. `/craftMasterBoard lock true` réserve un tableau aux organisateurs ; `clear` efface ; `text` écrit.
 - **Socle d'exposition** : poser n'importe quel objet dessus (il flotte et tourne, son nom au-dessus) ; main vide
   pour le reprendre. Idéal pour présenter une création au juge.
+- **Garde-robe** : une armoire qui contient toutes les tenues (vêtements Selfexpression, armures) ; un clic pour
+  enfiler une tenue entière ou une seule pièce, « Mes affaires » pour revenir ([Garde-robe](GardeRobe.md)).
 - **Nommer** : `/craftMasterName <nom>` (tous) renomme l'objet tenu, codes couleur `&6`, `&l`… sans enclume ni
   XP ; sans nom : retire le nom. Les objets nommés gardent leur nom sur le socle, les props, les tableaux.
 

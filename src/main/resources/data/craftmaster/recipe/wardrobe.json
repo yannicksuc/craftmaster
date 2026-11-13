@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "PGP",
+    "PCM",
+    "PPP"
+  ],
+  "key": {
+    "P": "#minecraft:planks",
+    "G": "minecraft:gold_ingot",
+    "C": "minecraft:chest",
+    "M": "minecraft:glass_pane"
+  },
+  "result": {
+    "id": "craftmaster:wardrobe",
+    "count": 1
+  }
+}

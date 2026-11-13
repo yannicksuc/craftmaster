@@ -428,3 +428,23 @@ Binaries 3.0.1 dans `run-26.2/mods/`. Plateau posé par RCON, captures MCP.
 | Socle d'exposition en quartz et laine rouge ; pupitre en sapin, laine rouge, baguette dorée | ✔ |
 | Chaises chêne / cerisier / biscornue en 16 directions (vue de dessus), modèle validé par LordFinn | ✔ |
 | Icônes : porte-bloc, lampe torche UV, cachet, chronomètre rond, mètre, compteur, tableaux, enveloppe et lettre de LordFinn | ✔ |
+## 10. Garde-robe (vérifiée en jeu 26.2 le 12/11/2026)
+Serveur `:26.2:runServer` (jeu 26061, RCON 26062) + client 26.2 (pont MCP 26071), Selfexpression
+2.21.4-fabric.1+26.2 dans les `mods/` des deux, clics par `run-26.2/dev-input.txt` (`click`, `type`).
+- Unitaires : `DressingTest` (tenue entière, pièce seule, mélange, pièce enlevée, reprise, rangement), `OutfitSearchTest`
+  (accents, mots français → noms anglais, mots entiers) ; `gradlew build` : 307 tests sur chaque version (`OutfitColorsTest` : couleurs des pixels, contour ignoré ;
+  `OutfitTagsTest` : métiers, thèmes, couleurs, mots entiers, parties du corps, tags
+  de l'organisateur).
+- En jeu : armoire posée (deux moitiés, portes ouvertes pendant l'écran), 265 tenues (20 prêtes + ensembles du jeu),
+  11 tenues complètes enfilées une à une (médecin, policier, chevalier, roi, bouffon, mafieux, capitaine, mineur,
+  cowboy, pilote spatial, forgeron : pièces vérifiées par `data get entity … equipment`, copies marquées), chapeau
+  seul par-dessus le médecin (« Tenue mélangée »), favori (★ en tête), Mes affaires, recherche « chapeau noir »,
+  « policier », cases des pièces portées (clic droit : chapeau enlevé, le casque d'avant revient ; clic : défile
+  jusqu'à Capitaine, recherche vidée), ⇄ (policier → mes affaires → policier tête nue, comme avant), poubelle (vêtements rendus), Maj + poubelle
+  (confirmation : Non revient à l'écran, Oui supprime tout), panneau des tags (Métier, Thème… avec leurs
+  nombres ; « Médiéval » : 11 tenues), tenue supprimée restée en gris puis remise d'un clic, tags des 265 tenues relus dans `wardrobe-tags.txt`
+  (toutes ont au moins une couleur ; Ouvrier du BTP : Jaune, Bleu, Marron), infobulle à 3 tags colorés + « Maj », mode Modifier (renommer → liste propre, Remettre toutes les tenues), type rangement (vraie armure
+  rangée puis remise).
+- Pas vérifié en jeu : Emotecraft / Player Animation Library et Straw Statues (pas dans les mods de test ; aucune
+  mixin de rendu, les vêtements sont de l'armure ordinaire), deux joueurs à la même garde-robe, 26.3 en jeu.
+

@@ -23,6 +23,7 @@ import java.util.Locale;
  * drag x y dx dy [button] [mods]
  * release x y [button]
  * scroll x y amount
+ * type TEXT                      types TEXT (spaces as _) in the focused field
  * key NAME [mods]                NAME: a letter, a digit, LEFT, RIGHT, UP, DOWN, HOME, END, PAGEUP, PAGEDOWN, ESCAPE, ENTER, SPACE
  * hold NAME seconds              the key reads as held down ({@link #held}) for that long (pressed once too)
  * quit                           closes the game (stops a test client cleanly)
@@ -114,6 +115,10 @@ public final class DevInput {
                 int[] k = keyCode(a[1]);
                 HELD.put(k[0], System.nanoTime() + (long) (Double.parseDouble(a.length > 2 ? a[2] : "1") * 1e9));
                 s.keyPressed(new KeyEvent(k[0], k[1], 0));
+            }
+            case "type" -> {
+                String text = String.join(" ", java.util.Arrays.copyOfRange(a, 1, a.length)).replace('_', ' ');
+                text.codePoints().forEach(cp -> s.charTyped(new net.minecraft.client.input.CharacterEvent(cp)));
             }
             case "slowmo" -> slow = Math.max(0.01f, Float.parseFloat(a[1]));
             case "key" -> {

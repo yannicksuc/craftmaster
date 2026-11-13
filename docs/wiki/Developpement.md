@@ -82,6 +82,7 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
                           camera_request), BroadcastActions (actions camera.* / broadcast.* / show.*, vérifiées
                           sans serveur), Credits (génériques d'ouverture et de fin), MancheIntros (intros de manche)
   task/                   tâches, enveloppes, notes cachées (chantier D, docs/wiki/Taches.md)
+  wardrobe/               garde-robe : tenues, changement de tenue (Dressing), recherche, tenues prêtes (GardeRobe.md)
     Tasks                 règle du secret, révélation, tâche du moment envoyée à chacun, cartes, enveloppes,
                           effets des actions task.* / envelope.give ; contrat openPaper / reveal
     Notes                 cachettes (clic droit / accroupi selon le bloc, entités), trouvailles, éditeur, outil
