@@ -77,12 +77,24 @@ public final class ActionExecutor {
 
     /** For commands: runs the actions and prints the lines to the source (green when done, red otherwise). */
     public static int execute(CommandSourceStack source, List<Map<String, Object>> actions) {
-        Result r = execute(source.getServer(), actions);
+        Result r = command(source, actions);
         for (String line : r.lines()) {
             if (r.ok()) source.sendSuccess(() -> Component.literal(line).withStyle(ChatFormatting.GREEN), true);
             else source.sendFailure(Component.literal(line));
         }
         return r.ok() ? 1 : 0;
+    }
+
+    /**
+     * A command's actions, written in the journal under who typed it (the console: "console"). No right is checked
+     * again: each command already has its permission (Brigadier's {@code requires}). For commands that show the lines
+     * their own way (e.g. /cmtele).
+     */
+    public static Result command(CommandSourceStack source, List<Map<String, Object>> actions) {
+        Result r = execute(source.getServer(), actions);
+        String who = source.getPlayer() != null ? source.getPlayer().getPlainTextName() : source.getTextName();
+        ActionJournal.add(new Actor(who, "commande", java.util.EnumSet.of(Rights.Right.ADMIN)), r.ok(), r.lines());
+        return r;
     }
 
     /** Busts, labels and open ranking screens follow the data. */
