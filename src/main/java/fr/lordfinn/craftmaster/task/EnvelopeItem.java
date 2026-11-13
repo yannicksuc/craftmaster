@@ -25,7 +25,8 @@ import java.util.function.Consumer;
 
 /**
  * The sealed envelope: right-click opens it (animated opening, then the card), an opened one is read again.
- * Crouching and using it on the top of a block lays it there ({@link EnvelopeBlock}), to be picked up later.
+ * Crouching and using it on a block puts it there ({@link EnvelopeBlock}): on top, on a wall, on the ceiling, under a
+ * chain (hanging), to be picked up later.
  */
 public class EnvelopeItem extends Item {
 
@@ -50,9 +51,9 @@ public class EnvelopeItem extends Item {
     @Override
     public InteractionResult useOn(UseOnContext ctx) {
         Player player = ctx.getPlayer();
-        if (player == null || !player.isShiftKeyDown() || ctx.getClickedFace() != Direction.UP)
+        if (player == null || !player.isShiftKeyDown())
             return use(ctx.getLevel(), player, ctx.getHand());
-        // Laid on the table
+        // Put on the table, the wall, the ceiling or under a chain
         BlockPlaceContext place = new BlockPlaceContext(ctx);
         BlockPos pos = place.getClickedPos();
         Level level = ctx.getLevel();

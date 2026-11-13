@@ -59,7 +59,9 @@ public final class TaskFraming {
         Vec subject;
         Vec env = null;
         if (envelope != null) {
-            env = new Vec(envelope.getX() + 0.5, envelope.getY() + 0.3, envelope.getZ() + 0.5);
+            // Wherever it is: on a table, a wall, the ceiling, hanging from a chain
+            double[] c = fr.lordfinn.craftmaster.task.EnvelopeBlock.center(level.getBlockState(envelope));
+            env = new Vec(envelope.getX() + c[0], envelope.getY() + c[1], envelope.getZ() + c[2]);
             // Between the arrival and the envelope, closer to the envelope: the task is what the shot is about
             subject = eyes.add(0, -0.6, 0).lerp(env, 0.6);
         } else {

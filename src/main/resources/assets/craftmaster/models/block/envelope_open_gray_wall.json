@@ -1,0 +1,6 @@
+{
+  "parent": "craftmaster:block/envelope_wall_template",
+  "textures": {
+    "top": "craftmaster:block/envelope_open_gray"
+  }
+}

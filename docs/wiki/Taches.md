@@ -93,7 +93,13 @@ s'annulent avec `/craftMasterUndo`.
 - **Ouvrir** : clic droit avec l'enveloppe en main, puis arracher le sceau (voir « Ouvrir la lettre »). L'enveloppe
   devient « ouverte » (lettre dépliée, cire brisée) et se relit d'un clic droit. Une enveloppe liée à une manche lit toujours la dernière version de la tâche.
   Annonce à tous (barre d'action + son) quand le sceau saute : « ✉ Ensuri ouvre sa tâche ».
-- **Sur la table** : accroupi + clic droit sur le dessus d'un bloc pose l'enveloppe (bloc plat, cire de sa couleur).
+- **Où la poser** : accroupi + clic droit sur un bloc pose l'enveloppe (cire de sa couleur), selon la face visée :
+  - le **dessus** : à plat sur la table ;
+  - un **côté** : épinglée au mur, debout ;
+  - le **dessous** : collée au plafond, à plat ;
+  - le **dessous d'une chaîne** (fer ou cuivre) : **pendue** au bout d'un petit bout de chaîne, de face vers le joueur.
+  Une chaîne utilisée (clic droit) sur une enveloppe du plafond la suspend ; une seconde fois, la remet à plat.
+  La caméra « lieu de la tâche » de l'intro vise l'enveloppe où qu'elle soit.
   **Clic droit dessus = la lire sur place**, comme en main (arracher le sceau, puis relire) : elle reste posée,
   ouverte. **La casser = la récupérer** (elle tombe avec son contenu ; en créatif elle va dans l'inventaire) ;
   accroupi + clic droit la ramasse aussi (dans la main).

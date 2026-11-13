@@ -1,363 +1,1443 @@
 {
   "variants": {
-    "facing=north,open=false,wax=red": {
+    "facing=north,mount=floor,open=false,wax=red": {
       "model": "craftmaster:block/envelope_red"
     },
-    "facing=east,open=false,wax=red": {
+    "facing=east,mount=floor,open=false,wax=red": {
       "model": "craftmaster:block/envelope_red",
       "y": 90
     },
-    "facing=south,open=false,wax=red": {
+    "facing=south,mount=floor,open=false,wax=red": {
       "model": "craftmaster:block/envelope_red",
       "y": 180
     },
-    "facing=west,open=false,wax=red": {
+    "facing=west,mount=floor,open=false,wax=red": {
       "model": "craftmaster:block/envelope_red",
       "y": 270
     },
-    "facing=north,open=true,wax=red": {
+    "facing=north,mount=wall,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red_wall"
+    },
+    "facing=east,mount=wall,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red_ceiling"
+    },
+    "facing=east,mount=ceiling,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red_hanging"
+    },
+    "facing=east,mount=hanging,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=false,wax=red": {
+      "model": "craftmaster:block/envelope_red_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=true,wax=red": {
       "model": "craftmaster:block/envelope_open_red"
     },
-    "facing=east,open=true,wax=red": {
+    "facing=east,mount=floor,open=true,wax=red": {
       "model": "craftmaster:block/envelope_open_red",
       "y": 90
     },
-    "facing=south,open=true,wax=red": {
+    "facing=south,mount=floor,open=true,wax=red": {
       "model": "craftmaster:block/envelope_open_red",
       "y": 180
     },
-    "facing=west,open=true,wax=red": {
+    "facing=west,mount=floor,open=true,wax=red": {
       "model": "craftmaster:block/envelope_open_red",
       "y": 270
     },
-    "facing=north,open=false,wax=gold": {
+    "facing=north,mount=wall,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red_wall"
+    },
+    "facing=east,mount=wall,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red_ceiling"
+    },
+    "facing=east,mount=ceiling,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red_hanging"
+    },
+    "facing=east,mount=hanging,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=true,wax=red": {
+      "model": "craftmaster:block/envelope_open_red_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=false,wax=gold": {
       "model": "craftmaster:block/envelope_gold"
     },
-    "facing=east,open=false,wax=gold": {
+    "facing=east,mount=floor,open=false,wax=gold": {
       "model": "craftmaster:block/envelope_gold",
       "y": 90
     },
-    "facing=south,open=false,wax=gold": {
+    "facing=south,mount=floor,open=false,wax=gold": {
       "model": "craftmaster:block/envelope_gold",
       "y": 180
     },
-    "facing=west,open=false,wax=gold": {
+    "facing=west,mount=floor,open=false,wax=gold": {
       "model": "craftmaster:block/envelope_gold",
       "y": 270
     },
-    "facing=north,open=true,wax=gold": {
+    "facing=north,mount=wall,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold_wall"
+    },
+    "facing=east,mount=wall,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold_ceiling"
+    },
+    "facing=east,mount=ceiling,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold_hanging"
+    },
+    "facing=east,mount=hanging,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=false,wax=gold": {
+      "model": "craftmaster:block/envelope_gold_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=true,wax=gold": {
       "model": "craftmaster:block/envelope_open_gold"
     },
-    "facing=east,open=true,wax=gold": {
+    "facing=east,mount=floor,open=true,wax=gold": {
       "model": "craftmaster:block/envelope_open_gold",
       "y": 90
     },
-    "facing=south,open=true,wax=gold": {
+    "facing=south,mount=floor,open=true,wax=gold": {
       "model": "craftmaster:block/envelope_open_gold",
       "y": 180
     },
-    "facing=west,open=true,wax=gold": {
+    "facing=west,mount=floor,open=true,wax=gold": {
       "model": "craftmaster:block/envelope_open_gold",
       "y": 270
     },
-    "facing=north,open=false,wax=black": {
+    "facing=north,mount=wall,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold_wall"
+    },
+    "facing=east,mount=wall,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold_ceiling"
+    },
+    "facing=east,mount=ceiling,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold_hanging"
+    },
+    "facing=east,mount=hanging,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=true,wax=gold": {
+      "model": "craftmaster:block/envelope_open_gold_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=false,wax=black": {
       "model": "craftmaster:block/envelope_black"
     },
-    "facing=east,open=false,wax=black": {
+    "facing=east,mount=floor,open=false,wax=black": {
       "model": "craftmaster:block/envelope_black",
       "y": 90
     },
-    "facing=south,open=false,wax=black": {
+    "facing=south,mount=floor,open=false,wax=black": {
       "model": "craftmaster:block/envelope_black",
       "y": 180
     },
-    "facing=west,open=false,wax=black": {
+    "facing=west,mount=floor,open=false,wax=black": {
       "model": "craftmaster:block/envelope_black",
       "y": 270
     },
-    "facing=north,open=true,wax=black": {
+    "facing=north,mount=wall,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black_wall"
+    },
+    "facing=east,mount=wall,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black_ceiling"
+    },
+    "facing=east,mount=ceiling,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black_hanging"
+    },
+    "facing=east,mount=hanging,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=false,wax=black": {
+      "model": "craftmaster:block/envelope_black_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=true,wax=black": {
       "model": "craftmaster:block/envelope_open_black"
     },
-    "facing=east,open=true,wax=black": {
+    "facing=east,mount=floor,open=true,wax=black": {
       "model": "craftmaster:block/envelope_open_black",
       "y": 90
     },
-    "facing=south,open=true,wax=black": {
+    "facing=south,mount=floor,open=true,wax=black": {
       "model": "craftmaster:block/envelope_open_black",
       "y": 180
     },
-    "facing=west,open=true,wax=black": {
+    "facing=west,mount=floor,open=true,wax=black": {
       "model": "craftmaster:block/envelope_open_black",
       "y": 270
     },
-    "facing=north,open=false,wax=white": {
+    "facing=north,mount=wall,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black_wall"
+    },
+    "facing=east,mount=wall,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black_ceiling"
+    },
+    "facing=east,mount=ceiling,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black_hanging"
+    },
+    "facing=east,mount=hanging,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=true,wax=black": {
+      "model": "craftmaster:block/envelope_open_black_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=false,wax=white": {
       "model": "craftmaster:block/envelope_white"
     },
-    "facing=east,open=false,wax=white": {
+    "facing=east,mount=floor,open=false,wax=white": {
       "model": "craftmaster:block/envelope_white",
       "y": 90
     },
-    "facing=south,open=false,wax=white": {
+    "facing=south,mount=floor,open=false,wax=white": {
       "model": "craftmaster:block/envelope_white",
       "y": 180
     },
-    "facing=west,open=false,wax=white": {
+    "facing=west,mount=floor,open=false,wax=white": {
       "model": "craftmaster:block/envelope_white",
       "y": 270
     },
-    "facing=north,open=true,wax=white": {
+    "facing=north,mount=wall,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white_wall"
+    },
+    "facing=east,mount=wall,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white_ceiling"
+    },
+    "facing=east,mount=ceiling,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white_hanging"
+    },
+    "facing=east,mount=hanging,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=false,wax=white": {
+      "model": "craftmaster:block/envelope_white_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=true,wax=white": {
       "model": "craftmaster:block/envelope_open_white"
     },
-    "facing=east,open=true,wax=white": {
+    "facing=east,mount=floor,open=true,wax=white": {
       "model": "craftmaster:block/envelope_open_white",
       "y": 90
     },
-    "facing=south,open=true,wax=white": {
+    "facing=south,mount=floor,open=true,wax=white": {
       "model": "craftmaster:block/envelope_open_white",
       "y": 180
     },
-    "facing=west,open=true,wax=white": {
+    "facing=west,mount=floor,open=true,wax=white": {
       "model": "craftmaster:block/envelope_open_white",
       "y": 270
     },
-    "facing=north,open=false,wax=blue": {
+    "facing=north,mount=wall,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white_wall"
+    },
+    "facing=east,mount=wall,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white_ceiling"
+    },
+    "facing=east,mount=ceiling,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white_hanging"
+    },
+    "facing=east,mount=hanging,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=true,wax=white": {
+      "model": "craftmaster:block/envelope_open_white_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=false,wax=blue": {
       "model": "craftmaster:block/envelope_blue"
     },
-    "facing=east,open=false,wax=blue": {
+    "facing=east,mount=floor,open=false,wax=blue": {
       "model": "craftmaster:block/envelope_blue",
       "y": 90
     },
-    "facing=south,open=false,wax=blue": {
+    "facing=south,mount=floor,open=false,wax=blue": {
       "model": "craftmaster:block/envelope_blue",
       "y": 180
     },
-    "facing=west,open=false,wax=blue": {
+    "facing=west,mount=floor,open=false,wax=blue": {
       "model": "craftmaster:block/envelope_blue",
       "y": 270
     },
-    "facing=north,open=true,wax=blue": {
+    "facing=north,mount=wall,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue_wall"
+    },
+    "facing=east,mount=wall,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue_ceiling"
+    },
+    "facing=east,mount=ceiling,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue_hanging"
+    },
+    "facing=east,mount=hanging,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=false,wax=blue": {
+      "model": "craftmaster:block/envelope_blue_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=true,wax=blue": {
       "model": "craftmaster:block/envelope_open_blue"
     },
-    "facing=east,open=true,wax=blue": {
+    "facing=east,mount=floor,open=true,wax=blue": {
       "model": "craftmaster:block/envelope_open_blue",
       "y": 90
     },
-    "facing=south,open=true,wax=blue": {
+    "facing=south,mount=floor,open=true,wax=blue": {
       "model": "craftmaster:block/envelope_open_blue",
       "y": 180
     },
-    "facing=west,open=true,wax=blue": {
+    "facing=west,mount=floor,open=true,wax=blue": {
       "model": "craftmaster:block/envelope_open_blue",
       "y": 270
     },
-    "facing=north,open=false,wax=green": {
+    "facing=north,mount=wall,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue_wall"
+    },
+    "facing=east,mount=wall,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue_ceiling"
+    },
+    "facing=east,mount=ceiling,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue_hanging"
+    },
+    "facing=east,mount=hanging,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=true,wax=blue": {
+      "model": "craftmaster:block/envelope_open_blue_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=false,wax=green": {
       "model": "craftmaster:block/envelope_green"
     },
-    "facing=east,open=false,wax=green": {
+    "facing=east,mount=floor,open=false,wax=green": {
       "model": "craftmaster:block/envelope_green",
       "y": 90
     },
-    "facing=south,open=false,wax=green": {
+    "facing=south,mount=floor,open=false,wax=green": {
       "model": "craftmaster:block/envelope_green",
       "y": 180
     },
-    "facing=west,open=false,wax=green": {
+    "facing=west,mount=floor,open=false,wax=green": {
       "model": "craftmaster:block/envelope_green",
       "y": 270
     },
-    "facing=north,open=true,wax=green": {
+    "facing=north,mount=wall,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green_wall"
+    },
+    "facing=east,mount=wall,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green_ceiling"
+    },
+    "facing=east,mount=ceiling,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green_hanging"
+    },
+    "facing=east,mount=hanging,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=false,wax=green": {
+      "model": "craftmaster:block/envelope_green_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=true,wax=green": {
       "model": "craftmaster:block/envelope_open_green"
     },
-    "facing=east,open=true,wax=green": {
+    "facing=east,mount=floor,open=true,wax=green": {
       "model": "craftmaster:block/envelope_open_green",
       "y": 90
     },
-    "facing=south,open=true,wax=green": {
+    "facing=south,mount=floor,open=true,wax=green": {
       "model": "craftmaster:block/envelope_open_green",
       "y": 180
     },
-    "facing=west,open=true,wax=green": {
+    "facing=west,mount=floor,open=true,wax=green": {
       "model": "craftmaster:block/envelope_open_green",
       "y": 270
     },
-    "facing=north,open=false,wax=purple": {
+    "facing=north,mount=wall,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green_wall"
+    },
+    "facing=east,mount=wall,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green_ceiling"
+    },
+    "facing=east,mount=ceiling,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green_hanging"
+    },
+    "facing=east,mount=hanging,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=true,wax=green": {
+      "model": "craftmaster:block/envelope_open_green_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=false,wax=purple": {
       "model": "craftmaster:block/envelope_purple"
     },
-    "facing=east,open=false,wax=purple": {
+    "facing=east,mount=floor,open=false,wax=purple": {
       "model": "craftmaster:block/envelope_purple",
       "y": 90
     },
-    "facing=south,open=false,wax=purple": {
+    "facing=south,mount=floor,open=false,wax=purple": {
       "model": "craftmaster:block/envelope_purple",
       "y": 180
     },
-    "facing=west,open=false,wax=purple": {
+    "facing=west,mount=floor,open=false,wax=purple": {
       "model": "craftmaster:block/envelope_purple",
       "y": 270
     },
-    "facing=north,open=true,wax=purple": {
+    "facing=north,mount=wall,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple_wall"
+    },
+    "facing=east,mount=wall,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple_ceiling"
+    },
+    "facing=east,mount=ceiling,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple_hanging"
+    },
+    "facing=east,mount=hanging,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=false,wax=purple": {
+      "model": "craftmaster:block/envelope_purple_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=true,wax=purple": {
       "model": "craftmaster:block/envelope_open_purple"
     },
-    "facing=east,open=true,wax=purple": {
+    "facing=east,mount=floor,open=true,wax=purple": {
       "model": "craftmaster:block/envelope_open_purple",
       "y": 90
     },
-    "facing=south,open=true,wax=purple": {
+    "facing=south,mount=floor,open=true,wax=purple": {
       "model": "craftmaster:block/envelope_open_purple",
       "y": 180
     },
-    "facing=west,open=true,wax=purple": {
+    "facing=west,mount=floor,open=true,wax=purple": {
       "model": "craftmaster:block/envelope_open_purple",
       "y": 270
     },
-    "facing=north,open=false,wax=pink": {
+    "facing=north,mount=wall,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple_wall"
+    },
+    "facing=east,mount=wall,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple_ceiling"
+    },
+    "facing=east,mount=ceiling,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple_hanging"
+    },
+    "facing=east,mount=hanging,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=true,wax=purple": {
+      "model": "craftmaster:block/envelope_open_purple_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=false,wax=pink": {
       "model": "craftmaster:block/envelope_pink"
     },
-    "facing=east,open=false,wax=pink": {
+    "facing=east,mount=floor,open=false,wax=pink": {
       "model": "craftmaster:block/envelope_pink",
       "y": 90
     },
-    "facing=south,open=false,wax=pink": {
+    "facing=south,mount=floor,open=false,wax=pink": {
       "model": "craftmaster:block/envelope_pink",
       "y": 180
     },
-    "facing=west,open=false,wax=pink": {
+    "facing=west,mount=floor,open=false,wax=pink": {
       "model": "craftmaster:block/envelope_pink",
       "y": 270
     },
-    "facing=north,open=true,wax=pink": {
+    "facing=north,mount=wall,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink_wall"
+    },
+    "facing=east,mount=wall,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink_ceiling"
+    },
+    "facing=east,mount=ceiling,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink_hanging"
+    },
+    "facing=east,mount=hanging,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=false,wax=pink": {
+      "model": "craftmaster:block/envelope_pink_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=true,wax=pink": {
       "model": "craftmaster:block/envelope_open_pink"
     },
-    "facing=east,open=true,wax=pink": {
+    "facing=east,mount=floor,open=true,wax=pink": {
       "model": "craftmaster:block/envelope_open_pink",
       "y": 90
     },
-    "facing=south,open=true,wax=pink": {
+    "facing=south,mount=floor,open=true,wax=pink": {
       "model": "craftmaster:block/envelope_open_pink",
       "y": 180
     },
-    "facing=west,open=true,wax=pink": {
+    "facing=west,mount=floor,open=true,wax=pink": {
       "model": "craftmaster:block/envelope_open_pink",
       "y": 270
     },
-    "facing=north,open=false,wax=orange": {
+    "facing=north,mount=wall,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink_wall"
+    },
+    "facing=east,mount=wall,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink_ceiling"
+    },
+    "facing=east,mount=ceiling,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink_hanging"
+    },
+    "facing=east,mount=hanging,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=true,wax=pink": {
+      "model": "craftmaster:block/envelope_open_pink_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=false,wax=orange": {
       "model": "craftmaster:block/envelope_orange"
     },
-    "facing=east,open=false,wax=orange": {
+    "facing=east,mount=floor,open=false,wax=orange": {
       "model": "craftmaster:block/envelope_orange",
       "y": 90
     },
-    "facing=south,open=false,wax=orange": {
+    "facing=south,mount=floor,open=false,wax=orange": {
       "model": "craftmaster:block/envelope_orange",
       "y": 180
     },
-    "facing=west,open=false,wax=orange": {
+    "facing=west,mount=floor,open=false,wax=orange": {
       "model": "craftmaster:block/envelope_orange",
       "y": 270
     },
-    "facing=north,open=true,wax=orange": {
+    "facing=north,mount=wall,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange_wall"
+    },
+    "facing=east,mount=wall,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange_ceiling"
+    },
+    "facing=east,mount=ceiling,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange_hanging"
+    },
+    "facing=east,mount=hanging,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=false,wax=orange": {
+      "model": "craftmaster:block/envelope_orange_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=true,wax=orange": {
       "model": "craftmaster:block/envelope_open_orange"
     },
-    "facing=east,open=true,wax=orange": {
+    "facing=east,mount=floor,open=true,wax=orange": {
       "model": "craftmaster:block/envelope_open_orange",
       "y": 90
     },
-    "facing=south,open=true,wax=orange": {
+    "facing=south,mount=floor,open=true,wax=orange": {
       "model": "craftmaster:block/envelope_open_orange",
       "y": 180
     },
-    "facing=west,open=true,wax=orange": {
+    "facing=west,mount=floor,open=true,wax=orange": {
       "model": "craftmaster:block/envelope_open_orange",
       "y": 270
     },
-    "facing=north,open=false,wax=cyan": {
+    "facing=north,mount=wall,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange_wall"
+    },
+    "facing=east,mount=wall,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange_ceiling"
+    },
+    "facing=east,mount=ceiling,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange_hanging"
+    },
+    "facing=east,mount=hanging,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=true,wax=orange": {
+      "model": "craftmaster:block/envelope_open_orange_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=false,wax=cyan": {
       "model": "craftmaster:block/envelope_cyan"
     },
-    "facing=east,open=false,wax=cyan": {
+    "facing=east,mount=floor,open=false,wax=cyan": {
       "model": "craftmaster:block/envelope_cyan",
       "y": 90
     },
-    "facing=south,open=false,wax=cyan": {
+    "facing=south,mount=floor,open=false,wax=cyan": {
       "model": "craftmaster:block/envelope_cyan",
       "y": 180
     },
-    "facing=west,open=false,wax=cyan": {
+    "facing=west,mount=floor,open=false,wax=cyan": {
       "model": "craftmaster:block/envelope_cyan",
       "y": 270
     },
-    "facing=north,open=true,wax=cyan": {
+    "facing=north,mount=wall,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan_wall"
+    },
+    "facing=east,mount=wall,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan_ceiling"
+    },
+    "facing=east,mount=ceiling,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan_hanging"
+    },
+    "facing=east,mount=hanging,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=false,wax=cyan": {
+      "model": "craftmaster:block/envelope_cyan_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=true,wax=cyan": {
       "model": "craftmaster:block/envelope_open_cyan"
     },
-    "facing=east,open=true,wax=cyan": {
+    "facing=east,mount=floor,open=true,wax=cyan": {
       "model": "craftmaster:block/envelope_open_cyan",
       "y": 90
     },
-    "facing=south,open=true,wax=cyan": {
+    "facing=south,mount=floor,open=true,wax=cyan": {
       "model": "craftmaster:block/envelope_open_cyan",
       "y": 180
     },
-    "facing=west,open=true,wax=cyan": {
+    "facing=west,mount=floor,open=true,wax=cyan": {
       "model": "craftmaster:block/envelope_open_cyan",
       "y": 270
     },
-    "facing=north,open=false,wax=brown": {
+    "facing=north,mount=wall,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan_wall"
+    },
+    "facing=east,mount=wall,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan_ceiling"
+    },
+    "facing=east,mount=ceiling,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan_hanging"
+    },
+    "facing=east,mount=hanging,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=true,wax=cyan": {
+      "model": "craftmaster:block/envelope_open_cyan_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=false,wax=brown": {
       "model": "craftmaster:block/envelope_brown"
     },
-    "facing=east,open=false,wax=brown": {
+    "facing=east,mount=floor,open=false,wax=brown": {
       "model": "craftmaster:block/envelope_brown",
       "y": 90
     },
-    "facing=south,open=false,wax=brown": {
+    "facing=south,mount=floor,open=false,wax=brown": {
       "model": "craftmaster:block/envelope_brown",
       "y": 180
     },
-    "facing=west,open=false,wax=brown": {
+    "facing=west,mount=floor,open=false,wax=brown": {
       "model": "craftmaster:block/envelope_brown",
       "y": 270
     },
-    "facing=north,open=true,wax=brown": {
+    "facing=north,mount=wall,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown_wall"
+    },
+    "facing=east,mount=wall,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown_ceiling"
+    },
+    "facing=east,mount=ceiling,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown_hanging"
+    },
+    "facing=east,mount=hanging,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=false,wax=brown": {
+      "model": "craftmaster:block/envelope_brown_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=true,wax=brown": {
       "model": "craftmaster:block/envelope_open_brown"
     },
-    "facing=east,open=true,wax=brown": {
+    "facing=east,mount=floor,open=true,wax=brown": {
       "model": "craftmaster:block/envelope_open_brown",
       "y": 90
     },
-    "facing=south,open=true,wax=brown": {
+    "facing=south,mount=floor,open=true,wax=brown": {
       "model": "craftmaster:block/envelope_open_brown",
       "y": 180
     },
-    "facing=west,open=true,wax=brown": {
+    "facing=west,mount=floor,open=true,wax=brown": {
       "model": "craftmaster:block/envelope_open_brown",
       "y": 270
     },
-    "facing=north,open=false,wax=gray": {
+    "facing=north,mount=wall,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown_wall"
+    },
+    "facing=east,mount=wall,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown_ceiling"
+    },
+    "facing=east,mount=ceiling,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown_hanging"
+    },
+    "facing=east,mount=hanging,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=true,wax=brown": {
+      "model": "craftmaster:block/envelope_open_brown_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=false,wax=gray": {
       "model": "craftmaster:block/envelope_gray"
     },
-    "facing=east,open=false,wax=gray": {
+    "facing=east,mount=floor,open=false,wax=gray": {
       "model": "craftmaster:block/envelope_gray",
       "y": 90
     },
-    "facing=south,open=false,wax=gray": {
+    "facing=south,mount=floor,open=false,wax=gray": {
       "model": "craftmaster:block/envelope_gray",
       "y": 180
     },
-    "facing=west,open=false,wax=gray": {
+    "facing=west,mount=floor,open=false,wax=gray": {
       "model": "craftmaster:block/envelope_gray",
       "y": 270
     },
-    "facing=north,open=true,wax=gray": {
+    "facing=north,mount=wall,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray_wall"
+    },
+    "facing=east,mount=wall,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray_ceiling"
+    },
+    "facing=east,mount=ceiling,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray_hanging"
+    },
+    "facing=east,mount=hanging,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=false,wax=gray": {
+      "model": "craftmaster:block/envelope_gray_hanging",
+      "y": 270
+    },
+    "facing=north,mount=floor,open=true,wax=gray": {
       "model": "craftmaster:block/envelope_open_gray"
     },
-    "facing=east,open=true,wax=gray": {
+    "facing=east,mount=floor,open=true,wax=gray": {
       "model": "craftmaster:block/envelope_open_gray",
       "y": 90
     },
-    "facing=south,open=true,wax=gray": {
+    "facing=south,mount=floor,open=true,wax=gray": {
       "model": "craftmaster:block/envelope_open_gray",
       "y": 180
     },
-    "facing=west,open=true,wax=gray": {
+    "facing=west,mount=floor,open=true,wax=gray": {
       "model": "craftmaster:block/envelope_open_gray",
+      "y": 270
+    },
+    "facing=north,mount=wall,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray_wall"
+    },
+    "facing=east,mount=wall,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray_wall",
+      "y": 90
+    },
+    "facing=south,mount=wall,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray_wall",
+      "y": 180
+    },
+    "facing=west,mount=wall,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray_wall",
+      "y": 270
+    },
+    "facing=north,mount=ceiling,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray_ceiling"
+    },
+    "facing=east,mount=ceiling,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray_ceiling",
+      "y": 90
+    },
+    "facing=south,mount=ceiling,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray_ceiling",
+      "y": 180
+    },
+    "facing=west,mount=ceiling,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray_ceiling",
+      "y": 270
+    },
+    "facing=north,mount=hanging,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray_hanging"
+    },
+    "facing=east,mount=hanging,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray_hanging",
+      "y": 90
+    },
+    "facing=south,mount=hanging,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray_hanging",
+      "y": 180
+    },
+    "facing=west,mount=hanging,open=true,wax=gray": {
+      "model": "craftmaster:block/envelope_open_gray_hanging",
       "y": 270
     }
   }

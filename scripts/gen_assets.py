@@ -633,6 +633,9 @@ write_png(os.path.join(A, "textures/gui/broadcast/seal.png"), 32, 32, SEAL)
 SOUNDS.update({
     "show.theme": {"category": "record", "subtitle": "subtitles.craftmaster.show.theme",
                    "sounds": [{"name": "craftmaster:show/theme", "stream": True}]},
+    # The task intro music (scripts/gen_intro_music.py), 120 BPM, 40 beats then the sting
+    "show.intro": {"category": "record", "subtitle": "subtitles.craftmaster.show.intro",
+                   "sounds": [{"name": "craftmaster:show/intro", "stream": True}]},
 })
 # ==================================================================================================================
 
@@ -896,6 +899,13 @@ en.update({
     "entity.craftmaster.camera": "Studio Camera",
     "key.craftmaster.broadcast": "Broadcast mode (TV picture)",
     "subtitles.craftmaster.show.theme": "CraftMaster theme plays",
+    "subtitles.craftmaster.show.intro": "Task intro music plays",
+    # The intro's broadcast effects (client/fx, not wearable, so not in gen_fx.py's list)
+    "fx.craftmaster.look_intro": "intro look",
+    "fx.craftmaster.macro": "macro",
+    "fx.craftmaster.mise_au_point": "focus pull",
+    "fx.craftmaster.stop_motion": "stop motion",
+    "fx.craftmaster.timelapse": "timelapse",
 })
 fr.update({
     "item.craftmaster.camera": "Caméra de studio",
@@ -903,6 +913,12 @@ fr.update({
     "entity.craftmaster.camera": "Caméra de studio",
     "key.craftmaster.broadcast": "Mode diffusion (image TV)",
     "subtitles.craftmaster.show.theme": "Générique CraftMaster",
+    "subtitles.craftmaster.show.intro": "Musique d’intro d’épreuve",
+    "fx.craftmaster.look_intro": "look intro",
+    "fx.craftmaster.macro": "macro",
+    "fx.craftmaster.mise_au_point": "bascule de mise au point",
+    "fx.craftmaster.stop_motion": "stop motion",
+    "fx.craftmaster.timelapse": "timelapse",
 })
 
 # ---- TV direction, lieux / travellings / intros (chantier E, second part): the "Repère de travelling" item, a
@@ -1379,6 +1395,29 @@ env_model = {"parent": "minecraft:block/block", "textures": {"particle": "#top"}
         "north": {"texture": "#top", "uv": [2, 4, 14, 5]}, "south": {"texture": "#top", "uv": [2, 11, 14, 12]},
         "east": {"texture": "#top", "uv": [2, 4, 10, 5]}, "west": {"texture": "#top", "uv": [2, 4, 10, 5]}}}]}
 write_json(os.path.join(A, "models/block/envelope_template.json"), env_model)
+# The same letter pinned to a wall (facing north = out of the wall, the wall at the south), stuck to the ceiling (seen
+# from below, the flap away from the player as on the floor) and hanging under a short chain (front facing north)
+env_side = {"north": {"texture": "#top", "uv": [2, 4, 14, 5]}, "south": {"texture": "#top", "uv": [2, 11, 14, 12]},
+            "east": {"texture": "#top", "uv": [2, 4, 10, 5]}, "west": {"texture": "#top", "uv": [2, 4, 10, 5]}}
+env_upright = {"north": {"texture": "#top", "uv": [2, 4, 14, 12]}, "south": {"texture": "#top", "uv": [14, 4, 2, 12]},
+               "up": {"texture": "#top", "uv": [2, 4, 14, 5]}, "down": {"texture": "#top", "uv": [2, 11, 14, 12]},
+               "east": {"texture": "#top", "uv": [2, 4, 3, 12]}, "west": {"texture": "#top", "uv": [13, 4, 14, 12]}}
+env_mount_models = {
+    "wall": [{"from": [2, 4, 15], "to": [14, 12, 16], "faces": env_upright}],
+    "ceiling": [{"from": [2, 15, 4], "to": [14, 16, 12], "faces": {
+        "down": {"texture": "#top", "uv": [2, 12, 14, 4]}, "up": {"texture": "#top", "uv": [2, 4, 14, 12]}, **env_side}}],
+    "hanging": [
+        {"from": [2, 1, 7.5], "to": [14, 9, 8.5], "faces": env_upright},
+        # The chain, as vanilla's (two crossed planes), from the top of the letter to the ceiling
+        {"from": [6.5, 9, 8], "to": [9.5, 16, 8], "rotation": {"origin": [8, 8, 8], "axis": "y", "angle": 45}, "shade": False,
+         "faces": {"north": {"uv": [3, 0, 0, 7], "texture": "#chain"}, "south": {"uv": [0, 0, 3, 7], "texture": "#chain"}}},
+        {"from": [8, 9, 6.5], "to": [8, 16, 9.5], "rotation": {"origin": [8, 8, 8], "axis": "y", "angle": 45}, "shade": False,
+         "faces": {"west": {"uv": [6, 0, 3, 7], "texture": "#chain"}, "east": {"uv": [3, 0, 6, 7], "texture": "#chain"}}}],
+}
+for mount, elements in env_mount_models.items():
+    tex = {"particle": "#top", **({"chain": "minecraft:block/iron_chain"} if mount == "hanging" else {})}
+    write_json(os.path.join(A, f"models/block/envelope_{mount}_template.json"),
+               {"parent": "minecraft:block/block", "textures": tex, "elements": elements})
 env_variants = {}
 for wax in D_WAX:
     for opened in (False, True):
@@ -1386,9 +1425,14 @@ for wax in D_WAX:
         d_save(f"textures/block/{name}.png", d_envelope_top(wax, opened))
         write_json(os.path.join(A, f"models/block/{name}.json"),
                    {"parent": "craftmaster:block/envelope_template", "textures": {"top": f"craftmaster:block/{name}"}})
-        for f, yrot in FACING_Y.items():
-            env_variants[f"facing={f},open={'true' if opened else 'false'},wax={wax}"] = {
-                "model": f"craftmaster:block/{name}", **({"y": yrot} if yrot else {})}
+        for mount in env_mount_models:
+            write_json(os.path.join(A, f"models/block/{name}_{mount}.json"),
+                       {"parent": f"craftmaster:block/envelope_{mount}_template", "textures": {"top": f"craftmaster:block/{name}"}})
+        for mount in ("floor", *env_mount_models):
+            model = f"craftmaster:block/{name}" + ("" if mount == "floor" else f"_{mount}")
+            for f, yrot in FACING_Y.items():
+                env_variants[f"facing={f},mount={mount},open={'true' if opened else 'false'},wax={wax}"] = {
+                    "model": model, **({"y": yrot} if yrot else {})}
 write_json(os.path.join(A, "blockstates/envelope_block.json"), {"variants": env_variants})
 
 pinned_rows = [
@@ -1438,7 +1482,7 @@ D_EN = {
     "item.craftmaster.envelope.wax": "Wax: %s",
     "item.craftmaster.envelope.hint": "Right-click to break the seal",
     "item.craftmaster.envelope.hint_open": "Right-click to read the card again",
-    "item.craftmaster.envelope.hint_place": "Crouch + right-click on a table to lay it there",
+    "item.craftmaster.envelope.hint_place": "Crouch + right-click on a table, a wall, a ceiling or under a chain to put it there",
     "block.craftmaster.envelope_block": "Envelope",
     "block.craftmaster.pinned_note": "Pinned Note",
     "item.craftmaster.wax_seal": "Wax Seal",
@@ -1619,7 +1663,7 @@ D_FR = {
     "item.craftmaster.envelope.wax": "Cire : %s",
     "item.craftmaster.envelope.hint": "Clic droit pour briser le sceau",
     "item.craftmaster.envelope.hint_open": "Clic droit pour relire la carte",
-    "item.craftmaster.envelope.hint_place": "Accroupi + clic droit sur une table pour l'y poser",
+    "item.craftmaster.envelope.hint_place": "Accroupi + clic droit sur une table, un mur, un plafond ou sous une chaîne pour l'y poser",
     "block.craftmaster.envelope_block": "Enveloppe",
     "block.craftmaster.pinned_note": "Note épinglée",
     "item.craftmaster.wax_seal": "Sceau à cire",
