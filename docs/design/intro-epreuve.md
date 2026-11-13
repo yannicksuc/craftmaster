@@ -178,7 +178,7 @@ In Use.
 | le regard du maître | caméra « trône » (rôle `trone`), assombrie, en contre-plongée : un plan court avant la fin |
 | texte de la tâche tapé en bas | la consigne tapée lettre par lettre en bas de l'image, si la tâche est révélée à ce moment-là |
 | coupe sur une musique d'environ 130 BPM | coupe sur le rythme (existe), avec une musique d'intro d'épreuve courte |
-| police machine à écrire | une police machine à écrire proche de Veteran Typewriter, à la place de la police pixel actuelle (voir ci-dessous) |
+| police machine à écrire | Salmon Typewriter 9, police pixel façon Courier (en place, voir ci-dessous) |
 
 ### La tâche est un objet posé
 
@@ -188,15 +188,10 @@ Pour la mise en scène automatique, l'enveloppe posée la plus proche du point d
 
 ### La police
 
-Le mod utilise **CraftMaster Typewriter**, une police pixel tirée de Cairopixel (licence OFL), utile pour les
-lettres en jeu.
-
-Pour les titres de diffusion (le titre tapé sur le noir, la consigne tapée en bas de l'image), une vraie police
-machine à écrire en haute définition serait plus fidèle à l'émission. Minecraft sait charger une police TTF
-directement (fournisseur `ttf`). Deux candidates :
-- **Veteran Typewriter** : c'est la police de l'émission, marquée « 100 % gratuite » sur DaFont, mais il faut lire
-  sa licence avant de la distribuer dans un mod ;
-- **Special Elite** (Google Fonts, licence Apache 2.0) : très proche, encrage irrégulier, distribuable sans souci.
+Le mod utilise **Salmon Typewriter 9** (Phildjii), une police pixel à empattements façon Courier, pour les lettres
+de tâche et le titre tapé sur le noir. Elle est proche de la machine à écrire de l'émission (Veteran Typewriter)
+tout en restant dans le style Minecraft. Les caractères qu'elle n'a pas viennent de Cairopixel. Détails et licences :
+docs/wiki/Taches.md, « Police et dessins ».
 
 ## Mode automatique (proposition)
 
@@ -234,7 +229,7 @@ Existe :
 
 Manque, dans l'ordre proposé :
 1. le « look intro » (deux teintes, grain, vignette, bords flous) et la bascule de mise au point ;
-2. la police machine à écrire haute définition et la consigne tapée en bas de l'image ;
+2. la consigne tapée en bas de l'image (la police machine à écrire est en place) ;
 3. le plan « lieu de la tâche » et la recherche de l'enveloppe posée ;
 4. le mode automatique (sujets, caméras générées, structure) ;
 5. le stop motion, le timelapse, et les transitions miroir, flash et surimpression ;

@@ -1,7 +1,7 @@
-CraftMaster Typewriter (assets/craftmaster/font/typewriter.json, textures/font/typewriter.png)
-is a bitmap conversion of the Cairopixel font by GGBotNet (a Modified Version under the
-SIL Open Font License 1.1, renamed as the licence requires). Converted by
-scripts/convert_typewriter_font.py. Original licence:
+textures/font/typewriter_fallback.png (the characters Salmon Typewriter lacks in
+assets/craftmaster/font/typewriter.json) is a bitmap conversion of the Cairopixel font by GGBotNet
+(a Modified Version under the SIL Open Font License 1.1, renamed "CraftMaster Typewriter" as the
+licence requires). Converted by scripts/convert_typewriter_font.py. Original licence:
 
 ﻿Copyright © 2025 GGBotNet (https://ggbot.net), with Reserved Font Name "Cairopixel".
 

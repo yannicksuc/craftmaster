@@ -34,6 +34,8 @@ Anciennement un plugin Paper : mêmes commandes, mêmes données (importées aut
 (un jar par version de Minecraft, même code, tests unitaires lancés sur les deux ; voir [Développement](docs/wiki/Developpement.md)).
 
 ## Crédits
-- Police machine à écrire des lettres de tâche (`craftmaster:typewriter`) : conversion bitmap de **Cairopixel** de
-  GGBotNet, sous licence SIL Open Font License 1.1 (version modifiée renommée « CraftMaster Typewriter », licence
-  dans `src/main/resources/assets/craftmaster/font/OFL.txt`).
+- Police machine à écrire (`craftmaster:typewriter`) : conversion bitmap de **Salmon Typewriter 9** de Phildjii
+  (https://phildjii.itch.io), utilisée comme ressource affichée en jeu (la police elle-même n'est pas distribuée ;
+  licence dans `src/main/resources/assets/craftmaster/font/LICENSE-Salmon-Typewriter.txt`). Caractères manquants :
+  conversion bitmap de **Cairopixel** de GGBotNet, sous licence SIL Open Font License 1.1 (version modifiée renommée
+  « CraftMaster Typewriter », licence dans `src/main/resources/assets/craftmaster/font/OFL.txt`).

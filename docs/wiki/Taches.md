@@ -154,9 +154,14 @@ Un spectateur qui tape `!tache` fait glisser la carte de la tâche à l'écran 1
 La carte ne montre jamais une tâche secrète, même sur le jeu d'un organisateur (elle dit « Tâche encore secrète »).
 
 ## Police et dessins
-- La police machine à écrire `craftmaster:typewriter` est une conversion pixel à pixel de **Cairopixel** de
-  GGBotNet (licence SIL OFL 1.1, voir `assets/craftmaster/font/OFL.txt`) ; les caractères qu'elle n'a pas viennent
-  de la police du jeu. Refaire la conversion : `python scripts/convert_typewriter_font.py <Cairopixel.ttf>`.
+- La police machine à écrire `craftmaster:typewriter` (lettres de tâche, titre tapé sur le noir au lancement d'une
+  manche) est une conversion pixel à pixel de **Salmon Typewriter 9** de Phildjii (pixel, empattements façon
+  Courier, accents français). Sa licence autorise de l'utiliser comme ressource affichée dans un jeu, mais interdit
+  de redistribuer la police : seule la conversion en image est dans le mod, jamais le `.ttf`, avec la licence
+  d'origine (`assets/craftmaster/font/LICENSE-Salmon-Typewriter.txt`). Les caractères qu'elle n'a pas viennent de
+  **Cairopixel** de GGBotNet (licence SIL OFL 1.1, `font/OFL.txt`), puis de la police du jeu. Les deux polices sont
+  rangées dans `C:\Users\yanni\Archives\Polices\`. Refaire la conversion (les extraire d'abord) :
+  `python scripts/convert_typewriter_font.py "<Salmon Typewriter 9 Regular.ttf>" <Cairopixel.ttf> [<License.txt>]`.
 - Papier, sceau et cire arrachée : `python scripts/gen_letter_art.py` (outils de textures de l'atelier SteveParty) ;
   objets et bloc : `scripts/gen_assets.py`.
 
