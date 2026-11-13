@@ -113,7 +113,7 @@ public final class PoseLibrary {
         m.put("bras croisés", pose(-1.5, -9.94, 0.5, 1, 0, 0,
                 Part.FIGURE, r(0, 0, 8), Part.HEAD, r(-4, -10, 0),
                 Part.RIGHT_ARM, r(-72, -36, 0), Part.LEFT_ARM, r(-72, 36, 0),
-                Part.RIGHT_LEG, r(0, 0, -10), Part.LEFT_LEG, r(0, 0, -3)));
+                Part.RIGHT_LEG, r(0, 0, -5), Part.LEFT_LEG, r(0, 0, -5)));  // parallel: crossed legs flicker
         // Seated on the bottom bar as on a throne (LordFinn on the poster), the painting as its back
         m.put("trône", pose(0, -15.5, 1.5, 1, 0, 0,
                 Part.HEAD, r(-8, 0, 0),
@@ -229,6 +229,14 @@ public final class PoseLibrary {
             Pose.Rotation arm = cur.rotations().get(Part.RIGHT_ARM);
             if (now != null && e.getKey().equals("se penche dehors") && arm != null && arm.x() == -95 && arm.y() == 0 && arm.z() == 0) {
                 e.setValue(cur.withRotation(Part.RIGHT_ARM, now.rotations().get(Part.RIGHT_ARM)));
+                changed = true;
+            }
+            // "Bras croisés" had its legs converging (-10 / -3): they went through each other and flickered
+            cur = e.getValue();
+            Pose.Rotation rl = cur.rotations().get(Part.RIGHT_LEG), ll = cur.rotations().get(Part.LEFT_LEG);
+            if (now != null && e.getKey().equals("bras croisés") && rl != null && ll != null && rl.z() == -10 && ll.z() == -3) {
+                e.setValue(cur.withRotation(Part.RIGHT_LEG, now.rotations().get(Part.RIGHT_LEG))
+                        .withRotation(Part.LEFT_LEG, now.rotations().get(Part.LEFT_LEG)));
                 changed = true;
             }
         }

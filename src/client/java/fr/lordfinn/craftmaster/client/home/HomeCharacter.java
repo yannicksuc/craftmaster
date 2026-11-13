@@ -148,9 +148,9 @@ public final class HomeCharacter {
         leftArm.y += 0.15f * breathe;
         // Right hand on the armrest, the elbow out
         // (raised a little: the figure sits 3 px into the cushion, the hand must rest ON the armrest)
-        rightArm.xRot = (float) Math.toRadians(-54 + 1.5 * Math.sin(t * 2 * Math.PI / 5.1));
-        rightArm.zRot = (float) Math.toRadians(26);
-        rightArm.y -= 1.2f;
+        rightArm.xRot = (float) Math.toRadians(-60 + 1.5 * Math.sin(t * 2 * Math.PI / 5.1));
+        rightArm.zRot = (float) Math.toRadians(22);
+        rightArm.y += 1.0f;
         // Left arm open low to the side, palm toward the frames: a host's welcome. NEVER raised forward at shoulder
         // height or above (a stiff arm raised forward reads as a hateful salute): it stays below the shoulder
         leftArm.xRot = (float) Math.toRadians(-28 + 3 * sway);
