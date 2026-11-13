@@ -27,9 +27,12 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 /**
- * A spotlight's settings: where it points (yaw / pitch, or a followed player), its colour. The server puts a real
- * light (an invisible {@code minecraft:light} block) where the beam lands; the clients draw the head, the beam and
- * the pool of light, turning smoothly toward the aim (and following the player themselves, every frame).
+ * A spotlight's settings: its name, where it points (yaw / pitch, or a followed player), its colour, intensity and
+ * cone angle, and how long a change takes (fade). The server puts a real light (an invisible {@code minecraft:light}
+ * block, as bright as the intensity) where the beam lands; the clients draw the head, the beam and the pool of
+ * light, turning and fading smoothly toward the settings (and following the player themselves, every frame).
+ * <p>A follow can be a player's name or an automatic rule ({@link SpotlightFollow}): the server picks the player
+ * (sent to the clients as {@link #target()}).
  */
 public class SpotlightBlockEntity extends BlockEntity {
 
@@ -38,6 +41,11 @@ public class SpotlightBlockEntity extends BlockEntity {
     /** A followed player farther than this is not followed (blocks). */
     public static final double FOLLOW_RANGE = 96;
     public static final int DEFAULT_COLOR = 0xFFF1D6;
+    /** Half-angle of the cone (degrees): a narrow stage beam by default, up to a wide wash. */
+    public static final float DEFAULT_CONE = 3.2f, MIN_CONE = 1, MAX_CONE = 30;
+    public static final int MAX_INTENSITY = 100;
+    /** Longest fade (ticks). */
+    public static final int MAX_FADE = 20 * 60;
     /** Light level of the spot where the beam lands. */
     private static final int SPOT_LIGHT = 15;
 
@@ -47,11 +55,19 @@ public class SpotlightBlockEntity extends BlockEntity {
     private float yaw, pitch = 30;
     private int color = DEFAULT_COLOR;
     private String follow = "";
+    /** The player followed right now: {@link #follow} itself, or the one an automatic rule picked (server). */
+    private String target = "";
+    private String name = "";
+    private int intensity = MAX_INTENSITY;
+    private float cone = DEFAULT_CONE;
+    /** How long the clients take to reach new colour / intensity / cone / aim settings (ticks; 0 = their usual pace). */
+    private int fade;
     /** The light block this spotlight placed (server), or null. */
     private BlockPos light;
 
-    // Client only: the angles drawn this frame, easing toward the aim
-    public float renderYaw, renderPitch;
+    // Client only: what is drawn this frame, easing toward the settings
+    public float renderYaw, renderPitch, renderIntensity, renderCone;
+    public float[] renderColor;
     public long renderNanos;
     public boolean renderReady;
 
@@ -90,6 +106,12 @@ public class SpotlightBlockEntity extends BlockEntity {
     public float pitch() { return pitch; }
     public int color() { return color; }
     public String follow() { return follow; }
+    /** The player the beam is on now (empty: none). */
+    public String target() { return target; }
+    public String name() { return name; }
+    public int intensity() { return intensity; }
+    public float cone() { return cone; }
+    public int fade() { return fade; }
 
     public boolean hanging() {
         return getBlockState().getValue(SpotlightBlock.HANGING);
@@ -119,14 +141,37 @@ public class SpotlightBlockEntity extends BlockEntity {
         aim(a[0], a[1]);
     }
 
-    /** Follows a player by name (empty: stop following, keep the last direction). */
+    /** Follows a player by name, or an automatic rule ({@link SpotlightFollow}); empty: stop, keep the direction. */
     public void follow(String player) {
-        this.follow = player == null ? "" : player;
+        this.follow = player == null ? "" : player.strip();
+        this.target = SpotlightFollow.isRule(follow) ? "" : follow;
         changed();
     }
 
     public void setColor(int rgb) {
         this.color = rgb & 0xFFFFFF;
+        changed();
+    }
+
+    public void setName(String name) {
+        this.name = name == null ? "" : name.strip().toLowerCase(java.util.Locale.ROOT);
+        changed();
+    }
+
+    /** 0 (dark, though switched on) to 100. */
+    public void setIntensity(int percent) {
+        this.intensity = Math.max(0, Math.min(MAX_INTENSITY, percent));
+        changed();
+    }
+
+    public void setCone(float degrees) {
+        this.cone = Math.max(MIN_CONE, Math.min(MAX_CONE, degrees));
+        changed();
+    }
+
+    /** Duration of the next changes, seen by the clients (ticks). */
+    public void setFade(int ticks) {
+        this.fade = Math.max(0, Math.min(MAX_FADE, ticks));
         changed();
     }
 
@@ -143,7 +188,16 @@ public class SpotlightBlockEntity extends BlockEntity {
     public static void serverTick(Level level, BlockPos pos, BlockState state, SpotlightBlockEntity be) {
         if (level.getGameTime() % 4 != 0) return;
         if (!be.follow.isEmpty() && level instanceof ServerLevel server) {
-            ServerPlayer target = server.getServer().getPlayerList().getPlayerByName(be.follow);
+            // An automatic follow picks its player now and then (not every tick: the beam would jump between two)
+            if (SpotlightFollow.isRule(be.follow) && level.getGameTime() % 20 == 0) {
+                String picked = SpotlightFollow.pick(server, be.follow, be.pivot(), be.target);
+                if (!picked.equals(be.target)) {
+                    be.target = picked;
+                    be.setChanged();
+                    level.sendBlockUpdated(pos, state, state, 3);
+                }
+            }
+            ServerPlayer target = be.target.isEmpty() ? null : server.getServer().getPlayerList().getPlayerByName(be.target);
             if (target != null && target.level() == level && target.position().distanceTo(be.pivot()) < FOLLOW_RANGE) {
                 Vec3 d = followPoint(target.position(), target.getBbHeight()).subtract(be.pivot());
                 float[] a = SpotlightAim.angles(d.x, d.y, d.z);
@@ -163,7 +217,7 @@ public class SpotlightBlockEntity extends BlockEntity {
     void updateLight() {
         if (!(level instanceof ServerLevel server)) return;
         BlockPos target = null;
-        if (lit()) {
+        if (lit() && intensity > 0) {
             BlockHitResult hit = trace(server, pivot(), yaw, pitch);
             if (hit.getType() == HitResult.Type.BLOCK) {
                 BlockPos p = hit.getBlockPos().relative(hit.getDirection());
@@ -171,10 +225,12 @@ public class SpotlightBlockEntity extends BlockEntity {
                 if (there.isAir() || there.is(Blocks.LIGHT)) target = p;
             }
         }
-        if (target != null && target.equals(light) && server.getBlockState(target).is(Blocks.LIGHT)) return;
+        int level = Math.max(1, Math.round(SPOT_LIGHT * intensity / (float) MAX_INTENSITY));
+        if (target != null && target.equals(light) && server.getBlockState(target).is(Blocks.LIGHT)
+                && server.getBlockState(target).getValue(LightBlock.LEVEL) == level) return;
         clearLight();
         if (target != null) {
-            server.setBlock(target, Blocks.LIGHT.defaultBlockState().setValue(LightBlock.LEVEL, SPOT_LIGHT), 3);
+            server.setBlock(target, Blocks.LIGHT.defaultBlockState().setValue(LightBlock.LEVEL, level), 3);
             light = target;
             setChanged();
         }
@@ -206,6 +262,11 @@ public class SpotlightBlockEntity extends BlockEntity {
         pitch = in.getFloatOr("Pitch", 30);
         color = in.getIntOr("Color", DEFAULT_COLOR);
         follow = in.getStringOr("Follow", "");
+        target = in.getStringOr("Target", SpotlightFollow.isRule(follow) ? "" : follow);
+        name = in.getStringOr("Name", "");
+        intensity = Math.max(0, Math.min(MAX_INTENSITY, in.getIntOr("Intensity", MAX_INTENSITY)));
+        cone = Math.max(MIN_CONE, Math.min(MAX_CONE, in.getFloatOr("Cone", DEFAULT_CONE)));
+        fade = Math.max(0, Math.min(MAX_FADE, in.getIntOr("Fade", 0)));
         light = in.read("Light", BlockPos.CODEC).orElse(null);
     }
 
@@ -216,6 +277,11 @@ public class SpotlightBlockEntity extends BlockEntity {
         out.putFloat("Pitch", pitch);
         out.putInt("Color", color);
         out.putString("Follow", follow);
+        out.putString("Target", target);
+        if (!name.isEmpty()) out.putString("Name", name);
+        out.putInt("Intensity", intensity);
+        out.putFloat("Cone", cone);
+        out.putInt("Fade", fade);
         if (light != null) out.store("Light", BlockPos.CODEC, light);
     }
 

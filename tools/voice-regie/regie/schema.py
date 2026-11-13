@@ -222,6 +222,35 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
     "spotlight.stop": ("Les projecteurs arrêtent de suivre (gardent leur direction).", []),
     "spotlight.on": ("Allume tous les projecteurs du studio.", []),
     "spotlight.off": ("Éteint tous les projecteurs du studio.", []),
+    "spotlight.set": ("Règle des projecteurs comme sur un pupitre lumière : allumer / éteindre, couleur, intensité, angle du "
+                      "cône, suivi d'un joueur ou suivi automatique, avec un fondu (« projos de face en rouge en 3 secondes », "
+                      "« baisse la face à 40 % », « ouvre le cône », « la poursuite sur qui est sur scène »).",
+                      [f("target", STR, doc="tout (défaut), le nom d'un projecteur (voir « Projecteurs nommés »), ou un groupe "
+                                            "« face* » (tous ceux dont le nom commence par face)."),
+                       f("on", BOOL, doc="true = allumer, false = éteindre (en fondu si fade)."),
+                       f("color", STR, doc="blanc, chaud, froid, ambre, or, rouge, orange, jaune, vert, cyan, bleu, bleu_clair, "
+                                           "violet, rose, magenta, lavande, turquoise, ou #RRVVBB."),
+                       f("intensity", INT, doc="0 à 100 (%)."),
+                       f("cone", STR, doc="Demi-angle du cône en degrés, 1 (serré) à 30 (large) ; défaut des projecteurs 3."),
+                       f("follow", STR, doc="Pseudo EXACT d'un joueur, ou suivi auto : @scene (qui est sur scène), @candidat "
+                                            "(candidat le plus proche), @proche (joueur le plus proche), @moment (le joueur du "
+                                            "moment : enveloppe ouverte, buzzer…), @zone:<nom> ; chaîne vide = arrêter de suivre."),
+                       f("fade", STR, doc="Durée du changement en secondes (0 à 60), ex. « 3 ».")]),
+    # Stage looks and cue lists (docs/wiki/Scenographie.md)
+    "look.play": ("Lance une ambiance enregistrée (projecteurs, rideaux, tableaux, écrans tels qu'enregistrés), en fondu "
+                  "(« ambiance plateau », « passe en ambiance révélation en 5 secondes »).",
+                  [f("name", STR, True, "Nom EXACT d'une ambiance (voir « Ambiances »)."),
+                   f("fade", STR, doc="Durée du fondu en secondes ; absent = celle de l'ambiance.")]),
+    "look.save": ("Enregistre la scène actuelle comme ambiance (« enregistre l'ambiance plateau »).",
+                  [f("name", STR, True, "Nom de l'ambiance."),
+                   f("parts", STR_LIST, doc="lumieres, rideaux, tableaux, ecrans ; absent = tout."),
+                   f("fade", STR, doc="Fondu par défaut de l'ambiance, en secondes.")]),
+    "cue.play": ("Lance une conduite (séquence enregistrée d'ambiances, d'attentes et de commandes) (« lance la conduite "
+                 "ouverture », « top générique »).",
+                 [f("name", STR, True, "Nom EXACT d'une conduite (voir « Conduites ») ou d'une ambiance.")]),
+    "cue.stop": ("Arrête la conduite en cours (« stop la conduite »).", []),
+    "stage.blackout": ("Noir : éteint tous les projecteurs en fondu (« noir », « noir en 3 secondes »).",
+                       [f("fade", STR, doc="Durée en secondes ; défaut 1.")]),
     # Screen effects (docs/wiki/Effets.md): post-processing of the broadcast picture or of a player's view
     "fx.set": ("Met un effet d'écran sur l'image de la diffusion (par défaut) ou sur la vue d'un joueur : noir_blanc, "
                "sepia, pixel, fisheye, vignette, masque_rond, citrouille, flou, vhs, vieux_film, infrarouge, reve, ondule, "
@@ -267,7 +296,8 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
 
 NO_SCOPE = {"say", "undo", "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset", "camera.cut", "camera.follow", "camera.auto", "broadcast.lowerthird", "broadcast.task",
             "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop"}
-NO_SCOPE |= {"spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off"}
+NO_SCOPE |= {"spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off", "spotlight.set",
+             "look.play", "look.save", "cue.play", "cue.stop", "stage.blackout"}
 NO_SCOPE |= {"camera.path", "camera.focus", "camera.lieu", "camera.mosaic", "camera.pov"}
 NO_SCOPE |= {"fx.set", "fx.clear"}
 NO_SCOPE |= {"replay.control", "replay.flag", "tele.show", "clip.start", "clip.stop"}

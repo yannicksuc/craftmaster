@@ -30,8 +30,8 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
 
     public static final Identifier TEXTURE = CraftMaster.id("textures/entity/spotlight.png");
     private static final Geo.Tex TEX = new Geo.Tex(32, 32);
-    /** Half-angle of the cone (degrees) and radius of the beam at the lens (blocks). */
-    private static final double SPREAD = 3.2, LENS_RADIUS = 3.2 / 16, MAX_RADIUS = 1.1;
+    /** Radius of the beam at the lens (blocks); a narrow beam never gets wider than MAX_RADIUS times its cone. */
+    private static final double LENS_RADIUS = 3.2 / 16, MAX_RADIUS = 1.1;
     /** A beam that hits nothing fades out over this length (blocks). */
     private static final double OPEN_LENGTH = 26;
     private static final int SIDES = 20;
@@ -40,6 +40,10 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         float yaw, pitch;
         boolean hanging, lit;
         int color;
+        /** 0..1 */
+        float intensity;
+        /** Half-angle, degrees. */
+        float cone;
         double length;
         /** Where the beam lands, relative to the block's corner, and the face it lands on (null: nothing hit). */
         Vec3 hit;
@@ -59,15 +63,14 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         BlockEntityRenderer.super.extractRenderState(be, s, partialTick, camera, crumbling);
         s.hanging = be.hanging();
         s.lit = be.lit();
-        s.color = be.color();
         Vec3 pivot = be.pivot();
         s.pivot = pivot.subtract(Vec3.atLowerCornerOf(be.getBlockPos()));
 
         // Aim: the followed player as seen right now, else the set direction
         float targetYaw = be.yaw(), targetPitch = be.pitch();
-        if (!be.follow().isEmpty() && be.getLevel() != null) {
+        if (!be.target().isEmpty() && be.getLevel() != null) {
             for (Player p : be.getLevel().players()) {
-                if (!p.getGameProfile().name().equalsIgnoreCase(be.follow())) continue;
+                if (!p.getGameProfile().name().equalsIgnoreCase(be.target())) continue;
                 Vec3 at = SpotlightBlockEntity.followPoint(p.getPosition(partialTick), p.getBbHeight()).subtract(pivot);
                 if (at.length() < SpotlightBlockEntity.FOLLOW_RANGE) {
                     float[] a = SpotlightAim.angles(at.x, at.y, at.z);
@@ -78,19 +81,42 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
             }
         }
         long now = System.nanoTime();
+        // Switched off: the light fades to nothing (at the fade's pace), then the beam is gone
+        float targetIntensity = be.lit() ? be.intensity() / (float) SpotlightBlockEntity.MAX_INTENSITY : 0;
+        float[] targetColor = rgb(be.color());
         if (!be.renderReady) {
             be.renderYaw = targetYaw;
             be.renderPitch = targetPitch;
+            be.renderIntensity = targetIntensity;
+            be.renderCone = be.cone();
+            be.renderColor = targetColor;
             be.renderReady = true;
         } else {
             double dt = Math.min(0.25, (now - be.renderNanos) / 1e9);
-            // Fast enough to keep up with a walking player, slow enough to look like a motorised light
-            be.renderYaw = SpotlightAim.ease(be.renderYaw, targetYaw, dt, 4.0, 25);
-            be.renderPitch = SpotlightAim.ease(be.renderPitch, targetPitch, dt, 4.0, 25);
+            double fade = be.fade() / 20.0;
+            if (fade <= 0) {
+                // Fast enough to keep up with a walking player, slow enough to look like a motorised light
+                be.renderYaw = SpotlightAim.ease(be.renderYaw, targetYaw, dt, 4.0, 25);
+                be.renderPitch = SpotlightAim.ease(be.renderPitch, targetPitch, dt, 4.0, 25);
+            } else {
+                // A slow move set by the light board: the whole way in about the fade time
+                double rate = 3.0 / fade;
+                be.renderYaw = SpotlightAim.ease(be.renderYaw, targetYaw, dt, rate, 0);
+                be.renderPitch = SpotlightAim.ease(be.renderPitch, targetPitch, dt, rate, 0);
+            }
+            // Colour, intensity and cone: linear over the fade (a quarter of a second without one)
+            double step = dt / Math.max(0.25, fade);
+            be.renderIntensity = (float) approach(be.renderIntensity, targetIntensity, step);
+            be.renderCone = (float) approach(be.renderCone, be.cone(), step * Math.max(1, Math.abs(be.cone() - be.renderCone)));
+            for (int i = 0; i < 3; i++) be.renderColor[i] = (float) approach(be.renderColor[i], targetColor[i], step);
         }
         be.renderNanos = now;
         s.yaw = be.renderYaw;
         s.pitch = be.renderPitch;
+        s.intensity = be.renderIntensity;
+        s.cone = be.renderCone;
+        s.color = ((int) (be.renderColor[0] * 255) << 16) | ((int) (be.renderColor[1] * 255) << 8) | (int) (be.renderColor[2] * 255);
+        s.lit = s.intensity > 0.005f;
 
         s.hit = null;
         s.face = null;
@@ -143,8 +169,8 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
             Geo.box(c, ps.last(), TEX, -4.5f, 3.5f, 4, 4.5f, 4.5f, 6.5f, hood, 0xFFFFFFFF, light);
         });
         if (s.lit) {
-            // Glowing lens, full bright
-            int lens = 0xFF000000 | s.color;
+            // Glowing lens, full bright (dimmed with the intensity)
+            int lens = 0xFF000000 | scale(s.color, 0.25f + 0.75f * s.intensity);
             collector.submitCustomGeometry(poseStack, RenderTypes.text(TEXTURE), (p, c) -> {
                 float z = 5.02f / 16, r = 3.2f / 16;
                 int full = LightCoordsUtil.FULL_BRIGHT;
@@ -156,30 +182,50 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
             });
             double length = s.length;
             int color = s.color;
-            collector.submitCustomGeometry(poseStack, RenderTypes.lightning(), (p, c) -> beam(c, p, length, color));
+            float intensity = s.intensity, cone = s.cone;
+            collector.submitCustomGeometry(poseStack, RenderTypes.lightning(), (p, c) -> beam(c, p, length, color, intensity, cone));
         }
         poseStack.popPose();
 
         if (s.lit && s.hit != null) {
             Vec3 hit = s.hit;
             Direction face = s.face;
-            double radius = endRadius(s.length);
+            double radius = endRadius(s.length, s.cone);
             int color = s.color;
-            collector.submitCustomGeometry(poseStack, RenderTypes.lightning(), (p, c) -> pool(c, p, hit, face, radius * 1.25, color));
+            // A wide wash spreads the same light over more ground: its pool is paler
+            float strength = s.intensity * (float) Math.min(1, 1.6 / Math.max(1, radius));
+            collector.submitCustomGeometry(poseStack, RenderTypes.lightning(), (p, c) -> pool(c, p, hit, face, radius * 1.25, color, strength));
         }
     }
 
     /** The cone, in head space (blocks): two layers, wide and soft, narrow and brighter, fading to nothing at the end. */
-    private static void beam(VertexConsumer c, PoseStack.Pose p, double length, int rgb) {
+    private static void beam(VertexConsumer c, PoseStack.Pose p, double length, int rgb, float intensity, float coneAngle) {
         float z0 = 5.5f / 16, z1 = (float) length;
-        float r1 = (float) endRadius(length);
-        cone(c, p, z0, z1, (float) LENS_RADIUS, r1, Geo.argb(60, rgb), Geo.argb(0, rgb));
-        cone(c, p, z0, z1, (float) (LENS_RADIUS * 0.55), r1 * 0.45f, Geo.argb(55, rgb), Geo.argb(0, rgb));
+        float r1 = (float) endRadius(length, coneAngle);
+        // The wider the cone, the thinner the haze it lights
+        float spread = (float) Math.min(1, 6 / Math.max(6, coneAngle * 1.6));
+        int a = Math.round(60 * intensity * spread), b = Math.round(55 * intensity * spread);
+        cone(c, p, z0, z1, (float) LENS_RADIUS, r1, Geo.argb(a, rgb), Geo.argb(0, rgb));
+        cone(c, p, z0, z1, (float) (LENS_RADIUS * 0.55), r1 * 0.45f, Geo.argb(b, rgb), Geo.argb(0, rgb));
     }
 
-    /** Radius of the beam {@code length} blocks from the lens: a narrow stage beam, never wider than MAX_RADIUS. */
-    private static double endRadius(double length) {
-        return Math.min(MAX_RADIUS, LENS_RADIUS + length * Math.tan(Math.toRadians(SPREAD)));
+    /** Radius of the beam {@code length} blocks from the lens, for a cone of {@code coneAngle} degrees (half-angle). */
+    private static double endRadius(double length, float coneAngle) {
+        double max = MAX_RADIUS * Math.max(1, coneAngle / SpotlightBlockEntity.DEFAULT_CONE);
+        return Math.min(max, LENS_RADIUS + length * Math.tan(Math.toRadians(coneAngle)));
+    }
+
+    private static float[] rgb(int c) {
+        return new float[]{((c >> 16) & 255) / 255f, ((c >> 8) & 255) / 255f, (c & 255) / 255f};
+    }
+
+    private static int scale(int c, float f) {
+        return (Math.round(((c >> 16) & 255) * f) << 16) | (Math.round(((c >> 8) & 255) * f) << 8) | Math.round((c & 255) * f);
+    }
+
+    /** One step from {@code v} toward {@code to}, never past it. */
+    private static double approach(double v, double to, double step) {
+        return v < to ? Math.min(to, v + step) : Math.max(to, v - step);
     }
 
     private static void cone(VertexConsumer c, PoseStack.Pose p, float z0, float z1, float r0, float r1, int c0, int c1) {
@@ -210,13 +256,13 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
     }
 
     /** A soft disc of light on the face the beam lands on (block space), bright in the middle. */
-    private static void pool(VertexConsumer c, PoseStack.Pose p, Vec3 hit, Direction face, double radius, int rgb) {
+    private static void pool(VertexConsumer c, PoseStack.Pose p, Vec3 hit, Direction face, double radius, int rgb, float strength) {
         Vec3 n = new Vec3(face.getStepX(), face.getStepY(), face.getStepZ());
         Vec3 u = Math.abs(n.y) > 0.5 ? new Vec3(1, 0, 0) : new Vec3(0, 1, 0);
         Vec3 v = n.cross(u);
         u = v.cross(n);
         Vec3 center = hit.add(n.scale(0.015));
-        int inner = Geo.argb(120, rgb), outer = Geo.argb(0, rgb);
+        int inner = Geo.argb(Math.round(120 * strength), rgb), outer = Geo.argb(0, rgb);
         int segments = 28;
         for (int i = 0; i < segments; i++) {
             double a0 = 2 * Math.PI * i / segments, a1 = 2 * Math.PI * (i + 1) / segments;

@@ -150,7 +150,7 @@ public final class PortraitCommands {
     }
 
     /** Starts a hoist, with the winch sounds at its start and its end. */
-    static int hoist(PortraitEntity p, float blocks, double seconds) {
+    public static int hoist(PortraitEntity p, float blocks, double seconds) {
         int ticks = p.hoist(blocks, (int) Math.round(seconds * 20));
         if (p.level() instanceof ServerLevel level) {
             Vec3 at = p.position();

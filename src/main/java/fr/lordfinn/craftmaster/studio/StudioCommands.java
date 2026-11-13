@@ -226,72 +226,124 @@ public final class StudioCommands {
 
     // ---------------------------------------------------------------- spotlights
 
+    private static final SuggestionProvider<CommandSourceStack> SPOT_TARGETS = (c, b) -> {
+        List<String> l = new java.util.ArrayList<>(List.of("tout"));
+        for (String n : Spotlights.names()) {
+            l.add(n);
+            String g = n.replaceAll("[0-9]+$", "");
+            if (!g.equals(n) && !l.contains(g + "*")) l.add(g + "*");
+        }
+        return SharedSuggestionProvider.suggest(l, b);
+    };
+    private static final SuggestionProvider<CommandSourceStack> FOLLOWS = (c, b) -> {
+        List<String> l = new java.util.ArrayList<>(SpotlightFollow.RULES.stream().map(r -> r.equals(SpotlightFollow.ZONE) ? "@zone:scene" : r).toList());
+        for (ServerPlayer p : c.getSource().getServer().getPlayerList().getPlayers()) l.add(p.getGameProfile().name());
+        return SharedSuggestionProvider.suggest(l, b);
+    };
+    private static final SuggestionProvider<CommandSourceStack> COLORS = (c, b) -> SharedSuggestionProvider.suggest(Spotlights.COLOR_WORDS, b);
+
+    /** Which spotlights a /cfsp order acts on: the one looked at (null), all, or a name / group. */
+    private interface SpotTarget {
+        String of(CommandContext<CommandSourceStack> c);
+    }
+
     private static LiteralArgumentBuilder<CommandSourceStack> spotlight(String name) {
         LiteralArgumentBuilder<CommandSourceStack> root = literal(name).requires(Permissions.ADMIN);
-        LiteralArgumentBuilder<CommandSourceStack> all = literal("all");
-        spotlightOrders(root, false);
-        spotlightOrders(all, true);
-        root.then(all);
-        root.then(literal("list").executes(c -> {
-            List<SpotlightBlockEntity> list = SpotlightBlockEntity.loaded();
-            if (list.isEmpty()) ok(c, "Aucun projecteur chargé.");
-            for (SpotlightBlockEntity s : list) {
-                BlockPos p = s.getBlockPos();
-                ok(c, "• " + p.getX() + " " + p.getY() + " " + p.getZ() + (s.lit() ? " allumé" : " éteint")
-                        + (s.follow().isEmpty() ? "" : ", suit " + s.follow()));
-            }
-            return list.size();
-        }));
+        spotlightOrders(root, c -> null);
+        for (String word : List.of("all", "tout")) {
+            LiteralArgumentBuilder<CommandSourceStack> all = literal(word);
+            spotlightOrders(all, c -> Spotlights.ALL);
+            root.then(all);
+        }
+        var target = argument("target", StringArgumentType.word()).suggests(SPOT_TARGETS);
+        spotlightOrders(target, c -> StringArgumentType.getString(c, "target"));
+        root.then(literal("groupe").then(target));
+        // Names the spotlight looked at: "face1", "contre", "poursuite"... (groups: same start, /cfsp groupe face* …)
+        root.then(literal("nom").then(argument("name", StringArgumentType.word()).executes(c -> {
+            String n = StringArgumentType.getString(c, "name");
+            return onSpotlight(c, s -> {
+                s.setName(n);
+                return "Projecteur nommé « " + s.name() + " ».";
+            });
+        })));
+        root.then(literal("list").executes(StudioCommands::listSpotlights));
+        root.then(literal("liste").executes(StudioCommands::listSpotlights));
         return root;
     }
 
-    private static void spotlightOrders(ArgumentBuilder<CommandSourceStack, ?> node, boolean all) {
-        node.then(literal("follow").then(argument("player", StringArgumentType.word()).suggests(PLAYERS).executes(c -> {
-            String player = StringArgumentType.getString(c, "player");
-            if (all) return done(c, Spotlights.follow(c.getSource().getServer(), player));
-            return onSpotlight(c, s -> {
-                s.follow(player);
-                SpotlightBlock.setLit(s.getLevel(), s.getBlockPos(), s.getBlockState(), true);
-                return "Le projecteur suit " + player + ".";
-            });
-        })));
-        node.then(literal("stop").executes(c -> all ? done(c, Spotlights.stop(c.getSource().getServer()))
-                : onSpotlight(c, s -> {
-                    s.follow("");
-                    return "Le projecteur ne suit plus personne.";
-                })));
-        for (boolean lit : new boolean[]{true, false}) {
-            node.then(literal(lit ? "on" : "off").executes(c -> all ? done(c, Spotlights.setLit(c.getSource().getServer(), lit))
-                    : onSpotlight(c, s -> {
-                        SpotlightBlock.setLit(s.getLevel(), s.getBlockPos(), s.getBlockState(), lit);
-                        return lit ? "Projecteur allumé." : "Projecteur éteint.";
-                    })));
+    private static int listSpotlights(CommandContext<CommandSourceStack> c) {
+        List<SpotlightBlockEntity> list = SpotlightBlockEntity.loaded();
+        if (list.isEmpty()) ok(c, "Aucun projecteur chargé.");
+        for (SpotlightBlockEntity s : list) {
+            BlockPos p = s.getBlockPos();
+            ok(c, "• " + (s.name().isEmpty() ? "(sans nom)" : s.name()) + " — " + p.getX() + " " + p.getY() + " " + p.getZ()
+                    + (s.lit() ? ", allumé " + s.intensity() + " %" : ", éteint") + ", cône " + Math.round(s.cone()) + "°"
+                    + (s.follow().isEmpty() ? "" : ", suit " + SpotlightFollow.describe(s.follow())
+                    + (SpotlightFollow.isRule(s.follow()) ? " (" + (s.target().isEmpty() ? "personne" : s.target()) + ")" : "")));
         }
-        node.then(literal("color").then(argument("color", StringArgumentType.word()).suggests(DYES).executes(c -> {
-            DyeColor dye = DyeColor.byName(StringArgumentType.getString(c, "color"), null);
-            if (dye == null) {
-                fail(c, "Couleur inconnue (couleurs des teintures : red, blue, white…).");
-                return 0;
-            }
-            if (all) return done(c, Spotlights.color(c.getSource().getServer(), dye));
-            return onSpotlight(c, s -> {
-                s.setColor(SpotlightBlock.beamColor(dye));
-                return "Faisceau " + dye.getName() + ".";
-            });
-        })));
-        // Aims at the player who types it (handy: stand where the light must go)
-        node.then(literal("here").executes(c -> {
-            Vec3 at = c.getSource().getPosition().add(0, 1, 0);
-            if (all) {
-                List<SpotlightBlockEntity> list = SpotlightBlockEntity.loaded();
-                list.forEach(s -> s.aimAt(at));
-                return done(c, list.size() + " projecteur(s) pointé(s) ici.");
-            }
-            return onSpotlight(c, s -> {
-                s.aimAt(at);
-                return "Projecteur pointé ici.";
-            });
+        return list.size();
+    }
+
+    /** Runs {@code set} on the target's spotlights (or the one looked at), reaching it in {@code seconds}. */
+    private static int spot(CommandContext<CommandSourceStack> c, SpotTarget t, Spotlights.Settings set, double seconds) {
+        String target = t.of(c);
+        if (target != null) return done(c, Spotlights.apply(c.getSource().getServer(), target, set, seconds));
+        return onSpotlight(c, s -> {
+            Spotlights.apply(s, set, seconds);
+            return "Projecteur" + (s.name().isEmpty() ? "" : " « " + s.name() + " »") + " : " + Spotlights.describe(set)
+                    + (seconds > 0 ? " en " + Spotlights.seconds(seconds) : "") + ".";
+        });
+    }
+
+    /** {@code then} + the same with a trailing fade in seconds. */
+    private static <T extends ArgumentBuilder<CommandSourceStack, T>> T withFade(T node, SpotTarget t,
+            Function<CommandContext<CommandSourceStack>, Spotlights.Settings> set) {
+        node.executes(c -> {
+            Spotlights.Settings st = set.apply(c);
+            return st == null ? 0 : spot(c, t, st, 0);
+        });
+        node.then(argument("seconds", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(0, 60)).executes(c -> {
+            Spotlights.Settings st = set.apply(c);
+            return st == null ? 0 : spot(c, t, st, com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(c, "seconds"));
         }));
+        return node;
+    }
+
+    private static Spotlights.Settings settings(Boolean lit, Integer color, Integer intensity, Float cone, String follow, Vec3 at) {
+        return new Spotlights.Settings(lit, color, intensity, cone, follow, at, null, null);
+    }
+
+    private static void spotlightOrders(ArgumentBuilder<CommandSourceStack, ?> node, SpotTarget t) {
+        for (String word : List.of("follow", "suivre")) {
+            node.then(literal(word).then(argument("player", StringArgumentType.greedyString()).suggests(FOLLOWS).executes(c -> {
+                String who = StringArgumentType.getString(c, "player").strip();
+                String rule = SpotlightFollow.parse(who);
+                if (rule == null && who.startsWith("@")) {
+                    fail(c, "Suivi automatique inconnu : @proche, @candidat, @scene, @moment ou @zone:<nom>.");
+                    return 0;
+                }
+                return spot(c, t, settings(null, null, null, null, rule != null ? rule : who, null), 0);
+            })));
+        }
+        node.then(literal("stop").executes(c -> spot(c, t, settings(null, null, null, null, "", null), 0)));
+        for (boolean lit : new boolean[]{true, false})
+            for (String word : lit ? List.of("on", "allume") : List.of("off", "eteint"))
+                node.then(withFade(literal(word), t, c -> settings(lit, null, null, null, null, null)));
+        for (String word : List.of("color", "couleur"))
+            node.then(literal(word).then(withFade(argument("color", StringArgumentType.word()).suggests(COLORS), t, c -> {
+                Integer rgb = Spotlights.parseColor(StringArgumentType.getString(c, "color"));
+                if (rgb == null) fail(c, "Couleur inconnue : " + String.join(", ", Spotlights.COLOR_WORDS) + ", ou #RRVVBB.");
+                return rgb == null ? null : settings(null, rgb, null, null, null, null);
+            })));
+        for (String word : List.of("intensity", "intensite"))
+            node.then(literal(word).then(withFade(argument("percent", integer(0, SpotlightBlockEntity.MAX_INTENSITY)), t,
+                    c -> settings(null, null, getInteger(c, "percent"), null, null, null))));
+        node.then(literal("cone").then(withFade(argument("degrees", com.mojang.brigadier.arguments.FloatArgumentType.floatArg(
+                        SpotlightBlockEntity.MIN_CONE, SpotlightBlockEntity.MAX_CONE)), t,
+                c -> settings(null, null, null, com.mojang.brigadier.arguments.FloatArgumentType.getFloat(c, "degrees"), null, null))));
+        // Aims at the player who types it (handy: stand where the light must go)
+        for (String word : List.of("here", "ici"))
+            node.then(withFade(literal(word), t, c -> settings(null, null, null, null, "", c.getSource().getPosition().add(0, 1, 0))));
     }
 
     private static int onSpotlight(CommandContext<CommandSourceStack> c, Function<SpotlightBlockEntity, String> action) {
@@ -303,7 +355,7 @@ public final class StudioCommands {
                 return 1;
             }
         }
-        fail(c, "Regarde un projecteur (ou ajoute « all » : /cfsp all …).");
+        fail(c, "Regarde un projecteur (ou /cfsp tout …, /cfsp groupe <nom> …).");
         return 0;
     }
 

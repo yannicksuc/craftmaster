@@ -59,7 +59,8 @@ public final class Rights {
         String t = type == null ? "?" : type.trim().toLowerCase(Locale.ROOT);
         if (t.equals("say")) return null;
         if (t.startsWith("camera.") || t.startsWith("broadcast.") || t.equals("show.intro") || t.equals("show.outro")
-                || t.equals("show.stop") || t.startsWith("spotlight.")) return Right.CAMERA;
+                || t.equals("show.stop") || t.startsWith("spotlight.") || t.equals("look.play") || t.startsWith("cue.")
+                || t.equals("stage.blackout")) return Right.CAMERA;
         if (t.equals("fx.set") || t.equals("fx.clear")) {
             // On the broadcast only (the default target of fx.set); forcing an effect on players stays with the organiser
             Object target = action == null ? null : action.get("target");

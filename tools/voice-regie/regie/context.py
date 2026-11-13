@@ -91,6 +91,10 @@ class ShowContext:
         self.curtains = [str(c) for c in _as_list(r.get("curtains"))]
         self.scenes = [str(s) for s in _as_list(r.get("scenes"))]
         self.garages = [str(g) for g in _as_list(r.get("garages"))]
+        # Stage (scénographie): named spotlights, saved looks, cue lists
+        self.spotlights = [str(s) for s in _as_list(r.get("spotlights"))]
+        self.looks = [str(s) for s in _as_list(r.get("looks"))]
+        self.cues = [str(s) for s in _as_list(r.get("cues"))]
         # TV direction (chantier E): [{number, name, role}], what is on air
         self.cameras = [c for c in _as_list(r.get("cameras")) if isinstance(c, dict)]
         self.on_air = str(r.get("onAir") or "none")
@@ -296,6 +300,9 @@ class ShowContext:
         out.append("Décors : " + (", ".join(self.scenes) if self.scenes else "aucun"))
         if self.garages:
             out.append("Portes de garage : " + ", ".join(self.garages))
+        out.append("Projecteurs nommés : " + (", ".join(self.spotlights) if self.spotlights else "aucun (target « tout »)"))
+        out.append("Ambiances : " + (", ".join(self.looks) if self.looks else "aucune"))
+        out.append("Conduites : " + (", ".join(self.cues) if self.cues else "aucune"))
         if self.cameras:
             focus = self.camera_focus
             here = [c for c in self.cameras if str(c.get("key", "")).rsplit(":", 1)[0] == focus] if any("key" in c for c in self.cameras) else self.cameras

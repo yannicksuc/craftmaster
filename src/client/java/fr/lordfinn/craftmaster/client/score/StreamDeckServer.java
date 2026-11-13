@@ -43,6 +43,8 @@ import java.util.function.Supplier;
  *   (while a replay plays, /cmreplay voir) · /replay/flag (?text=) live: a flag on the recording's timeline
  * /clip/start · /clip/stop · /clip/toggle · /clip/status   in-game clip of this game's view (media/Clips)
  * /tele?nom=gauche&amp;clip=dernier (or lien=URL, direct=Ensuri, image=URL, chat, off)   what a studio screen shows
+ * /stage/look?name=plateau(&amp;fade=3) · /stage/cue?name=ouverture · /stage/stop · /stage/noir(?fade=2)   stage looks and cue lists
+ * /spot?target=face*&amp;color=rouge&amp;intensity=60&amp;cone=8&amp;follow=@scene&amp;fade=2&amp;on=true   spotlights (any subset)
  * /status       JSON: connected, organiser, open screen, season, undo / redo available
  * </pre>
  * Every answer is JSON {@code {"ok": true|false, ...}}; the game does the work on its own thread. Requests from a
@@ -281,6 +283,36 @@ public final class StreamDeckServer {
             }
             case "/tele" -> {
                 return tele(uri);
+            }
+            // Stage (scénographie): looks, cue lists, blackout, spotlights
+            case "/stage/look" -> {
+                String name = query(uri, "name");
+                if (name.isEmpty()) return error("name=… needed");
+                String fade = query(uri, "fade");
+                return send(fade.isEmpty() ? action("look.play", "name", name) : action("look.play", "name", name, "fade", fade));
+            }
+            case "/stage/cue" -> {
+                String name = query(uri, "name");
+                if (name.isEmpty()) return error("name=… needed");
+                return send(action("cue.play", "name", name));
+            }
+            case "/stage/stop" -> {
+                return send(action("cue.stop"));
+            }
+            case "/stage/noir" -> {
+                String fade = query(uri, "fade");
+                return send(fade.isEmpty() ? action("stage.blackout") : action("stage.blackout", "fade", fade));
+            }
+            case "/spot" -> {
+                JsonObject a = action("spotlight.set");
+                for (String k : new String[]{"target", "color", "intensity", "cone", "follow", "fade", "on"}) {
+                    String v = query(uri, k);
+                    if (v.isEmpty()) continue;
+                    if (k.equals("intensity") && v.matches("[0-9]+")) a.addProperty(k, Integer.parseInt(v));
+                    else if (k.equals("on")) a.addProperty(k, !v.equals("false") && !v.equals("0"));
+                    else a.addProperty(k, v);
+                }
+                return send(a);
             }
             case "/garage/open", "/garage/close", "/garage/toggle" -> {
                 String name = query(uri, "name");

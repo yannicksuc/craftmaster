@@ -123,7 +123,7 @@ public final class Curtains {
     }
 
     /** Where the block is going: its pending change if it is moving, else its current state. */
-    private static boolean isHeadingOpen(ServerLevel level, BlockPos pos, BlockState state) {
+    public static boolean isHeadingOpen(ServerLevel level, BlockPos pos, BlockState state) {
         Map<BlockPos, Change> pending = PENDING.get(level.dimension());
         Change c = pending == null ? null : pending.get(pos);
         return c != null ? c.open() : state.getValue(CurtainBlock.OPEN);

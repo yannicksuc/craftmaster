@@ -143,3 +143,14 @@ def test_clips_and_screens(ctx):
     assert a("Coupe le clip.") == [{"type": "clip.stop"}]
     assert a("Mets le clip sur la télé de gauche.") == [{"type": "tele.show", "tele": "gauche", "clip": "dernier"}]
     assert a("Mets le direct d'Ensuri sur la télé plateau.") == [{"type": "tele.show", "tele": "plateau", "live": "ensuri"}]
+
+
+def test_stage_looks_and_cues(ctx):
+    def a(t):
+        return OfflineUnderstander().understand(ctx, t).actions
+    assert a("Noir.") == [{"type": "stage.blackout"}]
+    assert a("Noir en 3 secondes.") == [{"type": "stage.blackout", "fade": "3"}]
+    assert a("Lance la conduite ouverture.") == [{"type": "cue.play", "name": "ouverture"}]
+    assert a("Stop la conduite.") == [{"type": "cue.stop"}]
+    assert a("Ambiance plateau.") == [{"type": "look.play", "name": "plateau"}]
+    assert a("Passe en ambiance révélation en 5 secondes.") == [{"type": "look.play", "name": "révélation", "fade": "5"}]

@@ -163,6 +163,18 @@ class OfflineUnderstander:
             return [{"type": "spotlight.on"}]
         if re.fullmatch(r"(?:les )?projecteurs? fixes?", text):
             return [{"type": "spotlight.stop"}]
+        # Stage looks and cue lists (scénographie)
+        m = re.fullmatch(r"noir(?: (?:en|sur) (?P<s>\d+(?:[.,]\d+)?) ?(?:secondes?|s))?", text)
+        if m:
+            return [{"type": "stage.blackout"} | ({"fade": m.group("s").replace(",", ".")} if m.group("s") else {})]
+        m = re.fullmatch(r"(?:lance |joue |top )?(?:la )?conduite (?P<name>.+)", text)
+        if m:
+            return [{"type": "cue.play", "name": m.group("name")}]
+        if re.fullmatch(r"(?:stop|stoppe|arrête|arrete) (?:la )?conduite", text):
+            return [{"type": "cue.stop"}]
+        m = re.fullmatch(r"(?:lance |passe en |mets )?(?:l')?ambiance (?P<name>.+?)(?: en (?P<s>\d+(?:[.,]\d+)?) ?(?:secondes?|s))?", text)
+        if m:
+            return [{"type": "look.play", "name": m.group("name")} | ({"fade": m.group("s").replace(",", ".")} if m.group("s") else {})]
         # In-game clips and studio screens (media/)
         if re.fullmatch(r"(?:lance|démarre|demarre|commence) (?:un |le )?clip|clip", text):
             return [{"type": "clip.start"}]

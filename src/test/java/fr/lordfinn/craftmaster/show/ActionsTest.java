@@ -259,6 +259,27 @@ class ActionsTest {
     }
 
     @Test
+    void stageOrdersForTheLightBoard() {
+        prepare();
+        Actions.SpotlightSet set = (Actions.SpotlightSet) run(a("spotlight.set", "target", "face*", "color", "rouge", "intensity", 60,
+                "cone", "8", "fade", "2.5")).effects().getFirst();
+        assertEquals(new Actions.SpotlightSet("face*", null, "rouge", 60, 8.0, null, 2.5), set);
+        assertEquals("tout", ((Actions.SpotlightSet) run(a("spotlight.set", "on", false)).effects().getFirst()).target(), "all by default");
+        assertEquals("@scene", ((Actions.SpotlightSet) run(a("spotlight.set", "follow", "@scene")).effects().getFirst()).follow());
+        assertEquals("Ensuri", ((Actions.SpotlightSet) run(a("spotlight.set", "follow", "Ensu")).effects().getFirst()).follow(),
+                "a nickname gives the cast member");
+        assertFalse(run(a("spotlight.set", "target", "face")).ok(), "nothing to set");
+        assertFalse(run(a("spotlight.set", "intensity", 140)).ok());
+        assertFalse(run(a("spotlight.set", "cone", 90)).ok());
+        assertEquals(new Actions.StageOrder("look.play", "plateau", 3.0, List.of()),
+                run(a("look.play", "name", "plateau", "fade", 3)).effects().getFirst());
+        assertEquals(new Actions.StageOrder("cue.stop", null, null, List.of()), run(a("cue.stop")).effects().getFirst());
+        assertFalse(run(a("cue.play")).ok(), "a cue list needs its name");
+        assertEquals(Rights.Right.CAMERA, Rights.required("look.play", Map.of()));
+        assertEquals(Rights.Right.CAMERA, Rights.required("cue.play", Map.of()));
+    }
+
+    @Test
     void nextGoesOnAfterTheRoundJustEnded() {
         prepare();
         run(a("manche.start", "manche", "next"));

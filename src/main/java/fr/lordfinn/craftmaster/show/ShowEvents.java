@@ -28,6 +28,9 @@ public final class ShowEvents {
         /** A round was just started (titles, teleports and timer already done). */
         default void onMancheStarted(MinecraftServer server, int season, int number, String name) {}
 
+        /** The round being played was just ended (by the organiser, the gong, the voice…). */
+        default void onMancheEnded(MinecraftServer server, String name) {}
+
         /** The staged reveal of the season's ranking starts. */
         default void onRevealStarted(MinecraftServer server, int season) {}
 
@@ -74,6 +77,10 @@ public final class ShowEvents {
 
     public static void onMancheStarted(MinecraftServer server, int season, int number, String name) {
         fire("de manche", l -> l.onMancheStarted(server, season, number, name));
+    }
+
+    public static void onMancheEnded(MinecraftServer server, String name) {
+        fire("de fin de manche", l -> l.onMancheEnded(server, name));
     }
 
     public static void onRevealStarted(MinecraftServer server, int season) {

@@ -89,6 +89,10 @@ public final class CraftMaster implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.ReplayCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.RepriseCommands.register(dispatcher));
 
+        // Stage looks and cue lists (docs/wiki/Scenographie.md)
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> fr.lordfinn.craftmaster.stage.Scenography.load());
+        fr.lordfinn.craftmaster.stage.Cues.register();
+        CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.stage.StageCommands.register(dispatcher));
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             FabricLoader fl = FabricLoader.getInstance();
             data = new CraftMasterData(fl.getConfigDir().resolve("craftmaster/config.yml"), LOG);

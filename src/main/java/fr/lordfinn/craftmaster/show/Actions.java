@@ -108,6 +108,15 @@ public final class Actions {
     public record SpotlightOrder(String order, String player) implements Effect {}
 
     /**
+     * spotlight.set: the spotlights of {@code target} (tout, a name, a group "face*") take the given settings (null:
+     * unchanged) in {@code fade} seconds. {@code color} is a colour word or #RRGGBB, read by studio.Spotlights.
+     */
+    public record SpotlightSet(String target, Boolean on, String color, Integer intensity, Double cone, String follow, double fade) implements Effect {}
+
+    /** Stage looks and cue lists (stage/): look.play, look.save, cue.play, cue.stop, stage.blackout. */
+    public record StageOrder(String order, String name, Double fade, List<String> parts) implements Effect {}
+
+    /**
      * tele.show: what a named studio screen shows (media/MediaServer.show). {@code kind}: clip, lien, direct, image,
      * off. Nothing in the data changes (no undo entry).
      */
@@ -144,7 +153,9 @@ public final class Actions {
             "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop",
             "task.set", "task.clear", "task.reveal", "task.hide", "task.show", "envelope.give", "task.reveal_more",
             // Studio set (chantier F)
-            "spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off",
+            "spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off", "spotlight.set",
+            // Stage looks and cue lists (stage/): no data change
+            "look.play", "look.save", "cue.play", "cue.stop", "stage.blackout",
             // Studio screens: clips, Twitch links and lives (media/)
             "tele.show",
             // TV direction, lieux / travellings / intros (chantier E): no data change for these four
@@ -400,6 +411,9 @@ public final class Actions {
                 // Studio set (chantier F): world only, nothing in the data changes
                 case "spotlight.follow" -> spotlightFollow(a);
                 case "spotlight.stop", "spotlight.on", "spotlight.off" -> effects.add(new SpotlightOrder(type.substring("spotlight.".length()), null));
+                case "spotlight.set" -> spotlightSet(a);
+                case "look.play", "look.save", "cue.play" -> stageOrder(type, a, true);
+                case "cue.stop", "stage.blackout" -> stageOrder(type, a, false);
                 // Studio screens (media/): world only, nothing in the data changes
                 case "tele.show" -> teleShow(a);
                 // ---- round intros (chantier E, TV direction)
@@ -1114,6 +1128,38 @@ public final class Actions {
             Season s = data.activeSeason();
             SeasonPlayer p = s == null ? null : castMember(s, pseudo);
             effects.add(new SpotlightOrder("follow", p != null ? p.name : pseudo));
+        }
+
+        /** spotlight.set {target?, on?, color?, intensity?, cone?, follow?, fade?} */
+        private void spotlightSet(Map<String, Object> a) {
+            String target = str(a, "target");
+            Integer intensity = integer(a, "intensity");
+            if (intensity != null && (intensity < 0 || intensity > 100)) throw new Invalid("intensité entre 0 et 100.");
+            Double cone = a.get("cone") == null ? null : num(a, "cone");
+            if (cone != null && (cone < 1 || cone > 30)) throw new Invalid("cône entre 1 et 30 degrés.");
+            double fade = a.get("fade") == null ? 0 : num(a, "fade");
+            if (fade < 0 || fade > 60) throw new Invalid("fondu entre 0 et 60 secondes.");
+            String follow = str(a, "follow");
+            if (follow != null) {
+                // A cast member by name or nickname, else the exact text (a pseudo, or a rule like @scene)
+                Season s = data.activeSeason();
+                SeasonPlayer p = s == null || follow.startsWith("@") ? null : castMember(s, follow);
+                if (p != null) follow = p.name;
+            }
+            Boolean on = bool(a, "on");
+            String color = str(a, "color");
+            if (on == null && color == null && intensity == null && cone == null && follow == null)
+                throw new Invalid("rien à régler (on, color, intensity, cone ou follow).");
+            effects.add(new SpotlightSet(target == null ? "tout" : target, on, color, intensity, cone, follow, fade));
+        }
+
+        /** look.play / look.save / cue.play {name, fade?, parts?}, cue.stop, stage.blackout {fade?} */
+        private void stageOrder(String type, Map<String, Object> a, boolean named) {
+            String name = named ? required(a, "name") : null;
+            Double fade = a.get("fade") == null ? null : num(a, "fade");
+            if (fade != null && (fade < 0 || fade > 60)) throw new Invalid("fondu entre 0 et 60 secondes.");
+            List<String> parts = strings(a, "parts");
+            effects.add(new StageOrder(type, name, fade, parts == null ? List.of() : parts));
         }
 
         private void curtain(Map<String, Object> a, boolean open) {

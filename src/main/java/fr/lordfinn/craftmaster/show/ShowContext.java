@@ -113,6 +113,10 @@ public final class ShowContext {
         out.put("onlinePlayers", new ArrayList<>(online));
         out.put("curtains", new ArrayList<>(data.stage().curtains.keySet()));
         out.put("garages", new ArrayList<>(fr.lordfinn.craftmaster.garage.GarageDoors.names().keySet()));
+        // Stage: named spotlights, saved looks and cue lists (stage/)
+        out.put("spotlights", fr.lordfinn.craftmaster.studio.Spotlights.names());
+        out.put("looks", new ArrayList<>(fr.lordfinn.craftmaster.stage.Scenography.book().looks.keySet()));
+        out.put("cues", new ArrayList<>(fr.lordfinn.craftmaster.stage.Scenography.book().cues.keySet()));
         out.put("scenes", new ArrayList<>(data.stage().scenes.keySet()));
         out.put("currentScene", live.scene);
         // TV direction (chantier E): studio cameras ({number, name, role}), the shot on air, automatic direction

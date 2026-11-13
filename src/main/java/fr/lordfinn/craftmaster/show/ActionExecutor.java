@@ -132,6 +132,7 @@ public final class ActionExecutor {
             case Actions.MancheEnded m -> {
                 Show.endManche(server, m.name());
                 fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundEnd(server);
+                ShowEvents.onMancheEnded(server, m.name());
             }
             case Actions.TimerGo g -> lines.add(fr.lordfinn.craftmaster.task.RoundStart.goNow(server)
                     ? "Chrono lancé, joueurs libérés." : "Aucune manche n'attend son départ.");
@@ -169,6 +170,31 @@ public final class ActionExecutor {
                 case "follow" -> fr.lordfinn.craftmaster.studio.Spotlights.follow(server, o.player());
                 case "stop" -> fr.lordfinn.craftmaster.studio.Spotlights.stop(server);
                 default -> fr.lordfinn.craftmaster.studio.Spotlights.setLit(server, o.order().equals("on"));
+            });
+            case Actions.SpotlightSet o -> {
+                Integer rgb = o.color() == null ? null : fr.lordfinn.craftmaster.studio.Spotlights.parseColor(o.color());
+                if (o.color() != null && rgb == null) lines.add("Couleur inconnue : " + o.color() + ".");
+                else {
+                    String follow = o.follow();
+                    String rule = follow == null ? null : fr.lordfinn.craftmaster.studio.SpotlightFollow.parse(follow);
+                    if (rule != null) follow = rule;
+                    lines.add(fr.lordfinn.craftmaster.studio.Spotlights.apply(server, o.target(), new fr.lordfinn.craftmaster.studio.Spotlights.Settings(
+                            o.on(), rgb, o.intensity(), o.cone() == null ? null : o.cone().floatValue(), follow, null, null, null), o.fade()));
+                }
+            }
+            case Actions.StageOrder o -> lines.add(switch (o.order()) {
+                case "look.play" -> fr.lordfinn.craftmaster.stage.Scenography.playLook(server, o.name(), o.fade());
+                case "look.save" -> {
+                    List<String> parts = new java.util.ArrayList<>();
+                    for (String p : o.parts()) {
+                        String k = fr.lordfinn.craftmaster.stage.Look.part(p);
+                        if (k != null) parts.add(k);
+                    }
+                    yield fr.lordfinn.craftmaster.stage.Scenography.saveLook(server, o.name(), parts, o.fade());
+                }
+                case "cue.play" -> fr.lordfinn.craftmaster.stage.Cues.play(server, o.name());
+                case "cue.stop" -> fr.lordfinn.craftmaster.stage.Cues.stop();
+                default -> fr.lordfinn.craftmaster.stage.Scenography.blackout(server, o.fade() == null ? 1 : o.fade());
             });
             // Studio screens (media/): a clip, a Twitch link or live, a picture, the test card
             case Actions.ScreenShow t -> {

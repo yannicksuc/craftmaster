@@ -121,6 +121,7 @@ public final class Studio {
 
         removed();
         StudioNetwork.register();
+        SpotlightFollow.register();
         CommandRegistrationCallback.EVENT.register((d, ctx, sel) -> StudioCommands.register(d));
         ServerTickEvents.END_SERVER_TICK.register(StudioTimer::tick);
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> StudioTimer.onJoin(handler.getPlayer()));
