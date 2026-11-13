@@ -121,7 +121,7 @@ public final class CameraCommands {
     private static final SuggestionProvider<CommandSourceStack> TRANSITIONS = list(c -> List.of("coupe", "fondu", "enchaine"));
     private static final SuggestionProvider<CommandSourceStack> EFFECT_IDS = list(c -> EFFECTS);
     private static final SuggestionProvider<CommandSourceStack> CARDS = list(c -> List.of("titre", "synthe", "aucune"));
-    private static final SuggestionProvider<CommandSourceStack> MUSIC = list(c -> List.of("theme", "aucune", "minecraft:music_disc.otherside"));
+    private static final SuggestionProvider<CommandSourceStack> MUSIC = list(c -> List.of("intro", "theme", "aucune", "minecraft:music_disc.otherside"));
     private static final SuggestionProvider<CommandSourceStack> ON_OFF = list(c -> List.of("on", "off"));
     private static final SuggestionProvider<CommandSourceStack> SCORE_MODES = list(c -> List.of("show", "auto", "on", "off"));
     private static final SuggestionProvider<CommandSourceStack> ONLINE = list(c -> c.getSource().getOnlinePlayerNames());
@@ -671,7 +671,11 @@ public final class CameraCommands {
                 .then(literal("ajouter")
                         .then(literal("camera").then(addShot("camera", "camera", CAMERAS)))
                         .then(literal("trajet").then(addShot("trajet", "path", PATHS)))
-                        .then(literal("suivi").then(addShot("suivi", "follow", ONLINE))))
+                        .then(literal("suivi").then(addShot("suivi", "follow", ONLINE)))
+                        // The task location shot: arrival point and envelope (camera generated the first time)
+                        .then(literal("tache").executes(c -> run(c, intro(c, "intro.shot.add", "task", true)))
+                                .then(argument("seconds", DoubleArgumentType.doubleArg(0, MancheIntro.MAX_SECONDS))
+                                        .executes(c -> run(c, intro(c, "intro.shot.add", "task", true, "seconds", DoubleArgumentType.getDouble(c, "seconds")))))))
                 .then(literal("plan").then(argument("index", integer(1, MancheIntro.MAX_SHOTS))
                         .then(literal("retirer").executes(c -> run(c, intro(c, "intro.shot.remove", "index", getInteger(c, "index")))))
                         .then(literal("duree").then(argument("seconds", DoubleArgumentType.doubleArg(0, MancheIntro.MAX_SECONDS))
@@ -691,7 +695,7 @@ public final class CameraCommands {
                 .then(literal("titre").then(argument("enabled", word()).suggests(ON_OFF)
                         .executes(c -> run(c, intro(c, "intro.set", "titleCard", onOff(c, "enabled"))))))
                 // Cut on the music: tempo ("theme" = the show's theme), shot length in beats, first beat (s)
-                .then(literal("rythme").then(argument("bpm", word()).suggests(list(c -> List.of("theme", "off", "120")))
+                .then(literal("rythme").then(argument("bpm", word()).suggests(list(c -> List.of("intro", "theme", "off", "120")))
                         .executes(c -> run(c, intro(c, "intro.set", "bpm", str(c, "bpm"))))
                         .then(argument("beats", integer(1, 64))
                                 .executes(c -> run(c, intro(c, "intro.set", "bpm", str(c, "bpm"), "beats", getInteger(c, "beats"))))
@@ -700,7 +704,34 @@ public final class CameraCommands {
                                                 "offset", DoubleArgumentType.getDouble(c, "offset"))))))))
                 .then(literal("enchaine").then(argument("enabled", word()).suggests(ON_OFF)
                         .executes(c -> run(c, intro(c, "intro.set", "chained", onOff(c, "enabled"))))))
+                // Everything made from the round's cameras, on the intro music
+                .then(literal("construire").executes(c -> run(c, intro(c, "intro.auto"))))
+                .then(literal("look").then(argument("effect", word()).suggests(EFFECT_IDS)
+                        .executes(c -> run(c, intro(c, "intro.set", "look", str(c, "effect"))))))
+                .then(literal("consigne").then(argument("enabled", word()).suggests(ON_OFF)
+                        .executes(c -> run(c, intro(c, "intro.set", "typedTask", onOff(c, "enabled"))))))
+                // Places the task location camera again (after moving the TP point or the envelope)
+                .then(literal("lieu").executes(CameraCommands::taskCamera))
                 .then(literal("effacer").executes(c -> run(c, intro(c, "intro.clear"))));
+    }
+
+    private static int taskCamera(CommandContext<CommandSourceStack> c) {
+        Manche m = Lieux.manche(str(c, "manche"));
+        if (m == null) {
+            fail(c, "Manche « " + str(c, "manche") + " » introuvable.");
+            return 0;
+        }
+        fr.lordfinn.craftmaster.broadcast.TaskFraming.Result r = fr.lordfinn.craftmaster.broadcast.TaskFraming.regenerate(c.getSource().getServer(), m);
+        if (r.camera() == null) {
+            fail(c, "Pas de plan « lieu de la tâche » pour « " + m.name + " » : " + r.problem() + ".");
+            return 0;
+        }
+        CameraSpot s = r.camera();
+        c.getSource().sendSystemMessage(Component.literal("Lieu de la tâche de « " + m.name + " » : caméra " + s.key()
+                + String.format(java.util.Locale.ROOT, " (%.1f %.1f %.1f)", s.x(), s.y(), s.z())
+                + (r.problem().isEmpty() ? ", l'enveloppe et l'arrivée dans le cadre." : " — " + r.problem() + ".")
+                + " Sans trépied ; /cam pour la retoucher.").withStyle(ChatFormatting.GREEN));
+        return 1;
     }
 
     private static int showIntro(CommandContext<CommandSourceStack> c) {
@@ -713,7 +744,9 @@ public final class CameraCommands {
         c.getSource().sendSystemMessage(Component.literal("— Intro de « " + m.name + " » — "
                 + (in.auto ? in.chained ? "jouée au lancement, enchaînée (noir, TP, titre, révélation)" : "jouée au lancement" : "à la main (/tv intro " + m.id + ")")
                 + " · " + (in.music.isEmpty() ? "sans musique" : "musique " + in.music)
-                + (in.bpm > 0 ? " · " + in.rhythmText() : "") + " · "
+                + (in.bpm > 0 ? " · " + in.rhythmText() : "")
+                + (in.look.isEmpty() ? "" : " · look " + in.look)
+                + (in.typedTask ? "" : " · sans consigne tapée") + " · "
                 + CameraPath.seconds(Math.round(in.duration(n -> {
                     CameraPath p = CameraPaths.get(n);
                     return p == null ? 0 : p.duration();

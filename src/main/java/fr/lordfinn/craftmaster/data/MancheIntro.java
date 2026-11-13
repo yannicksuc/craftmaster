@@ -18,8 +18,11 @@ import java.util.function.ToDoubleFunction;
  */
 public final class MancheIntro {
 
-    /** Shot kinds: a camera (reference resolved in the round's lieu), a travelling, a follow shot. */
-    public static final String CAMERA = "camera", PATH = "trajet", FOLLOW = "suivi";
+    /**
+     * Shot kinds: a camera (reference resolved in the round's lieu), a travelling, a follow shot, and the "task
+     * location" shot (a viewpoint found at play time on the arrival point and the envelope placed there).
+     */
+    public static final String CAMERA = "camera", PATH = "trajet", FOLLOW = "suivi", TASK = "tache";
     /** Cards: none, the big title card, the lower third. */
     public static final String NO_CARD = "", TITLE = "titre", LOWER_THIRD = "synthe";
     /** Default length of a camera or follow shot; length of a travelling = its own unless given (seconds). */
@@ -30,6 +33,10 @@ public final class MancheIntro {
     /** Wanted length of a shot cut on the music when none is given (seconds; rounded to whole beats). */
     public static final double BEAT_SHOT_SECONDS = 3;
     public static final double MIN_BPM = 40, MAX_BPM = 240;
+    /** The task intro music ({@code craftmaster:show.intro}, scripts/gen_intro_music.py): tempo and length. */
+    public static final double INTRO_BPM = 120, INTRO_MUSIC_SECONDS = 20;
+    /** Music cue of the task intro music. */
+    public static final String INTRO_MUSIC = "intro";
 
     /**
      * One shot of the intro.
@@ -73,6 +80,7 @@ public final class MancheIntro {
             StringBuilder b = new StringBuilder(switch (kind) {
                 case PATH -> "trajet " + ref;
                 case FOLLOW -> "suivi de " + ref;
+                case TASK -> "lieu de la tâche";
                 default -> "caméra " + ref;
             });
             b.append(", ").append(length);
@@ -124,10 +132,22 @@ public final class MancheIntro {
      * (false = the round starts at once and the intro plays over it).
      */
     public boolean chained = true;
+    /** Effect over the whole intro, added to each shot's own ("look_intro"; "" = none). */
+    public String look = "";
+    /** The task typed at the bottom of the picture during the last shots, when it is revealed with the round. */
+    public boolean typedTask = true;
     public final List<Shot> shots = new ArrayList<>();
 
     public boolean isEmpty() {
-        return shots.isEmpty() && !auto && music.isEmpty() && titleCard && bpm == 0 && beats == 0 && offset == 0 && chained;
+        return shots.isEmpty() && !auto && music.isEmpty() && titleCard && bpm == 0 && beats == 0 && offset == 0 && chained
+                && look.isEmpty() && typedTask;
+    }
+
+    /** A shot's effect with the intro's look: "macro" + "look_intro" → "macro+look_intro". */
+    public String effectOf(Shot s) {
+        if (look.isEmpty()) return s.effect();
+        if (s.effect().isEmpty()) return look;
+        return s.effect() + "+" + look;
     }
 
     /** Length of a beat in seconds (0 when not cutting on the music). */
@@ -155,6 +175,7 @@ public final class MancheIntro {
         String k = text.trim().toLowerCase(Locale.ROOT);
         switch (k) {
             case "theme", "thème", "generique", "générique" -> { return THEME_BPM; }
+            case "intro", "musique intro", "musique_intro" -> { return INTRO_BPM; }
             case "off", "non", "aucun", "0", "" -> { return 0.0; }
             default -> {
                 try {
@@ -173,6 +194,7 @@ public final class MancheIntro {
         return switch (k.trim().toLowerCase(Locale.ROOT)) {
             case "trajet", "path", "travelling", "traveling" -> PATH;
             case "suivi", "follow", "suis", "joueur", "player" -> FOLLOW;
+            case "tache", "tâche", "task", "lieu", "lieu de la tache", "lieu de la tâche", "lieu_tache", "enveloppe" -> TASK;
             default -> CAMERA;
         };
     }
@@ -194,6 +216,7 @@ public final class MancheIntro {
         return switch (k) {
             case "", "aucune", "aucun", "non", "off", "none", "rien", "silence" -> "";
             case "theme", "thème", "generique", "générique", "craftmaster:show.theme" -> "theme";
+            case "intro", "musique intro", "musique_intro", "craftmaster:show.intro" -> INTRO_MUSIC;
             default -> k.contains(":") ? k : "minecraft:" + k;
         };
     }
@@ -246,6 +269,57 @@ public final class MancheIntro {
         return shots.size() - 1;
     }
 
+    /** Effects given in turn to the auto-built inserts (at least one focus pull), the look over everything. */
+    static final List<String> AUTO_INSERT_EFFECTS = List.of("macro", "mise_au_point", "stop_motion", "macro");
+    public static final String AUTO_LOOK = "look_intro";
+
+    /**
+     * The intro made from what the round already has (docs/design/intro-epreuve.md, "Mode automatique"), on the task
+     * intro music: 40 beats at {@link #INTRO_BPM} ending on its sting.
+     * <ol>
+     *   <li>ambiance: the round's wide camera, timelapse, out of the studio with the "miroir" transition (8 beats,
+     *       more when there are few inserts);</li>
+     *   <li>up to 4 inserts (the round's other cameras), long and short in turn, macro / focus pull / stop motion;</li>
+     *   <li>the master's look: the studio's throne camera, short and dark (4 beats), when there is one;</li>
+     *   <li>the task location shot ({@link #TASK}), the longest, on a white flash; the title card comes on it and the
+     *       task is typed at the bottom.</li>
+     * </ol>
+     * Plays chained (black, teleports, title) and by itself at the round's start. Pure: the caller gives the cameras.
+     *
+     * @param wide    reference of the round's wide camera, or null
+     * @param inserts references of the round's other cameras, in order (only the first 4 are used)
+     * @param throne  reference of the studio's throne camera, or null
+     */
+    public static MancheIntro autoBuild(String wide, List<String> inserts, String throne) {
+        MancheIntro i = new MancheIntro();
+        i.auto = true;
+        i.chained = true;
+        i.music = INTRO_MUSIC;
+        i.bpm = INTRO_BPM;
+        i.look = AUTO_LOOK;
+        double beat = 60 / INTRO_BPM;
+        List<String> ins = inserts == null ? List.of() : inserts.subList(0, Math.min(4, inserts.size()));
+        int[] pattern = switch (ins.size()) {
+            case 0 -> new int[0];
+            case 1 -> new int[]{8};
+            case 2 -> new int[]{8, 8};
+            case 3 -> new int[]{6, 4, 6};
+            default -> new int[]{6, 2, 6, 2};
+        };
+        int used = 0;
+        for (int b : pattern) used += b;
+        int ambiance = wide == null ? 0 : 8 + (16 - used);
+        int throneBeats = throne == null ? 0 : 4;
+        int task = 40 - ambiance - used - throneBeats;
+        if (wide != null) i.shots.add(new Shot(CAMERA, wide, ambiance * beat, "miroir", "timelapse", NO_CARD, ""));
+        for (int k = 0; k < ins.size(); k++)
+            i.shots.add(new Shot(CAMERA, ins.get(k), pattern[k] * beat, k == 0 && wide == null ? "miroir" : "coupe",
+                    AUTO_INSERT_EFFECTS.get(k), NO_CARD, ""));
+        if (throne != null) i.shots.add(new Shot(CAMERA, throne, throneBeats * beat, "coupe", "vignette", NO_CARD, ""));
+        i.shots.add(new Shot(TASK, "", task * beat, i.shots.isEmpty() ? "miroir" : "flash", "", NO_CARD, ""));
+        return i;
+    }
+
     public MancheIntro copy() {
         MancheIntro c = new MancheIntro();
         c.auto = auto;
@@ -255,6 +329,8 @@ public final class MancheIntro {
         c.beats = beats;
         c.offset = offset;
         c.chained = chained;
+        c.look = look;
+        c.typedTask = typedTask;
         c.shots.addAll(shots);
         return c;
     }
@@ -276,6 +352,8 @@ public final class MancheIntro {
         if (beats > 0) m.put("beats", beats);
         if (offset > 0) m.put("offset", offset);
         if (!chained) m.put("chained", false);
+        if (!look.isEmpty()) m.put("look", look);
+        if (!typedTask) m.put("typedTask", false);
         List<Object> list = new ArrayList<>();
         for (Shot s : shots) list.add(s.toYaml());
         if (!list.isEmpty()) m.put("shots", list);
@@ -296,6 +374,8 @@ public final class MancheIntro {
         double offset = Maps.toDouble(m.get("offset"));
         i.offset = Double.isFinite(offset) ? Math.max(0, Math.min(30, offset)) : 0;
         i.chained = m.get("chained") == null || Maps.bool(m.get("chained"));
+        i.look = Maps.str(m.get("look"), "").trim();
+        i.typedTask = m.get("typedTask") == null || Maps.bool(m.get("typedTask"));
         for (Object s : Maps.list(m.get("shots"))) if (s instanceof Map<?, ?>) i.shots.add(Shot.fromYaml(Maps.map(s)));
         return i;
     }

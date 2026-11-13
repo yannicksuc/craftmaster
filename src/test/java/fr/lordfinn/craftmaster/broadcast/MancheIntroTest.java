@@ -102,6 +102,68 @@ class MancheIntroTest {
     }
 
     @Test
+    void autoBuildFillsTheIntroMusic() {
+        MancheIntro full = MancheIntro.autoBuild("pont:1", List.of("pont:2", "pont:3", "pont:4", "pont:5", "pont:6"), "studio:4");
+        assertTrue(full.auto);
+        assertTrue(full.chained);
+        assertEquals(MancheIntro.INTRO_MUSIC, full.music);
+        assertEquals(MancheIntro.INTRO_BPM, full.bpm);
+        assertEquals("look_intro", full.look);
+        // Ambiance, 4 inserts, the throne, the task location: 7 shots ending on the sting (40 beats = 20 s)
+        assertEquals(7, full.shots.size());
+        assertEquals(MancheIntro.INTRO_MUSIC_SECONDS, full.duration(n -> 0), 1e-9);
+        assertEquals("pont:1", full.shots.getFirst().ref());
+        assertEquals("timelapse", full.shots.getFirst().effect());
+        assertEquals("miroir", full.shots.getFirst().transition());
+        assertEquals("studio:4", full.shots.get(5).ref());
+        MancheIntro.Shot last = full.shots.getLast();
+        assertEquals(MancheIntro.TASK, last.kind());
+        assertEquals("flash", last.transition());
+        // The task location is the longest shot, there is a focus pull, and the look goes on every shot
+        List<MancheIntro.Timed> tl = full.timeline(n -> 0);
+        for (MancheIntro.Timed t : tl) assertTrue(t.length() <= tl.getLast().length() + 1e-9);
+        assertTrue(full.shots.stream().anyMatch(s -> s.effect().equals("mise_au_point")));
+        assertEquals("macro+look_intro", full.effectOf(full.shots.get(1)));
+        assertEquals(6, full.autoCardShot());
+
+        // Nothing in the lieu, no throne: only the task location, for the whole music
+        MancheIntro bare = MancheIntro.autoBuild(null, List.of(), null);
+        assertEquals(1, bare.shots.size());
+        assertEquals(MancheIntro.TASK, bare.shots.getFirst().kind());
+        assertEquals(20, bare.duration(n -> 0), 1e-9);
+        // Two cameras: still 40 beats
+        assertEquals(20, MancheIntro.autoBuild("a", List.of("b"), null).duration(n -> 0), 1e-9);
+    }
+
+    @Test
+    void autoActionLookAndTypedTask() {
+        Actions.Outcome o = run(a("intro.auto", "manche", "Le Pont"));
+        assertTrue(o.ok(), o.lines().toString());
+        assertEquals(MancheIntro.TASK, pont().intro.shots.getLast().kind());
+        assertTrue(run(a("intro.set", "manche", "Le Pont", "look", "aucun", "typedTask", false)).ok());
+        assertEquals("", pont().intro.look);
+        assertFalse(pont().intro.typedTask);
+        assertTrue(run(a("intro.shot.add", "manche", "Le Pont", "task", true, "seconds", 5)).ok());
+        assertEquals(MancheIntro.TASK, pont().intro.shots.getLast().kind());
+        assertEquals("lieu de la tâche, 5 s", pont().intro.shots.getLast().describe());
+
+        data.save();
+        CraftMasterData again = new CraftMasterData(dir.resolve("config.yml"), LoggerFactory.getLogger("test"));
+        again.load(null);
+        MancheIntro read = again.activeSeason().activePartie().manches.getFirst().intro;
+        assertFalse(read.typedTask);
+        assertEquals(MancheIntro.TASK, read.shots.getLast().kind());
+        assertEquals(MancheIntro.INTRO_MUSIC, read.music);
+        assertTrue(run(a("undo")).ok());
+        assertTrue(run(a("undo")).ok());
+        assertEquals("look_intro", pont().intro.look);
+        assertEquals(120, MancheIntro.parseBpm("intro"));
+        assertEquals(MancheIntro.INTRO_MUSIC, MancheIntro.normalizeMusic("craftmaster:show.intro"));
+        assertEquals("craftmaster:show.intro", MancheIntros.soundOf("intro"));
+        assertEquals("", MancheIntros.soundOf("theme"));
+    }
+
+    @Test
     void rhythmAndChainActionsAreKept() {
         assertTrue(run(a("intro.shot.add", "manche", "Le Pont", "camera", "large")).ok());
         MancheIntro in = pont().intro;

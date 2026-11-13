@@ -224,7 +224,9 @@ public final class BroadcastNetwork {
                 TITLE_CARD = "title_card", CONTESTANT = "contestant", CREDITS = "credits", THEME = "theme", CLEAR = "clear",
                 BROADCAST = "broadcast", PATH_PREVIEW = "path_preview",
                 /** Everyone's picture to black and back (title = round name, subtitle = "Manche 2", player = "in,hold,out" ticks). */
-                BLACKOUT = "blackout";
+                BLACKOUT = "blackout",
+                /** The task typed at the bottom of the broadcast picture (title = text, ticks = how long it stays). */
+                TASK_TYPE = "task_type";
 
         private Cues() {}
     }

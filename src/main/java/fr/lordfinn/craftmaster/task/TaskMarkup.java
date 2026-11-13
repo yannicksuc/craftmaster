@@ -109,6 +109,29 @@ public final class TaskMarkup {
         return out.toString();
     }
 
+    /**
+     * What an intro types at the bottom of the picture: the task's first line of text (not a heading, a stamp or a
+     * signature), stopped before its first hidden part, cut between words to at most {@code max} characters ("…").
+     * "" when there is none.
+     */
+    public static String typedLine(String text, int max) {
+        if (text == null || text.isBlank()) return "";
+        String before = text;
+        int secret = before.indexOf(OPEN);
+        if (secret >= 0) before = before.substring(0, secret);
+        Doc d = parse(before, Map.of());
+        String line = "";
+        for (Block bl : d.blocks())
+            if (bl.kind() == Kind.LINE || bl.kind() == Kind.RULE) {
+                line = bl.plain().strip();
+                if (!line.isEmpty()) break;
+            }
+        line = line.replaceAll("\\s+", " ");
+        if (line.length() <= max) return line;
+        int cut = line.lastIndexOf(' ', max - 1);
+        return line.substring(0, cut > max / 2 ? cut : max - 1).strip() + "…";
+    }
+
     /** The text without any markup (chat fallback of a vanilla client, voice context). Secrets must be redacted first. */
     public static String plain(String text) {
         Doc d = parse(text, Map.of());

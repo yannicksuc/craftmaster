@@ -79,6 +79,8 @@ public final class Broadcast {
         HudElementRegistry.replaceElement(VanillaHudElements.CHAT, vanilla -> hiddenInBroadcast(vanilla, true));
         HudElementRegistry.addLast(CraftMaster.id("broadcast"), BroadcastOverlay::extract);
         // Launch of a round after its intro: above everything, players and broadcast alike
+        // The task typed at the bottom during an intro's last shots (broadcast only)
+        HudElementRegistry.addLast(CraftMaster.id("typed_task"), TypedTask::extract);
         HudElementRegistry.addLast(CraftMaster.id("blackout"), Blackout::extract);
 
         ClientPlayNetworking.registerGlobalReceiver(ShowState.TYPE, (payload, ctx) -> ShowStateClient.set(payload));
@@ -91,9 +93,12 @@ public final class Broadcast {
                 set("on".equals(payload.title()));
             } else if (Cues.BLACKOUT.equals(payload.kind())) {
                 Blackout.start(payload);
+            } else if (Cues.TASK_TYPE.equals(payload.kind())) {
+                TypedTask.start(payload);
             } else if (Cues.PATH_PREVIEW.equals(payload.kind())) {
                 DirectorCamera.preview(payload.title(), payload.ticks());
             } else {
+                if (Cues.CLEAR.equals(payload.kind())) TypedTask.reset();
                 BroadcastOverlay.cue(payload);
             }
         });
@@ -106,6 +111,7 @@ public final class Broadcast {
             DirectorCamera.reset();
             BroadcastOverlay.reset();
             Blackout.reset();
+            TypedTask.reset();
             ThemeSound.stop();
         }));
         // Before the game handles its keys: in broadcast mode the hotbar keys pick a camera

@@ -80,4 +80,15 @@ class TaskMarkupTest {
     void plainText() {
         assertEquals("Titre\nLigne gras\n\nRègle", TaskMarkup.plain("# Titre\nLigne **gras**\n\n!règle Règle"));
     }
+
+    @Test
+    void typedLineIsTheFirstSentenceWithoutSecrets() {
+        assertEquals("Mettez l'œuf le plus haut possible.",
+                TaskMarkup.typedLine("# Tâche 4\n[tampon: URGENT]\nMettez l'œuf le plus **haut** possible.\n!règle Le plus haut gagne.", 110));
+        assertEquals("Trouvez le", TaskMarkup.typedLine("Trouvez le [secret]trésor caché[/secret] avant tout le monde.", 110));
+        assertEquals("Le plus haut gagne.", TaskMarkup.typedLine("# Titre seul\n!règle Le plus haut gagne.", 110));
+        String cut = TaskMarkup.typedLine("Construisez la plus grande tour possible avec uniquement des blocs de terre en moins de dix minutes", 40);
+        assertTrue(cut.endsWith("…") && cut.length() <= 40, cut);
+        assertEquals("", TaskMarkup.typedLine("", 110));
+    }
 }

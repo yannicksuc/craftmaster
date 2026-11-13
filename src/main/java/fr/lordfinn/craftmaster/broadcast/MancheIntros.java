@@ -106,14 +106,14 @@ public final class MancheIntros {
         running = m.id;
         music = !intro.music.isEmpty();
         Director.cue(server, new ShowCue(Cues.CLEAR, "", "", "", 0));
-        if (music) Director.cue(server, new ShowCue(Cues.THEME, "play", intro.music.equals("theme") ? "" : intro.music, "", 0));
+        if (music) Director.cue(server, new ShowCue(Cues.THEME, "play", soundOf(intro.music), "", 0));
         String title = m.name, subtitle = subtitle(m);
         List<String> problems = new ArrayList<>();
         int autoCard = intro.autoCardShot();
         List<MancheIntro.Timed> timeline = intro.timeline(MancheIntros::pathSeconds);
         for (MancheIntro.Timed t : timeline) {
             MancheIntro.Shot s = t.shot();
-            Director.ShotRequest request = request(server, m, s, problems, t.index());
+            Director.ShotRequest request = request(server, m, s, intro.effectOf(s), problems, t.index());
             int ticks = (int) Math.round(t.length() * 20);
             String card = t.index() == autoCard ? MancheIntro.TITLE : s.card();
             String[] text = s.text().isEmpty() ? new String[]{title, subtitle} : s.text().split("\\|", 2);
@@ -127,11 +127,36 @@ public final class MancheIntros {
             });
         }
         double end = intro.duration(MancheIntros::pathSeconds);
+        // The task typed at the bottom of the picture over the last shots (the task location shot, else the last one)
+        String typed = typedTask(m);
+        if (!typed.isEmpty() && !timeline.isEmpty()) {
+            double from = timeline.getLast().start();
+            for (MancheIntro.Timed t : timeline) if (t.shot().kind().equals(MancheIntro.TASK)) from = t.start();
+            from = Math.min(from + 0.5, Math.max(0, end - 3));
+            int ticks = (int) Math.round((end - from) * 20);
+            at(server, from, () -> Director.cue(server, new ShowCue(Cues.TASK_TYPE, typed, "", "", ticks)));
+        }
         at(server, end, () -> finish(server, true));
         Director.sync(server);
         CraftMaster.LOG.info("[Réalisation] Intro de la manche {} lancée", m.id);
         return "Intro de « " + m.name + " » lancée (" + timeline.size() + " plan" + (timeline.size() > 1 ? "s" : "") + ", "
                 + CameraPath.seconds(Math.round(end * 10) / 10.0) + ")" + (problems.isEmpty() ? "." : " — ⚠ " + String.join(" ; ", problems));
+    }
+
+    /** The intro's music cue as a sound id for the clients ("" = the show's theme). */
+    static String soundOf(String music) {
+        return switch (music) {
+            case "theme" -> "";
+            case MancheIntro.INTRO_MUSIC -> CraftMaster.id("show.intro").toString();
+            default -> music;
+        };
+    }
+
+    /** What the intro types at the bottom: the round's task, when it is revealed with the round; "" otherwise. */
+    static String typedTask(Manche m) {
+        if (!m.intro.typedTask || m.task == null || m.task.isEmpty() || !m.task.revealOnStart) return "";
+        String line = fr.lordfinn.craftmaster.task.TaskMarkup.typedLine(m.task.text, 110);
+        return line.isEmpty() ? m.task.title.strip() : line;
     }
 
     /** "Manche 2 · Partie 1" */
@@ -143,7 +168,7 @@ public final class MancheIntros {
     }
 
     /** What goes on air for one shot, or null (written in {@code problems}). */
-    private static Director.ShotRequest request(MinecraftServer server, Manche m, MancheIntro.Shot s, List<String> problems, int index) {
+    private static Director.ShotRequest request(MinecraftServer server, Manche m, MancheIntro.Shot s, String shotEffect, List<String> problems, int index) {
         int transition;
         try {
             transition = s.transition().isEmpty() ? BroadcastNetwork.CROSSFADE : BroadcastActions.parseTransition(s.transition());
@@ -152,7 +177,7 @@ public final class MancheIntros {
         }
         // The first shot comes out of whatever was on air: a dip to black reads better than a dissolve
         if (index == 0 && s.transition().isEmpty()) transition = BroadcastNetwork.FADE;
-        String effect = BroadcastActions.effectId(s.effect());
+        String effect = BroadcastActions.effectId(shotEffect);
         switch (s.kind()) {
             case MancheIntro.PATH -> {
                 CameraPath p = CameraPaths.get(s.ref());
@@ -161,6 +186,13 @@ public final class MancheIntros {
                     return null;
                 }
                 return new Director.ShotRequest(BroadcastNetwork.SHOT_PATH, p.name(), "", transition, effect, List.of(), Director.Source.SEQUENCE);
+            }
+            case MancheIntro.TASK -> {
+                // The arrival point and the envelope waiting there (camera generated the first time)
+                TaskFraming.Result r = TaskFraming.camera(server, m);
+                if (!r.problem().isEmpty()) problems.add("plan " + (index + 1) + " : " + r.problem());
+                CameraSpot c = r.camera() != null ? r.camera() : Lieux.resolve(server, "large", m.id);
+                return c == null ? null : Director.ShotRequest.camera(c, transition, effect, Director.Source.SEQUENCE);
             }
             case MancheIntro.FOLLOW -> {
                 if (server.getPlayerList().getPlayerByName(s.ref()) == null) {

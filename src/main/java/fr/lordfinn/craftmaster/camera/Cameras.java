@@ -143,6 +143,18 @@ public final class Cameras {
         changed(server);
     }
 
+    /**
+     * Creates or moves camera {@code spot.key()} as a bare viewpoint, without a tripod: the cameras generated for an
+     * intro (the "task location" shot), which must not stand in the players' way. A tripod it had is removed.
+     */
+    public static void placeViewpoint(MinecraftServer server, CameraSpot spot) {
+        list.put(spot);
+        CameraEntity prop = loadedProp(server, spot.key());
+        if (prop != null) prop.discard();
+        props.remove(spot.key());
+        changed(server);
+    }
+
     /** Changes a camera's settings (name, role, zoom, motion, aim); false if it does not exist. */
     public static boolean update(MinecraftServer server, String key, UnaryOperator<CameraSpot> change) {
         CameraSpot old = list.get(key);

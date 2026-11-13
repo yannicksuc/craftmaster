@@ -130,7 +130,7 @@ public final class Actions {
             // TV direction, lieux / travellings / intros (chantier E): no data change for these four
             "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu",
             // ... and the round intros, which are round data (undoable), and playing one
-            "intro.set", "intro.shot.add", "intro.shot.set", "intro.shot.remove", "intro.clear", "intro.play");
+            "intro.set", "intro.shot.add", "intro.shot.set", "intro.shot.remove", "intro.clear", "intro.play", "intro.auto");
 
     /**
      * Applies the actions. {@code undo} is only accepted as the first action (it is done, then the rest is applied
@@ -373,6 +373,7 @@ public final class Actions {
                 case "intro.shot.set" -> introShotSet(a);
                 case "intro.shot.remove" -> introShotRemove(a);
                 case "intro.clear" -> introClear(a);
+                case "intro.auto" -> introAuto(a);
                 case "intro.play" -> introPlay(a);
                 // Screen effects (fx/): world only, nothing in the data changes
                 case "fx.set" -> screenEffect(a, false);
@@ -1276,7 +1277,7 @@ public final class Actions {
             return f.manche();
         }
 
-        /** intro.set {manche?, auto?, music?, titleCard?, bpm?, beats?, offset?, chained?} */
+        /** intro.set {manche?, auto?, music?, titleCard?, bpm?, beats?, offset?, chained?, look?, typedTask?} */
         private void introSet(Map<String, Object> a) {
             Manche r = introManche(a);
             fr.lordfinn.craftmaster.data.MancheIntro in = r.intro;
@@ -1297,7 +1298,7 @@ public final class Actions {
             }
             if (a.containsKey("bpm")) {
                 Double bpm = fr.lordfinn.craftmaster.data.MancheIntro.parseBpm(a.get("bpm") == null ? "" : String.valueOf(a.get("bpm")));
-                if (bpm == null) throw new Invalid("tempo « " + a.get("bpm") + " » : un nombre de BPM, « theme » ou « off ».");
+                if (bpm == null) throw new Invalid("tempo « " + a.get("bpm") + " » : un nombre de BPM, « theme », « intro » ou « off ».");
                 in.bpm = bpm;
                 if (bpm == 0) changed.add("plans à leur durée (pas calés sur la musique)");
             }
@@ -1311,20 +1312,33 @@ public final class Actions {
                 changed.add(chained ? "lancement enchaîné (noir, TP, titre, révélation à la fin de l'intro)"
                         : "la manche démarre tout de suite, l'intro joue par-dessus");
             }
-            if (changed.isEmpty()) throw new Invalid("rien à changer (auto, music, titleCard, bpm, beats, offset ou chained).");
+            if (a.containsKey("look")) {
+                in.look = fr.lordfinn.craftmaster.broadcast.BroadcastActions.effectId(a.get("look") == null ? "" : String.valueOf(a.get("look")));
+                changed.add(in.look.isEmpty() ? "sans look commun" : "look « " + in.look + " » sur tous les plans");
+            }
+            Boolean typed = bool(a, "typedTask");
+            if (typed != null) {
+                in.typedTask = typed;
+                changed.add(typed ? "consigne tapée en bas de l'image à la fin" : "sans consigne tapée");
+            }
+            if (changed.isEmpty()) throw new Invalid("rien à changer (auto, music, titleCard, bpm, beats, offset, chained, look ou typedTask).");
             line("Intro de « " + r.name + " » : " + String.join(", ", changed) + ".");
         }
 
         /** A shot of an intro from the action's fields (camera | path | follow, seconds, transition, effect, card, text). */
         private fr.lordfinn.craftmaster.data.MancheIntro.Shot introShot(Map<String, Object> a, fr.lordfinn.craftmaster.data.MancheIntro.Shot base) {
             String kind = base == null ? null : base.kind(), ref = base == null ? null : base.ref();
+            if (Boolean.TRUE.equals(bool(a, "task"))) {
+                kind = fr.lordfinn.craftmaster.data.MancheIntro.TASK;
+                ref = "";
+            }
             for (String[] k : new String[][]{{"camera", "camera"}, {"path", "trajet"}, {"follow", "suivi"}}) {
                 Object v = a.get(k[0]);
                 if (v == null || String.valueOf(v).isBlank()) continue;
                 kind = k[1];
                 ref = v instanceof Number n && n.doubleValue() == Math.rint(n.doubleValue()) ? String.valueOf(n.longValue()) : String.valueOf(v).trim();
             }
-            if (kind == null) throw new Invalid("donnez une caméra (« camera »), un trajet (« path ») ou un joueur à suivre (« follow »).");
+            if (kind == null) throw new Invalid("donnez une caméra (« camera »), un trajet (« path »), un joueur à suivre (« follow ») ou le lieu de la tâche (« task »).");
             double seconds = base == null ? 0 : base.seconds();
             if (a.get("seconds") != null) {
                 seconds = num(a, "seconds");
@@ -1392,6 +1406,35 @@ public final class Actions {
             if (r.intro.isEmpty()) throw new Invalid("« " + r.name + " » n'a pas d'intro.");
             r.intro = new fr.lordfinn.craftmaster.data.MancheIntro();
             line("Intro de « " + r.name + " » effacée.");
+        }
+
+        /**
+         * intro.auto {manche?}: the intro made from the round's cameras ({@link fr.lordfinn.craftmaster.data.MancheIntro#autoBuild}):
+         * its wide camera, up to 4 others, the studio's throne camera, the task location shot; replaces its shots.
+         */
+        private void introAuto(Map<String, Object> a) {
+            Manche r = introManche(a);
+            fr.lordfinn.craftmaster.camera.CameraList all = fr.lordfinn.craftmaster.camera.Cameras.list();
+            fr.lordfinn.craftmaster.camera.CameraList lieu = all.lieu(r.id);
+            fr.lordfinn.craftmaster.camera.CameraSpot wide = lieu.withRole(fr.lordfinn.craftmaster.camera.CameraSpot.WIDE);
+            List<String> inserts = new ArrayList<>();
+            for (fr.lordfinn.craftmaster.camera.CameraSpot c : lieu.all())
+                if (!c.name().equals(fr.lordfinn.craftmaster.broadcast.TaskFraming.NAME)) {
+                    if (wide == null) wide = c;
+                    else if (!c.key().equals(wide.key())) inserts.add(c.key());
+                }
+            fr.lordfinn.craftmaster.camera.CameraSpot throne = all.group(fr.lordfinn.craftmaster.camera.CameraSpot.STUDIO)
+                    .withRole(fr.lordfinn.craftmaster.camera.CameraSpot.THRONE);
+            fr.lordfinn.craftmaster.data.MancheIntro built = fr.lordfinn.craftmaster.data.MancheIntro.autoBuild(
+                    wide == null ? null : wide.key(), inserts, throne == null ? null : throne.key());
+            // What the organiser chose stays: the card setting
+            built.titleCard = r.intro.titleCard;
+            r.intro = built;
+            line("Intro de « " + r.name + " » construite : " + built.shots.size() + " plans sur la musique d'intro ("
+                    + (wide == null ? "pas de caméra dans le lieu" : "large " + wide.key()) + ", " + Math.min(4, inserts.size()) + " insert(s), "
+                    + (throne == null ? "pas de caméra trône" : "trône " + throne.key()) + ", lieu de la tâche à la fin)."
+                    + (wide == null ? " Placez des caméras dans le lieu de la manche pour plus de plans." : "")
+                    + " Jouée au lancement, enchaînée ; /tv intro " + r.id + " voir pour la retoucher.");
         }
 
         /** intro.play {manche?}: nothing changes in the data, the director plays it. */
