@@ -81,6 +81,9 @@ public class SpotlightBlock extends BaseEntityBlock {
             be.aim(player.getYRot(), player.getXRot());
             player.sendOverlayMessage(Component.translatable("message.craftmaster.spotlight_aimed").withStyle(ChatFormatting.GOLD));
             level.playSound(null, pos, SoundEvents.SPYGLASS_USE, SoundSource.BLOCKS, 0.8f, 1.4f);
+            // Organisers get its settings in the chat, with buttons to turn, tilt, flip it
+            if (player instanceof net.minecraft.server.level.ServerPlayer sp && fr.lordfinn.craftmaster.Permissions.isAdmin(sp))
+                sp.sendSystemMessage(Spotlights.panel(be));
         } else {
             setLit(level, pos, state, !state.getValue(LIT));
         }

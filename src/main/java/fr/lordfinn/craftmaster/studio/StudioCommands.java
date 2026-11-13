@@ -350,9 +350,52 @@ public final class StudioCommands {
         node.then(literal("cone").then(withFade(argument("degrees", com.mojang.brigadier.arguments.FloatArgumentType.floatArg(
                         SpotlightBlockEntity.MIN_CONE, SpotlightBlockEntity.MAX_CONE)), t,
                 c -> settings(null, null, null, com.mojang.brigadier.arguments.FloatArgumentType.getFloat(c, "degrees"), null, null))));
+        // Exact angle (shown without arguments), relative turns, the other way round
+        node.then(literal("angle").executes(c -> {
+                    String target = t.of(c);
+                    if (target == null) return onSpotlight(c, s -> "Projecteur : horizontal " + Math.round(s.yaw()) + "°, vertical " + Math.round(s.pitch()) + "°.");
+                    for (SpotlightBlockEntity s : Spotlights.select(target))
+                        ok(c, (s.name().isEmpty() ? Spotlights.at(s) : s.name()) + " : horizontal " + Math.round(s.yaw()) + "°, vertical " + Math.round(s.pitch()) + "°");
+                    return 1;
+                })
+                .then(argument("yaw", com.mojang.brigadier.arguments.FloatArgumentType.floatArg(-360, 360))
+                        .then(withFade(argument("pitch", com.mojang.brigadier.arguments.FloatArgumentType.floatArg(-90, 90)), t,
+                                c -> new Spotlights.Settings(null, null, null, null, "", null,
+                                        com.mojang.brigadier.arguments.FloatArgumentType.getFloat(c, "yaw"),
+                                        com.mojang.brigadier.arguments.FloatArgumentType.getFloat(c, "pitch"))))));
+        for (String[] w : new String[][]{{"tourner", "yaw"}, {"incliner", "pitch"}}) {
+            boolean yaw = w[1].equals("yaw");
+            var deg = argument("degrees", com.mojang.brigadier.arguments.FloatArgumentType.floatArg(-360, 360));
+            deg.executes(c -> turnSpot(c, t, yaw ? com.mojang.brigadier.arguments.FloatArgumentType.getFloat(c, "degrees") : 0,
+                    yaw ? 0 : com.mojang.brigadier.arguments.FloatArgumentType.getFloat(c, "degrees"), false, 0));
+            deg.then(argument("seconds", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(0, 60)).executes(c -> turnSpot(c, t,
+                    yaw ? com.mojang.brigadier.arguments.FloatArgumentType.getFloat(c, "degrees") : 0,
+                    yaw ? 0 : com.mojang.brigadier.arguments.FloatArgumentType.getFloat(c, "degrees"), false,
+                    com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(c, "seconds"))));
+            node.then(literal(w[0]).then(deg));
+        }
+        node.then(literal("inverser").executes(c -> turnSpot(c, t, 0, 0, true, 0))
+                .then(argument("seconds", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(0, 60))
+                        .executes(c -> turnSpot(c, t, 0, 0, true, com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(c, "seconds")))));
+        // The settings of the one looked at, with buttons
+        node.then(literal("info").executes(c -> {
+            String target = t.of(c);
+            if (target == null) return onSpotlight(c, s -> {
+                c.getSource().sendSuccess(() -> Spotlights.panel(s), false);
+                return "";
+            });
+            for (SpotlightBlockEntity s : Spotlights.select(target)) c.getSource().sendSuccess(() -> Spotlights.panel(s), false);
+            return 1;
+        }));
         // Aims at the player who types it (handy: stand where the light must go)
         for (String word : List.of("here", "ici"))
             node.then(withFade(literal(word), t, c -> settings(null, null, null, null, "", c.getSource().getPosition().add(0, 1, 0))));
+    }
+
+    private static int turnSpot(CommandContext<CommandSourceStack> c, SpotTarget t, float dYaw, float dPitch, boolean flip, double seconds) {
+        String target = t.of(c);
+        if (target != null) return done(c, Spotlights.turn(target, dYaw, dPitch, flip, seconds));
+        return onSpotlight(c, s -> Spotlights.turn(Spotlights.at(s), dYaw, dPitch, flip, seconds));
     }
 
     private static int onSpotlight(CommandContext<CommandSourceStack> c, Function<SpotlightBlockEntity, String> action) {
@@ -360,7 +403,8 @@ public final class StudioCommands {
         if (player != null) {
             BlockHitResult hit = lookedBlock(player);
             if (hit.getType() == HitResult.Type.BLOCK && player.level().getBlockEntity(hit.getBlockPos()) instanceof SpotlightBlockEntity s) {
-                ok(c, action.apply(s));
+                String line = action.apply(s);
+                if (!line.isEmpty()) ok(c, line);
                 return 1;
             }
         }

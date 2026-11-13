@@ -27,6 +27,14 @@ public final class Spotlights {
     public static List<SpotlightBlockEntity> select(String target) {
         List<SpotlightBlockEntity> all = SpotlightBlockEntity.loaded();
         String t = target == null ? "" : target.strip().toLowerCase(Locale.ROOT);
+        // "@x,y,z": the spotlight at that place (the chat panel's buttons)
+        if (t.matches("@-?\\d+,-?\\d+,-?\\d+")) {
+            String[] c = t.substring(1).split(",");
+            net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos(Integer.parseInt(c[0]), Integer.parseInt(c[1]), Integer.parseInt(c[2]));
+            List<SpotlightBlockEntity> out = new ArrayList<>();
+            for (SpotlightBlockEntity s : all) if (s.getBlockPos().equals(pos)) out.add(s);
+            return out;
+        }
         if (t.isEmpty() || t.equals(ALL) || t.equals("all") || t.equals("tous") || t.equals("*")) return all;
         List<SpotlightBlockEntity> out = new ArrayList<>();
         boolean prefix = t.endsWith("*");
@@ -90,6 +98,59 @@ public final class Spotlights {
 
     static String seconds(double s) {
         return (s == Math.rint(s) ? String.valueOf((long) s) : String.valueOf(Math.round(s * 10) / 10.0).replace('.', ',')) + " s";
+    }
+
+    /** "@x,y,z" of a spotlight, for the chat panel's buttons. */
+    public static String at(SpotlightBlockEntity s) {
+        return "@" + s.getBlockPos().getX() + "," + s.getBlockPos().getY() + "," + s.getBlockPos().getZ();
+    }
+
+    /**
+     * Turns every spotlight of the target by {@code dYaw} / {@code dPitch} degrees (relative to each one's own aim),
+     * or points it the other way ({@code flip}: half a turn, the tilt mirrored), in {@code fade} seconds. A
+     * spotlight following someone stops following first, from where it points.
+     */
+    public static String turn(String target, float dYaw, float dPitch, boolean flip, double fade) {
+        List<SpotlightBlockEntity> list = select(target);
+        if (list.isEmpty()) return SpotlightBlockEntity.loaded().isEmpty() ? "Aucun projecteur chargé." : "Aucun projecteur « " + target + " ».";
+        for (SpotlightBlockEntity s : list) {
+            float yaw = s.yaw() + dYaw + (flip ? 180 : 0), pitch = flip ? -s.pitch() : s.pitch() + dPitch;
+            apply(s, new Settings(null, null, null, null, "", null, yaw, pitch), fade);
+        }
+        String what = flip ? "inversé(s)" : (dYaw != 0 ? "tourné(s) de " + Math.round(dYaw) + "°" : "")
+                + (dYaw != 0 && dPitch != 0 ? ", " : "") + (dPitch != 0 ? "incliné(s) de " + Math.round(dPitch) + "°" : "");
+        return list.size() + " projecteur(s) " + what + (fade > 0 ? " en " + seconds(fade) : "") + ".";
+    }
+
+    /** One spotlight's settings in the chat, with buttons to change them (organisers). */
+    public static net.minecraft.network.chat.Component panel(SpotlightBlockEntity s) {
+        String t = at(s);
+        String base = "/cfsp groupe \"" + t + "\" ";
+        net.minecraft.network.chat.MutableComponent c = net.minecraft.network.chat.Component.literal(
+                "◉ Projecteur" + (s.name().isEmpty() ? "" : " « " + s.name() + " »") + " — horizontal " + Math.round(s.yaw())
+                        + "°, vertical " + Math.round(s.pitch()) + "°, " + (s.lit() ? "allumé " + s.intensity() + " %" : "éteint")
+                        + ", cône " + Math.round(s.cone()) + "°" + (s.follow().isEmpty() ? "" : ", suit " + SpotlightFollow.describe(s.follow())) + "\n ")
+                .withStyle(net.minecraft.ChatFormatting.GOLD);
+        c.append(button("[◀ 15°]", base + "tourner -15 0.5", "Tourner vers la gauche"));
+        c.append(button("[15° ▶]", base + "tourner 15 0.5", "Tourner vers la droite"));
+        c.append(button("[▲ 10°]", base + "incliner -10 0.5", "Lever"));
+        c.append(button("[▼ 10°]", base + "incliner 10 0.5", "Baisser"));
+        c.append(button("[⇄ inverser]", base + "inverser 1", "Pointer dans l'autre sens"));
+        c.append(button("[◎ vers moi]", base + "ici 0.5", "Pointer vers toi"));
+        c.append(button(s.lit() ? "[éteindre]" : "[allumer]", base + (s.lit() ? "eteint 0.5" : "allume 0.5"), ""));
+        c.append(button("[angle exact…]", null, "Taper l'angle : /cfsp groupe \"" + t + "\" angle <horizontal> <vertical> [secondes]"));
+        return c;
+    }
+
+    private static net.minecraft.network.chat.MutableComponent button(String text, String command, String hover) {
+        String suggest = command == null ? null : command;
+        return net.minecraft.network.chat.Component.literal(" " + text).withStyle(st -> {
+            st = st.withColor(net.minecraft.ChatFormatting.GREEN);
+            if (suggest != null) st = st.withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand(suggest));
+            else st = st.withClickEvent(new net.minecraft.network.chat.ClickEvent.SuggestCommand(hover.substring(hover.indexOf('/'), hover.indexOf(" <")) + " "));
+            if (!hover.isEmpty()) st = st.withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(net.minecraft.network.chat.Component.literal(hover)));
+            return st;
+        });
     }
 
     // ---------------------------------------------------------------- colours
