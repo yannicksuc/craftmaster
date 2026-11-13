@@ -469,6 +469,16 @@ public final class Actions {
             }
             if (k.equals("next") || k.equals("suivante")) {
                 Manche r = data.currentManche();
+                if (r == null && cur == null) {
+                    // Nothing being played: the round after the last one ended
+                    Live.Current e = data.live().ended;
+                    Partie ep = e == null || e.season() != s.id ? null : s.parties.get(e.partie());
+                    Manche em = ep == null ? null : ep.manche(e.manche());
+                    if (em != null) {
+                        r = em;
+                        cur = e;
+                    }
+                }
                 Partie p = r != null && cur.season() == s.id && !explicitPartie ? s.parties.get(cur.partie()) : partie(s, a, false);
                 List<Manche> list = p.activeManches();
                 if (list.isEmpty()) throw new Invalid(p.name + " n'a aucune manche.");
@@ -976,6 +986,7 @@ public final class Actions {
         private void mancheEnd() {
             Manche r = data.currentManche();
             if (r == null) throw new Invalid("aucune manche en cours.");
+            data.live().ended = data.live().current;
             data.live().current = null;
             effects.add(new MancheEnded(r.name));
             line("Fin de la manche « " + r.name + " ».");

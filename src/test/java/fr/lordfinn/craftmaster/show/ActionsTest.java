@@ -258,6 +258,24 @@ class ActionsTest {
     }
 
     @Test
+    void nextGoesOnAfterTheRoundJustEnded() {
+        prepare();
+        run(a("manche.start", "manche", "next"));
+        String first = data.currentManche().name;
+        assertTrue(run(a("manche.end")).ok());
+        run(a("manche.start", "manche", "next"));
+        assertNotEquals(first, data.currentManche().name, "not the round just played again");
+        assertEquals(partie().activeManches().get(1).name, data.currentManche().name);
+
+        // Kept in the file: after a restart, next still goes on
+        run(a("manche.end"));
+        data.save();
+        CraftMasterData again = new CraftMasterData(dir.resolve("config.yml"), LoggerFactory.getLogger("test"));
+        again.load(null);
+        assertEquals(partie().activeManches().get(1).id, again.live().ended.manche());
+    }
+
+    @Test
     void renameOntoAnotherRoundNeedsMerge() {
         prepare();
         run(a("score.set", "manche", "pont", "player", "Cyllu", "value", 2), a("score.set", "manche", "Finale", "player", "Cyllu", "value", 3));
