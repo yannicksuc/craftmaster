@@ -155,10 +155,50 @@ def uv(x, y, w, h, s=1.0):
     return [x * s, y * s, (x + w) * s, (y + h) * s]
 
 
-def display(gui=1.0, ground=0.5, hand=0.6, gui_y=0.0, fixed=None):
-    """Display transforms for a small object drawn by a block-style model."""
+def gui_fit(els, size, rotation=(30, 225, 0)):
+    """Inventory transform that shows the elements centred in the 16 px slot, their larger side `size` px across:
+    projects the corners like the game does (rotation about the model's centre, then uniform scale, then the
+    translation in slot pixels), so a small or low object (a toy lying at y 0) is neither cut by the slot nor tiny.
+    The slot clips what passes its 16 px, so size stays at 15 or under. Also used by the other generators."""
+    def turn(p, axis, deg):
+        a = math.radians(deg)
+        c, s_ = math.cos(a), math.sin(a)
+        x, y, z = p
+        if axis == "x":
+            return [x, y * c - z * s_, y * s_ + z * c]
+        if axis == "y":
+            return [x * c + z * s_, y, -x * s_ + z * c]
+        return [x * c - y * s_, x * s_ + y * c, z]
+    xs, ys = [], []
+    for e in els:
+        r = e.get("rotation")
+        for x in (e["from"][0], e["to"][0]):
+            for y in (e["from"][1], e["to"][1]):
+                for z in (e["from"][2], e["to"][2]):
+                    p = [x, y, z]
+                    if r and "axis" in r:   # the element's own rotation, about its origin
+                        o = r.get("origin", [8, 8, 8])
+                        p = [a + b for a, b in zip(turn([p[i] - o[i] for i in range(3)], r["axis"], r.get("angle", 0)), o)]
+                    # The display rotation (Euler XYZ: z first, then y, then x) about the model's centre
+                    p = turn(turn(turn([c - 8 for c in p], "z", rotation[2]), "y", rotation[1]), "x", rotation[0])
+                    xs.append(p[0])
+                    ys.append(p[1])
+    s = size / max(max(xs) - min(xs), max(ys) - min(ys))
+    return {"rotation": list(rotation),
+            "translation": [round(-s * (max(xs) + min(xs)) / 2, 2) + 0.0, round(-s * (max(ys) + min(ys)) / 2, 2) + 0.0, 0],
+            "scale": [round(s, 3)] * 3}
+
+
+def cube(x0, y0, z0, x1, y1, z1):
+    """One box as gui_fit's elements."""
+    return [{"from": [x0, y0, z0], "to": [x1, y1, z1]}]
+
+
+def display(gui=1.0, ground=0.5, hand=0.6, gui_y=0.0, fixed=None, fit=None):
+    """Display transforms for a small object drawn by a block-style model. fit = (elements, px): the inventory icon
+    is fitted to the slot (gui_fit) instead of gui / gui_y; the item frame / plinth size (fixed) stays gui * 0.8."""
     return {
-        "gui": {"rotation": [30, 225, 0], "translation": [0, gui_y, 0], "scale": [gui, gui, gui]},
+        "gui": gui_fit(*fit) if fit else {"rotation": [30, 225, 0], "translation": [0, gui_y, 0], "scale": [gui, gui, gui]},
         "ground": {"rotation": [0, 0, 0], "translation": [0, 3, 0], "scale": [ground, ground, ground]},
         "fixed": {"rotation": [0, 180, 0], "translation": [0, 0, 0], "scale": [fixed or gui * 0.8] * 3},
         "head": {"rotation": [0, 180, 0], "translation": [0, 13, 0], "scale": [1.0, 1.0, 1.0]},
@@ -344,7 +384,7 @@ def rubber_duck():
     ]
     model("toy/rubber_duck", {"textures": {"duck": "craftmaster:item/toy/rubber_duck_yellow",
                                            "particle": "craftmaster:item/toy/rubber_duck_yellow"},
-                              "elements": els, "display": display(gui=1.6, ground=0.6, hand=0.75, gui_y=1)})
+                              "elements": els, "display": display(gui=1.6, ground=0.6, hand=0.75, fit=(els, 13.5))})
     old = os.path.join(A, "textures/item/toy/rubber_duck.png")
     if os.path.exists(old):
         os.remove(old)
@@ -498,7 +538,7 @@ def toys():
         put(L, 0, 0, w, h, lambda x, y, ww, hh: 6 if (x, y) == (1, 1) else box_side([5, 5, 4, 3])(x, y, ww, hh))
         put(L, 0, 8, w, d, box_top(5, shine={(1, 1)}))
         put(L, 8, 8, w, d, box_bottom(3))
-    cube_toy("bouncy_ball", [6, 0, 6], [10, 4, 10], ball, display(gui=2.2, ground=0.8, hand=1.0, gui_y=2),
+    cube_toy("bouncy_ball", [6, 0, 6], [10, 4, 10], ball, display(gui=2.2, ground=0.8, hand=1.0, fit=(cube(6, 0, 6, 10, 4, 10), 12)),
              dyed=True, default_dye="red")
 
     # Bean bag, 6×3×6: matte cloth, a running stitch one pixel inside the top's border, no shine
@@ -512,7 +552,7 @@ def toys():
             return 5
         put(L, 0, 8, w, d, top)
         put(L, 8, 8, w, d, box_bottom(4))
-    cube_toy("bean_bag", [5, 0, 5], [11, 3, 11], bag, display(gui=1.8, ground=0.7, hand=0.9, gui_y=2.5),
+    cube_toy("bean_bag", [5, 0, 5], [11, 3, 11], bag, display(gui=1.8, ground=0.7, hand=0.9, fit=(cube(5, 0, 5, 11, 3, 11), 13.5)),
              dyed=True, natural=NATURAL_BAG)
 
     # Fragile egg, 4×5×4, the game's egg colours; rounded by cutting the top corners (cut-out)
@@ -526,14 +566,16 @@ def toys():
         put(L, 0, 0, w, h, side)
         put(L, 0, 8, w, d, lambda x, y, ww, hh: None if x in (0, ww - 1) and y in (0, hh - 1) else (6 if (x, y) == (1, 1) else 5))
         put(L, 8, 8, w, d, box_bottom(3))
-    cube_toy("fragile_egg", [6, 0, 6], [10, 5, 10], egg, display(gui=2.0, ground=0.8, hand=0.9, gui_y=1.5), ramp=EGG_R)
+    cube_toy("fragile_egg", [6, 0, 6], [10, 5, 10], egg, display(gui=2.0, ground=0.8, hand=0.9, fit=(cube(6, 0, 6, 10, 5, 10), 12.5)),
+             ramp=EGG_R)
 
     # Golf ball, 3 px: white with cool grey shading, a shine on top
     def golf(L, w, h, d):
         put(L, 0, 0, w, h, box_side([5, 4, 3], strokes=False))
         put(L, 0, 8, w, d, box_top(5, shine={(1, 1)}))
         put(L, 8, 8, w, d, box_bottom(3))
-    cube_toy("golf_ball", [6, 0, 6], [9, 3, 9], golf, display(gui=2.6, ground=1.0, hand=1.1, gui_y=2.5), ramp=GOLF_R)
+    cube_toy("golf_ball", [6, 0, 6], [9, 3, 9], golf, display(gui=2.6, ground=1.0, hand=1.1, fit=(cube(6, 0, 6, 9, 3, 9), 11)),
+             ramp=GOLF_R)
 
     golf_club()
     balloon()
@@ -594,7 +636,8 @@ def balloon():
     sizes = []
     for i, k in enumerate((0.55, 0.85, 1.25)):
         model(f"toy/balloon_{i}", {"parent": "craftmaster:item/toy/balloon",
-                                   "display": display(gui=0.55 + i * 0.25, ground=0.4 + i * 0.15, hand=k, gui_y=-1)})
+                                   "display": display(gui=0.55 + i * 0.25, ground=0.4 + i * 0.15, hand=k,
+                                                      fit=(els, 10.5 + i * 1.5))})
         sizes.append(i)
     for dye in DYES:
         tex = {"tex": f"craftmaster:item/toy/balloon_{dye}", "particle": f"craftmaster:item/toy/balloon_{dye}"}
@@ -773,6 +816,7 @@ def targets():
     write_png(os.path.join(A, "textures/block/toy/bucket_target_handle.png"), handle_tex)
     handle = box([3, 9, 8], [13, 14, 8], {"north": face("#handle", [3, 2, 13, 7]), "south": face("#handle", [13, 2, 3, 7])})
     hollow("bucket_target", 3, 13, 9, 1, bucket_side, 5, STEEL_R, INNER_R, [handle],
+           disp={**block_display(), "gui": gui_fit(cube(3, 0, 3, 13, 9, 13) + cube(3, 9, 8, 13, 14, 8), 13.5)},
            extra_tex={"handle": "craftmaster:block/toy/bucket_target_handle"})
 
     # Bin: green painted steel (the game's green dye, toned down), vertical ribs, a lit rim, a target sticker
@@ -810,7 +854,7 @@ def targets():
     write_png(os.path.join(A, "textures/block/toy/mug_target_handle.png"), mug_handle)
     mh = box([11, 1, 8], [13, 5, 8], {"north": face("#handle", [11, 11, 13, 15]), "south": face("#handle", [13, 11, 11, 15])})
     hollow("mug_target", 5, 11, 6, 1, mug_side, 5, CERAMIC_R, TEA_R,
-           [mh], disp={**block_display(), "gui": {"rotation": [30, 225, 0], "translation": [0, 2, 0], "scale": [1.1, 1.1, 1.1]}},
+           [mh], disp={**block_display(), "gui": gui_fit(cube(5, 0, 5, 11, 6, 11) + cube(11, 1, 8, 13, 5, 8), 13)},
            extra_tex={"handle": "craftmaster:block/toy/mug_target_handle"})
 
 
@@ -871,7 +915,7 @@ def glasses():
                    "textures": {"glass": f"craftmaster:block/toy/{name}", "water": "craftmaster:block/toy/measured_water",
                                 "particle": f"craftmaster:block/toy/{name}"}, "elements": els}
             if name == "measuring_glass":
-                mdl["display"] = {**block_display(), "gui": {"rotation": [30, 225, 0], "translation": [0, 1, 0], "scale": [1.0, 1.0, 1.0]}}
+                mdl["display"] = {**block_display(), "gui": gui_fit(cube(a, 0, a, b, height, b), 13.5)}
             model(f"toy/{name}_{stage}", mdl, "block")
             variants[f"fill={stage}"] = {"model": f"craftmaster:block/toy/{name}_{stage}"}
         simple_blockstate(name, variants)
