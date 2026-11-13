@@ -318,7 +318,8 @@ public final class StudioCommands {
         for (String word : List.of("follow", "suivre")) {
             node.then(literal(word).then(argument("player", StringArgumentType.greedyString()).suggests(FOLLOWS).executes(c -> {
                 String who = StringArgumentType.getString(c, "player").strip();
-                String rule = SpotlightFollow.parse(who);
+                if (SpotlightFollow.isNobody(who)) who = "";
+                String rule = who.isEmpty() ? null : SpotlightFollow.parse(who);
                 if (rule == null && who.startsWith("@")) {
                     fail(c, "Suivi automatique inconnu : @proche, @candidat, @scene, @moment ou @zone:<nom>.");
                     return 0;

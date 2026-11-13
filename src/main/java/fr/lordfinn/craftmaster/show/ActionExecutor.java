@@ -176,7 +176,8 @@ public final class ActionExecutor {
                 if (o.color() != null && rgb == null) lines.add("Couleur inconnue : " + o.color() + ".");
                 else {
                     String follow = o.follow();
-                    String rule = follow == null ? null : fr.lordfinn.craftmaster.studio.SpotlightFollow.parse(follow);
+                    if (follow != null && fr.lordfinn.craftmaster.studio.SpotlightFollow.isNobody(follow)) follow = "";
+                    String rule = follow == null || follow.isEmpty() ? null : fr.lordfinn.craftmaster.studio.SpotlightFollow.parse(follow);
                     if (rule != null) follow = rule;
                     lines.add(fr.lordfinn.craftmaster.studio.Spotlights.apply(server, o.target(), new fr.lordfinn.craftmaster.studio.Spotlights.Settings(
                             o.on(), rgb, o.intensity(), o.cone() == null ? null : o.cone().floatValue(), follow, null, null, null), o.fade()));

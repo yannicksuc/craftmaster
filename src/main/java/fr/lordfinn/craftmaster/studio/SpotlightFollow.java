@@ -68,6 +68,12 @@ public final class SpotlightFollow {
         };
     }
 
+    /** "stop", "personne", "aucun"… : nobody (the spotlight stops following). */
+    public static boolean isNobody(String s) {
+        String k = s == null ? "" : fr.lordfinn.craftmaster.camera.CameraList.fold(s.strip());
+        return k.isEmpty() || k.equals("stop") || k.equals("personne") || k.equals("aucun") || k.equals("rien") || k.equals("none") || k.equals("fixe");
+    }
+
     /** French words for messages. */
     public static String describe(String follow) {
         if (follow == null || follow.isEmpty()) return "personne";

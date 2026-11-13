@@ -28,6 +28,9 @@ class StageWordsTest {
         assertNull(SpotlightFollow.parse("Ensuri"), "a player's name is not a rule");
         assertTrue(SpotlightFollow.isRule("@scene"));
         assertFalse(SpotlightFollow.isRule("Ensuri"));
+        assertTrue(SpotlightFollow.isNobody("stop"));
+        assertTrue(SpotlightFollow.isNobody("Personne"));
+        assertFalse(SpotlightFollow.isNobody("Ensuri"));
     }
 
     @Test
