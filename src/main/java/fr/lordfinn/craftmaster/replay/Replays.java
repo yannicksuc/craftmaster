@@ -72,8 +72,23 @@ public final class Replays {
         public boolean zone = true;
         /** Chunks added around the area, and the widest area (chunks). */
         public int margin = 2, maxSpan = 40;
-        /** File format: "flashback", "replaymod", or "" (Server Replay's default_encoding). */
-        public String format = "";
+        /**
+         * File format: "flashback" (default: pieces with a snapshot each, seek both ways, at most 10 s lost in a
+         * crash), "replaymod", or "" (Server Replay's default_encoding).
+         */
+        public String format = "flashback";
+        /**
+         * Flashback pieces (seconds, a multiple of 10, 10 to 300): the most a crash can take from a file. Each piece
+         * starts with a snapshot of the world: measured, the zone costs ~15 MB/h at 10 s; a player file ~50 MB/h
+         * at 10 s (and its chunk cache grows fast while recording), hence 60 s by default for them.
+         */
+        public int zonePieceSeconds = 10, playerPieceSeconds = 60;
+        /** Replays older than this many days are deleted (0 = kept). */
+        public int keepDays = 0;
+        /** CraftMaster's replays never take more than this (GB, 0 = no limit): the oldest go first. */
+        public double maxGb = 0;
+        /** Below this much free space (GB) on the recordings' disk, the organisers are warned. */
+        public double minFreeGb = 5;
     }
 
     /** One recorded player. */
@@ -105,6 +120,8 @@ public final class Replays {
         final List<String> playerFolders = new ArrayList<>();
         /** Server tick at each file's time 0 (folder → tick; the zone under ""), measured when its state goes in. */
         final Map<String, Double> tick0 = new LinkedHashMap<>();
+        /** Every 10 s, per file: {ms in the file, server tick} (the file's clock against the server's ticks). */
+        final Map<String, List<long[]>> clock = new LinkedHashMap<>();
         final Map<String, String> folderPlayer = new LinkedHashMap<>();
         final JsonArray markers = new JsonArray();
 
@@ -167,6 +184,8 @@ public final class Replays {
         if (!List.of(MANCHE, PARTIE, OFF).contains(settings.mode)) settings.mode = MANCHE;
         if (settings.format == null) settings.format = "";
         ServerReplayBridge.setFormat(settings.format);
+        markInterrupted();
+        ReplayDisk.autoPurge();
     }
 
     public static void save() {
@@ -213,6 +232,46 @@ public final class Replays {
             r.needsState = false;
             noteTick0(server, session, r.folder, r.rec);
         }
+        if (server.getTickCount() % PIECE_TICKS == 0) everyTenSeconds(server, session);
+    }
+
+    /** Ten seconds, in ticks: the longest a crash can take from a Flashback recording, and the clock samples' step. */
+    static final int PIECE_TICKS = 200;
+
+    /**
+     * Every 10 s: each Flashback file closes its piece (written to the disk, with a snapshot to jump to) instead of
+     * every 5 min; each file's clock is sampled against the server's ticks; the index is rewritten.
+     */
+    private static void everyTenSeconds(MinecraftServer server, Session ses) {
+        long tick = server.getTickCount();
+        boolean zonePiece = due(tick, settings.zonePieceSeconds), playerPiece = due(tick, settings.playerPieceSeconds);
+        if (ses.zone != null && !ses.zoneNeedsState) {
+            if (zonePiece) ServerReplayBridge.cutPiece(ses.zone);
+            sample(ses, "", ses.zone, tick);
+        }
+        for (PlayerRec r : ses.players.values()) {
+            if (r.rec == null || r.needsState) continue;
+            if (playerPiece) ServerReplayBridge.cutPiece(r.rec);
+            sample(ses, r.folder, r.rec, tick);
+        }
+        writeIndex(ses, true);
+        // The disk, every 5 min of recording
+        if (tick % (PIECE_TICKS * 30) == 0) {
+            String warn = ReplayDisk.lowSpaceWarning();
+            if (warn != null) notifyAdmins(server, warn);
+        }
+    }
+
+    /** A piece of {@code seconds} ends at this tick (300 s and more: Arcade's own 5 min). */
+    private static boolean due(long tick, int seconds) {
+        if (seconds >= 300) return false;
+        int every = Math.max(1, Math.round(seconds / 10f)) * PIECE_TICKS;
+        return tick % every == 0;
+    }
+
+    private static void sample(Session ses, String folder, ServerReplayBridge.Recorder rec, long tick) {
+        long ms = ServerReplayBridge.recordingMs(rec);
+        if (ms >= 0) ses.clock.computeIfAbsent(folder, k -> new ArrayList<>()).add(new long[]{ms, tick});
     }
 
     /**
@@ -235,7 +294,10 @@ public final class Replays {
      */
     private static void noteTick0(MinecraftServer server, Session ses, String folder, ServerReplayBridge.Recorder rec) {
         long ms = ServerReplayBridge.recordingMs(rec);
-        if (ms >= 0) ses.tick0.put(folder, server.getTickCount() - ms / 50.0);
+        if (ms >= 0) {
+            ses.tick0.put(folder, server.getTickCount() - ms / 50.0);
+            ses.clock.computeIfAbsent(folder, k -> new ArrayList<>()).add(new long[]{ms, server.getTickCount()});
+        }
     }
 
     /** The recording the show calls for now, or null: "s1:p3:pont" (round) or "s1:p3" (game). */
@@ -313,6 +375,9 @@ public final class Replays {
         if (now != null) marker("Manche " + p.number(now) + " — " + now.name, 0xF2C14E);
         CraftMaster.LOG.info("[Replay] Enregistrement de {} : zone {}, {} joueur(s)", label,
                 ses.area == null ? "aucune" : ses.area.describe(), ses.players.size());
+        writeIndex(ses, true);
+        String low = ReplayDisk.lowSpaceWarning();
+        if (low != null) notifyAdmins(server, low);
         notifyAdmins(server, "● Replay : enregistrement de " + label + " (" + ses.players.size() + " joueur(s)"
                 + (ses.zone != null ? " + la zone" : "") + ").");
     }
@@ -414,7 +479,8 @@ public final class Replays {
         }
         if (ses.zone != null) ServerReplayBridge.stop(ses.zone);
         for (PlayerRec r : ses.players.values()) if (r.rec != null) ServerReplayBridge.stop(r.rec);
-        writeIndex(ses);
+        writeIndex(ses, false);
+        if (server != null) ReplayDisk.autoPurge();
         CraftMaster.LOG.info("[Replay] Fin de l'enregistrement de {} ({}, {} s)", ses.label, why, Math.round(ses.seconds()));
         if (server != null) notifyAdmins(server, "● Replay : " + ses.label + " sauvegardé (" + Math.round(ses.seconds()) + " s).");
     }
@@ -503,18 +569,18 @@ public final class Replays {
     // ---------------------------------------------------------------- index and status
 
     /** Appends this recording to {@code <recordings>/craftmaster.json} (folders, area, markers). */
-    private static void writeIndex(Session ses) {
+    /**
+     * Writes this recording's entry of {@code <recordings>/craftmaster.json} (folders, area, markers, clock samples),
+     * replacing the previous version of it: written when the recording starts and every 10 s, so that after a crash
+     * the index still lists it (marked "interrupted" at the next start) up to its last 10 seconds.
+     */
+    private static void writeIndex(Session ses, boolean inProgress) {
         try {
             Path file = indexFile();
-            JsonArray all = new JsonArray();
-            if (Files.exists(file)) {
-                try {
-                    all = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonArray();
-                } catch (RuntimeException e) {
-                    Files.move(file, file.resolveSibling("craftmaster.json.broken"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                }
-            }
+            JsonArray all = readIndex(file);
+            String id = ses.key + "@" + ses.startedAt;
             JsonObject o = new JsonObject();
+            o.addProperty("id", id);
             o.addProperty("label", ses.label);
             o.addProperty("season", ses.season);
             o.addProperty("partie", ses.partie);
@@ -522,6 +588,7 @@ public final class Replays {
             o.addProperty("mancheId", ses.mancheId);
             o.addProperty("started", java.time.Instant.ofEpochMilli(ses.startedAt).toString());
             o.addProperty("seconds", Math.round(ses.seconds()));
+            if (inProgress) o.addProperty("inProgress", true);
             if (ses.zoneFolder != null) {
                 JsonObject z = new JsonObject();
                 z.addProperty("folder", "chunks/" + ses.zoneFolder);
@@ -530,6 +597,7 @@ public final class Replays {
                 z.addProperty("to", ses.area.toX() + "," + ses.area.toZ());
                 Double t0 = ses.tick0.get("");
                 if (t0 != null) z.addProperty("tick0", Math.round(t0 * 100) / 100.0);
+                z.add("clock", clock(ses, ""));
                 o.add("zone", z);
             }
             JsonArray players = new JsonArray();
@@ -539,15 +607,80 @@ public final class Replays {
                 pl.addProperty("folder", "players/" + f);
                 Double t0 = ses.tick0.get(f);
                 if (t0 != null) pl.addProperty("tick0", Math.round(t0 * 100) / 100.0);
+                pl.add("clock", clock(ses, f));
                 players.add(pl);
             }
             o.add("players", players);
             o.add("markers", ses.markers);
-            all.add(o);
-            Files.createDirectories(file.getParent());
-            Files.writeString(file, GSON.toJson(all), StandardCharsets.UTF_8);
+            boolean replaced = false;
+            for (int k = 0; k < all.size(); k++) {
+                JsonObject e = all.get(k).getAsJsonObject();
+                if (e.has("id") && e.get("id").getAsString().equals(id)) {
+                    all.set(k, o);
+                    replaced = true;
+                }
+            }
+            if (!replaced) all.add(o);
+            writeIndexFile(file, all);
         } catch (IOException | RuntimeException e) {
             CraftMaster.LOG.warn("[Replay] Index des replays non écrit : {}", e.toString());
+        }
+    }
+
+    private static JsonArray clock(Session ses, String folder) {
+        JsonArray out = new JsonArray();
+        for (long[] c : ses.clock.getOrDefault(folder, List.of())) {
+            JsonArray pair = new JsonArray();
+            pair.add(c[0]);
+            pair.add(c[1]);
+            out.add(pair);
+        }
+        return out;
+    }
+
+    static JsonArray readIndex(Path file) throws IOException {
+        if (!Files.exists(file)) return new JsonArray();
+        try {
+            return JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonArray();
+        } catch (RuntimeException e) {
+            Files.move(file, file.resolveSibling("craftmaster.json.broken"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            return new JsonArray();
+        }
+    }
+
+    /** Written next to it then moved over it: a crash during the write never leaves half an index. */
+    static synchronized void writeIndexFile(Path file, JsonArray all) throws IOException {
+        Files.createDirectories(file.getParent());
+        Path tmp = file.resolveSibling("craftmaster.json.tmp");
+        Files.writeString(tmp, GSON.toJson(all), StandardCharsets.UTF_8);
+        try {
+            Files.move(tmp, file, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+        } catch (java.nio.file.AtomicMoveNotSupportedException e) {
+            Files.move(tmp, file, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    /** At server start: recordings the index still shows in progress were cut by a crash or a kill. */
+    private static void markInterrupted() {
+        if (!available()) return;
+        try {
+            Path file = indexFile();
+            JsonArray all = readIndex(file);
+            int n = 0;
+            for (var e : all) {
+                JsonObject o = e.getAsJsonObject();
+                if (o.has("inProgress")) {
+                    o.remove("inProgress");
+                    o.addProperty("interrupted", true);
+                    n++;
+                }
+            }
+            if (n > 0) {
+                writeIndexFile(file, all);
+                CraftMaster.LOG.warn("[Replay] {} enregistrement(s) interrompu(s) par un arrêt brutal : Server Replay récupère leurs fichiers", n);
+            }
+        } catch (IOException | RuntimeException e) {
+            CraftMaster.LOG.warn("[Replay] Index des replays illisible : {}", e.toString());
         }
     }
 
@@ -571,7 +704,7 @@ public final class Replays {
         return out;
     }
 
-    private static void notifyAdmins(MinecraftServer server, String text) {
+    static void notifyAdmins(MinecraftServer server, String text) {
         var msg = net.minecraft.network.chat.Component.literal(text).withStyle(net.minecraft.ChatFormatting.GRAY);
         for (ServerPlayer p : server.getPlayerList().getPlayers())
             if (fr.lordfinn.craftmaster.Permissions.isAdmin(p)) p.sendSystemMessage(msg);

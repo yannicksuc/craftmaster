@@ -53,7 +53,7 @@ public final class ReplayViewing {
     private ReplayViewing() {}
 
     /** One file of a recording: "zone" or a player, its folder (relative to the recordings), its time 0 (tick, -1). */
-    public record View(String name, String folder, double tick0) {}
+    public record View(String name, String folder, ReplayClock clock) {}
 
     /** One recording of the index. */
     public record Entry(String label, Instant started, int seconds, List<View> views, Map<String, Integer> colors) {
@@ -118,19 +118,32 @@ public final class ReplayViewing {
             JsonArray all = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonArray();
             for (JsonElement e : all) {
                 JsonObject o = e.getAsJsonObject();
+                // Still being recorded: its files are not written yet
+                if (o.has("inProgress")) continue;
+                out.add(parse(o));
+            }
+        } catch (IOException | RuntimeException e) {
+            CraftMaster.LOG.warn("[Replay] Index des replays illisible : {}", e.toString());
+        }
+        java.util.Collections.reverse(out);
+        return out;
+    }
+
+    /** One recording of the index. */
+    static Entry parse(JsonObject o) {
                 List<View> views = new ArrayList<>();
                 if (o.has("zone")) {
                     JsonObject z = o.getAsJsonObject("zone");
-                    views.add(new View("zone", z.get("folder").getAsString(), z.has("tick0") ? z.get("tick0").getAsDouble() : -1));
+                    views.add(new View("zone", z.get("folder").getAsString(), clock(z)));
                 }
                 if (o.has("players")) for (JsonElement p : o.getAsJsonArray("players")) {
                     if (p.isJsonPrimitive()) {
                         // Index written before the files' ticks were noted: "players/cm-s1-p1-m1-le-pont-ensuri"
                         String f = p.getAsString();
-                        views.add(new View(f.substring(f.lastIndexOf('-') + 1), f, -1));
+                        views.add(new View(f.substring(f.lastIndexOf('-') + 1), f, ReplayClock.UNKNOWN));
                     } else {
                         JsonObject po = p.getAsJsonObject();
-                        views.add(new View(po.get("name").getAsString(), po.get("folder").getAsString(), po.has("tick0") ? po.get("tick0").getAsDouble() : -1));
+                        views.add(new View(po.get("name").getAsString(), po.get("folder").getAsString(), clock(po)));
                     }
                 }
                 // The markers' colours (the ReplayMod format keeps only their names)
@@ -143,40 +156,71 @@ public final class ReplayViewing {
                         // No colour: the default one
                     }
                 }
-                out.add(new Entry(o.get("label").getAsString(), Instant.parse(o.get("started").getAsString()),
-                        o.get("seconds").getAsInt(), views, colors));
-            }
-        } catch (IOException | RuntimeException e) {
-            CraftMaster.LOG.warn("[Replay] Index des replays illisible : {}", e.toString());
+                String label = o.get("label").getAsString() + (o.has("interrupted") ? " (interrompu)" : "");
+                return new Entry(label, Instant.parse(o.get("started").getAsString()),
+                        o.get("seconds").getAsInt(), views, colors);
+    }
+
+    /** A file's clock from the index: its {ms, tick} samples, else its first tick. */
+    private static ReplayClock clock(JsonObject o) {
+        List<long[]> samples = new ArrayList<>();
+        if (o.has("clock")) for (JsonElement e : o.getAsJsonArray("clock")) {
+            JsonArray pair = e.getAsJsonArray();
+            samples.add(new long[]{pair.get(0).getAsLong(), pair.get(1).getAsLong()});
         }
-        java.util.Collections.reverse(out);
-        return out;
+        return new ReplayClock(o.has("tick0") ? o.get("tick0").getAsDouble() : -1, samples);
     }
 
     /** The .mcpr of this file of the recording: the one saved closest to the recording's end (a folder may hold several). */
     static Path file(Entry entry, View view) {
+        return file(entry, view, false);
+    }
+
+    /**
+     * The file of this view of the recording. Server Replay names a file after the time its recording started
+     * ("2026-11-13--01-43-20", local time): the one started within 2 min of the recording is it. Without one,
+     * unless {@code strict} (deleting), the file saved closest to the recording's end (older or renamed files).
+     */
+    static Path file(Entry entry, View view, boolean strict) {
         String f = view.folder();
         int slash = f.indexOf('/');
         Path dir = (f.startsWith("chunks/") ? ServerReplayBridge.chunkFolder() : ServerReplayBridge.playerFolder()).resolve(slash >= 0 ? f.substring(slash + 1) : f);
         if (!Files.isDirectory(dir)) return null;
-        long end = entry.started().toEpochMilli() + entry.seconds() * 1000L;
-        Path best = null;
-        long bestGap = Long.MAX_VALUE;
+        long start = entry.started().toEpochMilli();
+        long end = start + entry.seconds() * 1000L;
+        Path named = null, closest = null;
+        long namedGap = 120_000, bestGap = Long.MAX_VALUE;
         try (Stream<Path> s = Files.list(dir)) {
             for (Path p : (Iterable<Path>) s::iterator) {
                 String n = p.getFileName().toString();
                 // ReplayMod (.mcpr) or Flashback (.zip) files; not the folders of a recording in progress
                 if (Files.isDirectory(p) || !(n.endsWith(".mcpr") || n.endsWith(".zip") || n.endsWith(".flashback"))) continue;
+                long t = nameTime(n);
+                if (t > 0 && Math.abs(t - start) <= namedGap) {
+                    namedGap = Math.abs(t - start);
+                    named = p;
+                }
                 long gap = Math.abs(Files.getLastModifiedTime(p).toMillis() - end);
                 if (gap < bestGap) {
                     bestGap = gap;
-                    best = p;
+                    closest = p;
                 }
             }
         } catch (IOException e) {
             return null;
         }
-        return best;
+        return named != null ? named : strict ? null : closest;
+    }
+
+    /** "2026-11-13--01-43-20.zip" → that local time (epoch ms), or -1. */
+    static long nameTime(String fileName) {
+        try {
+            String base = fileName.substring(0, fileName.indexOf('.'));
+            return java.time.LocalDateTime.parse(base, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd--HH-mm-ss"))
+                    .atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+        } catch (RuntimeException e) {
+            return -1;
+        }
     }
 
     // ---------------------------------------------------------------- watching
@@ -319,7 +363,7 @@ public final class ReplayViewing {
         if (w != null) for (View o : w.entry().views()) views.add(o.name());
         return new ReplayStatus(w == null ? "Replay" : w.entry().label(), w == null ? "" : w.view().name(), views,
                 ServerReplayBridge.progressMs(v), ServerReplayBridge.durationMs(v), ServerReplayBridge.paused(v),
-                ServerReplayBridge.speed(v), w == null ? -1 : w.view().tick0(), markers);
+                ServerReplayBridge.speed(v), w == null ? -1 : tick0At(w.view().clock(), ServerReplayBridge.progressMs(v)), markers);
     }
 
     // ---------------------------------------------------------------- /replay view cm … (the playback bar)
@@ -371,7 +415,7 @@ public final class ReplayViewing {
         if (w == null) return;
         View to = w.entry().view(name);
         if (to == null || to.equals(w.view())) return;
-        reopen(p, v, w, to, alignedMs(ServerReplayBridge.progressMs(v), w.view().tick0(), to.tick0()));
+        reopen(p, v, w, to, alignedMs(ServerReplayBridge.progressMs(v), w.view().clock(), to.clock()));
     }
 
     private static void reopen(ServerPlayer p, ServerReplayBridge.Viewer v, Watch w, View to, long target) {
@@ -384,9 +428,19 @@ public final class ReplayViewing {
         CLOSING.put(p.getUUID(), System.currentTimeMillis() + 250);
     }
 
-    /** Time {@code ms} of a file starting at tick {@code fromTick0}, in a file starting at {@code toTick0} (same instant). */
-    static long alignedMs(long ms, double fromTick0, double toTick0) {
-        if (fromTick0 < 0 || toTick0 < 0) return ms;
-        return Math.max(0, Math.round(ms + (fromTick0 - toTick0) * 50));
+    /** Time {@code ms} of one file, in another file of the same recording (same server tick). */
+    static long alignedMs(long ms, ReplayClock from, ReplayClock to) {
+        double tick = from.tickAt(ms);
+        if (Double.isNaN(tick) || !to.known()) return ms;
+        return Math.max(0, to.msAt(tick));
+    }
+
+    /**
+     * What the client needs to count the server's ticks from {@code progress} on: the tick its file would have had
+     * at time 0 if one tick were always 50 ms from here (the client adds {@code ms / 50}). -1 when unknown.
+     */
+    static double tick0At(ReplayClock clock, long progress) {
+        double t = clock.tickAt(progress);
+        return Double.isNaN(t) ? -1 : t - progress / 50.0;
     }
 }

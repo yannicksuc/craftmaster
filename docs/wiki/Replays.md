@@ -37,11 +37,27 @@ Dans les dossiers de Server Replay (`recordings/` du serveur par défaut), un do
 | `recordings/chunks/cm-s1-p3/…`, `players/cm-s1-p3-ensuri/…` | Mode partie : toute la partie 3 |
 | `recordings/craftmaster.json` | L'index : chaque enregistrement, ses dossiers, sa zone, ses repères (secondes) |
 
-**Format** : `/cmreplay format flashback` (conseillé pour les longues épreuves), `replaymod`, ou `serveur` (celui de
-la configuration de Server Replay, `config/server-replay/config.json`, `default_encoding` : `.mcpr` par défaut).
-Flashback (`.zip`) découpe l'enregistrement en morceaux de 5 min, chacun avec le monde : le lecteur saute
-directement au bon moment (dans les deux sens), et après un arrêt brutal du serveur le fichier est récupéré jusqu'au
-dernier morceau. Il ne faut pas le mod Flashback pour regarder (le lecteur est sur le serveur).
+**Format** : Flashback (`.zip`) par défaut ; `/cmreplay format replaymod` ou `serveur` (celui de la configuration de
+Server Replay, `config/server-replay/config.json`, `default_encoding`) pour changer. Il ne faut pas le mod Flashback
+pour regarder : le lecteur est sur le serveur, rien à installer chez les joueurs, aucun conflit avec WaterMedia.
+
+**Épreuves longues (une heure et plus)** :
+- **Morceaux** : un fichier Flashback est écrit sur le disque par morceaux, chacun avec le monde au départ. CraftMaster
+  ferme un morceau **toutes les 10 s pour la zone** et **toutes les 60 s pour les fichiers des joueurs**
+  (`/cmreplay morceaux <zone s> <joueurs s>`, de 10 à 300). Un saut va directement au bon morceau, dans les deux sens.
+- **Crash ou arrêt brutal** : au redémarrage, Server Replay récupère seul les fichiers jusqu'au dernier morceau écrit
+  (testé : serveur tué à 1:36, fichier de zone récupéré jusqu'à 1:28). L'index est réécrit toutes les 10 s : le replay
+  apparaît dans `/cmreplay voir` avec « (interrompu) ».
+- **Chrono et synchro** : toutes les 10 s, chaque fichier note où en sont les ticks du serveur. Le chrono rejoué et le
+  passage d'un fichier à l'autre suivent ces relevés : pas de dérive même si le serveur rame (sans eux : environ 1 s
+  par heure à 20 TPS, plus si ça rame).
+- **Poids** (morceaux de 10 s pour la zone, 60 s pour les joueurs) : la zone environ 15 Mo/h sur le disque ; un
+  fichier joueur environ 1 à 2 Mo/h avec des morceaux de 5 min, nettement plus avec des morceaux courts (mesuré :
+  environ 50 Mo/h à 10 s, et son cache de chunks grossit vite pendant l'enregistrement).
+- **Disque** : `/cmreplay disque` (place prise, place libre), alerte aux organisateurs sous 5 Go libres
+  (`/cmreplay alerte <Go>`), purge automatique des vieux replays (`/cmreplay garder <jours>`, `/cmreplay max <Go>` :
+  les plus anciens partent d'abord ; rien n'est supprimé tant que ce n'est pas réglé), ou tout de suite
+  (`/cmreplay purge <jours>`). Seuls les fichiers des enregistrements de l'index sont supprimés.
 
 **Mesures** (26.2, serveur à 20 TPS, 2 joueurs + zone) :
 
@@ -122,7 +138,11 @@ casse WaterMedia (écrans vidéo du studio) : pas les deux dans le même jeu.
 | `/cmreplay start` · `stop` | À la main : la manche en cours, sinon la partie active ; `stop` sauvegarde et n'est pas relancé avant la manche suivante |
 | `/cmreplay joueurs on\|off` · `zone on\|off` | Un fichier par candidat / pour la zone (défaut : les deux) |
 | `/cmreplay marge <0..8>` | Chunks ajoutés autour de la zone |
-| `/cmreplay format flashback\|replaymod\|serveur` | Format des prochains enregistrements |
+| `/cmreplay format flashback\|replaymod\|serveur` | Format des prochains enregistrements (Flashback par défaut) |
+| `/cmreplay morceaux <zone s> <joueurs s>` | Longueur des morceaux : au plus ça de perdu après un crash (défaut 10 et 60) |
+| `/cmreplay disque` | Place prise par les replays, place libre, réglages de purge |
+| `/cmreplay garder <jours>` · `max <Go>` · `alerte <Go>` | Purge automatique par l'âge, plafond, alerte de place libre (0 = aucun) |
+| `/cmreplay purge <jours>` | Supprime maintenant les replays de plus de tant de jours |
 | `/cmreplay repere <texte>` | Un repère maintenant, dans tous les fichiers en cours |
 | `/cmreplay voir` · `voir <n> [zone\|joueur]` | Les enregistrements ; en regarder un (barre de lecture, voir plus haut) |
 
@@ -135,8 +155,8 @@ Réglages : `config/craftmaster/replays.json`.
   studio pendant une manche dehors) ne voit que le ciel. Agrandir la zone : `/cmreplay marge`.
 - **Revenir en arrière** en ReplayMod recharge le fichier (2 à 4 s, l'écran de chargement passe à l'image) : le
   lecteur de Server Replay repart du début. En Flashback, c'est instantané.
-- Après un arrêt brutal, Server Replay récupère le fichier, mais l'index CraftMaster n'est pas écrit : le replay
-  n'apparaît pas dans `/cmreplay voir` (à corriger).
+- Après un arrêt brutal, la manche est toujours « en cours » au redémarrage : un enregistrement repart dès que le
+  serveur est lancé (le gel du show après un crash est un chantier à part).
 - Le lecteur retire le joueur de la liste du serveur pendant la lecture : un serveur où il est seul se croit vide
   (« Server empty… pausing » au bout d'une minute) ; la lecture et la barre continuent quand même.
 - Server Replay ne garde dans la zone que ce que le serveur envoie à tout le monde : barres de boss propres à un

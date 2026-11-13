@@ -29,6 +29,8 @@ import static net.minecraft.commands.Commands.literal;
  *   <li>{@code /cmreplay start} / {@code stop} — by hand (the current round, else the active game)</li>
  *   <li>{@code /cmreplay joueurs on|off}, {@code zone on|off}, {@code marge <chunks>} — what is recorded</li>
  *   <li>{@code /cmreplay repere <texte>} — a marker on the timeline of the files being recorded</li>
+ *   <li>{@code /cmreplay disque}, {@code garder <jours>}, {@code max <Go>}, {@code alerte <Go>}, {@code purge <jours>} —
+ *   the disk: used and free space, automatic purge, warning, deleting old replays now</li>
  *   <li>{@code /cmreplay voir [n [zone|joueur]]} — the recordings, newest first; watch one (Server Replay's viewer)</li>
  * </ul>
  * Reference: docs/wiki/Replays.md.
@@ -65,6 +67,40 @@ public final class ReplayCommands {
                         .then(literal("flashback").executes(c -> format(c, "flashback")))
                         .then(literal("replaymod").executes(c -> format(c, "replaymod")))
                         .then(literal("serveur").executes(c -> format(c, ""))))
+                .then(literal("morceaux").then(argument("zone", IntegerArgumentType.integer(10, 300))
+                        .then(argument("joueurs", IntegerArgumentType.integer(10, 300)).executes(c -> {
+                            Replays.settings().zonePieceSeconds = IntegerArgumentType.getInteger(c, "zone");
+                            Replays.settings().playerPieceSeconds = IntegerArgumentType.getInteger(c, "joueurs");
+                            Replays.save();
+                            return say(c, "Morceaux : zone " + Replays.settings().zonePieceSeconds + " s, joueurs " + Replays.settings().playerPieceSeconds
+                                    + " s (au plus ça de perdu après un crash ; plus court = plus lourd).");
+                        }))))
+                .then(literal("disque").executes(c -> {
+                    for (String line : fr.lordfinn.craftmaster.replay.ReplayDisk.report())
+                        c.getSource().sendSuccess(() -> Component.literal(line).withStyle(ChatFormatting.GRAY), false);
+                    return 1;
+                }))
+                .then(literal("garder").then(argument("jours", IntegerArgumentType.integer(0, 3650)).executes(c -> {
+                    Replays.settings().keepDays = IntegerArgumentType.getInteger(c, "jours");
+                    Replays.save();
+                    return say(c, Replays.settings().keepDays == 0 ? "Les replays sont gardés sans limite d'âge."
+                            : "Les replays de plus de " + Replays.settings().keepDays + " jour(s) seront supprimés (après chaque enregistrement et au démarrage).");
+                })))
+                .then(literal("max").then(argument("go", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(0, 100_000)).executes(c -> {
+                    Replays.settings().maxGb = com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(c, "go");
+                    Replays.save();
+                    return say(c, Replays.settings().maxGb == 0 ? "Pas de plafond pour les replays."
+                            : "Les replays ne dépasseront pas " + Replays.settings().maxGb + " Go : les plus anciens partent d'abord.");
+                })))
+                .then(literal("alerte").then(argument("go", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(0, 100_000)).executes(c -> {
+                    Replays.settings().minFreeGb = com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(c, "go");
+                    Replays.save();
+                    return say(c, "Alerte quand il reste moins de " + Replays.settings().minFreeGb + " Go libres.");
+                })))
+                .then(literal("purge").then(argument("jours", IntegerArgumentType.integer(1, 3650)).executes(c -> {
+                    int n = fr.lordfinn.craftmaster.replay.ReplayDisk.purge(IntegerArgumentType.getInteger(c, "jours"), 0);
+                    return say(c, n + " replay(s) de plus de " + IntegerArgumentType.getInteger(c, "jours") + " jour(s) supprimé(s).");
+                })))
                 .then(literal("marge").then(argument("chunks", IntegerArgumentType.integer(0, 8)).executes(c -> {
                     Replays.settings().margin = IntegerArgumentType.getInteger(c, "chunks");
                     Replays.save();

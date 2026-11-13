@@ -13,11 +13,33 @@ class ReplayViewingTest {
     @Test
     void sameInstantInAnotherFile() {
         // The zone's file started at tick 1000, the player's 3 ticks later: 10 s into the zone = 9.85 s into the player's
-        assertEquals(9_850, ReplayViewing.alignedMs(10_000, 1000, 1003));
-        assertEquals(10_150, ReplayViewing.alignedMs(10_000, 1003, 1000));
-        // Unknown time 0 (older index): same time
-        assertEquals(10_000, ReplayViewing.alignedMs(10_000, -1, 1000));
-        assertEquals(0, ReplayViewing.alignedMs(50, 1000, 1010));
+        ReplayClock zone = new ReplayClock(1000, List.of()), player = new ReplayClock(1003, List.of());
+        assertEquals(9_850, ReplayViewing.alignedMs(10_000, zone, player));
+        assertEquals(10_150, ReplayViewing.alignedMs(10_000, player, zone));
+        // Unknown clock (older index): same time
+        assertEquals(10_000, ReplayViewing.alignedMs(10_000, ReplayClock.UNKNOWN, zone));
+        assertEquals(0, ReplayViewing.alignedMs(50, zone, new ReplayClock(1010, List.of())));
+    }
+
+    @Test
+    void lagDoesNotDrift() {
+        // A lagging server: 600 s of file but only 11 000 ticks (550 s). The samples keep the timer right
+        ReplayClock c = new ReplayClock(1000, List.of(new long[]{0, 1000}, new long[]{300_000, 6500}, new long[]{600_000, 12_000}));
+        assertEquals(12_000, c.tickAt(600_000), 1e-9);
+        assertEquals(6500 + 2750, c.tickAt(450_000), 1e-9);
+        assertEquals(450_000, c.msAt(9250));
+        // Without samples it would be 1000 + 12 000 = 13 000 at the end: 50 s off
+        assertEquals(13_000, new ReplayClock(1000, List.of()).tickAt(600_000), 1e-9);
+        // The client's tick0, valid from the current time on
+        assertEquals(12_000 - 600_000 / 50.0, ReplayViewing.tick0At(c, 600_000), 1e-9);
+        assertEquals(-1, ReplayViewing.tick0At(ReplayClock.UNKNOWN, 5_000), 1e-9);
+    }
+
+    @Test
+    void filesAreMatchedByTheirStartInTheirName() {
+        long t = ReplayViewing.nameTime("2026-11-13--01-43-20.zip");
+        assertEquals(java.time.LocalDateTime.of(2026, 11, 13, 1, 43, 20).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli(), t);
+        assertEquals(-1, ReplayViewing.nameTime("recording.mcpr"));
     }
 
     @Test

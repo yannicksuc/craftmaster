@@ -216,6 +216,38 @@ public final class ServerReplayBridge {
     }
 
     private static Method recordingLength;
+    private static java.lang.reflect.Field recorderWriter, fbTicks, fbSinceSnapshot;
+    private static boolean pieceLinkFailed;
+
+    /**
+     * Makes a Flashback recording close its current piece now (written to the disk with a snapshot) instead of after
+     * 5 minutes (Arcade's fixed 6000 ticks): Arcade starts a new piece when {@code ticks - ticksSinceLastSnapshot}
+     * reaches 6000, so the latter is moved back. Nothing for other formats. False if it could not.
+     */
+    public static boolean cutPiece(Recorder r) {
+        if (pieceLinkFailed) return false;
+        try {
+            if (recorderWriter == null) {
+                Class<?> rc = Class.forName("net.casual.arcade.replay.recorder.ReplayRecorder", true, ServerReplayBridge.class.getClassLoader());
+                recorderWriter = rc.getDeclaredField("writer");
+                recorderWriter.setAccessible(true);
+            }
+            Object w = recorderWriter.get(r.handle());
+            if (w == null || !w.getClass().getSimpleName().equals("FlashbackWriter")) return false;
+            if (fbTicks == null) {
+                fbTicks = w.getClass().getDeclaredField("ticks");
+                fbTicks.setAccessible(true);
+                fbSinceSnapshot = w.getClass().getDeclaredField("ticksSinceLastSnapshot");
+                fbSinceSnapshot.setAccessible(true);
+            }
+            fbSinceSnapshot.setInt(w, fbTicks.getInt(w) - 6000);
+            return true;
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            pieceLinkFailed = true;
+            CraftMaster.LOG.warn("[Replay] Morceaux Flashback de 10 s impossibles (Arcade a changé ?) : 5 min par morceau ({})", e.toString());
+            return false;
+        }
+    }
 
     // ---------------------------------------------------------------- the viewer (/replay view)
 
