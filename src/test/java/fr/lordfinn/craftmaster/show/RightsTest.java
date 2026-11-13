@@ -37,7 +37,7 @@ class RightsTest {
         assertEquals(Rights.Right.CAMERA, Rights.required("camera.auto", a("camera.auto")));
         assertEquals(Rights.Right.CAMERA, Rights.required("broadcast.lowerthird", null));
         assertEquals(Rights.Right.CAMERA, Rights.required("spotlight.follow", null));
-        assertEquals(Rights.Right.TV, Rights.required("tv.show", null));
+        assertEquals(Rights.Right.TV, Rights.required("tele.show", a("tele.show", "tele", "tout", "off", true)));
         assertEquals(Rights.Right.REPLAY, Rights.required("replay.control", null));
         assertEquals(Rights.Right.GAME, Rights.required("score.add", null));
         assertEquals(Rights.Right.GAME, Rights.required("manche.start", null));

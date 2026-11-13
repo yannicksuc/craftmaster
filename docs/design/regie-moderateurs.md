@@ -47,7 +47,7 @@ Changements dans la couche (petits, tout le reste en profite) :
 1. **Acteur** au lieu de « admin » : `Acteur(nom, origine: voix|deck|jeu|site, droits)`. Construit depuis un
    `ServerPlayer` (permissions LuckPerms/op) ou depuis un modo du site (liste tenue par le serveur, §4).
 2. **Une permission par famille d'actions**, vérifiée par l'exécuteur, plus par l'appelant :
-   `camera.*`, `broadcast.*`, `fx` → `craftmaster:camera` · `tv.*` → `craftmaster:tv` (ou `image`) ·
+   `camera.*`, `broadcast.*`, `fx` → `craftmaster:camera` · `tele.show` → `craftmaster:tv` (ou `image`) ·
    `replay.*` → `craftmaster:replay` · `score.*`, `manche.*`, `timer.*`, tablettes → `craftmaster:jeu` ·
    publication, révélation, saisons/parties/joueurs, suppression → `craftmaster:admin` seulement.
    Nouveau groupe pratique : `craftmaster:modo` = camera + tv + replay (+ jeu si LordFinn le veut, §5).

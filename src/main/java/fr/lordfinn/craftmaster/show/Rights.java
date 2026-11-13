@@ -13,7 +13,8 @@ import java.util.Set;
  * <ul>
  * <li>{@link Right#CAMERA} — camera.*, broadcast.*, show.intro/outro/stop, spotlights, screen effects on the broadcast
  * (permission {@code craftmaster:camera})</li>
- * <li>{@link Right#TV} — tv.* (the studio TVs; {@code craftmaster:tv} or {@code craftmaster:image})</li>
+ * <li>{@link Right#TV} — tele.show (the studio TVs: clip, link, a contestant's live, image, off; {@code craftmaster:tv} or
+ * {@code craftmaster:image})</li>
  * <li>{@link Right#REPLAY} — replay.* ({@code craftmaster:replay})</li>
  * <li>{@link Right#GAME} — live points, round start / end, timer, stopwatches, buzzers, results, timer tablets
  * ({@code craftmaster:jeu})</li>
@@ -65,7 +66,7 @@ public final class Rights {
             String s = target == null ? (t.equals("fx.set") ? "diffusion" : "tout") : String.valueOf(target).trim().toLowerCase(Locale.ROOT);
             return s.equals("diffusion") || s.equals("broadcast") ? Right.CAMERA : Right.ADMIN;
         }
-        if (t.startsWith("tv.")) return Right.TV;
+        if (t.startsWith("tele.") || t.startsWith("tv.")) return Right.TV;
         if (t.startsWith("replay.")) return Right.REPLAY;
         if (GAME_TYPES.contains(t)) return Right.GAME;
         return Right.ADMIN;

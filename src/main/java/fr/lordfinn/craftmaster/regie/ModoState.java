@@ -27,7 +27,7 @@ import fr.lordfinn.craftmaster.show.Rights;
  * cast [names]                                                                                    (always: follow / POV)
  * journal [{at, actor, origin, ok, text}]                                                         (organiser)
  * </pre>
- * TVs and replays come with their branches (tv.*, replay.*).
+ * TVs and replays come with their branches (tele.show, replay.*).
  */
 public final class ModoState {
 

@@ -13,7 +13,7 @@ Chaque action demande un droit. L'organisateur (`craftmaster:admin` ou opérateu
 | Droit | Actions | Permission (LuckPerms) |
 |---|---|---|
 | `camera` | caméras (coupe, auto, plan large, transition, suivre, vue d'un joueur, mosaïque…), habillage, générique, projecteurs, effets sur l'image de la diffusion | `craftmaster:camera` |
-| `tv` | télés du plateau (`tv.*`, avec les clips et les télés) | `craftmaster:tv` ou `craftmaster:image` |
+| `tv` | télés du plateau (`tele.show` : clip, lien, direct d'un candidat, image, éteindre) | `craftmaster:tv` ou `craftmaster:image` |
 | `replay` | replays (`replay.*`, avec la régie de replay) | `craftmaster:replay` |
 | `jeu` | points du direct, lancer / finir une manche, arrêter le chrono, chronos et buzzers, feuille de résultats, tablettes du minuteur | `craftmaster:jeu` |
 | (organisateur) | publier, révélation, annuler, saisons, parties, joueurs, réglages des manches, effets forcés sur les joueurs | `craftmaster:admin` |
@@ -69,7 +69,9 @@ Le lien n'accepte que `https://` (ou `http://127.0.0.1` / `localhost` pour les e
 
 ## Ce qui viendra avec les autres branches
 - **Télés** (clips, liens Twitch, direct d'un candidat, image) : un onglet Télés dès que la branche clips/télés écrit
-  ses ordres comme des actions `tv.*`.
+  ses ordres comme des actions `tele.show` (fait, branche `claude/friendly-keller-d41f2f`). Listes pour la régie :
+  `MediaServer.screenNames`, `clips().list()`, `channels().all()`. Le clip lui-même (`clip.start`) s'enregistre dans le
+  jeu de LordFinn : une régie distante ne peut pas le lancer (il reste au Stream Deck et à la voix).
 - **Replays** : un onglet Replay. L'action d'un modo appellera, sur le jeu de diffusion qui regarde, l'API serveur de la
   branche replays : `ReplayViewing.seekFor` / `pausedFor` / `speedFor` / `viewFor` (et pas `ServerReplayBridge` : pendant
   la réouverture d'un fichier, il n'y a plus de lecteur et l'ordre serait perdu ; ces fonctions l'appliquent à la
