@@ -173,6 +173,15 @@ public final class BroadcastActions {
      */
     public static String effectId(String e) {
         if (e == null) return "";
+        // A combination ("macro+look_intro", an intro shot's effect with the intro's look): each part on its own
+        if (e.indexOf('+') >= 0 || e.indexOf(',') >= 0) {
+            java.util.List<String> parts = new java.util.ArrayList<>();
+            for (String p : e.split("[+,]")) {
+                String id = effectId(p);
+                if (!id.isEmpty() && !parts.contains(id)) parts.add(id);
+            }
+            return String.join("+", parts);
+        }
         String k = CameraList.fold(e).replaceAll("[^a-z0-9]+", "_").replaceAll("^_+|_+$", "");
         return switch (k) {
             case "", "aucun", "aucune", "none", "non", "off", "sans", "normal" -> "";
