@@ -28,7 +28,8 @@ import java.util.Random;
  * Optional: the broadcast client reads its Twitch chat anonymously, and {@code !tache} shows the task card on
  * screen for a few seconds (at most once every N seconds). Off by default; set in
  * {@code config/craftmaster-client.json} on the broadcast game only, reloaded with {@code /craftMasterTwitch reload}.
- * Read-only: no account, no key, nothing is ever written in the chat.
+ * Read-only: no account, no key, nothing is ever written in the chat. Every message is also forwarded to the server
+ * for the studio's chat wall ({@code chat:twitch} screens), which keeps it only from an organiser's game.
  */
 public final class TwitchChat {
 
@@ -142,6 +143,8 @@ public final class TwitchChat {
                 s.setSoTimeout(6 * 60_000);
                 BufferedWriter out = new BufferedWriter(new OutputStreamWriter(s.getOutputStream(), StandardCharsets.UTF_8));
                 BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream(), StandardCharsets.UTF_8));
+                // Tags (author colour, display name, message id) and moderation lines, for the chat wall
+                out.write("CAP REQ :twitch.tv/tags twitch.tv/commands\r\n");
                 for (String l : TwitchIrc.login(TwitchIrc.anonymousNick(random), channel)) out.write(l + "\r\n");
                 out.flush();
                 status = "connecté à #" + channel + " (lecture seule)";
@@ -158,6 +161,9 @@ public final class TwitchChat {
                     TwitchIrc.Message m = TwitchIrc.parse(line);
                     if (m != null && TwitchIrc.isCommand(m.text(), config.twitch.commands)) trigger(m.user());
                     if (m != null) clipLinks(m.user(), m.text());
+                    // The studio's chat wall: forwarded to the server (kept and shown there)
+                    if (m != null) fr.lordfinn.craftmaster.client.media.ChatWallClient.forwardTwitch(line, m.user(), m.text());
+                    else fr.lordfinn.craftmaster.client.media.ChatWallClient.forwardModeration(line);
                 }
             } catch (IOException e) {
                 if (!running) break;

@@ -54,6 +54,9 @@ public record ImageRequest(String url, int width, int height) {
         if (url == null || url.isBlank()) return "Adresse vide.";
         if (url.length() > MAX_URL_LENGTH) return "Adresse trop longue (" + MAX_URL_LENGTH + " caractères au plus).";
         String lower = url.toLowerCase(Locale.ROOT);
+        // The chat wall: the latest chat messages (media/ChatWall)
+        if (lower.equals("chat") || lower.startsWith(fr.lordfinn.craftmaster.media.ChatWall.SCHEME))
+            return fr.lordfinn.craftmaster.media.ChatWall.mode(url) != null ? null : "Mur de chat invalide : chat:twitch, chat:jeu ou chat:tout.";
         // A clip recorded in the game and kept by the server (media/ClipStore)
         if (lower.startsWith(fr.lordfinn.craftmaster.media.ClipLinks.SCHEME))
             return fr.lordfinn.craftmaster.media.ClipLinks.id(url) != null ? null : "Clip invalide (cmclip:<id>, voir /cmclip liste).";

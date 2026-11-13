@@ -42,9 +42,9 @@ import java.util.function.Supplier;
  *   follow?player=Ensuri · pov?player=Ensuri · filter?kind=morts&player=Ensuri&zone=B · filter/clear · close
  *   (while a replay plays, /cmreplay voir) · /replay/flag (?text=) live: a flag on the recording's timeline
  * /clip/start · /clip/stop · /clip/toggle · /clip/status   in-game clip of this game's view (media/Clips)
- * /tele?nom=gauche&amp;clip=dernier (or lien=URL, direct=Ensuri, image=URL, chat, off)   what a studio screen shows
+ * /tele?nom=gauche&amp;clip=dernier (or lien=URL, direct=Ensuri, image=URL, chat=twitch|jeu|tout, chat, off)   what a studio screen shows
  * /stage/look?name=plateau(&amp;fade=3) · /stage/cue?name=ouverture · /stage/stop · /stage/noir(?fade=2)   stage looks and cue lists
- * /spot?target=face*&amp;color=rouge&amp;intensity=60&amp;cone=8&amp;follow=@scene&amp;fade=2&amp;on=true   spotlights (any subset)
+ * /spot?target=face&amp;color=rouge&amp;intensity=60&amp;cone=8&amp;follow=@scene&amp;fade=2&amp;on=true   spotlights (any subset)
  * /status       JSON: connected, organiser, open screen, season, undo / redo available
  * </pre>
  * Every answer is JSON {@code {"ok": true|false, ...}}; the game does the work on its own thread. Requests from a
@@ -457,8 +457,8 @@ public final class StreamDeckServer {
     }
 
     /**
-     * /tele?nom=gauche&amp;clip=dernier · &amp;lien=URL · &amp;direct=Ensuri · &amp;image=URL · &amp;off · &amp;chat (newest
-     * Twitch clip link from the chat): what a named studio screen shows, as a tele.show action (the server checks the
+     * /tele?nom=gauche&amp;clip=dernier · &amp;lien=URL · &amp;direct=Ensuri · &amp;image=URL · &amp;off · &amp;chat=twitch|jeu|tout
+     * (the chat wall) · &amp;chat (newest Twitch clip link from the chat): what a named studio screen shows, as a tele.show action (the server checks the
      * right and writes it in the journal, like the voice and the control room).
      */
     private static JsonObject tele(URI uri) {
@@ -470,12 +470,15 @@ public final class StreamDeckServer {
         else if (!query(uri, "lien").isEmpty()) a = action("tele.show", "tele", name, "link", query(uri, "lien").replaceAll("\\s", ""));
         else if (!query(uri, "image").isEmpty()) a = action("tele.show", "tele", name, "image", query(uri, "image").replaceAll("\\s", ""));
         else if (!query(uri, "direct").isEmpty()) a = action("tele.show", "tele", name, "live", query(uri, "direct"));
+        else if (fr.lordfinn.craftmaster.media.ChatWall.word(query(uri, "chat")) != null && !query(uri, "chat").isEmpty())
+            // chat=twitch | jeu | tout: the chat wall
+            a = action("tele.show", "tele", name, "chat", fr.lordfinn.craftmaster.media.ChatWall.word(query(uri, "chat")).word);
         else if (q.matches("(^|.*&)chat(=[^&]*)?(&.*|$)")) {
             String link = fr.lordfinn.craftmaster.client.task.TwitchChat.lastClipLink();
             if (link == null) return error("no Twitch clip link seen in the chat yet");
             a = action("tele.show", "tele", name, "link", link);
         } else if (q.matches("(^|.*&)off(=[^&]*)?(&.*|$)")) a = action("tele.show", "tele", name, "off", true);
-        else return error("tele: clip=… | lien=… | direct=… | image=… | chat | off");
+        else return error("tele: clip=… | lien=… | direct=… | image=… | chat=twitch|jeu|tout | chat | off");
         JsonObject o = send(a);
         if (o.get("ok").getAsBoolean()) o.add("action", a);
         return o;

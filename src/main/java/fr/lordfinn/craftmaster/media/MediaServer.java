@@ -84,6 +84,7 @@ public final class MediaServer {
         ServerPlayNetworking.registerGlobalReceiver(MediaNetwork.UploadEnd.TYPE, (p, ctx) -> end(ctx.player(), p));
         ServerPlayNetworking.registerGlobalReceiver(MediaNetwork.Fetch.TYPE, (p, ctx) -> fetch(ctx.player(), p.clip()));
         ServerTickEvents.END_SERVER_TICK.register(MediaServer::tick);
+        ChatWallServer.register();
         ServerPlayConnectionEvents.DISCONNECT.register((h, server) -> forget(h.player.getUUID()));
         ServerLifecycleEvents.SERVER_STOPPING.register(s -> {
             for (String k : List.copyOf(UPLOADS.keySet())) abort(k);
@@ -249,7 +250,7 @@ public final class MediaServer {
     }
 
     /** What to show: kind + its argument, as the commands, the voice and the Stream Deck give it. */
-    public enum Kind { CLIP, LINK, LIVE, IMAGE, OFF }
+    public enum Kind { CLIP, LINK, LIVE, IMAGE, CHAT, OFF }
 
     /** Result of {@link #show}: done, or why not (French, shown as is). */
     public record Result(boolean ok, String message, String url) {
@@ -263,6 +264,7 @@ public final class MediaServer {
      *   (newest), "-1" (the one before)...</li>
      *   <li>LINK / IMAGE: a web address (Twitch clip, video, picture...).</li>
      *   <li>LIVE: a connected contestant's name (their linked Twitch channel), or a channel name.</li>
+     *   <li>CHAT: the chat wall ({@link ChatWall}): "twitch", "jeu" or "tout" (both).</li>
      *   <li>OFF: back to the test card.</li>
      * </ul>
      */
@@ -277,6 +279,16 @@ public final class MediaServer {
         String what;
         switch (kind) {
             case OFF -> { url = ""; what = "la mire"; }
+            case CHAT -> {
+                ChatWall.Mode m = ChatWall.word(arg);
+                if (m == null) return Result.error("Chat « " + arg + " » inconnu : twitch, jeu ou tout.");
+                url = m.address();
+                what = switch (m) {
+                    case TWITCH -> "le chat Twitch";
+                    case JEU -> "le chat du jeu";
+                    case TOUT -> "le chat Twitch et celui du jeu";
+                };
+            }
             case CLIP -> {
                 ClipStore.Clip c = clip(arg);
                 if (c == null) return Result.error(clips().list().isEmpty() ? "Aucun clip sur le serveur (enregistre-en un : F9 puis F10)."

@@ -118,7 +118,7 @@ public final class Actions {
 
     /**
      * tele.show: what a named studio screen shows (media/MediaServer.show). {@code kind}: clip, lien, direct, image,
-     * off. Nothing in the data changes (no undo entry).
+     * chat, off. Nothing in the data changes (no undo entry).
      */
     public record ScreenShow(String tele, String kind, String value) implements Effect {}
     /**
@@ -1070,7 +1070,8 @@ public final class Actions {
         }
 
         /**
-         * tele.show {tele, clip? | link? | live? | image? | off?}: one of the five (clip "dernier" when none is given);
+         * tele.show {tele, clip? | link? | live? | image? | chat? | off?}: one of the six (clip "dernier" when none is
+         * given; chat = the chat wall, "twitch", "jeu" or "tout");
          * the screen's name and the rest are resolved in the world by media/MediaServer.
          */
         private void teleShow(Map<String, Object> a) {
@@ -1080,6 +1081,13 @@ public final class Actions {
             else if (str(a, "live") != null) { kind = "direct"; value = str(a, "live"); }
             else if (str(a, "link") != null) { kind = "lien"; value = str(a, "link"); }
             else if (str(a, "image") != null) { kind = "image"; value = str(a, "image"); }
+            else if (a.get("chat") != null) {
+                // The chat wall: "twitch", "jeu" or "tout" (true or "" = tout)
+                kind = "chat";
+                value = a.get("chat") instanceof Boolean ? "tout" : String.valueOf(a.get("chat")).strip();
+                if (fr.lordfinn.craftmaster.media.ChatWall.word(value) == null)
+                    throw new Invalid("chat « " + value + " » inconnu : twitch, jeu ou tout.");
+            }
             else { kind = "clip"; value = str(a, "clip") == null ? "dernier" : str(a, "clip"); }
             // The line comes from the world (MediaServer.show says what is shown, or why not)
             effects.add(new ScreenShow(tele, kind, value));

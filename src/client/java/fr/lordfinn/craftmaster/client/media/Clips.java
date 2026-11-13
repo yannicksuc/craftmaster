@@ -59,6 +59,7 @@ public final class Clips {
         KeyMappingHelper.registerKeyMapping(START_KEY);
         KeyMappingHelper.registerKeyMapping(STOP_KEY);
         ClipCache.init();
+        ChatWallClient.init();
         ClientPlayNetworking.registerGlobalReceiver(MediaNetwork.UploadReply.TYPE, (p, ctx) -> Uploads.reply(p));
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (START_KEY.consumeClick()) start();

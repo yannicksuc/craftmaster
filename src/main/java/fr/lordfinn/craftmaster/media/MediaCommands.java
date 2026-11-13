@@ -32,7 +32,8 @@ import static net.minecraft.commands.Commands.literal;
  * Commands of the screens' videos and the clips (reference: docs/wiki/Clips.md), permission craftmaster:image:
  * <ul>
  *   <li>{@code /cmtele liste}, {@code /cmtele nommer <nom>} (the screen you look at), {@code /cmtele <nom> clip
- *   [n|dernier]}, {@code lien <URL>}, {@code direct <joueur>}, {@code image <URL>}, {@code off}.</li>
+ *   [n|dernier]}, {@code lien <URL>}, {@code direct <joueur>}, {@code image <URL>}, {@code chat [twitch|jeu|tout]}
+ *   (the chat wall, {@link ChatWall}), {@code off}.</li>
  *   <li>{@code /cmclip liste}, {@code /cmclip renommer <n> <nom>}, {@code /cmclip supprimer <n>}.</li>
  *   <li>{@code /cmchaine lier <joueur> <chaîne>}, {@code delier <joueur>}, {@code liste}: contestants' Twitch channels.</li>
  * </ul>
@@ -73,6 +74,10 @@ public final class MediaCommands {
                                 .executes(c -> show(c, MediaServer.Kind.IMAGE, StringArgumentType.getString(c, "url")))))
                         .then(literal("direct").then(argument("joueur", StringArgumentType.word()).suggests(PLAYERS)
                                 .executes(c -> show(c, MediaServer.Kind.LIVE, StringArgumentType.getString(c, "joueur")))))
+                        .then(literal("chat").executes(c -> show(c, MediaServer.Kind.CHAT, "tout"))
+                                .then(argument("source", StringArgumentType.word())
+                                        .suggests((c, b) -> SharedSuggestionProvider.suggest(List.of("twitch", "jeu", "tout"), b))
+                                        .executes(c -> show(c, MediaServer.Kind.CHAT, StringArgumentType.getString(c, "source")))))
                         .then(literal("off").executes(c -> show(c, MediaServer.Kind.OFF, ""))));
     }
 
@@ -89,6 +94,7 @@ public final class MediaCommands {
             case LINK -> a.put("link", arg);
             case LIVE -> a.put("live", arg);
             case IMAGE -> a.put("image", arg);
+            case CHAT -> a.put("chat", arg);
             case OFF -> a.put("off", true);
         }
         fr.lordfinn.craftmaster.show.ActionExecutor.Result r = fr.lordfinn.craftmaster.show.ActionExecutor.execute(c.getSource().getServer(), List.of(a));
@@ -129,7 +135,7 @@ public final class MediaCommands {
         }
         String n = StringArgumentType.getString(c, "nom").toLowerCase(Locale.ROOT);
         s.get().setScreenName(n);
-        ok(c, "Cet écran s'appelle « " + n + " » : /cmtele " + n + " clip | lien <URL> | direct <joueur> | off.");
+        ok(c, "Cet écran s'appelle « " + n + " » : /cmtele " + n + " clip | lien <URL> | direct <joueur> | chat | off.");
         return 1;
     }
 

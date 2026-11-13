@@ -200,7 +200,7 @@ Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`
 | Commande | Effet |
 |---|---|
 | `/cmtele nommer <nom>` | nomme l'écran du studio que tu regardes |
-| `/cmtele <nom> clip [n\|dernier]` · `lien <URL>` · `direct <joueur>` · `image <URL>` · `off` | ce que montre la télé (`tout` = toutes) |
+| `/cmtele <nom> clip [n\|dernier]` · `lien <URL>` · `direct <joueur>` · `image <URL>` · `chat [twitch\|jeu\|tout]` · `off` | ce que montre la télé (`tout` = toutes ; `chat` = le mur de chat) |
 | `/cmtele liste` | les télés et ce qu'elles montrent |
 | `/cmclip liste` · `renommer <n> <nom>` · `supprimer <n>` | les clips gardés par le serveur |
 | `/cmchaine lier <joueur> <chaîne>` · `delier <joueur>` · `liste` | chaînes Twitch des candidats |
@@ -271,7 +271,7 @@ du moment (comme la touche J). Le reste est admin et passe par l'exécuteur d'ac
 Détail dans [Plateau](Plateau.md). Sans cible, une commande agit sur l'écran, le projecteur ou le pupitre regardé.
 | Commande | Alias | Effet |
 |---|---|---|
-| `/craftMasterImage <URL> [largeur] [hauteur]` | `image`, `cfim` | Image sur l'écran regardé, ou nouvel écran (5 × 3 par défaut) sur le mur regardé ; permission `craftmaster:image` ou admin |
+| `/craftMasterImage <URL> [largeur] [hauteur]` | `image`, `cfim` | Image sur l'écran regardé, ou nouvel écran (5 × 3 par défaut) sur le mur regardé ; permission `craftmaster:image` ou admin. `chat:twitch`, `chat:jeu` ou `chat:tout` à la place de l'URL : le mur de chat ([Clips](Clips.md#le-mur-de-chat)) |
 | `/image clear\|remove` · `/image size <l> <h>` · `/image fit <true\|false>` | | Mire / retirer / taille / image entière ou étirée |
 | `/craftMasterDesk name <nom\|->` | `cfdk` | Nom sur la plaque du pupitre regardé (admin) |
 | `/craftMasterGong` | `cfgo` | Coup du gong le plus proche (admin) |

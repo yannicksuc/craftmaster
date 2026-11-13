@@ -204,6 +204,7 @@ public final class ActionExecutor {
                     case "direct" -> fr.lordfinn.craftmaster.media.MediaServer.Kind.LIVE;
                     case "lien" -> fr.lordfinn.craftmaster.media.MediaServer.Kind.LINK;
                     case "image" -> fr.lordfinn.craftmaster.media.MediaServer.Kind.IMAGE;
+                    case "chat" -> fr.lordfinn.craftmaster.media.MediaServer.Kind.CHAT;
                     default -> fr.lordfinn.craftmaster.media.MediaServer.Kind.CLIP;
                 };
                 var r = fr.lordfinn.craftmaster.media.MediaServer.show(server, t.tele(), kind, t.value());

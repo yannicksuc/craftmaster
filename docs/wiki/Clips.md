@@ -54,6 +54,7 @@ Ce qu'une télé peut montrer :
 | `/cmtele gauche lien <URL>` | un clip Twitch (`clips.twitch.tv/…` ou `twitch.tv/<chaîne>/clip/…`), une vidéo `.mp4`, une page Kick, Medal, Streamable… |
 | `/cmtele gauche direct <joueur>` | le direct Twitch de ce candidat (sa chaîne liée, il doit être connecté) ; ou directement un nom de chaîne |
 | `/cmtele gauche image <URL>` | une image |
+| `/cmtele gauche chat twitch` · `chat jeu` · `chat tout` | le mur de chat : les derniers messages du chat Twitch, du chat du jeu, ou des deux (`chat` seul = les deux) — voir [plus bas](#le-mur-de-chat) |
 | `/cmtele gauche off` | la mire CraftMaster |
 | `/cmtele tout …` | toutes les télés nommées |
 | `/cmtele liste` | les télés, leur nom et ce qu'elles montrent |
@@ -95,6 +96,35 @@ doublon. **Rien ne passe tout seul** : c'est toi qui choisis.
 - Le bouton Stream Deck `/tele?nom=gauche&chat` met le dernier lien du chat sur la télé « gauche ».
 - `/craftMasterTwitch message <texte>` fait comme si un viewer avait posté ce texte, pour essayer sans Twitch.
 
+## Le mur de chat
+Une télé peut afficher les **derniers messages du chat**, lisibles de loin sur un grand écran du plateau :
+- `/cmtele <tele> chat twitch` : le chat Twitch du direct ;
+- `/cmtele <tele> chat jeu` : le chat des joueurs dans Minecraft ;
+- `/cmtele <tele> chat tout` (ou `chat` seul) : les deux, un petit trait violet (Twitch) ou vert (jeu) devant
+  chaque message.
+
+Sans nom de télé, sur l'écran regardé : `/image chat:twitch` (ou `chat:jeu`, `chat:tout`). Un mur qui n'existe
+pas encore se pose comme une image : `/image chat:twitch 8 5` en regardant un mur. L'adresse `chat:…` marche
+aussi dans les réglages de l'écran (clic droit).
+
+À l'écran : le plus récent en bas, le pseudo dans sa couleur (la couleur Twitch du viewer, sinon une couleur fixe
+tirée du pseudo), les messages coupés sur plusieurs lignes, 8 à 14 lignes selon la hauteur de l'écran ; les
+anciens montent en douceur quand un message arrive.
+
+D'où viennent les messages :
+- **Twitch** : le jeu de diffusion lit déjà le chat Twitch (`twitch` dans `config/craftmaster-client.json`, voir
+  [Tâches](Taches.md)) ; il envoie chaque message au serveur. Le serveur ne les garde **que d'un organisateur**
+  (permission `craftmaster:image` ou admin) ; si plusieurs organisateurs lisent le chat, chaque message n'est
+  gardé qu'une fois. Un message supprimé par un modérateur Twitch, ou les messages d'un viewer banni ou mis en
+  sourdine, disparaissent aussi du mur.
+- **Jeu** : les messages du chat Minecraft des joueurs.
+- Ignorés : les commandes (`!tache`, `!so`…) et les messages vides. Les caractères de contrôle et les codes
+  couleur `§` sont retirés, un message est coupé à 200 caractères.
+
+Le serveur garde les **50 derniers messages** de chaque source (rien sur disque, vidés au redémarrage) : un
+joueur qui arrive devant le mur voit l'historique récent. Seuls les joueurs qui voient un mur de chat reçoivent les
+messages ; leur jeu ne fait que les dessiner.
+
 ## Stream Deck et voix
 Stream Deck ([Saisie](Saisie.md#api-streamdeck)), sur le jeu de LordFinn :
 
@@ -106,6 +136,7 @@ Stream Deck ([Saisie](Saisie.md#api-streamdeck)), sur le jeu de LordFinn :
 | `/tele?nom=gauche&lien=<URL>` · `&image=<URL>` | un lien, une image |
 | `/tele?nom=gauche&direct=Ensuri` | le direct d'Ensuri |
 | `/tele?nom=gauche&chat` | le dernier clip Twitch posté dans le chat |
+| `/tele?nom=gauche&chat=twitch` · `chat=jeu` · `chat=tout` | le mur de chat |
 | `/tele?nom=gauche&off` | la mire |
 
 Voix ([Régie vocale](RegieVocale.md)) :
@@ -119,8 +150,8 @@ Les ordres des télés du Stream Deck et de la voix sont des actions `tele.show`
 modérateurs. `/cmtele` tapée à la main passe aussi par cette action : commande, voix, Stream Deck, régie
 en jeu et site suivent un seul chemin, avec le même effet (droits et journal de la régie des modos).
 
-Action `tele.show` : `{tele, clip | link | live | image | off}`. Un seul champ parmi les cinq ; sans aucun, c'est le
-dernier clip. `off: true` remet la mire.
+Action `tele.show` : `{tele, clip | link | live | image | chat | off}`. Un seul champ parmi les six ; sans aucun,
+c'est le dernier clip. `chat` vaut `twitch`, `jeu` ou `tout`. `off: true` remet la mire.
 
 La réponse du Stream Deck redonne l'action envoyée. Une télé inconnue est signalée dans le chat de l'organisateur
 (« ⚠ Aucune télé nommée … »).
