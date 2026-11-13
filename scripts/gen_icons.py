@@ -366,31 +366,32 @@ def brass_seal():
     return i.p
 
 def judge_stopwatch():
-    """Judge's stopwatch: a round steel case, white dial with its marks and red hand, the crown button on top."""
+    """Judge's stopwatch: a round steel case, white dial with its marks and red hand, the crown button on top.
+    12 px round case (outline included) centred in the slot, the crown inside the 16 px: 12 x 14 like vanilla's
+    clock, not edge to edge."""
     import math
     O = (44, 40, 46)
     i = Icon()
-    # Crown button and its stem
-    i.rect(6, 0, 9, 1, STEEL[1]); i.rect(6, 0, 9, 0, STEEL[0])
-    i.rect(7, 2, 8, 2, STEEL[3])
-    cx, cy = 7.5, 9.0
+    # Crown button (y 2) and its stem (y 3, in the case's outline row); the outline adds y 1
+    i.rect(6, 2, 9, 2, STEEL[1]); i.rect(6, 2, 7, 2, STEEL[0])
+    i.rect(7, 3, 8, 3, STEEL[3])
+    cx, cy = 8.0, 9.0    # 10 px body x 3..12, y 4..13; outline x 2..13, y 3..14
     for y in range(16):
         for x in range(16):
-            r = math.hypot(x + 0.5 - cx - 0.5, y + 0.5 - cy - 0.5)
-            if r > 6.3:
+            dx, dy = x + 0.5 - cx, y + 0.5 - cy
+            r = math.hypot(dx, dy)
+            if r > 5.4:
                 continue
-            if r > 5.0:   # the case: lit at the top left, dark at the bottom right
-                lit = (x + 0.5 - cx - 0.5) + (y + 0.5 - cy - 0.5) < -1.5
-                dark = (x + 0.5 - cx - 0.5) + (y + 0.5 - cy - 0.5) > 2.5
-                i.set(x, y, STEEL[0] if lit else STEEL[3] if dark else STEEL[2])
+            if r > 3.9:   # the case: lit at the top left, dark at the bottom right
+                i.set(x, y, STEEL[0] if dx + dy < -2.5 else STEEL[3] if dx + dy > 2.5 else STEEL[2])
             else:         # the dial, a little shaded at the bottom right
-                i.set(x, y, PAPER[1] if (x + y) > 19 and r > 3.6 else PAPER[0])
-    # Marks at 12, 3, 6 and 9 o'clock
-    for (x, y) in ((8, 5), (12, 9), (8, 13), (4, 9)):
-        i.set(x, y, (100, 96, 106))
+                i.set(x, y, PAPER[1] if dx + dy > 2.0 else PAPER[0])
+    # Marks at 3, 6 and 9 o'clock (the minute hand points at 12)
+    for (x, y) in ((11, 8), (7, 12), (4, 8)):
+        i.set(x, y, (120, 116, 126))
     # Hands from the centre: black minutes to 12, red seconds to the top right
-    i.set(8, 9, (40, 36, 44)); i.set(8, 8, (40, 36, 44)); i.set(8, 7, (40, 36, 44))
-    i.set(9, 8, (210, 40, 36)); i.set(10, 7, (210, 40, 36)); i.set(11, 6, (210, 40, 36))
+    i.set(7, 8, (40, 36, 44)); i.set(7, 7, (40, 36, 44)); i.set(7, 6, (40, 36, 44))
+    i.set(8, 7, (210, 40, 36)); i.set(9, 6, (210, 40, 36))
     i.outline(O)
     return i.p
 
@@ -420,17 +421,18 @@ def measuring_tape():
     return i.p
 
 def tally_counter():
-    """Hand tally counter: chrome round body, the number window, the push button on top, the ring for the finger."""
+    """Hand tally counter: chrome round body, the number window, the push button on top, the ring for the finger.
+    12 x 14 with the outline (y 1..14): inside the slot, not edge to edge."""
     O = (44, 46, 54)
     i = Icon()
     # Button on top
-    i.rect(6, 1, 9, 2, STEEL[1]); i.rect(6, 1, 9, 1, STEEL[0])
+    i.rect(6, 2, 9, 2, STEEL[1]); i.rect(6, 2, 7, 2, STEEL[0])
     i.rect(7, 3, 8, 3, STEEL[3])
-    # Body x 3..12, y 4..12, soft corners
-    i.rect(3, 4, 12, 12, STEEL[2])
-    i.rect(3, 4, 12, 4, STEEL[0]); i.rect(3, 4, 3, 12, STEEL[1])
-    i.rect(12, 5, 12, 12, STEEL[3]); i.rect(4, 12, 12, 12, STEEL[3])
-    for (x, y) in ((3, 4), (12, 4), (3, 12), (12, 12)):
+    # Body x 3..12, y 4..11, soft corners
+    i.rect(3, 4, 12, 11, STEEL[2])
+    i.rect(3, 4, 12, 4, STEEL[0]); i.rect(3, 4, 3, 11, STEEL[1])
+    i.rect(12, 5, 12, 11, STEEL[3]); i.rect(4, 11, 12, 11, STEEL[3])
+    for (x, y) in ((3, 4), (12, 4), (3, 11), (12, 11)):
         i.set(x, y, T)
     # Number window: 4 white digits on black
     i.rect(4, 6, 11, 9, CHAR[3])
@@ -438,10 +440,9 @@ def tally_counter():
         i.rect(x, 7, x, 8, PAPER[0])
     i.rect(10, 7, 10, 8, (240, 196, 72))
     # Finger ring under it
-    i.rect(6, 13, 9, 14, STEEL[2]); i.rect(7, 13, 8, 13, T)
+    i.rect(6, 12, 9, 13, STEEL[2]); i.rect(7, 12, 8, 12, T)
     i.outline(O)
     return i.p
-
 
 def _wall_board(frame, surface, mark):
     """The three drawing boards share one icon: a board on the wall, 2 px frame lit from the top left, no feet."""
