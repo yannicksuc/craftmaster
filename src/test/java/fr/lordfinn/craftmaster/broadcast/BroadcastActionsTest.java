@@ -32,6 +32,25 @@ class BroadcastActionsTest {
     }
 
     @Test
+    void introTransitionsAreParsedAndNamed() {
+        assertEquals(BroadcastNetwork.MIRROR, BroadcastActions.parseTransition("miroir"));
+        assertEquals(BroadcastNetwork.MIRROR, BroadcastActions.parseTransition("Kaléidoscope"));
+        assertEquals(BroadcastNetwork.FLASH, BroadcastActions.parseTransition("flash blanc"));
+        assertEquals(BroadcastNetwork.FLASH, BroadcastActions.parseTransition("flash_blanc"));
+        assertEquals(BroadcastNetwork.DOUBLE_EXPOSURE, BroadcastActions.parseTransition("Surimpression"));
+        assertEquals(BroadcastNetwork.DOUBLE_EXPOSURE, BroadcastActions.parseTransition("double-exposition"));
+        assertEquals(BroadcastNetwork.CROSSFADE, BroadcastActions.parseTransition("fondu_enchaîné"));
+        // Every code has its saved name, which parses back to it
+        for (int t = 0; t < BroadcastActions.TRANSITION_IDS.size(); t++)
+            assertEquals(t, BroadcastActions.parseTransition(BroadcastActions.transitionId(t)));
+        assertEquals("surimpression", BroadcastActions.transitionId(BroadcastNetwork.DOUBLE_EXPOSURE));
+        assertEquals("coupe", BroadcastActions.transitionId(99));
+        assertEquals("miroir", BroadcastActions.transitionName(BroadcastNetwork.MIRROR));
+        Map<String, Object> a = BroadcastActions.validate("camera.cut", Map.of("camera", "2", "transition", "flash"));
+        assertEquals(BroadcastNetwork.FLASH, a.get("transition"));
+    }
+
+    @Test
     void missingOrWrongFieldsAreRefused() {
         assertThrows(Actions.Invalid.class, () -> BroadcastActions.validate("camera.cut", Map.of()));
         assertThrows(Actions.Invalid.class, () -> BroadcastActions.validate("camera.follow", Map.of()));

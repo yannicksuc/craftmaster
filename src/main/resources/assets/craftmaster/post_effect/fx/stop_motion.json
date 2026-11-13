@@ -1,0 +1,90 @@
+{
+  "targets": {
+    "held": {
+      "persistent": true
+    },
+    "frame": {}
+  },
+  "passes": [
+    {
+      "vertex_shader": "minecraft:core/screenquad",
+      "fragment_shader": "craftmaster:post/fx_stopmotion_hold",
+      "inputs": [
+        {
+          "sampler_name": "In",
+          "target": "minecraft:main"
+        },
+        {
+          "sampler_name": "Held",
+          "target": "held"
+        }
+      ],
+      "output": "frame",
+      "uniforms": {
+        "FxConfig": [
+          {
+            "name": "Fx",
+            "type": "vec4",
+            "value": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "vertex_shader": "minecraft:core/screenquad",
+      "fragment_shader": "minecraft:post/blit",
+      "inputs": [
+        {
+          "sampler_name": "In",
+          "target": "frame"
+        }
+      ],
+      "output": "held",
+      "uniforms": {
+        "BlitConfig": [
+          {
+            "name": "ColorModulate",
+            "type": "vec4",
+            "value": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "vertex_shader": "minecraft:core/screenquad",
+      "fragment_shader": "craftmaster:post/fx_stopmotion_show",
+      "inputs": [
+        {
+          "sampler_name": "In",
+          "target": "frame",
+          "bilinear": true
+        }
+      ],
+      "output": "minecraft:main",
+      "uniforms": {
+        "FxConfig": [
+          {
+            "name": "Fx",
+            "type": "vec4",
+            "value": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -115,14 +115,14 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                    [f("camera", STR, True, "Numéro, nom exact (du contexte) ou rôle : large, trone, podium — dans le lieu "
                                            "et la zone actifs (cameraFocus). Ailleurs : clé du contexte (studio:2, "
                                            "pont:ensuri:1) ou la phrase telle quelle (« caméra 2 du studio »)."),
-                    f("transition", STR, doc="coupe (défaut), fondu ou enchaine."),
-                    f("effect", STR, doc="Effet d'image si demandé : noir_blanc, sepia, pixel, fisheye, vignette, masque_rond, citrouille.")]),
+                    f("transition", STR, doc="coupe (défaut), fondu, enchaine, miroir (kaléidoscope), flash (flash blanc) ou surimpression."),
+                    f("effect", STR, doc="Effet d'image si demandé : noir_blanc, sepia, pixel, fisheye, vignette, masque_rond, citrouille, look_intro, macro, mise_au_point, stop_motion, timelapse.")]),
     "camera.follow": ("Plan qui suit un joueur (« suis Ensuri », « caméra sur Cycy ») ; pendant une manche, les touches "
                       "passent aussi aux caméras de sa zone.",
-                      [f("player", PLAYER, True, PLAYER_DOC), f("transition", STR, doc="coupe, fondu ou enchaine.")]),
+                      [f("player", PLAYER, True, PLAYER_DOC), f("transition", STR, doc="coupe, fondu, enchaine, miroir (kaléidoscope), flash (flash blanc) ou surimpression.")]),
     # TV direction, lieux / travellings / intros (chantier E): no data change except intro.*
     "camera.path": ("Lance un travelling enregistré à l'antenne (« lance le travelling du pont »).",
-                    [f("path", STR, True, "Nom du trajet (contexte : paths)."), f("transition", STR, doc="coupe, fondu ou enchaine."),
+                    [f("path", STR, True, "Nom du trajet (contexte : paths)."), f("transition", STR, doc="coupe, fondu, enchaine, miroir (kaléidoscope), flash (flash blanc) ou surimpression."),
                      f("effect", STR, doc="Effet d'image si demandé.")]),
     "camera.focus": ("Change les caméras que visent « caméra 2 » et les touches 1–9 : une zone (« zone d'Ensuri », "
                      "« caméras de l'équipe bleue »), un lieu (« caméras du studio », « caméras du pont ») ou auto "
@@ -159,7 +159,7 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                         f("path", STR, doc="Nom du trajet."), f("follow", PLAYER, doc="Joueur à suivre. " + PLAYER_DOC),
                         f("task", BOOL, doc="true = le plan « lieu de la tâche » (point d'arrivée et enveloppe posée)."),
                         f("seconds", INT, doc="Durée en secondes (absent = 4 s, ou la durée du trajet)."),
-                        f("transition", STR, doc="coupe, fondu ou enchaine (défaut)."),
+                        f("transition", STR, doc="coupe, fondu, enchaine, miroir (kaléidoscope), flash (flash blanc) ou surimpression ; défaut enchaine."),
                         f("effect", STR, doc="Effet d'image."), f("card", STR, doc="titre ou synthe."),
                         f("text", STR, doc="Texte de la carte (absent = nom de la manche).")]),
     "intro.shot.move": ("Déplace un plan de l'intro d'une manche (« mets le plan 3 en premier »).",
@@ -214,7 +214,8 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
     # Screen effects (docs/wiki/Effets.md): post-processing of the broadcast picture or of a player's view
     "fx.set": ("Met un effet d'écran sur l'image de la diffusion (par défaut) ou sur la vue d'un joueur : noir_blanc, "
                "sepia, pixel, fisheye, vignette, masque_rond, citrouille, flou, vhs, vieux_film, infrarouge, reve, ondule, "
-               "jumelles, bd, negatif ; combinables avec + (« fisheye+masque_rond+sepia ») ; combinaisons prêtes : judas "
+               "jumelles, bd, negatif, look_intro (look vieux reportage de l'intro), macro (fond flou), mise_au_point "
+               "(bascule de mise au point vers le sujet), stop_motion (image saccadée), timelapse (ciel accéléré) ; combinables avec + (« fisheye+masque_rond+sepia ») ; combinaisons prêtes : judas "
                "(fisheye+masque_rond), camera_cachee, souvenir, film_muet, cauchemar. Remplace l'effet précédent de la cible, "
                "sauf avec un + ou - devant (« +sepia » ajoute, « -flou » retire un seul effet).",
                [f("target", STR, doc="« diffusion » (l'image du stream, défaut), « tous » (tous les joueurs), « candidats », "

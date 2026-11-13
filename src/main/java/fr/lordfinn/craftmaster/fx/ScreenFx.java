@@ -15,8 +15,10 @@ import java.util.Set;
  * "fisheye+masque_rond", "judas", "aucun"). Pure logic, shared by the server (commands, actions) and the client.
  *
  * <p>A combination is written with "+" (or ","): {@code fisheye+masque_rond+sepia}. Whatever order it is written
- * in, the effects are drawn in {@link #ORDER}: distortions first, then blur, colour, film look, and the masks last
- * (a peephole mask stays round on top of a fisheye).
+ * in, the effects are drawn in {@link #ORDER}: the depth of field first (it reads the depth buffer, which only matches
+ * the picture before anything moves its pixels), then the stop motion (it holds that picture, the effects drawn after
+ * it keep moving on the held frame like grain on a real film), distortions, blur, colour, film look, and the masks
+ * last (a peephole mask stays round on top of a fisheye). "timelapse" draws nothing: it speeds up the world's time.
  */
 public final class ScreenFx {
 
@@ -27,6 +29,10 @@ public final class ScreenFx {
 
     /** Every effect, in drawing order. */
     public static final List<Kind> ORDER = List.of(
+            new Kind("timelapse", "timelapse", "timelapse"),
+            new Kind("macro", "macro", "macro"),
+            new Kind("mise_au_point", "bascule de mise au point", "focus pull"),
+            new Kind("stop_motion", "stop motion", "stop motion"),
             new Kind("ondule", "ondulation", "wobble"),
             new Kind("fisheye", "fish-eye", "fisheye"),
             new Kind("pixel", "pixelisé", "pixelated"),
@@ -38,6 +44,7 @@ public final class ScreenFx {
             new Kind("negatif", "négatif", "negative"),
             new Kind("bd", "bande dessinée", "comic"),
             new Kind("vhs", "cassette VHS", "VHS tape"),
+            new Kind("look_intro", "look intro", "intro look"),
             new Kind("vieux_film", "vieux film", "old film"),
             new Kind("vignette", "vignette", "vignette"),
             new Kind("citrouille", "masque citrouille", "pumpkin mask"),
@@ -80,6 +87,15 @@ public final class ScreenFx {
         alias("jumelles", "jumelle", "binoculars", "longue_vue");
         alias("bd", "bande_dessinee", "comic", "comics", "cartoon", "dessin", "dessin_anime", "cel");
         alias("negatif", "negative", "invert", "inverse", "inversion");
+        alias("look_intro", "look", "intro", "look_d_intro", "intro_epreuve", "taskmaster", "vieux_reportage", "reportage",
+                "intro_look", "deux_tons", "bichromie");
+        alias("macro", "proxi", "objectif_macro", "gros_plan_flou", "profondeur_de_champ", "faible_profondeur", "bokeh",
+                "depth_of_field", "dof");
+        alias("mise_au_point", "bascule", "bascule_de_mise_au_point", "bascule_de_point", "focus",
+                "focus_pull", "rack_focus", "changement_de_point");
+        alias("stop_motion", "stopmotion", "saccade", "saccades", "sacade", "image_par_image", "pate_a_modeler",
+                "claymation");
+        alias("timelapse", "time_lapse", "temps_accelere", "accelere", "acceleration", "ciel_accelere", "jour_nuit");
     }
 
     private static void alias(String id, String... names) {

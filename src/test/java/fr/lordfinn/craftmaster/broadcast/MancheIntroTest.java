@@ -226,6 +226,11 @@ class MancheIntroTest {
         assertTrue(run(a("intro.shot.set", "manche", "Le Pont", "index", 2, "card", "titre", "text", "Le Pont | Manche 1")).ok());
         assertEquals("titre", pont().intro.shots.get(1).card());
         assertEquals("sepia", pont().intro.shots.get(1).effect());
+        // The intro transitions are saved under their own name, not as a cut
+        assertTrue(run(a("intro.shot.set", "manche", "Le Pont", "index", 1, "transition", "kaléidoscope")).ok());
+        assertEquals("miroir", pont().intro.shots.get(0).transition());
+        assertTrue(run(a("intro.shot.set", "manche", "Le Pont", "index", 1, "transition", "surimpression")).ok());
+        assertEquals("surimpression", pont().intro.shots.get(0).transition());
         assertTrue(run(a("intro.shot.add", "manche", "Le Pont", "follow", "Ensuri", "at", 1)).ok());
         assertEquals("suivi", pont().intro.shots.getFirst().kind());
 

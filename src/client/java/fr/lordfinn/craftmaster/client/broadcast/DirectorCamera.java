@@ -41,6 +41,8 @@ public final class DirectorCamera {
     /** Dip to black in progress: when it started, and the shot waiting for the dark. */
     private static long fadeStart = -1;
     private static Shot pending;
+    /** When the pending shot goes on air (System.currentTimeMillis). */
+    private static long pendingAt;
     /** Follow shot smoothing. */
     private static Vec3 followPos;
     private static float followYaw, followPitch;
@@ -139,10 +141,25 @@ public final class DirectorCamera {
                 case BroadcastNetwork.FADE -> {
                     fadeStart = now;
                     pending = target;
+                    pendingAt = now + (long) (FADE_HALF * 1000);
                 }
                 case BroadcastNetwork.CROSSFADE -> {
                     Transition.capture();
                     show(target, now);
+                }
+                case BroadcastNetwork.DOUBLE_EXPOSURE -> {
+                    Transition.captureDoubleExposure();
+                    show(target, now);
+                }
+                case BroadcastNetwork.FLASH -> {
+                    Transition.flash();
+                    show(target, now);
+                }
+                case BroadcastNetwork.MIRROR -> {
+                    // The old picture folds into the kaleidoscope, the shot changes at its peak
+                    Transition.mirror();
+                    pending = target;
+                    pendingAt = now + (long) (Transition.MIRROR * 500);
                 }
                 default -> show(target, now);
             }
@@ -151,7 +168,7 @@ public final class DirectorCamera {
             // transition, keeping the motion's clock when it is still the same kind of shot
             show(target, target.kind() == shown.kind() ? shownSince : now);
         }
-        if (pending != null && now - fadeStart >= FADE_HALF * 1000) {
+        if (pending != null && now >= pendingAt) {
             show(pending, now);
             pending = null;
         }
@@ -167,6 +184,12 @@ public final class DirectorCamera {
         shownSince = since;
         if (s.kind() != BroadcastNetwork.SHOT_MOSAIC) Mosaic.rendering = -1;
         if (effectChanged || s.effect().isEmpty()) applyEffect();
+        try {
+            // A new shot replays the moves of its effects (focus pull), even when the effect stays the same
+            ScreenEffects.restartShotEffects(s.effect());
+        } catch (RuntimeException | LinkageError e) {
+            // optional, as above
+        }
         BroadcastOverlay.onShotChanged(s);
     }
 

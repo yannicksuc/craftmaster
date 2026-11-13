@@ -107,21 +107,40 @@ public final class BroadcastActions {
         return out;
     }
 
-    /** "coupe" / "cut" → 0, "fondu" / "fade" / "noir" → 1, "enchaîné" / "crossfade" / "dissolve" → 2. */
+    /**
+     * "coupe" / "cut" → 0, "fondu" / "fade" / "noir" → 1, "enchaîné" / "crossfade" / "dissolve" → 2,
+     * "miroir" / "kaléidoscope" → 3, "flash" / "flash blanc" → 4, "surimpression" / "double exposition" → 5.
+     */
     public static int parseTransition(String s) {
-        String t = CameraList.fold(s);
+        String t = CameraList.fold(s).replaceAll("[_-]+", " ").strip();
         return switch (t) {
             case "cut", "coupe", "sec", "coupe seche", "0" -> BroadcastNetwork.CUT;
             case "fade", "fondu", "noir", "fondu au noir", "1" -> BroadcastNetwork.FADE;
             case "crossfade", "enchaine", "fondu enchaine", "dissolve", "mix", "2" -> BroadcastNetwork.CROSSFADE;
-            default -> throw new Actions.Invalid("transition « " + s + " » inconnue (coupe, fondu ou enchaine).");
+            case "miroir", "miroirs", "kaleidoscope", "kaleido", "mirror", "3" -> BroadcastNetwork.MIRROR;
+            case "flash", "flash blanc", "blanc", "white flash", "white", "4" -> BroadcastNetwork.FLASH;
+            case "surimpression", "surimpressions", "double exposition", "double exposure", "superposition", "overlay", "5" ->
+                    BroadcastNetwork.DOUBLE_EXPOSURE;
+            default -> throw new Actions.Invalid("transition « " + s + " » inconnue (" + String.join(", ", TRANSITION_IDS) + ").");
         };
     }
 
+    /** The stored names of the transitions, by code (what {@link #transitionId} gives back). */
+    public static final List<String> TRANSITION_IDS = List.of("coupe", "fondu", "enchaine", "miroir", "flash", "surimpression");
+
+    /** Code → the name saved in the data (intro shots): "coupe", "fondu", "enchaine", "miroir", "flash", "surimpression". */
+    public static String transitionId(int t) {
+        return t >= 0 && t < TRANSITION_IDS.size() ? TRANSITION_IDS.get(t) : "coupe";
+    }
+
+    /** Code → French name for messages. */
     public static String transitionName(int t) {
         return switch (t) {
             case BroadcastNetwork.FADE -> "fondu";
             case BroadcastNetwork.CROSSFADE -> "fondu enchaîné";
+            case BroadcastNetwork.MIRROR -> "miroir";
+            case BroadcastNetwork.FLASH -> "flash";
+            case BroadcastNetwork.DOUBLE_EXPOSURE -> "surimpression";
             default -> "coupe";
         };
     }

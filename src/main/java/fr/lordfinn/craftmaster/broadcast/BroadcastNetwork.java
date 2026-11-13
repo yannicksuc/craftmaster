@@ -33,8 +33,12 @@ public final class BroadcastNetwork {
      * (2–4 tiles); POV: through a player's eyes; FREE: a camera the server moves freely ({@link FreeCamera}).
      */
     public static final int SHOT_NONE = 0, SHOT_CAMERA = 1, SHOT_FOLLOW = 2, SHOT_PATH = 3, SHOT_MOSAIC = 4, SHOT_POV = 5, SHOT_FREE = 6;
-    /** Transitions: straight cut, dip through black, cross-fade from the last frame. */
-    public static final int CUT = 0, FADE = 1, CROSSFADE = 2;
+    /**
+     * Transitions: straight cut, dip through black, cross-fade from the last frame, kaleidoscope (the outgoing
+     * picture folds into spinning mirrored segments, the cut happens at its peak), white flash cut, long double
+     * exposure (the new picture fades in over the old one, held). Older clients play the last three as a cut.
+     */
+    public static final int CUT = 0, FADE = 1, CROSSFADE = 2, MIRROR = 3, FLASH = 4, DOUBLE_EXPOSURE = 5;
     /** Score strip: shown for a while after a publication, always, never. */
     public static final int SCORES_AUTO = 0, SCORES_ON = 1, SCORES_OFF = 2;
 
