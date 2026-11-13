@@ -530,6 +530,45 @@ def cube_toy(name, frm, to, paint_fn, disp, ramp=None, dyed=False, default_dye=N
         item_def(name, f"craftmaster:item/toy/{name}")
 
 
+def fragile_egg():
+    """Fragile egg, the game's egg colours, rounded with cubes (no see-through cut-out corners): a plus-shaped 4x4x4
+    body (a 4x2 bar along x, and the 2x1 ends of the bar along z in front of and behind it, so the four vertical
+    corner columns are gone) and a smaller 2x1x2 cap on top. The boxes only touch (no overlap, no coplanar faces):
+    the faces where they meet are left out. One texel per pixel on every face.
+    Texture: body sides at (0, 0) 4x4, cap sides at (0, 5) 2x1, top of the body at (0, 8) 4x4 (the plus), the cap's
+    top at (8, 0) 2x2, the bottom at (8, 8) 4x4."""
+    L = lmap(16, 16)
+    put(L, 0, 0, 4, 4, box_side([5, 4, 4, 3], salt=7))
+    L[0][1] = 6                                            # the shine high on the side
+    put(L, 0, 5, 2, 1, lambda x, y, w, h: 5)
+    put(L, 0, 8, 4, 4, lambda x, y, w, h: 5)
+    put(L, 8, 0, 2, 2, box_top(5, shine={(0, 0)}))
+    put(L, 8, 8, 4, 4, box_bottom(3))
+    write_png(os.path.join(A, "textures/item/toy/fragile_egg.png"), levels_img(L, EGG_R))
+    t = "#tex"
+
+    def sides(w, u0=0):
+        return [u0, 0, u0 + w, 4]
+    els = [
+        # The bar along x: z 7..9
+        box([6, 0, 7], [10, 4, 9], {"north": face(t, sides(4)), "south": face(t, sides(4)),
+                                    "east": face(t, sides(2, 1)), "west": face(t, sides(2, 1)),
+                                    "up": face(t, [0, 9, 4, 11]), "down": face(t, [8, 9, 12, 11])}),
+        # Its front and back ends along z (x 7..9): no face against the bar
+        box([7, 0, 6], [9, 4, 7], {"north": face(t, sides(2, 1)), "east": face(t, sides(1)), "west": face(t, sides(1, 3)),
+                                   "up": face(t, [1, 8, 3, 9]), "down": face(t, [9, 8, 11, 9])}),
+        box([7, 0, 9], [9, 4, 10], {"south": face(t, sides(2, 1)), "east": face(t, sides(1, 3)), "west": face(t, sides(1)),
+                                    "up": face(t, [1, 11, 3, 12]), "down": face(t, [9, 11, 11, 12])}),
+        # The cap, the inner rectangle rounding the top: no bottom face (it sits on the body)
+        box([7, 4, 7], [9, 5, 9], {**{d: face(t, [0, 5, 2, 6]) for d in ("north", "south", "east", "west")},
+                                   "up": face(t, [8, 0, 10, 2])}),
+    ]
+    tex = "craftmaster:item/toy/fragile_egg"
+    model("toy/fragile_egg", {"textures": {"tex": tex, "particle": tex}, "elements": els,
+                              "display": display(gui=2.0, ground=0.8, hand=0.9, fit=(els, 12.5))})
+    item_def("fragile_egg", "craftmaster:item/toy/fragile_egg")
+
+
 def toys():
     rubber_duck()
 
@@ -555,19 +594,7 @@ def toys():
     cube_toy("bean_bag", [5, 0, 5], [11, 3, 11], bag, display(gui=1.8, ground=0.7, hand=0.9, fit=(cube(5, 0, 5, 11, 3, 11), 13.5)),
              dyed=True, natural=NATURAL_BAG)
 
-    # Fragile egg, 4×5×4, the game's egg colours; rounded by cutting the top corners (cut-out)
-    def egg(L, w, h, d):
-        def side(x, y, ww, hh):
-            if y == 0 and x in (0, ww - 1):
-                return None
-            if (x, y) == (1, 1):
-                return 6
-            return box_side([5, 5, 4, 4, 3], salt=7)(x, y, ww, hh)
-        put(L, 0, 0, w, h, side)
-        put(L, 0, 8, w, d, lambda x, y, ww, hh: None if x in (0, ww - 1) and y in (0, hh - 1) else (6 if (x, y) == (1, 1) else 5))
-        put(L, 8, 8, w, d, box_bottom(3))
-    cube_toy("fragile_egg", [6, 0, 6], [10, 5, 10], egg, display(gui=2.0, ground=0.8, hand=0.9, fit=(cube(6, 0, 6, 10, 5, 10), 12.5)),
-             ramp=EGG_R)
+    fragile_egg()
 
     # Golf ball, 3 px: white with cool grey shading, a shine on top
     def golf(L, w, h, d):
