@@ -176,9 +176,14 @@ def gui_fit(els, size, rotation=(30, 225, 0)):
             for y in (e["from"][1], e["to"][1]):
                 for z in (e["from"][2], e["to"][2]):
                     p = [x, y, z]
-                    if r and "axis" in r:   # the element's own rotation, about its origin
+                    if r:   # the element's own rotation about its origin: axis + angle, or x / y / z angles
                         o = r.get("origin", [8, 8, 8])
-                        p = [a + b for a, b in zip(turn([p[i] - o[i] for i in range(3)], r["axis"], r.get("angle", 0)), o)]
+                        q = [p[i] - o[i] for i in range(3)]
+                        if "axis" in r:
+                            q = turn(q, r["axis"], r.get("angle", 0))
+                        else:
+                            q = turn(turn(turn(q, "z", r.get("z", 0)), "y", r.get("y", 0)), "x", r.get("x", 0))
+                        p = [a + b for a, b in zip(q, o)]
                     # The display rotation (Euler XYZ: z first, then y, then x) about the model's centre
                     p = turn(turn(turn([c - 8 for c in p], "z", rotation[2]), "y", rotation[1]), "x", rotation[0])
                     xs.append(p[0])

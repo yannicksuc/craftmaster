@@ -22,6 +22,8 @@ ITEM_MODELS = {
     **{f"studio_light_{i}": f"studio_light_{i}" for i in range(1, 6)},
     **{f"softbox_{i}": f"softbox_{i}" for i in range(1, 5)},
 }
+# Inventory icons fitted to the slot (gen_toys.gui_fit): px of their larger side, in LordFinn's gui angle
+GUI_FIT = {"throne": 15, "candidate_chair": 14, "softbox_2": 14}
 # Block models (placed as they are)
 BLOCK_MODELS = {"tripod": "tripod", "tripod_rod": "tripod_rod", "globe_panel": "craftmaster-globe"}
 TEXTURES = ["craftmaster-chair", "craftmaster-basic-chair", "craftmaster-frame", "studio_light", "softbox", "tripod",
@@ -55,11 +57,19 @@ def generate(g):
     def item_def(path, model):
         wj(os.path.join(A, f"items/{path}.json"), {"model": {"type": "minecraft:model", "model": model}})
 
+    from gen_toys import gui_fit
     for name, src in ITEM_MODELS.items():
-        wj(os.path.join(A, f"models/item/furniture/{name}.json"), load(src))
+        m = load(src)
+        if name in GUI_FIT:
+            gui = m["display"]["gui"]
+            m["display"]["gui"] = gui_fit(m["elements"], GUI_FIT[name], tuple(gui["rotation"]))
+        wj(os.path.join(A, f"models/item/furniture/{name}.json"), m)
         item_def(f"furniture/{name}", f"craftmaster:item/furniture/{name}")
     for name, src in BLOCK_MODELS.items():
-        wj(os.path.join(A, f"models/block/furniture/{name}.json"), load(src))
+        m = load(src)
+        if name == "globe_panel":
+            m = {"parent": "minecraft:block/block", **m}   # inventory, hand, ground: like a block
+        wj(os.path.join(A, f"models/block/furniture/{name}.json"), m)
         item_def(f"furniture/{name}", f"craftmaster:block/furniture/{name}")
 
     # Blocks drawn by FurnitureRenderer: an empty block model (only the breaking particles)
