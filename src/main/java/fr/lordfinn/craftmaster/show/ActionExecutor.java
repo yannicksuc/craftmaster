@@ -86,6 +86,7 @@ public final class ActionExecutor {
                 Show.endManche(server, m.name());
                 fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundEnd(server);
             }
+            case Actions.ReplayFlagged f -> lines.add(fr.lordfinn.craftmaster.replay.ReplayMoments.flag(null, f.text()));
             case Actions.TimerStopped t -> {
                 lines.add(Show.stopTimer(server) ? "Chrono arrêté." : "Aucun chrono ne tournait.");
                 fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onTimerStopped(server);
@@ -116,7 +117,11 @@ public final class ActionExecutor {
             }
             // chantier H: judging (announces, stopwatches, buzzers)
             case Actions.ResultRecorded _, Actions.StopwatchStarted _, Actions.StopwatchStopped _, Actions.StopwatchReset _,
-                 Actions.BuzzersReset _ -> fr.lordfinn.craftmaster.trial.Judging.play(server, effect, lines);
+                 Actions.BuzzersReset _ -> {
+                fr.lordfinn.craftmaster.trial.Judging.play(server, effect, lines);
+                // The replay's key moments (results, disqualifications, times)
+                fr.lordfinn.craftmaster.replay.ReplayMoments.onEffect(server, effect);
+            }
             // TV direction (chantier E): cameras, overlay, credits
             case Actions.Broadcast b -> fr.lordfinn.craftmaster.broadcast.Director.play(server, b.action(), lines);
             // Screen effects (fx/): the broadcast view, forced on players

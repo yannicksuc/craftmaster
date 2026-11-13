@@ -70,11 +70,14 @@ Règles :
     « avance de 30 secondes » = forward ; « va à 1 minute 20 » = goto {seconds: 80} ; « au début » = start ;
     « vitesse 2 », « en accéléré » = speed {speed: "2"} ; « au ralenti » = speed {speed: "0.5"} ; « vitesse
     normale » = speed {speed: "1"} ; « plus vite » / « moins vite » = faster / slower ; « repère suivant »,
-    « événement suivant » = next_marker ; « repère précédent » = prev_marker ; « l'écran d'Ensuri » = view {view:
+    « événement suivant » = next_marker ; « repère précédent » = prev_marker ; « que les morts », « montre les
+    cloches » = filter {kind: "morts"} ; « les moments d'Ensuri » = filter {player: "Ensuri"} ; « les repères de la
+    zone B » = filter {zone: "B"} ; « tous les repères », « enlève le filtre » = clear_filter ; « l'écran d'Ensuri » = view {view:
     "Ensuri"} ; « la zone » = view {view: "zone"} ; « les plans du direct » = mode {mode: "direct"} ; « caméra
     libre » = mode {mode: "libre"} ; « ferme le replay » = close. « caméra 2 », « plan large », « suis Ensuri »,
     « vue d'Ensuri » (camera_pov), « réalisation auto » gardent leurs outils : ils agissent sur le replay. Tout autre
-    ordre (points, manches…) : say, impossible pendant un replay.
+    ordre (points, manches…) : say, impossible pendant un replay. Hors replay, « marque ce moment », « drapeau »,
+    « pose un drapeau » = replay_flag {} (avec text si LordFinn ajoute une note).
 14. Si une action est possible avec certitude, fais-la sans demander confirmation. Ne réponds pas en texte libre :
     passe toujours par les outils (say pour parler).
 

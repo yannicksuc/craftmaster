@@ -8,6 +8,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import fr.lordfinn.craftmaster.Permissions;
 import fr.lordfinn.craftmaster.replay.ReplayViewing;
+import fr.lordfinn.craftmaster.replay.ReplayMoments;
 import fr.lordfinn.craftmaster.replay.Replays;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -28,6 +29,7 @@ import static net.minecraft.commands.Commands.literal;
  *   <li>{@code /cmreplay mode manche|partie|off} — automatic recording of each round, each game, or never</li>
  *   <li>{@code /cmreplay start} / {@code stop} — by hand (the current round, else the active game)</li>
  *   <li>{@code /cmreplay joueurs on|off}, {@code zone on|off}, {@code marge <chunks>} — what is recorded</li>
+ *   <li>{@code /cmreplay drapeau [texte]} — a flag now (coloured by who is on air), as the "flag" key does</li>
  *   <li>{@code /cmreplay repere <texte>} — a marker on the timeline of the files being recorded</li>
  *   <li>{@code /cmreplay disque}, {@code garder <jours>}, {@code max <Go>}, {@code alerte <Go>}, {@code purge <jours>} —
  *   the disk: used and free space, automatic purge, warning, deleting old replays now</li>
@@ -129,7 +131,10 @@ public final class ReplayCommands {
                     if (!Replays.recording()) return say(c, "Aucun enregistrement en cours.");
                     Replays.marker(StringArgumentType.getString(c, "texte"), 0xFFFFFF);
                     return say(c, "Repère posé.");
-                })));
+                })))
+                .then(literal("drapeau").executes(c -> say(c, ReplayMoments.flag(c.getSource().getPlayer(), null)))
+                        .then(argument("texte", StringArgumentType.greedyString()).executes(c ->
+                                say(c, ReplayMoments.flag(c.getSource().getPlayer(), StringArgumentType.getString(c, "texte"))))));
     }
 
     private static int watch(CommandContext<CommandSourceStack> c, String view) throws com.mojang.brigadier.exceptions.CommandSyntaxException {

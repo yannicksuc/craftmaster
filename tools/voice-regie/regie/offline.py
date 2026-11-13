@@ -77,6 +77,19 @@ def _replay(text: str, ctx: ShowContext) -> list[dict] | None:
         return ctl("next_marker")
     if re.fullmatch(r"(?:le )?(?:repère|événement|moment) précédent", text):
         return ctl("prev_marker")
+    m = re.fullmatch(r"(?:montre |affiche )?(?:que |juste |seulement )?les (?P<k>morts|résultats|réussites|chronos|cloches"
+                     r"|drapeaux(?: des joueurs)?|points|manches|sorties de zone|projecteurs)", text)
+    if m:
+        return ctl("filter", kind=m.group("k"))
+    m = re.fullmatch(r"(?:les )?(?:moments|repères) (?:de |d')(?:la )?zone (?P<z>.+)", text)
+    if m:
+        return ctl("filter", zone=m.group("z"))
+    m = re.fullmatch(r"(?:les )?(?:moments|repères) (?:de |d')(?P<who>.+)", text)
+    if m:
+        p = ctx.player(m.group("who"))
+        return ctl("filter", player=p.pseudo if p else m.group("who"))
+    if re.fullmatch(r"(?:tous les (?:repères|moments)|enlève le filtre|plus de filtre|sans filtre)", text):
+        return ctl("clear_filter")
     if re.fullmatch(r"(?:la |sur la |vue de la |fichier de la )?zone(?: de l'épreuve)?", text):
         return ctl("view", view="zone")
     m = re.fullmatch(r"(?:l'écran|le fichier|l'interface|le jeu) (?:de |d')(?P<who>.+)", text)
@@ -121,6 +134,10 @@ class OfflineUnderstander:
             replay = _replay(text, ctx)
             if replay is not None:
                 return replay
+        # Live: a flag on the recording's timeline
+        m = re.fullmatch(r"(?:marque ce moment|marque le moment|(?:pose |mets )?(?:un )?drapeau)(?: (?:pour |sur )?(?P<note>.+))?", text)
+        if m and not ctx.replay:
+            return [{"type": "replay.flag", **({"text": m.group("note")} if m.group("note") else {})}]
         if re.fullmatch(r"(annule|annuler|annule ça|annule ca)", text):
             return [{"type": "undo", "count": 1}]
         if re.search(r"\bouvr\w* (les |le )?rideaux?\b", text):

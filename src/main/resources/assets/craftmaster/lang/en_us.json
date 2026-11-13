@@ -129,6 +129,7 @@
   "key.craftmaster.replay_camera": "Replay: direction (live, auto, manual, free)",
   "key.craftmaster.replay_panel": "Replay: bar for the mouse",
   "key.craftmaster.replay_hide": "Replay: hide the bar",
+  "key.craftmaster.replay_flag": "Replay: flag this moment (live)",
   "item.craftmaster.envelope": "Sealed Envelope",
   "item.craftmaster.envelope.opened": "Opened Envelope",
   "item.craftmaster.envelope.to": "To: %s",

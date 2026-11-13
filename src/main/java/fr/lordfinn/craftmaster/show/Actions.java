@@ -45,6 +45,9 @@ public final class Actions {
 
     public record TimerStopped() implements Effect {}
 
+    /** A flag on the replay's timeline, now (coloured by who is on air); {@code text} may be empty. */
+    public record ReplayFlagged(String text) implements Effect {}
+
     public record Published(int season) implements Effect {}
 
     public record RevealStarted(int season) implements Effect {}
@@ -117,7 +120,7 @@ public final class Actions {
             "season.create", "season.update", "season.archive", "season.delete", "season.activate",
             "partie.create", "partie.update", "partie.archive", "partie.delete", "partie.activate",
             "manche.create", "manche.update", "manche.archive", "manche.delete", "manche.tp.add", "manche.tp.clear", "manche.zones",
-            "manche.start", "manche.end", "timer.stop", "curtain.open", "curtain.close", "scene.set", "say",
+            "manche.start", "manche.end", "timer.stop", "replay.flag", "curtain.open", "curtain.close", "scene.set", "say",
             // chantier H
             "result.set", "result.dq", "result.remove", "results.clear", "results.config", "results.apply",
             "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset",
@@ -339,6 +342,7 @@ public final class Actions {
                 case "manche.start" -> mancheStart(a);
                 case "manche.end" -> mancheEnd();
                 case "timer.stop" -> effects.add(new TimerStopped());
+                case "replay.flag" -> effects.add(new ReplayFlagged(str(a, "text") == null ? "" : str(a, "text")));
                 case "curtain.open" -> curtain(a, true);
                 case "curtain.close" -> curtain(a, false);
                 case "scene.set" -> sceneSet(a);

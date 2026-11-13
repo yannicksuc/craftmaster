@@ -14,7 +14,7 @@ camera.cut camera.follow camera.auto broadcast.lowerthird broadcast.task broadca
 show.intro show.outro show.stop
 task.set task.clear task.reveal task.hide task.show envelope.give task.reveal_more
 spotlight.follow spotlight.stop spotlight.on spotlight.off
-camera.path camera.focus camera.lieu camera.mosaic camera.pov intro.play intro.set intro.shot.add intro.shot.remove fx.set fx.clear replay.control""".split()
+camera.path camera.focus camera.lieu camera.mosaic camera.pov intro.play intro.set intro.shot.add intro.shot.remove fx.set fx.clear replay.control replay.flag""".split()
 
 
 def test_lieux_and_intro_actions_are_normalized(ctx):

@@ -129,6 +129,7 @@
   "key.craftmaster.replay_camera": "Replay : réalisation (direct, auto, manuel, libre)",
   "key.craftmaster.replay_panel": "Replay : barre à la souris",
   "key.craftmaster.replay_hide": "Replay : cacher la barre",
+  "key.craftmaster.replay_flag": "Replay : drapeau sur ce moment (en direct)",
   "item.craftmaster.envelope": "Enveloppe scellée",
   "item.craftmaster.envelope.opened": "Enveloppe ouverte",
   "item.craftmaster.envelope.to": "Pour : %s",

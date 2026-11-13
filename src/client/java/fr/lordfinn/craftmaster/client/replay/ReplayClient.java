@@ -46,6 +46,11 @@ public final class ReplayClient {
     public static final KeyMapping HIDE_KEY = key("replay_hide", InputConstants.KEY_H);
     private static final List<KeyMapping> KEYS = List.of(PLAY_KEY, BACK_KEY, FORWARD_KEY, FASTER_KEY, SLOWER_KEY, PREV_MARKER_KEY,
             NEXT_MARKER_KEY, CAMERA_KEY, PANEL_KEY, HIDE_KEY);
+    /**
+     * Live, not in a replay: "flag this moment" on the recording's timeline. An organiser's flag takes the colour of
+     * who is on air; a player's has its own shape, with a delay between two (the server decides).
+     */
+    public static final KeyMapping FLAG_KEY = key("replay_flag", InputConstants.KEY_I);
     /** The speeds the arrows step through. */
     static final float[] SPEEDS = {0.25f, 0.5f, 1, 2, 4, 8};
 
@@ -68,6 +73,7 @@ public final class ReplayClient {
 
     public static void init() {
         for (KeyMapping k : KEYS) KeyMappingHelper.registerKeyMapping(k);
+        KeyMappingHelper.registerKeyMapping(FLAG_KEY);
         ClientPlayNetworking.registerGlobalReceiver(ReplayStatus.TYPE, (payload, ctx) -> onStatus(payload));
         // A direction order from the server (moderators' régie, site): run here, like the voice control's
         ClientPlayNetworking.registerGlobalReceiver(fr.lordfinn.craftmaster.replay.ReplayNetwork.ReplayDirect.TYPE, (payload, ctx) -> {
@@ -236,11 +242,11 @@ public final class ReplayClient {
         send("close");
     }
 
-    /** The marker after (or before) the playback's time; false if there is none. */
+    /** The marker after (or before) the playback's time, among those the filter shows; false if there is none. */
     public static boolean marker(int dir) {
         long now = nowMs();
         Marker pick = null;
-        for (Marker m : markers) {
+        for (Marker m : ReplayMarkers.visible()) {
             if (dir > 0 && m.ms() > now + 300) {
                 pick = m;
                 break;
@@ -283,8 +289,12 @@ public final class ReplayClient {
                 ReplayDirector.reset();
                 if (!broadcastBefore && Broadcast.active()) Broadcast.set(false);
                 markers = List.of();
+                ReplayMarkers.clear();
             }
         }
+        while (FLAG_KEY.consumeClick())
+            if (!act && mc.gui.screen() == null && ClientPlayNetworking.canSend(fr.lordfinn.craftmaster.replay.ReplayNetwork.ReplayFlag.TYPE))
+                ClientPlayNetworking.send(new fr.lordfinn.craftmaster.replay.ReplayNetwork.ReplayFlag(""));
         if (act && panelWanted && mc.gui.screen() == null && mc.player != null) openPanel(mc);
         if (!act) panelWanted = false;
         if (!act || mc.gui.screen() != null) {

@@ -11,6 +11,22 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class ReplayViewingTest {
 
     @Test
+    void markersKeepTheirKindPlayerAndZone() {
+        var o = com.google.gson.JsonParser.parseString("""
+                {"label": "Manche 1", "started": "2026-11-13T10:00:00Z", "seconds": 60,
+                 "zones": [{"name": "A", "folder": "f"}],
+                 "markers": [{"t": 3, "name": "Ensuri meurt", "color": "#E57373", "kind": "death", "player": "Ensuri", "zone": "A"},
+                             {"t": 5, "name": "Vieux repère", "color": "#FFFFFF"}]}""").getAsJsonObject();
+        ReplayViewing.Entry e = ReplayViewing.parse(o);
+        Marker m = e.colors().get("Ensuri meurt");
+        assertEquals("death", m.kind());
+        assertEquals("Ensuri", m.player());
+        assertEquals("A", m.zone());
+        assertEquals(0xE57373, m.color());
+        assertEquals("", e.colors().get("Vieux repère").kind());
+    }
+
+    @Test
     void sameInstantInAnotherFile() {
         // The zone's file started at tick 1000, the player's 3 ticks later: 10 s into the zone = 9.85 s into the player's
         ReplayClock zone = new ReplayClock(1000, List.of()), player = new ReplayClock(1003, List.of());

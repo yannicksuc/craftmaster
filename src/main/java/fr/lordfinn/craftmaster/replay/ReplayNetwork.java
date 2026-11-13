@@ -18,8 +18,21 @@ public final class ReplayNetwork {
 
     private ReplayNetwork() {}
 
-    /** A marker on the replay's timeline. */
-    public record Marker(long ms, String name, int color) {}
+    /**
+     * A marker on the replay's timeline: its kind ({@link ReplayMoments}, "" for an old marker), the player it is about
+     * and the zone they were in ("" when none).
+     */
+    public record Marker(long ms, String name, int color, String kind, String player, String zone) {
+        public Marker {
+            kind = kind == null ? "" : kind;
+            player = player == null ? "" : player;
+            zone = zone == null ? "" : zone;
+        }
+
+        public Marker(long ms, String name, int color) {
+            this(ms, name, color, "", "", "");
+        }
+    }
 
     /**
      * Where the replay is.
@@ -57,6 +70,9 @@ public final class ReplayNetwork {
                     buf.writeVarLong(m.ms());
                     buf.writeUtf(m.name());
                     buf.writeInt(m.color());
+                    buf.writeUtf(m.kind());
+                    buf.writeUtf(m.player());
+                    buf.writeUtf(m.zone());
                 }
             }
         }
@@ -73,7 +89,7 @@ public final class ReplayNetwork {
             List<Marker> markers = null;
             if (buf.readBoolean()) {
                 markers = new ArrayList<>();
-                for (int i = buf.readVarInt(); i > 0; i--) markers.add(new Marker(buf.readVarLong(), buf.readUtf(), buf.readInt()));
+                for (int i = buf.readVarInt(); i > 0; i--) markers.add(new Marker(buf.readVarLong(), buf.readUtf(), buf.readInt(), buf.readUtf(), buf.readUtf(), buf.readUtf()));
             }
             return new ReplayStatus(title, view, views, progress, duration, paused, speed, tick0, markers, reopening);
         }
@@ -94,6 +110,16 @@ public final class ReplayNetwork {
 
         @Override
         public Type<ReplayDirect> type() { return TYPE; }
+    }
+
+    /** A game → server: "flag this moment" (the key), {@code note} may be empty. */
+    public record ReplayFlag(String note) implements CustomPacketPayload {
+        public static final Type<ReplayFlag> TYPE = new Type<>(CraftMaster.id("replay_flag"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, ReplayFlag> CODEC = CustomPacketPayload.codec(
+                (p, buf) -> buf.writeUtf(p.note, 64), buf -> new ReplayFlag(buf.readUtf(64)));
+
+        @Override
+        public Type<ReplayFlag> type() { return TYPE; }
     }
 
     public static void registerTypes() {

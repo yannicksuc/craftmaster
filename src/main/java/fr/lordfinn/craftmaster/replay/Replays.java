@@ -208,6 +208,7 @@ public final class Replays {
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> stop(server, "arrêt du serveur"));
         ServerTickEvents.END_SERVER_TICK.register(Replays::tick);
         ShowEvents.register(new Markers());
+        ReplayMoments.register();
     }
 
     public static Settings settings() {
@@ -220,6 +221,21 @@ public final class Replays {
 
     public static boolean recording() {
         return session != null;
+    }
+
+    /** The season being recorded (0 when nothing is). */
+    static int recordingSeason() {
+        Session ses = session;
+        return ses == null ? 0 : ses.season;
+    }
+
+    /** A (non archived) contestant of the season being recorded. */
+    static boolean isContestant(String name) {
+        Session ses = session;
+        Season s = ses == null || CraftMaster.data() == null ? null : CraftMaster.data().season(ses.season);
+        if (s == null) return false;
+        for (SeasonPlayer sp : s.players.values()) if (!sp.archived && sp.name.equalsIgnoreCase(name)) return true;
+        return false;
     }
 
     // ---------------------------------------------------------------- settings
@@ -254,7 +270,11 @@ public final class Replays {
 
     // ---------------------------------------------------------------- automatic start and stop
 
+    /** The server of the last tick (for the markers called without one). */
+    private static MinecraftServer lastServer;
+
     private static void tick(MinecraftServer server) {
+        lastServer = server;
         if (!available()) return;
         CraftMasterData data = CraftMaster.data();
         if (data == null) return;
@@ -266,13 +286,14 @@ public final class Replays {
         if (session == null) return;
         // A round of the game being recorded ends ("partie" mode; in "manche" mode its file ends with it)
         String current = data.live().current == null ? null : data.live().current.manche();
-        if (session.number == 0 && session.lastManche != null && !session.lastManche.equals(current)) marker("Fin de la manche", 0xF2C14E);
+        if (session.number == 0 && session.lastManche != null && !session.lastManche.equals(current)) marker("Fin de la manche", 0xF2C14E, ReplayMoments.ROUND, null);
         session.lastManche = current;
 
         // Once a second: players joining (whole files), players leaving every zone (outings)
         if (server.getTickCount() % 20 == 0) {
             addPlayers(server, data);
             safetyNet(server, data);
+            ReplayMoments.everySecond(server);
         }
         // The show's state (and the boss bars already shown) go first into every new file
         ShowState state = null;
@@ -415,11 +436,12 @@ public final class Replays {
             CraftMaster.LOG.error("[Replay] Démarrage de l'enregistrement « {} »", label, e);
         }
         if (ses.recs.isEmpty()) CraftMaster.LOG.warn("[Replay] Rien à enregistrer pour {}", label);
-        marker(m == null ? "Partie : " + p.name : "Manche " + number + " — " + m.name, 0xF2C14E);
+        ReplayMoments.reset();
+        marker(m == null ? "Partie : " + p.name : "Manche " + number + " — " + m.name, 0xF2C14E, ReplayMoments.ROUND, null);
         // A game recording started during one of its rounds: that round's marker too
         Live.Current cur = data.live().current;
         Manche now = m == null && cur != null && cur.partie() == partieId ? p.manche(cur.manche()) : null;
-        if (now != null) marker("Manche " + p.number(now) + " — " + now.name, 0xF2C14E);
+        if (now != null) marker("Manche " + p.number(now) + " — " + now.name, 0xF2C14E, ReplayMoments.ROUND, null);
         List<String> zoneNames = ses.zones().stream().map(r -> r.name + " " + r.area.describe()).toList();
         long players = ses.recs.stream().filter(r -> !r.zone).count();
         CraftMaster.LOG.info("[Replay] Enregistrement de {} : zone(s) {}, {} joueur(s)", label, zoneNames.isEmpty() ? "aucune" : zoneNames, players);
@@ -580,12 +602,12 @@ public final class Replays {
             String name = pl.getGameProfile().name();
             if (!inside) {
                 if (out == null && !ServerReplayBridge.isRecording(pl)) {
-                    if (startPlayer(ses, pl, true) != null) marker(name + " hors zone", 0xFF9800);
+                    if (startPlayer(ses, pl, true) != null) marker(name + " hors zone", ReplayMoments.colorOf(name), ReplayMoments.OUTING, name);
                 } else if (out != null) out.insideSince = -1;
             } else if (out != null && out.outing) {
                 if (out.insideSince < 0) out.insideSince = now;
                 else if (now - out.insideSince >= BACK_MS) {
-                    marker(name + " revient dans la zone", 0xFFCC80);
+                    marker(name + " revient dans la zone", ReplayMoments.colorOf(name), ReplayMoments.BACK, name);
                     ServerReplayBridge.stop(out.rec);
                     out.rec = null;
                 }
@@ -604,7 +626,7 @@ public final class Replays {
     private static void stop(MinecraftServer server, String why) {
         Session ses = session;
         if (ses == null) return;
-        marker(ses.number > 0 ? "Fin de la manche" : "Fin de la partie", 0xF2C14E);
+        marker(ses.number > 0 ? "Fin de la manche" : "Fin de la partie", 0xF2C14E, ReplayMoments.ROUND, null);
         session = null;
         for (Rec r : ses.active()) {
             // How far each file's clock went from the server's ticks since its start (lag makes ticks slower than time)
@@ -640,8 +662,17 @@ public final class Replays {
         return p != null && ServerPlayNetworking.canSend(p, payload.type());
     }
 
-    /** A named marker, now, on every file being recorded (shown on the replay's timeline). */
+    /** A named marker, now, on every file being recorded (shown on the replay's timeline): a flag of the console. */
     public static void marker(String name, int rgb) {
+        marker(name, rgb, ReplayMoments.FLAG, null);
+    }
+
+    /**
+     * A key moment, now, on every file being recorded: its name, colour, kind ({@link ReplayMoments}, the icon on the
+     * replay's bar) and the player it is about (null: no one), with the zone that player is in. The files keep the
+     * name and colour; the index all of it, found again by the name.
+     */
+    public static void marker(String name, int rgb, String kind, String player) {
         Session ses = session;
         if (ses == null) return;
         for (Rec r : ses.active()) ServerReplayBridge.marker(r.rec, name, rgb);
@@ -649,13 +680,29 @@ public final class Replays {
         m.addProperty("t", Math.round(ses.seconds() * 10) / 10.0);
         m.addProperty("name", name);
         m.addProperty("color", String.format(Locale.ROOT, "#%06X", rgb));
+        if (kind != null && !kind.isEmpty()) m.addProperty("kind", kind);
+        if (player != null) {
+            m.addProperty("player", player);
+            String zone = zoneOf(ses, player);
+            if (zone != null) m.addProperty("zone", zone);
+        }
         ses.markers.add(m);
+    }
+
+    /** The zone of the épreuve the player is in now, or null (offline, outside them all). */
+    private static String zoneOf(Session ses, String player) {
+        MinecraftServer server = lastServer;
+        ServerPlayer p = server == null ? null : server.getPlayerList().getPlayerByName(player);
+        if (p == null) return null;
+        for (Rec r : ses.zones())
+            if (r.active() && r.contains(p.level().dimension().identifier().toString(), p.getX(), p.getZ())) return r.name;
+        return null;
     }
 
     private static final class Markers implements ShowEvents.Listener {
         @Override
         public void onScoreGiven(MinecraftServer server, int season, String player, int delta, String manche) {
-            marker(player + " " + (delta > 0 ? "+" : "") + delta, delta >= 0 ? 0x4CAF50 : 0xE53935);
+            marker(player + " " + (delta > 0 ? "+" : "") + delta, ReplayMoments.colorOf(player), ReplayMoments.SCORE, player);
         }
 
         @Override
@@ -666,33 +713,34 @@ public final class Replays {
                 case "" -> "(projecteur)";
                 default -> reason == null ? "(projecteur)" : reason;
             };
-            marker(player + " " + what, 0x42A5F5);
+            marker(player + " " + what, ReplayMoments.colorOf(player), ReplayMoments.SPOTLIGHT, player);
         }
 
         @Override
         public void onEnvelopeOpened(MinecraftServer server, ServerPlayer player, int season, String mancheId) {
-            marker(player.getGameProfile().name() + " ouvre son enveloppe", 0x42A5F5);
+            String name = player.getGameProfile().name();
+            marker(name + " ouvre son enveloppe", ReplayMoments.colorOf(name), ReplayMoments.SPOTLIGHT, name);
         }
 
         /** A new round inside a game being recorded ("partie" mode); in "manche" mode its file starts with it. */
         @Override
         public void onMancheStarted(MinecraftServer server, int season, int number, String name) {
-            if (session != null && session.number == 0) marker("Manche " + number + " — " + name, 0xF2C14E);
+            if (session != null && session.number == 0) marker("Manche " + number + " — " + name, 0xF2C14E, ReplayMoments.ROUND, null);
         }
 
         @Override
         public void onTaskRevealed(MinecraftServer server, int season, String mancheId, ServerPlayer by) {
-            marker("Tâche révélée" + (by == null ? "" : " (" + by.getGameProfile().name() + ")"), 0xAB47BC);
+            marker("Tâche révélée" + (by == null ? "" : " (" + by.getGameProfile().name() + ")"), 0xAB47BC, ReplayMoments.TASK, null);
         }
 
         @Override
         public void onRevealStarted(MinecraftServer server, int season) {
-            marker("Révélation du classement", 0xF2C14E);
+            marker("Révélation du classement", 0xF2C14E, ReplayMoments.REVEAL, null);
         }
 
         @Override
         public void onPublished(MinecraftServer server, int season) {
-            marker("Scores publiés", 0xF2C14E);
+            marker("Scores publiés", 0xF2C14E, ReplayMoments.REVEAL, null);
         }
     }
 

@@ -32,9 +32,32 @@ Les joueurs n'ont rien à installer. Au démarrage, le journal du serveur dit
   plus du nombre de joueurs. Un joueur déjà enregistré par `/replay start players` est laissé tel quel.
 - **En plus de Minecraft** : l'état de l'émission (plan à l'antenne, caméras, chrono, scores publiés, réalisation
   automatique…) au début de chaque fichier puis à chaque changement, les habillages (synthés, points en direct…) et
-  la caméra libre. Et des **repères** sur la timeline : début et fin de manche, points donnés (« Ensuri +3 »),
-  enveloppes ouvertes, projecteur, buzzers, tâche révélée, scores publiés, révélation ; `/cmreplay repere <texte>`
-  en ajoute un.
+  la caméra libre. Et les **moments clés** sur la timeline (voir plus bas).
+
+## Les moments clés
+Chaque moment est noté avec son **type** (une petite icône sur la barre), le **candidat** qu'il concerne (sa
+couleur : chaque candidat a la sienne, dans l'ordre de la saison) et la **zone** où il était :
+
+| Icône | Moment |
+|---|---|
+| trait doré | Début et fin de manche (ou de partie) |
+| croix | Mort d'un candidat |
+| coche | Résultat noté (`/cfre set`, la feuille de résultats) ; disque barré : disqualifié |
+| sablier | Temps d'un chrono arrêté (« Ensuri ⏱ 1:23,4 ») ; sablier doré : fin du chrono de la manche |
+| cloche | Un candidat sonne sa cloche de bureau |
+| point | Points donnés (« Ensuri +3 ») |
+| losange | Projecteur, enveloppe ouverte, buzzer |
+| croix dorée | Tâche révélée, scores publiés, révélation du classement |
+| carré | Candidat hors de toutes les zones ; petit carré : il revient |
+| drapeau plein | **Drapeau de la régie** : de la couleur du candidat à l'antenne (suivi ou vue subjective), crème sur un plan large |
+| fanion | **Drapeau d'un joueur** : forme à part, 20 s entre deux, 30 par manche au plus |
+
+**Poser un drapeau**, en direct, à un moment à revoir : touche **I** (« Replay : drapeau sur ce moment », dans les
+contrôles CraftMaster) pour tout le monde ; la régie aussi par la voix (« marque ce moment », « drapeau pour belle
+chute »), le Stream Deck (`/replay/flag`, `?text=` pour une note) ou `/cmreplay drapeau [texte]`.
+
+Les moments trop proches sur la barre n'en font qu'un (un petit point au-dessus) : la bulle les liste tous. Les fins
+du minuteur des tablettes ne sont pas notées (la tablette n'est pas touchée) : la cloche qui l'arrête, si.
 
 ## Les fichiers
 Dans les dossiers de Server Replay (`recordings/` du serveur par défaut), un dossier par enregistrement :
@@ -97,7 +120,7 @@ monde réel, tu n'y reviens qu'à la fermeture.
 
 Avec CraftMaster sur ton jeu, le replay passe en **mode diffusion**. L'image reste celle des viewers : à l'écran, rien
 d'autre qu'une **fine ligne de temps** en bas (dans les couleurs de l'habillage, le temps à gauche, la durée à droite,
-les repères en petits traits de couleur) qui n'apparaît que **3 s après un ordre** et pendant une pause, et une
+les moments clés en petites icônes) qui n'apparaît que **3 s après un ordre** et pendant une pause, et une
 courte légende de ce que l'ordre a changé (« ×2 », « Caméra 2 », « Écran d'Ensuri »). **H** l'enlève tout à fait. Le
 badge « EN DIRECT » devient « REPLAY ».
 
@@ -110,6 +133,9 @@ badge « EN DIRECT » devient « REPLAY ».
 | « va à 1 minute 20 » · « au début » | | `goto?s=80` · `start` |
 | « vitesse 2 » · « au ralenti » · « vitesse normale » · « plus vite » | **↑** **↓** | `speed?x=2` · `faster` · `slower` |
 | « repère suivant » · « repère précédent » | **Page suiv.** / **Page préc.** | `marker/next` · `marker/prev` |
+| « que les morts » · « montre les cloches » · « les drapeaux » | | `filter?kind=morts` (résultats, chronos, cloches, drapeaux, drapeaux des joueurs, points, manches, sorties de zone, projecteurs) |
+| « les moments d'Ensuri » · « les repères de la zone B » | | `filter?player=Ensuri` · `filter?zone=B` (se cumulent) |
+| « tous les repères » · « enlève le filtre » | | `filter/clear` |
 | « caméra 2 » · « plan large » | **1–9**, molette · **0** | `camera?camera=2` (ou `/camera/cut`) |
 | « suis Ensuri » · « vue d'Ensuri » | **Tab** · **Maj+Tab** | `follow?player=Ensuri` · `pov?player=Ensuri` |
 | « l'écran d'Ensuri » · « la zone » | | `view?name=Ensuri` · `view?name=zone` |
@@ -117,7 +143,9 @@ badge « EN DIRECT » devient « REPLAY ».
 | « ferme le replay » | | `close` |
 
 À la souris : **M** (ou `/cmbarre`) donne la souris sur la ligne de temps, et rien d'autre : un clic y saute, le
-survol d'un repère dit son nom, la molette avance ou recule de 5 s ; M ou Échap rend la souris au jeu. Les touches
+survol d'une icône ouvre une bulle (heure et nom de chaque moment, 5 au plus), un clic sur une icône saute à ce
+moment, la molette avance ou recule de 5 s ; un filtre en cours est rappelé discrètement à droite ; repère suivant /
+précédent ne passent que par les moments filtrés ; M ou Échap rend la souris au jeu. Les touches
 sont dans les contrôles, catégorie CraftMaster. Pendant un replay la voix ne passe pas par le serveur (le lecteur ne
 laisse passer que des commandes) : le jeu comprend et exécute lui-même ; les autres ordres (points, manches…)
 répondent « pas pendant un replay ».
@@ -161,6 +189,7 @@ casse WaterMedia (écrans vidéo du studio) : pas les deux dans le même jeu.
 | `/cmreplay garder <jours>` · `max <Go>` · `alerte <Go>` | Purge automatique par l'âge, plafond, alerte de place libre (0 = aucun) |
 | `/cmreplay purge <jours>` | Supprime maintenant les replays de plus de tant de jours |
 | `/cmreplay realisation <joueur> <json>` | Un ordre de réalisation pour le replay que ce joueur regarde (ex. `{"type":"camera.follow","player":"Ensuri"}`, `{"type":"replay.control","do":"mode","mode":"auto"}`) ; c'est ce qu'utilise la régie des modos |
+| `/cmreplay drapeau [texte]` | Un drapeau maintenant (couleur du candidat à l'antenne) ; un joueur non organisateur pose un fanion |
 | `/cmreplay repere <texte>` | Un repère maintenant, dans tous les fichiers en cours |
 | `/cmreplay voir` · `voir <n> [zone\|joueur]` | Les enregistrements ; en regarder un (barre de lecture, voir plus haut) |
 

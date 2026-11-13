@@ -39,7 +39,8 @@ import java.util.function.Supplier;
  * /camera/cut?camera=2 · /camera/auto (?enabled=false)   (during a replay: its direction, on this game)
  * /replay/toggle · play · pause · back?s=10 · forward?s=10 · goto?s=75 · start · faster · slower · speed?x=2 ·
  *   marker/next · marker/prev · view?name=zone|Ensuri · mode?m=direct|auto|manuel|libre · camera?camera=2 ·
- *   follow?player=Ensuri · pov?player=Ensuri · close   (while a replay plays, /cmreplay voir)
+ *   follow?player=Ensuri · pov?player=Ensuri · filter?kind=morts&player=Ensuri&zone=B · filter/clear · close
+ *   (while a replay plays, /cmreplay voir) · /replay/flag (?text=) live: a flag on the recording's timeline
  * /status       JSON: connected, organiser, open screen, season, undo / redo available
  * </pre>
  * Every answer is JSON {@code {"ok": true|false, ...}}; the game does the work on its own thread. Requests from a
@@ -268,11 +269,16 @@ public final class StreamDeckServer {
      * {@code /replay/<what>} while a replay plays (Server Replay's viewer, {@code /cmreplay voir}): toggle, play,
      * pause, back?s=10, forward?s=10, goto?s=75, start, faster, slower, speed?x=2, marker/next, marker/prev,
      * view?name=zone|Ensuri (that file, same instant), mode?m=direct|auto|manuel|libre, camera?camera=2|large,
+     * filter?kind=morts|résultats|chronos|cloches|drapeaux|points|manches&player=&zone= (tout = cleared), filter/clear,
      * follow?player=, pov?player=, close.
      */
     private static JsonObject replay(URI uri, String what) {
         JsonObject a;
         switch (what) {
+            case "flag" -> {
+                // Live: a flag on the recording's timeline (coloured by who is on air), sent to the server
+                return send(action("replay.flag", "text", query(uri, "text")));
+            }
             case "camera" -> a = action("camera.cut", "camera", query(uri, "camera"));
             case "follow" -> a = action("camera.follow", "player", query(uri, "player"));
             case "pov" -> a = action("camera.pov", "player", query(uri, "player"));
@@ -284,11 +290,17 @@ public final class StreamDeckServer {
             }
             case "speed" -> a = action("replay.control", "do", "speed", "speed", query(uri, "x").isEmpty() ? "1" : query(uri, "x"));
             case "view" -> a = action("replay.control", "do", "view", "view", query(uri, "name"));
+            case "filter" -> {
+                a = action("replay.control", "do", "filter");
+                for (String k : new String[]{"kind", "player", "zone"}) if (uri.getRawQuery() != null && uri.getRawQuery().contains(k + "="))
+                    a.addProperty(k, query(uri, k));
+            }
+            case "filter/clear" -> a = action("replay.control", "do", "clear_filter");
             case "mode" -> a = action("replay.control", "do", "mode", "mode", query(uri, "m"));
             case "toggle", "play", "pause", "start", "faster", "slower", "close" -> a = action("replay.control", "do", what);
             default -> {
                 JsonObject o = error("unknown: /replay/" + what + " (toggle, play, pause, back, forward, goto, start, faster, slower, speed, "
-                        + "marker/next, marker/prev, view, mode, camera, follow, pov, close)");
+                        + "marker/next, marker/prev, filter, filter/clear, view, mode, camera, follow, pov, close)");
                 o.addProperty("code", 404);
                 return o;
             }

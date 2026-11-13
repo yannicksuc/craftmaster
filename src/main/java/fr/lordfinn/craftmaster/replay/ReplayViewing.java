@@ -74,7 +74,7 @@ public final class ReplayViewing {
     }
 
     /** One recording of the index. */
-    public record Entry(String label, Instant started, int seconds, List<View> views, Map<String, Integer> colors) {
+    public record Entry(String label, Instant started, int seconds, List<View> views, Map<String, Marker> colors) {
         View view(String name) {
             return view(name, Double.NaN);
         }
@@ -180,19 +180,26 @@ public final class ReplayViewing {
                         views.add(new View(f.substring(f.lastIndexOf('-') + 1), f, ReplayClock.UNKNOWN));
                     } else views.add(view(p.getAsJsonObject(), false));
                 }
-                // The markers' colours (the ReplayMod format keeps only their names)
-                Map<String, Integer> colors = new HashMap<>();
+                // The markers' colours, kinds, players and zones (the files keep only names and colours, ReplayMod
+                // only names): found again by the name
+                Map<String, Marker> colors = new HashMap<>();
                 if (o.has("markers")) for (JsonElement m : o.getAsJsonArray("markers")) {
                     JsonObject mo = m.getAsJsonObject();
                     try {
-                        colors.put(mo.get("name").getAsString(), Integer.parseInt(mo.get("color").getAsString().substring(1), 16));
+                        String name = mo.get("name").getAsString();
+                        int color = mo.has("color") ? Integer.parseInt(mo.get("color").getAsString().substring(1), 16) : 0xFFFFFF;
+                        colors.put(name, new Marker(0, name, color, str(mo, "kind"), str(mo, "player"), str(mo, "zone")));
                     } catch (RuntimeException ignored) {
-                        // No colour: the default one
+                        // Unreadable: the file's own colour
                     }
                 }
                 String label = o.get("label").getAsString() + (o.has("interrupted") ? " (interrompu)" : "");
                 return new Entry(label, Instant.parse(o.get("started").getAsString()),
                         o.get("seconds").getAsInt(), views, colors);
+    }
+
+    private static String str(JsonObject o, String key) {
+        return o.has(key) && o.get(key).isJsonPrimitive() ? o.get(key).getAsString() : "";
     }
 
     /** One file of the index ("zones" or "players" entry). */
@@ -429,8 +436,9 @@ public final class ReplayViewing {
         if (withMarkers) {
             markers = new ArrayList<>();
             for (ServerReplayBridge.FileMarker m : ServerReplayBridge.markers(v)) {
-                Integer c = w == null ? null : w.entry().colors().get(m.name());
-                markers.add(new Marker(m.ms(), m.name(), c != null ? c : m.color()));
+                Marker meta = w == null ? null : w.entry().colors().get(m.name());
+                markers.add(meta == null ? new Marker(m.ms(), m.name(), m.color())
+                        : new Marker(m.ms(), m.name(), meta.color(), meta.kind(), meta.player(), meta.zone()));
             }
         }
         List<String> views = new ArrayList<>();

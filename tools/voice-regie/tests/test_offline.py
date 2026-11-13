@@ -6,6 +6,8 @@ from regie.service import Regie
 
 # Real Whisper transcripts of tests/audio (whisper_check.py, large-v3-turbo with the context prompt)
 CASES = [
+    ("Marque ce moment.", [{"type": "replay.flag"}]),
+    ("Drapeau pour belle chute.", [{"type": "replay.flag", "text": "belle chute"}]),
     ("Trois points pour Juste pour le Pont.", [{"type": "score.add", "player": "JustEdible", "points": 3, "manche": "pont"}]),
     ("Deux points pour JustEdible.", [{"type": "score.add", "player": "JustEdible", "points": 2, "manche": "current"}]),
     ("Ensuri prend 4 points sur la Tour.", [{"type": "score.add", "player": "Ensuri", "points": 4, "manche": "tour"}]),
@@ -100,6 +102,11 @@ REPLAY_CASES = [
     ("Recule de 10 secondes.", [{"type": "replay.control", "do": "back", "seconds": 10}]),
     ("Avance de cinq secondes.", [{"type": "replay.control", "do": "forward", "seconds": 5}]),
     ("Au début.", [{"type": "replay.control", "do": "start"}]),
+    ("Que les morts.", [{"type": "replay.control", "do": "filter", "kind": "morts"}]),
+    ("Montre les cloches.", [{"type": "replay.control", "do": "filter", "kind": "cloches"}]),
+    ("Les moments d'Ensuri.", [{"type": "replay.control", "do": "filter", "player": "Ensuri"}]),
+    ("Les repères de la zone B.", [{"type": "replay.control", "do": "filter", "zone": "b"}]),
+    ("Enlève le filtre.", [{"type": "replay.control", "do": "clear_filter"}]),
     ("Vitesse 2.", [{"type": "replay.control", "do": "speed", "speed": "2"}]),
     ("Au ralenti.", [{"type": "replay.control", "do": "speed", "speed": "0.5"}]),
     ("Repère suivant.", [{"type": "replay.control", "do": "next_marker"}]),

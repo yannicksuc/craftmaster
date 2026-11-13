@@ -16,7 +16,8 @@ import java.util.Locale;
  * control's actions, as its service sends them:
  * <ul>
  *   <li>{@code replay.control} {do: play | pause | toggle | back | forward | goto | speed | faster | slower |
- *   next_marker | prev_marker | start | view | mode | close, seconds, speed, view, mode};</li>
+ *   next_marker | prev_marker | filter | clear_filter | start | view | mode | close, seconds, speed, view, mode,
+ *   kind, player, zone};</li>
  *   <li>{@code camera.cut} {camera}, {@code camera.follow} / {@code camera.pov} {player}, {@code camera.auto}
  *   {enabled}: the replay's direction, here;</li>
  *   <li>anything else (scores, rounds…) cannot be done during a replay: said so.</li>
@@ -91,6 +92,17 @@ public final class ReplayControl {
                 if (!ReplayClient.marker(1)) return Result.no("Plus de repère après");
             }
             case "prev_marker" -> ReplayClient.marker(-1);
+            case "filter" -> {
+                // Any of kind / player / zone; absent = unchanged, "tout" = cleared
+                String said = ReplayMarkers.filter(a.has("kind") ? str(a, "kind") : null, a.has("player") ? str(a, "player") : null,
+                        a.has("zone") ? str(a, "zone") : null);
+                if (said.startsWith("!")) return Result.no(said.substring(1));
+                ReplayBar.caption(said);
+            }
+            case "clear_filter" -> {
+                ReplayMarkers.clear();
+                ReplayBar.caption("Tous les repères");
+            }
             case "view" -> {
                 String v = str(a, "view");
                 if (v.isEmpty() || v.equalsIgnoreCase("zone")) v = "zone";
@@ -128,6 +140,7 @@ public final class ReplayControl {
             case "speed", "faster", "slower" -> "Vitesse changée";
             case "next_marker" -> "Repère suivant";
             case "prev_marker" -> "Repère précédent";
+            case "filter", "clear_filter" -> ReplayMarkers.describe();
             case "view" -> "Fichier : " + (str(a, "view").isEmpty() ? "zone" : str(a, "view"));
             case "mode" -> "Réalisation : " + str(a, "mode");
             case "close" -> "Replay fermé";
@@ -167,6 +180,7 @@ public final class ReplayControl {
         JsonArray markers = new JsonArray();
         for (Marker m : ReplayClient.markers()) markers.add(ReplayClient.time(m.ms()) + " " + m.name());
         r.add("markers", markers);
+        r.addProperty("filter", ReplayMarkers.caption());
         JsonArray cams = new JsonArray();
         for (CameraSpot c : ShowStateClient.focused().all()) cams.add(c.number() + " " + c.label());
         r.add("cameras", cams);
