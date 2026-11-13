@@ -409,8 +409,10 @@ write_png(os.path.join(A, "textures/entity/portrait_backdrop.png"), 64, 64, curt
 
 
 # Brass hook (112..116 x 0..4) and string (120..121 x 0..16)
-face(112, 0, 4, 4, lambda x, y, w, h: (186, 140, 60) if (x + y) % 2 else (150, 108, 44))
-face(120, 0, 1, 16, lambda x, y, w, h: (226, 214, 186))   # uniform: the string reads as one straight line
+# Each in its own 8 px block filled with its colour: seen from afar (mipmaps, shaders) a 1 px string next to
+# transparent texels averaged into black
+face(112, 0, 8, 8, lambda x, y, w, h: (186, 140, 60) if (x + y) % 2 else (150, 108, 44))
+face(120, 0, 8, 16, lambda x, y, w, h: (226, 214, 186))   # uniform: the string reads as one straight line
 
 # Highlight glow (96..128 x 32..64): white, fading out from the frame's edge (the quad is the frame + 7 px)
 for y in range(32):

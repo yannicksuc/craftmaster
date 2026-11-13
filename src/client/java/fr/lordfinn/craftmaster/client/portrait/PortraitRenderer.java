@@ -267,7 +267,9 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
     //?} else {
     /*protected AABB getBoundingBoxForCulling(PortraitEntity e) {
     *///?}
-        AABB box = e.getBoundingBox();
+        // Up to the hook: the string and the runner show even when the frame itself is off screen
+        Vec3 hook = currentHook(e, 1f);
+        AABB box = e.getBoundingBox().minmax(new AABB(hook, hook).inflate(0.15));
         double t = e.level().getGameTime() - e.animStart();
         if (t < -PortraitAnimation.LEAD_TICKS * 4 || t > PortraitAnimation.totalTicks(e.animSlide()) + 2) return box;
         Vec3 back = PortraitEntity.hook(e.animFrom()).subtract(PortraitEntity.hook(e.animTo()));
