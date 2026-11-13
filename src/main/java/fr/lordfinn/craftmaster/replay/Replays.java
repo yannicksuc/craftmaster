@@ -117,6 +117,12 @@ public final class Replays {
         long insideSince = -1;
         Double tick0;
         final List<long[]> clock = new ArrayList<>();
+        /**
+         * When in the 10 s its pieces are cut (ticks): each piece starts with a snapshot of the world, done on the
+         * server's thread. Measured: 30 to 130 ms when two zones and a player cut together (over a tick's 50 ms);
+         * spread, 17 to 25 ms for a zone, 28 to 46 ms for a player, never two in the same tick.
+         */
+        int phase;
 
         Rec(boolean zone, boolean outing, String name, String folder, ReplayArea.Chunks area, UUID player, long fromSeconds,
             ServerReplayBridge.Recorder rec) {
@@ -279,6 +285,12 @@ public final class Replays {
             noteTick0(server, r);
         }
         if (server.getTickCount() % PIECE_TICKS == 0) everyTenSeconds(server, session);
+        // Pieces: each file at its own moment of the 10 s
+        long tick = server.getTickCount();
+        for (Rec r : session.active())
+            if (!r.needsState && due(tick - r.phase, r.zone ? settings.zonePieceSeconds : settings.playerPieceSeconds)) {
+                ServerReplayBridge.cutPiece(r.rec);
+            }
     }
 
     /** Ten seconds, in ticks: the longest a crash can take from a Flashback recording, and the clock samples' step. */
@@ -290,12 +302,7 @@ public final class Replays {
      */
     private static void everyTenSeconds(MinecraftServer server, Session ses) {
         long tick = server.getTickCount();
-        boolean zonePiece = due(tick, settings.zonePieceSeconds), playerPiece = due(tick, settings.playerPieceSeconds);
-        for (Rec r : ses.active()) {
-            if (r.needsState) continue;
-            if (r.zone ? zonePiece : playerPiece) ServerReplayBridge.cutPiece(r.rec);
-            sample(r, tick);
-        }
+        for (Rec r : ses.active()) if (!r.needsState) sample(r, tick);
         writeIndex(ses, true);
         // The disk, every 5 min of recording
         if (tick % (PIECE_TICKS * 30) == 0) {
@@ -490,7 +497,16 @@ public final class Replays {
         }
         ServerReplayBridge.Recorder rec = ServerReplayBridge.startChunks(level, new ChunkPos(area.fromX(), area.fromZ()),
                 new ChunkPos(area.toX(), area.toZ()), ServerReplayBridge.chunkFolder().resolve(folder), folder, camera);
-        if (rec != null) ses.recs.add(new Rec(true, false, name, folder, area, null, Math.round(ses.seconds()), rec));
+        if (rec != null) add(ses, new Rec(true, false, name, folder, area, null, Math.round(ses.seconds()), rec));
+    }
+
+    /** Adds a file, its pieces cut at a moment of the 10 s the others leave free (as far as possible). */
+    private static void add(Session ses, Rec r) {
+        int used = (int) ses.recs.stream().filter(Rec::active).count();
+        // 0, 100, 50, 150, 25, 125, 75, 175, ... ticks: the cuts as far apart as the number of files allows
+        int slot = Integer.reverse(used) >>> 24;
+        r.phase = slot * PIECE_TICKS / 256;
+        ses.recs.add(r);
     }
 
     private static List<ServerPlayer> cast(MinecraftServer server, Season s) {
@@ -534,7 +550,7 @@ public final class Replays {
             ServerReplayBridge.Recorder rec = ServerReplayBridge.startPlayer(pl, ServerReplayBridge.playerFolder().resolve(folder));
             if (rec == null) return null;
             Rec r = new Rec(false, outing, name, folder, null, pl.getUUID(), Math.round(ses.seconds()), rec);
-            ses.recs.add(r);
+            add(ses, r);
             return r;
         } catch (RuntimeException e) {
             CraftMaster.LOG.error("[Replay] Enregistrement de {} impossible", name, e);

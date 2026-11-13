@@ -64,6 +64,12 @@ pour regarder : le lecteur est sur le serveur, rien à installer chez les joueur
   cache de chunks grossit vite pendant l'enregistrement (jusqu'à ~1,5 Go/h non compressé, compressé à la fin) : d'où
   les zones par défaut. Coût serveur : rien de mesurable (`/tick query` : 3 à 5 ms par tick pendant un enregistrement
   de deux zones, 7 ms avant).
+- **Fluidité** (morceaux de 10 s, mesuré) : chaque morceau commence par un instantané du monde, pris sur le fil du
+  serveur. Tous ensemble, ils faisaient un tick de 30 à 130 ms toutes les 10 s (au-delà des 50 ms d'un tick) ;
+  CraftMaster étale donc les coupes dans les 10 s : un instantané par tick, 17 à 25 ms pour une zone, 28 à 46 ms pour un
+  fichier joueur (les ticks normaux : 3 à 6 ms). En lecture, le passage d'un morceau au suivant ne rejoue pas
+  l'instantané : pas d'à-coup (mesuré sur une minute, le fichier avance au rythme du temps réel aux passages de 10,
+  20… 60 s). Sauts : 9 à 200 ms, en avant comme en arrière.
 - **Disque** : `/cmreplay disque` (place prise, place libre), alerte aux organisateurs sous 5 Go libres
   (`/cmreplay alerte <Go>`), purge automatique des vieux replays (`/cmreplay garder <jours>`, `/cmreplay max <Go>` :
   les plus anciens partent d'abord ; rien n'est supprimé tant que ce n'est pas réglé), ou tout de suite
