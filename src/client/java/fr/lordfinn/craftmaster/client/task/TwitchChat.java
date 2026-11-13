@@ -93,6 +93,11 @@ public final class TwitchChat {
             if (config.twitch == null) config.twitch = new Twitch();
             if (config.streamDeck == null) config.streamDeck = new fr.lordfinn.craftmaster.client.score.StreamDeckServer.Settings();
             if (config.playerFrame == null) config.playerFrame = new fr.lordfinn.craftmaster.client.score.PlayerFrameHud.Settings();
+            // The frame was on by default until the season total went to the player list (Tab): off once, then as set
+            if (config.playerFrame.version < 2) {
+                config.playerFrame.enabled = false;
+                config.playerFrame.version = 2;
+            }
             if (config.clips == null) config.clips = new fr.lordfinn.craftmaster.client.media.Clips.Settings();
             // Written back so new settings show up in the file
             Files.createDirectories(f.getParent());

@@ -48,7 +48,7 @@ public class RigRodBlock extends Block {
     public RigRodBlock(Properties props) {
         super(props);
         BlockState s = stateDefinition.any();
-        for (Direction d : SIDES) s = s.setValue(prop(d), false);
+        for (Direction d : SIDES) s = s.setValue(prop(d), false).setValue(joint(d), false);
         registerDefaultState(s);
     }
 
@@ -56,9 +56,26 @@ public class RigRodBlock extends Block {
         return PipeBlock.PROPERTY_BY_DIRECTION.get(d);
     }
 
+    /** Linked to another rod on that side: no cap there, the tubes meet (a cap stays at a free end, a wall, a tripod, a light). */
+    private static final BooleanProperty[] JOINT = new BooleanProperty[6];
+
+    static {
+        for (Direction d : SIDES) JOINT[d.ordinal()] = BooleanProperty.create("rod_" + d.getSerializedName());
+    }
+
+    public static BooleanProperty joint(Direction d) {
+        return JOINT[d.ordinal()];
+    }
+
+    private static int joints(BlockState state) {
+        int m = 0;
+        for (Direction d : SIDES) if (state.getValue(joint(d))) m |= RigLinks.bit(d.ordinal());
+        return m;
+    }
+
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> b) {
-        for (Direction d : SIDES) b.add(prop(d));
+        for (Direction d : SIDES) b.add(prop(d), joint(d));
     }
 
     public static int links(BlockState state) {
@@ -68,8 +85,15 @@ public class RigRodBlock extends Block {
     }
 
     private BlockState withLinks(int links) {
+        return withLinks(links, 0);
+    }
+
+    private BlockState withLinks(int links, int joints) {
         BlockState s = defaultBlockState();
-        for (Direction d : SIDES) s = s.setValue(prop(d), RigLinks.has(links, d.ordinal()));
+        for (Direction d : SIDES) {
+            boolean l = RigLinks.has(links, d.ordinal());
+            s = s.setValue(prop(d), l).setValue(joint(d), l && RigLinks.has(joints, d.ordinal()));
+        }
         return s;
     }
 
@@ -77,16 +101,17 @@ public class RigRodBlock extends Block {
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
         LevelReader level = ctx.getLevel();
         BlockPos pos = ctx.getClickedPos();
-        int rods = 0, solids = 0;
+        int rods = 0, solids = 0, joints = 0;
         for (Direction d : SIDES) {
             BlockPos n = pos.relative(d);
             BlockState ns = level.getBlockState(n);
+            if (ns.getBlock() instanceof RigRodBlock) joints |= RigLinks.bit(d.ordinal());
             if (ns.getBlock() instanceof RigRodBlock || holds(ns, d)) rods |= RigLinks.bit(d.ordinal());
             else if (ns.isFaceSturdy(level, n, d.getOpposite())) solids |= RigLinks.bit(d.ordinal());
         }
         // Against a block (not replacing grass or snow in place): the side of that block
         int clicked = ctx.replacingClickedOnBlock() ? -1 : ctx.getClickedFace().getOpposite().ordinal();
-        return withLinks(RigLinks.placement(rods, solids, clicked, ctx.isSecondaryUseActive()));
+        return withLinks(RigLinks.placement(rods, solids, clicked, ctx.isSecondaryUseActive()), joints);
     }
 
     /** Something on side {@code d} of a rod that the rod always links to: a tripod's top, a light hung on the rod. */
@@ -105,7 +130,7 @@ public class RigRodBlock extends Block {
         if (n.getBlock() instanceof RigRodBlock) link = n.getValue(prop(d.getOpposite())); // links are mutual
         else if (holds(n, d)) link = true;
         else link = state.getValue(prop(d)) && n.isFaceSturdy(level, neighborPos, d.getOpposite()); // a plate stays while its wall does
-        return state.setValue(prop(d), link);
+        return state.setValue(prop(d), link).setValue(joint(d), link && n.getBlock() instanceof RigRodBlock);
     }
 
     @Override
@@ -121,15 +146,15 @@ public class RigRodBlock extends Block {
             case CLOCKWISE_180 -> 2;
             case COUNTERCLOCKWISE_90 -> 3;
         };
-        return withLinks(RigLinks.rotateY(links(state), times));
+        return withLinks(RigLinks.rotateY(links(state), times), RigLinks.rotateY(joints(state), times));
     }
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
         return switch (mirror) {
             case NONE -> state;
-            case LEFT_RIGHT -> withLinks(RigLinks.mirror(links(state), true));
-            case FRONT_BACK -> withLinks(RigLinks.mirror(links(state), false));
+            case LEFT_RIGHT -> withLinks(RigLinks.mirror(links(state), true), RigLinks.mirror(joints(state), true));
+            case FRONT_BACK -> withLinks(RigLinks.mirror(links(state), false), RigLinks.mirror(joints(state), false));
         };
     }
 }

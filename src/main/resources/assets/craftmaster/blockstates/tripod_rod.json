@@ -24,7 +24,38 @@
         ]
       },
       "apply": {
-        "model": "craftmaster:block/furniture/rig_arm",
+        "model": "craftmaster:block/furniture/rig_tube",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "down": "true",
+            "rod_down": "false"
+          },
+          {
+            "up": "true",
+            "north": "false",
+            "south": "false",
+            "west": "false",
+            "east": "false",
+            "rod_down": "false"
+          },
+          {
+            "down": "false",
+            "up": "false",
+            "north": "false",
+            "south": "false",
+            "west": "false",
+            "east": "false",
+            "rod_down": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "craftmaster:block/furniture/rig_cap",
         "x": 180
       }
     },
@@ -52,7 +83,37 @@
         ]
       },
       "apply": {
-        "model": "craftmaster:block/furniture/rig_arm"
+        "model": "craftmaster:block/furniture/rig_tube"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "up": "true",
+            "rod_up": "false"
+          },
+          {
+            "down": "true",
+            "north": "false",
+            "south": "false",
+            "west": "false",
+            "east": "false",
+            "rod_up": "false"
+          },
+          {
+            "down": "false",
+            "up": "false",
+            "north": "false",
+            "south": "false",
+            "west": "false",
+            "east": "false",
+            "rod_up": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "craftmaster:block/furniture/rig_cap"
       }
     },
     {
@@ -71,7 +132,29 @@
         ]
       },
       "apply": {
-        "model": "craftmaster:block/furniture/rig_arm",
+        "model": "craftmaster:block/furniture/rig_tube",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "true",
+            "rod_north": "false"
+          },
+          {
+            "south": "true",
+            "down": "false",
+            "up": "false",
+            "west": "false",
+            "east": "false",
+            "rod_north": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "craftmaster:block/furniture/rig_cap",
         "x": 90
       }
     },
@@ -91,7 +174,30 @@
         ]
       },
       "apply": {
-        "model": "craftmaster:block/furniture/rig_arm",
+        "model": "craftmaster:block/furniture/rig_tube",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "south": "true",
+            "rod_south": "false"
+          },
+          {
+            "north": "true",
+            "down": "false",
+            "up": "false",
+            "west": "false",
+            "east": "false",
+            "rod_south": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "craftmaster:block/furniture/rig_cap",
         "x": 90,
         "y": 180
       }
@@ -112,7 +218,30 @@
         ]
       },
       "apply": {
-        "model": "craftmaster:block/furniture/rig_arm",
+        "model": "craftmaster:block/furniture/rig_tube",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "west": "true",
+            "rod_west": "false"
+          },
+          {
+            "east": "true",
+            "down": "false",
+            "up": "false",
+            "north": "false",
+            "south": "false",
+            "rod_west": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "craftmaster:block/furniture/rig_cap",
         "x": 90,
         "y": 270
       }
@@ -133,7 +262,30 @@
         ]
       },
       "apply": {
-        "model": "craftmaster:block/furniture/rig_arm",
+        "model": "craftmaster:block/furniture/rig_tube",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "east": "true",
+            "rod_east": "false"
+          },
+          {
+            "west": "true",
+            "down": "false",
+            "up": "false",
+            "north": "false",
+            "south": "false",
+            "rod_east": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "craftmaster:block/furniture/rig_cap",
         "x": 90,
         "y": 90
       }

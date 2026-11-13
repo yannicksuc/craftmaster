@@ -121,6 +121,7 @@ public final class Network {
 
     /** Tells everyone the active season (cheap: one number). */
     public static void broadcastActiveSeason(MinecraftServer server) {
+        fr.lordfinn.craftmaster.score.TabScore.refresh(server);
         ActiveSeason a = activeSeason();
         for (ServerPlayer p : server.getPlayerList().getPlayers())
             if (ServerPlayNetworking.canSend(p, ActiveSeason.TYPE)) ServerPlayNetworking.send(p, a);
@@ -134,6 +135,7 @@ public final class Network {
         // The player frame (head + score) has the latest ranking from the start, without opening the screen
         net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayer p = handler.player;
+            fr.lordfinn.craftmaster.score.TabScore.refresh(server);
             if (CraftMaster.data() == null || !ServerPlayNetworking.canSend(p, Ranking.TYPE)) return;
             boolean admin = Permissions.isAdmin(p);
             // The active season (the frame's default) and the latest one the player may see
@@ -200,6 +202,7 @@ public final class Network {
     /** Refreshes the ranking screens open on that season (each player gets what they are allowed to see). */
     public static void broadcast(MinecraftServer server, int season) {
         if (CraftMaster.data() == null) return;
+        fr.lordfinn.craftmaster.score.TabScore.refresh(server);
         Ranking forAdmins = null, forPlayers = null;
         boolean hidden = CraftMaster.data().isHidden(season);
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {

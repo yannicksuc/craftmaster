@@ -92,16 +92,21 @@ qu'il n'y a pas d'écran pour valider ; l'écran de saisie, lui, fait un brouill
 l'antenne : les points donnés sont de toute façon annoncés à tous (« +3 » dans la barre d'action) ; seul le
 classement publié reste secret, et l'écran de saisie ne le montre pas.
 
-## Cadre joueur (HUD)
-En haut à droite : sa propre tête et son total dessous (tête de chiffre de -10 à +10, nombre au-delà) pour **la
+## Score dans la liste des joueurs (Tab)
+Le total **publié** de la saison active s'affiche à côté du nom de chaque joueur dans la liste Tab (objectif
+`craftmaster_score`, le même pour tous, sans mod). Il suit les publications et le changement de saison ; rien quand
+il n'y a pas de saison active ou qu'elle est cachée.
+
+## Cadre joueur (HUD, désactivé par défaut)
+Remplacé par la liste Tab, il reste disponible : `"enabled": true` dans les réglages. En haut à droite : sa propre tête et son total dessous (tête de chiffre de -10 à +10, nombre au-delà) pour **la
 saison active** du serveur (ou une saison choisie dans les réglages),
 mis à jour tout seul à chaque changement (les joueurs voient leur total **publié**, les organisateurs le direct) ;
 un « +3 » apparaît quelques secondes à côté quand il change. Caché sans score, dans un écran, en mode diffusion et
 avec F1, et pour les joueurs quand la saison est cachée. Réglages, section `playerFrame` de
-`config/craftmaster-client.json` : `enabled` (true par défaut), `corner` (`top_left`, `top_right`, `bottom_left`,
+`config/craftmaster-client.json` : `enabled` (false par défaut), `corner` (`top_left`, `top_right`, `bottom_left`,
 `bottom_right`), `season` (`"active"` par défaut : suit la saison active, même quand elle change ; ou un numéro,
 ex. `"4"`, pour rester sur une saison).
 
 ```json
-"playerFrame": {"enabled": true, "corner": "top_right", "season": "active"}
+"playerFrame": {"enabled": true, "version": 2, "corner": "top_right", "season": "active"}
 ```

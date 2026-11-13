@@ -171,7 +171,21 @@ def rig(g):
             "north": {"uv": [0, 0, 2, 7], "texture": "#0"},
             "east": {"uv": [2, 0, 4, 7], "texture": "#0"},
             "south": {"uv": [4, 0, 6, 7], "texture": "#0"},
-            "west": {"uv": [6, 0, 8, 7], "texture": "#0"}}},
+            "west": {"uv": [6, 0, 8, 7], "texture": "#0"},
+            # Closed ends: drawn alone (a bracket, a camera's arm) it is not an open pipe
+            "up": {"uv": [14, 2, 12, 0], "texture": "#0"},
+            "down": {"uv": [14, 2, 12, 4], "texture": "#0"}}},
+        {"from": [6, 15, 6], "to": [10, 16, 10], "faces": cap_faces},
+    ]})
+    # The rod's own pieces, apart: the tube to the face (meets the next rod's), and the cap, left out between two rods
+    wj(os.path.join(A, "models/block/furniture/rig_tube.json"), {"textures": tex, "elements": [
+        {"from": [7, 8, 7], "to": [9, 16, 9], "faces": {
+            "north": {"uv": [0, 0, 2, 8], "texture": "#0"},
+            "east": {"uv": [2, 0, 4, 8], "texture": "#0"},
+            "south": {"uv": [4, 0, 6, 8], "texture": "#0"},
+            "west": {"uv": [6, 0, 8, 8], "texture": "#0"}}},
+    ]})
+    wj(os.path.join(A, "models/block/furniture/rig_cap.json"), {"textures": tex, "elements": [
         {"from": [6, 15, 6], "to": [10, 16, 10], "faces": cap_faces},
     ]})
     # Also drawn by FurnitureRenderer as the wall bracket of a studio light (the cap is the plate on the wall)
@@ -193,7 +207,10 @@ def rig(g):
         when = [{side: "true"}, {OPP[side]: "true", **{s: "false" for s in SIDES if AXIS[s] != axis}}]
         if axis == "y":
             when.append({s: "false" for s in SIDES})  # a lone rod stands upright
-        parts.append({"when": {"OR": when}, "apply": {"model": "craftmaster:block/furniture/rig_arm", **ARM_ROT[side]}})
+        parts.append({"when": {"OR": when}, "apply": {"model": "craftmaster:block/furniture/rig_tube", **ARM_ROT[side]}})
+        # The cap, except against another rod
+        parts.append({"when": {"OR": [{**w, "rod_" + side: "false"} for w in when]},
+                      "apply": {"model": "craftmaster:block/furniture/rig_cap", **ARM_ROT[side]}})
     pairs = [{a: "true", b: "true"} for i, a in enumerate(SIDES) for b in SIDES[i + 1:] if AXIS[a] != AXIS[b]]
     parts.append({"when": {"OR": pairs}, "apply": {"model": "craftmaster:block/furniture/rig_knuckle"}})
     wj(os.path.join(A, "blockstates/tripod_rod.json"), {"multipart": parts})

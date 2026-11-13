@@ -25,7 +25,10 @@ public final class PlayerFrameHud {
     private PlayerFrameHud() {}
 
     public static final class Settings {
-        public boolean enabled = true;
+        /** Off by default: the season total is in the player list (Tab, see TabScore). */
+        public boolean enabled = false;
+        /** Settings version (2: off by default, see TwitchChat.reload). */
+        public int version;
         public String corner = "top_right";
         /** The season the frame shows: "active" (the server's active season) or a season number. */
         public String season = "active";
