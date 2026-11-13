@@ -94,7 +94,11 @@ s'annulent avec `/craftMasterUndo`.
   devient « ouverte » (lettre dépliée, cire brisée) et se relit d'un clic droit. Une enveloppe liée à une manche lit toujours la dernière version de la tâche.
   Annonce à tous (barre d'action + son) quand le sceau saute : « ✉ Ensuri ouvre sa tâche ».
 - **Sur la table** : accroupi + clic droit sur le dessus d'un bloc pose l'enveloppe (bloc plat, cire de sa couleur).
-  Clic droit dessus = la ramasser (elle va dans la main) ; accroupi, main vide = l'ouvrir sur place.
+  **Clic droit dessus = la lire sur place**, comme en main (arracher le sceau, puis relire) : elle reste posée,
+  ouverte. **La casser = la récupérer** (elle tombe avec son contenu ; en créatif elle va dans l'inventaire) ;
+  accroupi + clic droit la ramasse aussi (dans la main).
+- Avec le lancement enchaîné d'une manche ([Réalisation](Realisation.md)), une tâche révélée au lancement l'est
+  quand l'image s'ouvre sur les candidats, pas pendant l'intro.
 - `/tache close [joueurs]` ferme les lettres ouvertes (tout le monde lève les yeux).
 
 ## Consulter la tâche (tout le monde)
