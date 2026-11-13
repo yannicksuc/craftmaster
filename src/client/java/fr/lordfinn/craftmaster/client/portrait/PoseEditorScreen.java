@@ -466,7 +466,7 @@ public class PoseEditorScreen extends Screen {
         } else {
             PortraitEntity p = portrait;
             ClientPlayNetworking.send(new PortraitNetwork.Update(p.getId(), p.season(), p.followsRank() ? p.rank() : 0,
-                    p.fixedPlayer(), p.displayName(), p.skinUrl(), name, p.hangSetting(), p.window(), p.windowDepth(), p.windowSize()));
+                    p.fixedPlayer(), p.displayName(), p.skinUrl(), name, p.hangSetting(), p.window(), p.windowDepth(), p.windowSize(), p.turn()));
         }
         onClose();
     }

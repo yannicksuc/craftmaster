@@ -399,19 +399,12 @@ box_uv(20, 10, FW - 2 * FB, FH - 2 * FB, 1, canvas, top=wood_back, side=wood_bac
 face(64, 0, 4, 4, white_back)
 face(64, 32, 32, 32, lambda x, y, w, h: poster_red(x, y, w, h, fillet=False))
 
-# Window look backdrop (its own 64 x 64 texture): a velvet curtain, gold fringe at the bottom
+# Window look backdrop (its own 64 x 64 texture): a velvet curtain (no fringe: LordFinn's choice)
 curtain = []
 for y in range(64):
-    row = []
-    for x in range(64):
-        c = velvet(x, y, 64, 64, 7)
-        if y >= 58:
-            c = GOLD if (x + y) % 3 else GOLD_LO
-        elif y == 57:
-            c = GOLD_DARK
-        row.append(c + (255,))
-    curtain.append(row)
+    curtain.append([velvet(x, y, 64, 64, 7) + (255,) for x in range(64)])
 write_png(os.path.join(A, "textures/entity/portrait_backdrop.png"), 64, 64, curtain)
+
 
 # Brass hook (112..116 x 0..4) and string (120..121 x 0..16)
 face(112, 0, 4, 4, lambda x, y, w, h: (186, 140, 60) if (x + y) % 2 else (150, 108, 44))

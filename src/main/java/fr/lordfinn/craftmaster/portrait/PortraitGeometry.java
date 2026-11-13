@@ -91,7 +91,9 @@ public final class PortraitGeometry {
     }
 
     /** Vanilla baby transform: head offset and scale, body (and limbs) offset and scale. */
-    public static final double BABY_HEAD_Y = 16, BABY_HEAD_SCALE = 1.5 / 2, BABY_BODY_Y = 24, BABY_BODY_SCALE = 1.0 / 2;
+    // The head is bigger than vanilla's babies (0.95 instead of 0.75, LordFinn's choice: a chibi look); its pivot
+    // stays on top of the body (12 px), so the neck does not move
+    public static final double BABY_HEAD_SCALE = 0.95, BABY_HEAD_Y = 12 / BABY_HEAD_SCALE, BABY_BODY_Y = 24, BABY_BODY_SCALE = 1.0 / 2;
 
     /** Pivot of a part in the adult player model. */
     private static Vector3d adultPivot(Part part) {

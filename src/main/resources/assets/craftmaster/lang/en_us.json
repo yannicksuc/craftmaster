@@ -895,5 +895,10 @@
   "screen.craftmaster.home.solo": "Singleplayer",
   "screen.craftmaster.home.multiplayer": "Multiplayer",
   "screen.craftmaster.home.options": "Options",
-  "screen.craftmaster.home.quit": "Quit"
+  "screen.craftmaster.home.quit": "Quit",
+  "screen.craftmaster.portrait.turn": "Angle",
+  "screen.craftmaster.portrait.turn_tip": "Angle of the picture in degrees from its wall (0 = straight, 30 = turned right, -30 left)",
+  "screen.craftmaster.portrait.face_me": "◎",
+  "screen.craftmaster.portrait.face_me_tip": "Turn the picture toward you (from your look)",
+  "screen.craftmaster.portrait.bad_turn": "Angle: a number of degrees."
 }

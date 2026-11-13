@@ -53,7 +53,7 @@ public final class PortraitNetwork {
      * player; {@code hang} negative = automatic length; empty strings = default; {@code window}: Antichamber look, with the depth (px) and size (% of the opening) of its room.
      */
     public record Update(int entityId, int season, int rank, String fixedPlayer, String displayName, String skinUrl,
-                         String pose, float hang, boolean window, int windowDepth, int windowSize) implements CustomPacketPayload {
+                         String pose, float hang, boolean window, int windowDepth, int windowSize, float turn) implements CustomPacketPayload {
         public static final Type<Update> TYPE = new Type<>(CraftMaster.id("portrait_update"));
         public static final StreamCodec<RegistryFriendlyByteBuf, Update> CODEC = CustomPacketPayload.codec(Update::write, Update::read);
 
@@ -69,11 +69,12 @@ public final class PortraitNetwork {
             buf.writeBoolean(window);
             buf.writeVarInt(windowDepth);
             buf.writeVarInt(windowSize);
+            buf.writeFloat(turn);
         }
 
         private static Update read(RegistryFriendlyByteBuf buf) {
             return new Update(buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readUtf(64), buf.readUtf(128),
-                    buf.readUtf(1024), buf.readUtf(128), buf.readFloat(), buf.readBoolean(), buf.readVarInt(), buf.readVarInt());
+                    buf.readUtf(1024), buf.readUtf(128), buf.readFloat(), buf.readBoolean(), buf.readVarInt(), buf.readVarInt(), buf.readFloat());
         }
 
         @Override
@@ -156,6 +157,7 @@ public final class PortraitNetwork {
         p.setSkinUrl(u.skinUrl());
         p.setPoseName(u.pose());
         p.setHang(u.hang());
+        if (Float.isFinite(u.turn())) p.setTurn(u.turn());
         p.setWindow(u.window());
         p.setWindowDepth(u.windowDepth());
         p.setWindowSize(u.windowSize());

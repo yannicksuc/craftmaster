@@ -45,6 +45,8 @@ public class PortraitEntity extends Entity {
     /** String length in blocks; negative = automatic (a gentle variation of its own). */
     private static final EntityDataAccessor<Float> HANG = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> FACING = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.INT);
+    /** Exact angle (degrees) the picture is turned by from its facing: set at placement from the look, editable. */
+    private static final EntityDataAccessor<Float> TURN = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.FLOAT);
     /** "Antichamber" window look: the figure is only seen through the opening, in a box behind the frame. */
     private static final EntityDataAccessor<Boolean> WINDOW = SynchedEntityData.defineId(PortraitEntity.class, EntityDataSerializers.BOOLEAN);
     /** Window look: depth of the room behind the opening (px) and its size in percent of the opening. */
@@ -104,6 +106,7 @@ public class PortraitEntity extends Entity {
         b.define(POSE, PoseLibrary.DEFAULT);
         b.define(HANG, -1f);
         b.define(FACING, Direction.SOUTH.get2DDataValue());
+        b.define(TURN, 0f);
         b.define(WINDOW, false);
         b.define(WINDOW_DEPTH, DEFAULT_WINDOW_DEPTH);
         b.define(WINDOW_SIZE, DEFAULT_WINDOW_SIZE);
@@ -154,6 +157,28 @@ public class PortraitEntity extends Entity {
 
     public Direction getFacing() {
         return Direction.from2DDataValue(entityData.get(FACING));
+    }
+
+    /** Degrees the picture is turned by from its facing (-180 to 180, positive = like the player turning right). */
+    public float turn() {
+        return entityData.get(TURN);
+    }
+
+    public void setTurn(float degrees) {
+        entityData.set(TURN, net.minecraft.util.Mth.wrapDegrees(degrees));
+        setYRot(yaw());
+        refreshBox();
+    }
+
+    /** The exact direction the picture faces (degrees, Minecraft yaw): facing + turn. */
+    public float yaw() {
+        return getFacing().toYRot() + turn();
+    }
+
+    /** Turns the picture to face someone looking with {@code lookYaw}, keeping the facing closest to it. */
+    public void faceLook(float lookYaw) {
+        setFacing(Direction.fromYRot(lookYaw).getOpposite());
+        setTurn(net.minecraft.util.Mth.wrapDegrees(lookYaw + 180 - getFacing().toYRot()));
     }
 
     public void setFacing(Direction facing) {
@@ -358,7 +383,7 @@ public class PortraitEntity extends Entity {
     @Override
     public void onSyncedDataUpdated(EntityDataAccessor<?> accessor) {
         super.onSyncedDataUpdated(accessor);
-        if (accessor == POSE || accessor == HANG || accessor == FACING || accessor == WINDOW) refreshBox();
+        if (accessor == POSE || accessor == HANG || accessor == FACING || accessor == WINDOW || accessor == TURN) refreshBox();
     }
 
     private void refreshBox() {
@@ -368,7 +393,12 @@ public class PortraitEntity extends Entity {
 
     /** Portrait-space offset (pixels) → world offset from the hook (blocks), for a portrait facing {@code facing}. */
     public static Vec3 toWorld(Vector3d blocks, Direction facing) {
-        double a = Math.toRadians(-facing.toYRot());
+        return toWorld(blocks, facing.toYRot());
+    }
+
+    /** The same for an exact yaw (degrees). */
+    public static Vec3 toWorld(Vector3d blocks, float yaw) {
+        double a = Math.toRadians(-yaw);
         double cos = Math.cos(a), sin = Math.sin(a);
         return new Vec3(blocks.x * cos + blocks.z * sin, blocks.y, -blocks.x * sin + blocks.z * cos);
     }
@@ -380,10 +410,15 @@ public class PortraitEntity extends Entity {
         Pose pose = pose();
         double[] b = PortraitGeometry.bounds(pose, window());
         Vector3d origin = PortraitGeometry.portraitOrigin(pose, window(), hangLength());
-        Direction facing = getFacing();
-        Vec3 c0 = toWorld(new Vector3d(origin).add(b[0] / 16, b[1] / 16, b[2] / 16), facing);
-        Vec3 c1 = toWorld(new Vector3d(origin).add(b[3] / 16, b[4] / 16, b[5] / 16), facing);
-        return new AABB(pos.add(c0), pos.add(c1)).inflate(0.02);
+        float yaw = yaw();
+        // A turned picture: the box around the rotated corners (all eight, so it covers any angle)
+        AABB box = null;
+        for (int i = 0; i < 8; i++) {
+            Vec3 c = toWorld(new Vector3d(origin).add(b[(i & 1) == 0 ? 0 : 3] / 16, b[(i & 2) == 0 ? 1 : 4] / 16, b[(i & 4) == 0 ? 2 : 5] / 16), yaw);
+            AABB one = new AABB(pos.add(c), pos.add(c));
+            box = box == null ? one : box.minmax(one);
+        }
+        return box.inflate(0.02);
     }
 
     // ---------------------------------------------------------------- save
@@ -402,6 +437,7 @@ public class PortraitEntity extends Entity {
         setWindowSize(in.getIntOr("WindowSize", DEFAULT_WINDOW_SIZE));
         entityData.set(FACING, Direction.byName(in.getStringOr("Facing", "south")) instanceof Direction d && d.getAxis().isHorizontal()
                 ? d.get2DDataValue() : Direction.SOUTH.get2DDataValue());
+        entityData.set(TURN, net.minecraft.util.Mth.wrapDegrees(in.getFloatOr("Turn", 0f)));
         entityData.set(SHOWN_PLAYER, in.getStringOr("ShownPlayer", ""));
         entityData.set(SHOWN_RANK, in.getIntOr("ShownRank", 0));
         entityData.set(POINTS, in.getIntOr("Points", 0));
@@ -423,6 +459,7 @@ public class PortraitEntity extends Entity {
         out.putInt("WindowDepth", windowDepth());
         out.putInt("WindowSize", windowSize());
         out.putString("Facing", getFacing().getSerializedName());
+        if (turn() != 0) out.putFloat("Turn", turn());
         out.putString("ShownPlayer", shownPlayer());
         out.putInt("ShownRank", shownRank());
         out.putInt("Points", points());

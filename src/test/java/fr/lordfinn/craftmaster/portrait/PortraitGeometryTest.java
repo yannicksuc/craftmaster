@@ -45,14 +45,15 @@ class PortraitGeometryTest {
 
     @Test
     void volumesWeighTheAverage() {
-        // Frame + head only: the baby head (8³ × 0.75³ = 216 px³) pulls the centre toward it in proportion to its volume
+        // Frame + head only: the head (8³ × scale³ px³) pulls the centre toward it in proportion to its volume
         Pose headOnly = only(Pose.NEUTRAL.withOffset(0, 0, 5), Part.HEAD);
         Vector3d cog = PortraitGeometry.centreOfGravity(headOnly);
         Vector3d frame = PortraitGeometry.centreOfGravity(only(Pose.NEUTRAL));
         double frameVolume = PortraitGeometry.FRAME_BOXES.stream().mapToDouble(Box::volume).sum();
-        // Feet at the origin: the baby head (pivot at model y 12, cube 6 px) has its centre 15 px above the feet
-        Vector3d head = new Vector3d(0, 15, 5);
-        Vector3d expected = new Vector3d(frame).mul(frameVolume).add(new Vector3d(head).mul(216)).div(frameVolume + 216);
+        // Feet at the origin: the head (pivot at model y 12, cube 8 × scale px) has its centre 12 + 4 × scale above the feet
+        double sc = PortraitGeometry.BABY_HEAD_SCALE, vol = Math.pow(8 * sc, 3);
+        Vector3d head = new Vector3d(0, 12 + 4 * sc, 5);
+        Vector3d expected = new Vector3d(frame).mul(frameVolume).add(new Vector3d(head).mul(vol)).div(frameVolume + vol);
         assertEquals(expected.x, cog.x, EPS);
         assertEquals(expected.y, cog.y, EPS);
         assertEquals(expected.z, cog.z, EPS);
@@ -64,15 +65,15 @@ class PortraitGeometryTest {
         assertEquals(new Vector3d(0, 12, 0), PortraitGeometry.pivot(Part.HEAD));
         assertEquals(new Vector3d(-2.5, 13, 0), PortraitGeometry.pivot(Part.RIGHT_ARM));
         assertEquals(new Vector3d(0.95, 18, 0), PortraitGeometry.pivot(Part.LEFT_LEG));
-        assertEquals(0.75, PortraitGeometry.partScale(Part.HEAD));
+        assertEquals(PortraitGeometry.BABY_HEAD_SCALE, PortraitGeometry.partScale(Part.HEAD));
         assertEquals(0.5, PortraitGeometry.partScale(Part.BODY));
 
         // Standing straight with the feet at (0, 0, 5): an 18 px figure, the head cube spans y 12..18
         Pose standing = Pose.NEUTRAL.withOffset(0, 0, 5);
         Matrix4d head = PortraitGeometry.partMatrix(standing, Part.HEAD);
-        assertEquals(18, head.transformPosition(new Vector3d(0, -8, 0)).y, EPS);
+        assertEquals(12 + 8 * PortraitGeometry.BABY_HEAD_SCALE, head.transformPosition(new Vector3d(0, -8, 0)).y, EPS);
         assertEquals(12, head.transformPosition(new Vector3d(0, 0, 0)).y, EPS);
-        assertEquals(8, head.transformPosition(new Vector3d(0, -4, -4)).z, EPS, "model -z (the face) points to the viewer");
+        assertEquals(5 + 4 * PortraitGeometry.BABY_HEAD_SCALE, head.transformPosition(new Vector3d(0, -4, -4)).z, EPS, "model -z (the face) points to the viewer");
         // Body from the hips (6 px above the feet) to the neck (12 px); feet on the ground
         Matrix4d body = PortraitGeometry.partMatrix(standing, Part.BODY);
         assertEquals(12, body.transformPosition(new Vector3d(0, 0, 0)).y, EPS);
@@ -93,7 +94,7 @@ class PortraitGeometryTest {
         assertTrue(leanHead.z > 7.5, "neck moved toward the viewer: " + leanHead.z);
         // Scale grows around the feet
         Matrix4d big = PortraitGeometry.partMatrix(standing.withScale(2), Part.HEAD);
-        assertEquals(36, big.transformPosition(new Vector3d(0, -8, 0)).y, EPS);
+        assertEquals(2 * (12 + 8 * PortraitGeometry.BABY_HEAD_SCALE), big.transformPosition(new Vector3d(0, -8, 0)).y, EPS);
     }
 
     @Test
@@ -172,7 +173,7 @@ class PortraitGeometryTest {
         }
         // Nothing of the window look exists outside the frame: same bounds as the frame + figure
         double[] b = PortraitGeometry.bounds(Pose.NEUTRAL, true);
-        assertTrue(b[2] > -10, "no deep box behind the frame: " + b[2]);
+        assertTrue(b[2] > -11, "no deep box behind the frame: " + b[2]);
     }
 
     @Test
