@@ -127,8 +127,8 @@ public final class HomeCharacter {
 
     /**
      * A king on his throne, solemn and alive: leaning back, chin up, the right hand on the armrest, the left arm
-     * raised toward the frames as if presenting them, legs apart and planted; a slow breath and a gentle sway of the
-     * raised hand. Never a frown: the head stays level or looks up.
+     * open low to the side toward the frames (a welcome, never raised forward), legs apart and planted; a slow
+     * breath and a gentle sway of the open hand. Never a frown: the head stays level or looks up.
      */
     private static void pose(ModelPart root, double t, double lookX, double lookY) {
         root.getAllParts().forEach(ModelPart::resetPose);
@@ -151,10 +151,11 @@ public final class HomeCharacter {
         rightArm.xRot = (float) Math.toRadians(-54 + 1.5 * Math.sin(t * 2 * Math.PI / 5.1));
         rightArm.zRot = (float) Math.toRadians(26);
         rightArm.y -= 1.2f;
-        // Left arm raised toward the frames, presenting them, the hand drifting slowly
-        leftArm.xRot = (float) Math.toRadians(-112 + 4 * sway);
-        leftArm.yRot = (float) Math.toRadians(-28 + 3 * sway);
-        leftArm.zRot = (float) Math.toRadians(-14);
+        // Left arm open low to the side, palm toward the frames: a host's welcome. NEVER raised forward at shoulder
+        // height or above (a stiff arm raised forward reads as a hateful salute): it stays below the shoulder
+        leftArm.xRot = (float) Math.toRadians(-28 + 3 * sway);
+        leftArm.yRot = (float) Math.toRadians(-10);
+        leftArm.zRot = (float) Math.toRadians(-42 + 2 * sway);
         // Legs apart and planted, one a little further forward
         rightLeg.xRot = (float) Math.toRadians(-88);
         leftLeg.xRot = (float) Math.toRadians(-80);

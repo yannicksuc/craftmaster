@@ -104,7 +104,7 @@ public final class PoseLibrary {
         // Leaning out of the painting: the upper body outside, the legs still in the picture, one arm reaching out
         m.put("se penche dehors", pose(0, -9.94, -3, 1, 0, 0,
                 Part.FIGURE, r(0, 12, 0), Part.BODY, r(62, 0, 0), Part.HEAD, r(-50, 0, 0),
-                Part.RIGHT_ARM, r(-95, 0, 0), Part.LEFT_ARM, r(-40, 0, -30)));
+                Part.RIGHT_ARM, r(-55, 0, 35), Part.LEFT_ARM, r(-40, 0, -30)));
         // Standing on the bottom bar, waving, the other hand holding the side of the frame
         m.put("salut", pose(0, -9.94, 0, 1, 0, 0,
                 Part.HEAD, r(0, -10, 6), Part.RIGHT_ARM, r(0, 0, 140), Part.LEFT_ARM, r(-20, 0, -62),
@@ -222,6 +222,13 @@ public final class PoseLibrary {
             Pose p = e.getValue();
             if (now != null && p.offsetY() == -10 && now.offsetY() != -10) {
                 e.setValue(p.withOffset(p.offsetX(), now.offsetY(), p.offsetZ()));
+                changed = true;
+            }
+            // "Se penche dehors" had its right arm stiff straight forward at shoulder height: never that gesture
+            Pose cur = e.getValue();
+            Pose.Rotation arm = cur.rotations().get(Part.RIGHT_ARM);
+            if (now != null && e.getKey().equals("se penche dehors") && arm != null && arm.x() == -95 && arm.y() == 0 && arm.z() == 0) {
+                e.setValue(cur.withRotation(Part.RIGHT_ARM, now.rotations().get(Part.RIGHT_ARM)));
                 changed = true;
             }
         }
