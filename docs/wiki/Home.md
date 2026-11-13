@@ -12,6 +12,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Saisie des points de l'arbitre (touche U), API StreamDeck, cadre joueur](Saisie.md)
 - [Busts](Busts.md)
 - [Tableaux suspendus (galeries, poses, éditeur)](Tableaux.md)
+- [Écran d'accueil du jeu (accueil.json : fond, LordFinn sur son trône, tableaux, bouton Jouer)](Accueil.md)
 - [Épreuves : objets d'épreuve, buzzers, feuille de résultats, chrono, tableaux à dessiner](Epreuves.md)
 - [Garde-robe : changer de tenue en un clic (vêtements Selfexpression, toute armure)](GardeRobe.md)
 - [Objets à manipuler : canards en plastique, balles, ballons, œuf fragile, golf, cibles qui comptent, verre gradué](Objets.md)
