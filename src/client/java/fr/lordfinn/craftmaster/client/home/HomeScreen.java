@@ -96,10 +96,10 @@ public class HomeScreen extends Screen {
         layoutPanel();
         int left = panelLeft + PAD, right = panelRight - PAD, w = right - left, half = (w - GAP) / 2;
         int y = logoBottom + GAP + 2;
-        String address = config.server;
         UiButton play = addRenderableWidget(UiButton.of(left, y, w, BUTTON_H,
                 Component.translatable("screen.craftmaster.home.play").withStyle(ChatFormatting.BOLD), this::play));
-        play.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.home.play.tip", config.serverName, address)));
+        // The server's name only: its address never shows (the menu is seen on stream)
+        play.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.home.play.tip", config.serverName)));
         y += BUTTON_H + GAP;
         addRenderableWidget(UiButton.of(left, y, half, BUTTON_H, Component.translatable("screen.craftmaster.home.solo"),
                 () -> minecraft.gui.setScreen(new SelectWorldScreen(this))));
@@ -147,7 +147,7 @@ public class HomeScreen extends Screen {
     private void play() {
         String address = config.server;
         if (!ServerAddress.isValidAddress(address)) {
-            fr.lordfinn.craftmaster.CraftMaster.LOG.warn("[Accueil] Adresse du serveur invalide dans accueil.json : {}", address);
+            fr.lordfinn.craftmaster.CraftMaster.LOG.warn("[Accueil] Adresse du serveur invalide dans accueil.json (champ « serveur »)");
             return;
         }
         ServerData data = new ServerData(config.serverName, address, ServerData.Type.OTHER);

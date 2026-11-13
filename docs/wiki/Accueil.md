@@ -31,7 +31,7 @@ s'afficher, le jeu montre l'écran titre de Minecraft (et le dit dans les logs, 
 | Clé | Par défaut | Rôle |
 |---|---|---|
 | `actif` | `true` | `false` : l'écran titre de Minecraft |
-| `serveur` | `109.239.154.4:25600` | adresse du bouton Jouer |
+| `serveur` | l'adresse du serveur de l'event | adresse du bouton Jouer (jamais affichée à l'écran) |
 | `nomServeur` | `CraftMaster` | nom affiché pendant la connexion |
 | `fond` | `""` | image PNG du fond (chemin relatif à `config/craftmaster/`, ou absolu) |
 | `zoomFond` | `1.12` | agrandissement du fond (marge pour la parallaxe) |

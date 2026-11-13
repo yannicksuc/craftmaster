@@ -891,7 +891,7 @@
   "screen.craftmaster.modo_desk.scene.empty": "No look yet: /ambiance enregistrer <name>",
   "screen.craftmaster.home": "CraftMaster",
   "screen.craftmaster.home.play": "Play",
-  "screen.craftmaster.home.play.tip": "Join %s (%s)",
+  "screen.craftmaster.home.play.tip": "Join %s",
   "screen.craftmaster.home.solo": "Singleplayer",
   "screen.craftmaster.home.multiplayer": "Multiplayer",
   "screen.craftmaster.home.options": "Options",
