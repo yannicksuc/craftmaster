@@ -17,13 +17,34 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
 
 ## Les caméras
 - **Objet « Caméra de studio »** (onglet CraftMaster, recette : lingot de fer, verre, lingots, bâtons) : clic droit
-  sur le sol → un trépied avec sa caméra, numéro suivant, objectif tourné comme le regard du joueur.
+  sur le sol → un trépied avec sa caméra, numéro suivant, objectif tourné comme le regard du joueur. Elle se fixe
+  aussi **comme les lumières de studio** (voir [Plateau, structures de barres](Plateau.md#structures-de-barres)), selon
+  la face visée :
+
+  | Clic droit sur… | La caméra |
+  |---|---|
+  | le sol (le dessus de n'importe quel bloc) | debout sur son propre trépied (comme avant) |
+  | le dessus d'un **pied de trépied** (`tripod`) | posée dessus, sans pattes, sur une courte tige |
+  | le dessus d'une **barre** | posée sur la barre (si la barre ne monte pas jusque-là, son bras et un collier sont ajoutés) |
+  | le dessous d'un **plafond** | **suspendue à l'envers** sous une tige d'un demi-bloc (platine au plafond) |
+  | le dessous d'une **barre** | suspendue à l'envers sous la barre |
+  | le côté d'un **mur** | debout sur un petit **bras** fixé au mur (le même que la lumière de studio) |
+  | le côté d'une **barre** | debout sur un bras qui part de la barre, avec son collier |
+
+  Le plan est toujours pris **depuis l'objectif** : sa hauteur dépend de la fixation (1,5 bloc au-dessus du sol sur
+  le trépied, juste au-dessus du support sinon, juste en dessous quand elle est suspendue). Viser (`/cam aim`, le
+  bouton [Viser comme moi]) et tous les réglages marchent pareil partout ; une caméra suspendue est dessinée à
+  l'envers, son numéro reste lisible. `/cam here` la remet sur un trépied au sol, à la place de tes yeux. Les caméras
+  posées avant gardent leur trépied.
+
+  ![Les fixations](img/camera-ensemble.png)
+  ![Suspendue au plafond](img/camera-plafond.png) ![Plan de diffusion depuis cette caméra](img/camera-diffusion.png)
 - **`/cam here <n> [nom]`** (le plus pratique pour cadrer) : la caméra n se met **à la place de tes yeux, regardant
   là où tu regardes**. On se place, on regarde le plan voulu, on tape la commande. Une caméra existante est déplacée.
 - `/cam aim <n>` : la caméra garde sa place, elle regarde là où tu regardes. `/cam goto <n>` : tu vois exactement ce
   que voit la caméra (pour vérifier, puis `/cam here <n>` pour recadrer d'ici).
-- Clic droit sur un trépied (réalisation) : son numéro, son réglage et des liens cliquables (à l'antenne, viser,
-  renommer, rôle). Un coup dessus le retire (avec sa caméra).
+- Clic droit sur une caméra (réalisation) : son numéro, son réglage, sa fixation et des liens cliquables (à
+  l'antenne, viser, renommer, rôle). Un coup dessus la retire.
 - Réglages : `/cam name <n> <nom>`, `/cam role <n> large|trone|podium|aucun` (un seul rôle par caméra et par rôle),
   `/cam zoom <n> <15..110>` ou `reset` (champ de vision), `/cam motion <n> fixe|respiration|travelling|panoramique`.
 - **Mouvement** : *respiration* (défaut) = la caméra « respire » de quelques centimètres et d'une fraction de degré,
@@ -33,7 +54,11 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   spectateurs, ni les pseudos au-dessus des têtes (le synthé nomme les candidats). En jeu, le **voyant rouge** d'une caméra s'allume quand elle est à l'antenne, et son numéro est peint
   sur ses flancs.
 - Les caméras sont enregistrées dans `config/craftmaster/cameras.json` (le plan marche même si le trépied est dans
-  une zone non chargée).
+  une zone non chargée), avec leur fixation (`mount` : `tripod`, `rod_top`, `ceiling`, `rod_under`, `wall:<côté>`,
+  `rod_side:<côté>` ; absent = trépied au sol).
+- Côté code : `camera/CameraMount` (logique pure, testée par `CameraMountTest`) choisit la fixation et place
+  l'entité (`CameraEntity`, à l'« ancre » : les pieds, le haut du support, le bout du bras) et l'objectif ; le serveur
+  décide, `client/broadcast/CameraRenderer` ne fait que dessiner (pièces `rig_arm` / `rig_knuckle` des barres).
 
 ## Changer de plan
 | Moyen | Exemples |

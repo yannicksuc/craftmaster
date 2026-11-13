@@ -75,6 +75,17 @@ comme des barrières, mais dans les **6 directions** : tours, poutres, angles, T
   tournée vers celui qui la pose. Clic droit (angle) et accroupi + clic droit (45°) marchent partout.
 - Les projecteurs (qui suivent un joueur) s'accrochent dessus ou dessous, pas sur le côté.
 
+**Caméras sur la structure** : l'objet Caméra de studio se pose de la même façon (voir
+[Réalisation](Realisation.md#les-caméras)) : sur un pied de trépied ou sur une barre (sans pattes), **suspendue à
+l'envers** sous une barre ou un plafond, sur le côté d'une barre ou d'un mur (debout sur un petit bras). Là où la
+barre ne va pas jusqu'à elle (le dessus d'une poutre, le côté d'une tour), la caméra ajoute le bras de la barre et
+son collier. Le plan de diffusion part toujours de son objectif.
+
+| | | |
+|---|---|---|
+| ![Sur un pied de trépied](img/camera-trepied.png) | ![Sur le côté d'une barre](img/camera-barre-cote.png) | ![Sur une barre](img/camera-barre-dessus.png) |
+| ![Sous et sur une poutre](img/camera-sous-barre.png) | ![Au plafond](img/camera-plafond.png) | ![Au mur](img/camera-mur.png) |
+
 ## L'émission
 | Objet | Bloc / objet | Utilisation |
 |---|---|---|
@@ -226,7 +237,9 @@ vanilla réaccordés, remplaçables par un pack de ressources (`assets/craftmast
   deux barres) et `RigLinks` (logique pure, testée par `RigLinksTest`). Le modèle est un multipart généré par
   `gen_furniture.py` à partir des pièces de la barre de LordFinn : un bras par côté relié (`rig_arm`, la moitié de son
   tube et sa bague) et un collier (`rig_knuckle`). Une lumière posée sur le côté d'une barre (ou une lumière de studio
-  contre un mur, avec son bras `rig_arm`) est dessinée debout sur ce bras par `FurnitureRenderer`.
+  contre un mur, avec son bras `rig_arm`) est dessinée debout sur ce bras par `FurnitureRenderer`. Les caméras (des
+  entités, pas des blocs : la barre ne se relie pas à elles) dessinent elles-mêmes ce bras et le collier
+  (`rig_knuckle`) quand la barre n'en a pas de ce côté (`CameraMount`, `CameraRenderer`).
 - Projecteurs, chrono, pupitres, table, gong, poteaux : entités de bloc dessinées par le client
   (`client/studio/`). Le projecteur vise côté client à chaque image (suivi fluide), le serveur ne déplace que le
   bloc de lumière (toutes les 4 ticks).
