@@ -207,6 +207,16 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                 f("seconds", INT, doc="Durée en secondes ; absent = jusqu'à nouvel ordre.")]),
     "fx.clear": ("Enlève les effets d'écran (« enlève les effets »).",
                  [f("target", STR, doc="Absent = tout (diffusion et joueurs) ; sinon diffusion, tous, candidats ou un pseudo EXACT.")]),
+    # Replays (docs/wiki/Replays.md): only while a replay plays (context "Replay en cours"), run on LordFinn's game
+    "replay.control": ("Pilote le replay en cours (lecture d'un enregistrement) : lecture, pause, avancer, reculer, "
+                       "aller à un moment, vitesse, repère suivant / précédent, autre fichier (la zone ou l'écran d'un "
+                       "candidat, au même instant), qui réalise, fermer.",
+                       [f("do", STR, True, "play | pause | toggle | back | forward | goto | start | speed | faster | slower | "
+                                           "next_marker | prev_marker | view | mode | close."),
+                        f("seconds", INT, doc="back / forward : combien de secondes (défaut 10) ; goto : le moment, en secondes depuis le début."),
+                        f("speed", STR, doc="speed : la vitesse, ex. « 2 », « 0.5 »."),
+                        f("view", STR, doc="view : « zone » ou le pseudo EXACT du candidat dont on veut l'écran."),
+                        f("mode", STR, doc="mode : direct (les plans du direct), auto, manuel ou libre.")]),
     "say": ("Répond à LordFinn sans rien modifier : question, doute réel, ordre impossible ou incompris. "
             "Texte court en français.", [f("text", STR, True, "Réponse courte.")]),
 }
@@ -216,6 +226,7 @@ NO_SCOPE = {"say", "undo", "stopwatch.start", "stopwatch.stop", "stopwatch.reset
 NO_SCOPE |= {"spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off"}
 NO_SCOPE |= {"camera.path", "camera.focus", "camera.lieu", "camera.mosaic", "camera.pov"}
 NO_SCOPE |= {"fx.set", "fx.clear"}
+NO_SCOPE |= {"replay.control"}
 SCOPE_FIELDS = [f("season", SCOPE, doc="Saison (id ou nom). Absent = saison active."),
                 f("partie", SCOPE, doc="Partie (id ou nom). Absent = partie active.")]
 

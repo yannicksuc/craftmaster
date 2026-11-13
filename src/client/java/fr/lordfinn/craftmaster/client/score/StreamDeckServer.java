@@ -36,7 +36,10 @@ import java.util.function.Supplier;
  *                grouped for 0.8 s into one "+3" announced)
  * /round/next    starts the next round · /round/start?manche=pont · /round/end · /timer/stop
  * /publish       publishes the scores; press twice within 3 s (the first press only arms it) · /reveal/start too
- * /camera/cut?camera=2 · /camera/auto (?enabled=false)
+ * /camera/cut?camera=2 · /camera/auto (?enabled=false)   (during a replay: its direction, on this game)
+ * /replay/toggle · play · pause · back?s=10 · forward?s=10 · goto?s=75 · start · faster · slower · speed?x=2 ·
+ *   marker/next · marker/prev · view?name=zone|Ensuri · mode?m=direct|auto|manuel|libre · camera?camera=2 ·
+ *   follow?player=Ensuri · pov?player=Ensuri · close   (while a replay plays, /cmreplay voir)
  * /status       JSON: connected, organiser, open screen, season, undo / redo available
  * </pre>
  * Every answer is JSON {@code {"ok": true|false, ...}}; the game does the work on its own thread. Requests from a
@@ -212,6 +215,7 @@ public final class StreamDeckServer {
     }
 
     private static JsonObject route(URI uri, String path, String group) {
+        if (path.startsWith("/replay/")) return replay(uri, path.substring("/replay/".length()));
         switch (path) {
             case "/points" -> {
                 int delta;
@@ -244,15 +248,62 @@ public final class StreamDeckServer {
             case "/camera/cut" -> {
                 String cam = query(uri, "camera");
                 if (cam.isEmpty()) return error("camera=… needed");
+                if (fr.lordfinn.craftmaster.client.replay.ReplayClient.active()) return replayAction(action("camera.cut", "camera", cam));
                 return send(action("camera.cut", "camera", cam.matches("\\d+") ? (Object) Integer.parseInt(cam) : cam));
             }
             case "/camera/auto" -> {
-                return send(action("camera.auto", "enabled", !"false".equals(query(uri, "enabled"))));
+                JsonObject a = action("camera.auto", "enabled", !"false".equals(query(uri, "enabled")));
+                if (fr.lordfinn.craftmaster.client.replay.ReplayClient.active()) return replayAction(a);
+                return send(a);
             }
             default -> {
                 return route(path, group);
             }
         }
+    }
+
+    // ---------------------------------------------------------------- replay (run on this game)
+
+    /**
+     * {@code /replay/<what>} while a replay plays (Server Replay's viewer, {@code /cmreplay voir}): toggle, play,
+     * pause, back?s=10, forward?s=10, goto?s=75, start, faster, slower, speed?x=2, marker/next, marker/prev,
+     * view?name=zone|Ensuri (that file, same instant), mode?m=direct|auto|manuel|libre, camera?camera=2|large,
+     * follow?player=, pov?player=, close.
+     */
+    private static JsonObject replay(URI uri, String what) {
+        JsonObject a;
+        switch (what) {
+            case "camera" -> a = action("camera.cut", "camera", query(uri, "camera"));
+            case "follow" -> a = action("camera.follow", "player", query(uri, "player"));
+            case "pov" -> a = action("camera.pov", "player", query(uri, "player"));
+            case "marker/next", "marker/prev" -> a = action("replay.control", "do", what.endsWith("next") ? "next_marker" : "prev_marker");
+            case "back", "forward", "goto" -> {
+                a = action("replay.control", "do", what);
+                String sec = query(uri, "s");
+                if (!sec.isEmpty()) a.addProperty("seconds", Long.parseLong(sec));
+            }
+            case "speed" -> a = action("replay.control", "do", "speed", "speed", query(uri, "x").isEmpty() ? "1" : query(uri, "x"));
+            case "view" -> a = action("replay.control", "do", "view", "view", query(uri, "name"));
+            case "mode" -> a = action("replay.control", "do", "mode", "mode", query(uri, "m"));
+            case "toggle", "play", "pause", "start", "faster", "slower", "close" -> a = action("replay.control", "do", what);
+            default -> {
+                JsonObject o = error("unknown: /replay/" + what + " (toggle, play, pause, back, forward, goto, start, faster, slower, speed, "
+                        + "marker/next, marker/prev, view, mode, camera, follow, pov, close)");
+                o.addProperty("code", 404);
+                return o;
+            }
+        }
+        return replayAction(a);
+    }
+
+    private static JsonObject replayAction(JsonObject a) {
+        return onGame(() -> {
+            if (!fr.lordfinn.craftmaster.client.replay.ReplayClient.active()) return error("no replay playing (/cmreplay voir)");
+            var r = fr.lordfinn.craftmaster.client.replay.ReplayControl.run(a);
+            JsonObject o = r.ok() ? ok() : error(r.line());
+            if (r.ok()) o.addProperty("did", r.line());
+            return o;
+        });
     }
 
     private static JsonObject route(String path, String group) {

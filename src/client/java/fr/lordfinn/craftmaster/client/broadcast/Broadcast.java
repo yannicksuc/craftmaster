@@ -169,9 +169,7 @@ public final class Broadcast {
     private static void zone(String which) {
         if (ReplayClient.active()) {
             // In a replay: the next contestant (Shift: the previous one, through their eyes), here
-            String who = ReplayDirector.player(null, "prev".equals(which) ? -1 : 1, "prev".equals(which));
-            Minecraft mc = Minecraft.getInstance();
-            if (who != null && mc.player != null) mc.player.sendOverlayMessage(Component.literal(("prev".equals(which) ? "Vue de " : "On suit ") + who).withStyle(ChatFormatting.GOLD));
+            ReplayDirector.player(null, "prev".equals(which) ? -1 : 1, "prev".equals(which));
             return;
         }
         Map<String, Object> a = new LinkedHashMap<>();
@@ -201,8 +199,7 @@ public final class Broadcast {
         Minecraft mc = Minecraft.getInstance();
         if (ReplayClient.active()) {
             // In a replay the server's director is not there: the cut is made on this game
-            if (!ReplayDirector.camera(camera) && mc.player != null)
-                mc.player.sendOverlayMessage(Component.literal("Pas de caméra " + camera + " ici").withStyle(ChatFormatting.GRAY));
+            ReplayDirector.camera(camera);
             return;
         }
         if (camera.matches("\\d+") && ShowStateClient.focused().get(Integer.parseInt(camera)) == null) {

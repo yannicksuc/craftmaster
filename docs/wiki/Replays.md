@@ -46,24 +46,32 @@ enregistrements (le plus récent en premier), un clic sur `[zone]` ou sur un can
 (`/cmreplay voir <n> [zone|joueur]` à la main). Le lecteur est celui de Server Replay : pendant la lecture tu sors du
 monde réel, tu n'y reviens qu'à la fermeture.
 
-Avec CraftMaster sur ton jeu, le replay passe en **mode diffusion** et une **barre de lecture** s'affiche en bas
-(lecture / pause, temps, vitesse, ce que tu regardes, qui réalise, et la timeline avec les repères en couleur). Elle
-reste à la même place quel que soit le plan ou le fichier ; en mode diffusion elle s'efface au bout de 4 s sans
-toucher au replay (sauf en pause), **H** la cache.
+Avec CraftMaster sur ton jeu, le replay passe en **mode diffusion**. L'image reste celle des viewers : à l'écran, rien
+d'autre qu'une **fine ligne de temps** en bas (dans les couleurs de l'habillage, le temps à gauche, la durée à droite,
+les repères en petits traits de couleur) qui n'apparaît que **3 s après un ordre** et pendant une pause, et une
+courte légende de ce que l'ordre a changé (« ×2 », « Caméra 2 », « Écran d'Ensuri »). **H** l'enlève tout à fait. Le
+badge « EN DIRECT » devient « REPLAY ».
 
-| Touche | Effet |
-|---|---|
-| **B** | Lecture / pause |
-| **←** **→** | 5 s en arrière / en avant (Maj : 30 s) |
-| **↑** **↓** | Plus vite / moins vite (×0,25 à ×8) |
-| **Page préc.** / **Page suiv.** | Repère précédent / suivant |
-| **G** | Réalisation : Direct → Auto → Manuel → Libre |
-| **1–9**, molette | Caméra du lieu (passe en Manuel) |
-| **0** | Plan large |
-| **Tab** (Maj+Tab) | Suivre le candidat suivant (le voir par ses yeux) |
-| **M** ou `/cmbarre` | Le panneau à la souris : clic sur la timeline pour sauter, survol d'un repère pour son nom, boutons pour tout le reste, dont **changer de fichier** |
+**Piloter** : à la voix, au Stream Deck ou au clavier ; pas de boutons à l'écran.
 
-Les touches sont dans les contrôles, catégorie CraftMaster.
+| À la voix | Touche | Stream Deck (`/replay/…`) |
+|---|---|---|
+| « pause » · « reprends » | **B** | `toggle` · `play` · `pause` |
+| « recule de 10 secondes » · « avance de 30 secondes » | **←** **→** (Maj : 30 s) | `back?s=10` · `forward?s=30` |
+| « va à 1 minute 20 » · « au début » | | `goto?s=80` · `start` |
+| « vitesse 2 » · « au ralenti » · « vitesse normale » · « plus vite » | **↑** **↓** | `speed?x=2` · `faster` · `slower` |
+| « repère suivant » · « repère précédent » | **Page suiv.** / **Page préc.** | `marker/next` · `marker/prev` |
+| « caméra 2 » · « plan large » | **1–9**, molette · **0** | `camera?camera=2` (ou `/camera/cut`) |
+| « suis Ensuri » · « vue d'Ensuri » | **Tab** · **Maj+Tab** | `follow?player=Ensuri` · `pov?player=Ensuri` |
+| « l'écran d'Ensuri » · « la zone » | | `view?name=Ensuri` · `view?name=zone` |
+| « les plans du direct » · « réalisation auto » · « caméra libre » | **G** | `mode?m=direct\|auto\|manuel\|libre` (ou `/camera/auto`) |
+| « ferme le replay » | | `close` |
+
+À la souris : **M** (ou `/cmbarre`) donne la souris sur la ligne de temps, et rien d'autre : un clic y saute, le
+survol d'un repère dit son nom, la molette avance ou recule de 5 s ; M ou Échap rend la souris au jeu. Les touches
+sont dans les contrôles, catégorie CraftMaster. Pendant un replay la voix ne passe pas par le serveur (le lecteur ne
+laisse passer que des commandes) : le jeu comprend et exécute lui-même ; les autres ordres (points, manches…)
+répondent « pas pendant un replay ».
 
 **Qui réalise** :
 - **Direct** (par défaut) : les plans choisis en direct, tels qu'enregistrés (coupes, suivis, transitions,
@@ -73,7 +81,7 @@ Les touches sont dans les contrôles, catégorie CraftMaster.
 - **Manuel** : tes touches, sur ce jeu seulement.
 - **Libre** : ta propre caméra de spectateur (mode diffusion coupé).
 
-**Changer de fichier** (panneau, « Fichier ») : la zone, ou ce que le jeu d'un candidat a reçu (sa vue, son
+**Changer de fichier** (« l'écran d'Ensuri », « la zone ») : la zone, ou ce que le jeu d'un candidat a reçu (sa vue, son
 interface). Le fichier est rouvert **au même instant** : les fichiers d'un enregistrement démarrent à quelques
 dixièmes de seconde d'écart, CraftMaster note le tick de départ de chacun dans l'index et recale. La pause et la
 vitesse sont gardées. Il faut 2 à 4 s (le monde est rechargé).
@@ -107,7 +115,8 @@ Réglages : `config/craftmaster/replays.json`.
   tout pour le monde envoyé au départ (la distance de vue) ; ensuite il grossit peu. La zone : moins de 0,1 Mo.
 - **Les caméras** ne montrent que ce qui est dans le fichier : une caméra qui filme hors de la zone enregistrée (le
   studio pendant une manche dehors) ne voit que le ciel. Agrandir la zone : `/cmreplay marge`.
-- **Revenir en arrière** recharge le fichier (2 à 4 s) : c'est le lecteur de Server Replay qui repart du début.
+- **Revenir en arrière** recharge le fichier (2 à 4 s, l'écran de chargement passe à l'image) : c'est le lecteur de
+  Server Replay qui repart du début. Pour un replay montré en direct, mieux vaut aller en avant (repères suivants).
 - Le lecteur retire le joueur de la liste du serveur pendant la lecture : un serveur où il est seul se croit vide
   (« Server empty… pausing » au bout d'une minute) ; la lecture et la barre continuent quand même.
 - Server Replay ne garde dans la zone que ce que le serveur envoie à tout le monde : barres de boss propres à un

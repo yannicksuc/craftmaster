@@ -97,6 +97,8 @@ class ShowContext:
         self.camera_focus = str(r.get("cameraFocus") or "studio")
         self.paths = [p for p in _as_list(r.get("paths")) if isinstance(p, dict)]
         self.recent = [a if isinstance(a, str) else str(a.get("text", a)) for a in _as_list(r.get("recentActions"))][-10:]
+        # A replay playing on LordFinn's game (the show's state is then the recording's, nothing else can be changed)
+        self.replay = r.get("replay") if isinstance(r.get("replay"), dict) else None
 
     # ------------------------------------------------------------------ parsing helpers
 
@@ -210,9 +212,27 @@ class ShowContext:
         words = [p.pseudo for p in self.players] + [a for p in self.players for a in p.aliases]
         return " ".join(dict.fromkeys(words))
 
+    def replay_summary(self) -> list[str]:
+        r = self.replay
+        out = ["REPLAY EN COURS : LordFinn regarde un enregistrement. Seuls replay_control et la réalisation "
+               "(camera_cut, camera_follow, camera_pov, camera_auto) sont possibles ; pour tout autre ordre, say.",
+               f"Enregistrement : {r.get('title', '?')}",
+               f"Fichier : {r.get('view') or '?'} · fichiers possibles : {', '.join(map(str, _as_list(r.get('views')))) or 'aucun'}",
+               f"Moment : {r.get('time', '?')} / {r.get('duration', '?')}" + (" (en pause)" if r.get("paused") else "")
+               + f" · vitesse ×{r.get('speed', 1)} · réalisation : {r.get('direction', '?')}"]
+        if _as_list(r.get("cameras")):
+            out.append("Caméras (« caméra N ») : " + ", ".join(map(str, r.get("cameras"))))
+        if _as_list(r.get("markers")):
+            out.append("Repères : " + " ; ".join(map(str, r.get("markers"))))
+        out.append("Candidats (pseudo exact) : " + (", ".join(p.pseudo for p in self.players) or "aucun"))
+        return out
+
     def summary(self) -> str:
         """What Claude sees of the show (French, compact)."""
         out = []
+        if self.replay:
+            out.extend(self.replay_summary())
+            return "\n".join(out)
         lt = time.localtime(self.now_ms / 1000)
         out.append(f"Heure : {lt.tm_hour:02d}:{lt.tm_min:02d}")
         out.append(f"Saison active : {self.season.get('id', '?')} « {self.season.get('name', '')} »"

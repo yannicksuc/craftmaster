@@ -84,12 +84,19 @@ public final class ReplayDirector {
         return new Shot(kind, camera, player, transition, ++serial, "", List.of());
     }
 
-    /** A camera of the focus ("3") or any camera key ("studio:2"). True if there was one. */
+    /**
+     * A camera: of the focused lieu by number, name or role ("3", "large", "trone"), else any camera by key
+     * ("studio:2") or name. True if there was one.
+     */
     public static boolean camera(String ref) {
-        CameraList focused = fr.lordfinn.craftmaster.client.broadcast.ShowStateClient.focused();
-        CameraSpot spot = ref.matches("\\d+") ? focused.get(Integer.parseInt(ref)) : fr.lordfinn.craftmaster.client.broadcast.ShowStateClient.cameras().get(ref);
+        CameraList all = fr.lordfinn.craftmaster.client.broadcast.ShowStateClient.cameras();
+        CameraSpot spot = fr.lordfinn.craftmaster.client.broadcast.ShowStateClient.focused().resolve(ref);
+        if (spot == null) spot = all.get(ref);
+        if (spot == null) spot = all.resolve(ref);
+        if (spot == null && CameraList.fold(ref).matches("(plan )?(large|general)")) return wide();
         if (spot == null) return false;
         take(shot(BroadcastNetwork.SHOT_CAMERA, spot.key(), "", BroadcastNetwork.CUT));
+        ReplayBar.caption(spot.label());
         return true;
     }
 
@@ -98,6 +105,7 @@ public final class ReplayDirector {
         CameraSpot w = wideSpot();
         if (w == null) return false;
         take(shot(BroadcastNetwork.SHOT_CAMERA, w.key(), "", BroadcastNetwork.CROSSFADE));
+        ReplayBar.caption("Plan large");
         return true;
     }
 
@@ -110,8 +118,16 @@ public final class ReplayDirector {
             int i = names.indexOf(lastPlayer);
             who = names.get(Math.floorMod(i < 0 ? (step > 0 ? 0 : -1) : i + step, names.size()));
         }
+        if (name != null) {
+            // A spoken or typed name: the contestant's exact pseudo
+            String exact = null;
+            for (String n : names) if (n.equalsIgnoreCase(name)) exact = n;
+            if (exact == null) return null;
+            who = exact;
+        }
         lastPlayer = who;
         take(shot(pov ? BroadcastNetwork.SHOT_POV : BroadcastNetwork.SHOT_FOLLOW, "", who, BroadcastNetwork.CUT));
+        ReplayBar.caption(pov ? "Vue de " + who : who);
         return who;
     }
 

@@ -25,8 +25,10 @@ import java.util.Locale;
  *
  * <p>Keys while a replay plays (all in the controls, CraftMaster category): B play / pause, ← → 5 s back / forward
  * (Shift: 30 s), ↑ ↓ faster / slower, Page Up / Page Down previous / next marker, G camera mode (Direct, Auto,
- * Manuel, Libre), M the panel for the mouse, H hide the bar; 1–9, the wheel, 0 (wide shot) and Tab (players) cut
- * here as in the live.
+ * Manuel, Libre), M the mouse on the timeline, H no bar at all; 1–9, the wheel, 0 (wide shot) and Tab (players) cut
+ * here as in the live. The same orders come from the voice control and the Stream Deck ({@link ReplayControl}).
+ * On screen there is only the thin bar, for a few seconds after an order ({@link ReplayBar}): the picture is the
+ * viewers'.
  */
 public final class ReplayClient {
 
@@ -148,7 +150,7 @@ public final class ReplayClient {
         return hidden;
     }
 
-    // ---------------------------------------------------------------- orders
+    // ---------------------------------------------------------------- orders (keys, voice, Stream Deck, mouse)
 
     static void send(String sub) {
         Minecraft mc = Minecraft.getInstance();
@@ -156,7 +158,8 @@ public final class ReplayClient {
         lastInput = System.currentTimeMillis();
     }
 
-    static void seek(long ms) {
+    /** Goes to {@code ms} in the file. */
+    public static void seek(long ms) {
         if (status == null) return;
         ms = Math.max(0, Math.min(status.duration(), ms));
         // Backward, the server opens the file again (a few seconds without status): still the same replay
@@ -168,38 +171,57 @@ public final class ReplayClient {
         statusAt = System.currentTimeMillis();
     }
 
-    static void togglePause() {
-        boolean p = !paused();
+    /** {@code ms} forward (negative: back), with its caption. */
+    public static void step(long ms) {
+        seek(nowMs() + ms);
+        ReplayBar.caption((ms < 0 ? "◀ " : "▶ ") + Math.abs(ms) / 1000 + " s");
+    }
+
+    public static void togglePause() {
+        setPaused(!paused());
+    }
+
+    public static void setPaused(boolean p) {
         statusMs = nowMs();
         statusAt = System.currentTimeMillis();
         send(p ? "pause" : "play");
         expectPaused = p;
         expectUntil = System.currentTimeMillis() + 2_000;
+        ReplayBar.caption(p ? "Pause" : "Lecture");
     }
 
-    static void speed(float x) {
+    public static void speed(float x) {
+        x = Math.max(SPEEDS[0], Math.min(SPEEDS[SPEEDS.length - 1], x));
         send("speed " + String.format(Locale.ROOT, "%.2f", x));
+        ReplayBar.caption("×" + ReplayBar.speed(x));
     }
 
-    static void stepSpeed(int dir) {
+    public static void stepSpeed(int dir) {
         float cur = status == null ? 1 : status.speed();
         int i = 0;
         for (int j = 1; j < SPEEDS.length; j++) if (Math.abs(SPEEDS[j] - cur) < Math.abs(SPEEDS[i] - cur)) i = j;
         speed(SPEEDS[Math.max(0, Math.min(SPEEDS.length - 1, i + dir))]);
     }
 
-    static void view(String name) {
-        if (status != null && name.equalsIgnoreCase(status.view())) return;
-        send("vue " + name);
+    /** Another file of the recording ("zone" or a player), same instant. False if there is no such file. */
+    public static boolean view(String name) {
+        if (status == null) return false;
+        String found = null;
+        for (String v : status.views()) if (v.equalsIgnoreCase(name)) found = v;
+        if (found == null) return false;
+        if (found.equalsIgnoreCase(status.view())) return true;
+        send("vue " + found);
         switchingUntil = System.currentTimeMillis() + 8_000;
+        ReplayBar.caption(found.equals("zone") ? "Zone de l'épreuve" : "Écran de " + found);
+        return true;
     }
 
-    static void close() {
+    public static void close() {
         send("close");
     }
 
-    /** The marker after (or before) the playback's time. */
-    static void marker(int dir) {
+    /** The marker after (or before) the playback's time; false if there is none. */
+    public static boolean marker(int dir) {
         long now = nowMs();
         Marker pick = null;
         for (Marker m : markers) {
@@ -210,14 +232,23 @@ public final class ReplayClient {
             // Backwards: a marker just passed (less than 2 s ago) is skipped, to be able to go further back
             if (dir < 0 && m.ms() < now - 2_000) pick = m;
         }
-        if (pick != null) seek(pick.ms());
-        else if (dir < 0) seek(0);
+        if (pick != null) {
+            seek(pick.ms());
+            ReplayBar.caption(pick.name());
+            return true;
+        }
+        if (dir < 0) {
+            seek(0);
+            ReplayBar.caption("Début");
+            return true;
+        }
+        return false;
     }
 
-    static void setMode(ReplayDirector.Mode m) {
+    public static void setMode(ReplayDirector.Mode m) {
         ReplayDirector.setMode(m);
         Broadcast.set(m != ReplayDirector.Mode.FREE);
-        lastInput = System.currentTimeMillis();
+        ReplayBar.caption("Réalisation : " + m.label);
     }
 
     // ---------------------------------------------------------------- keys
@@ -230,7 +261,6 @@ public final class ReplayClient {
                 // The replay starts: the broadcast camera shows the direction (what this game was doing comes back after)
                 broadcastBefore = Broadcast.active();
                 ReplayDirector.reset();
-                hidden = false;
                 lastInput = System.currentTimeMillis();
                 if (!broadcastBefore) Broadcast.set(true);
             } else {
@@ -247,8 +277,8 @@ public final class ReplayClient {
         }
         boolean shift = mc.hasShiftDown();
         while (PLAY_KEY.consumeClick()) togglePause();
-        while (BACK_KEY.consumeClick()) seek(nowMs() - (shift ? 30_000 : 5_000));
-        while (FORWARD_KEY.consumeClick()) seek(nowMs() + (shift ? 30_000 : 5_000));
+        while (BACK_KEY.consumeClick()) step(shift ? -30_000 : -5_000);
+        while (FORWARD_KEY.consumeClick()) step(shift ? 30_000 : 5_000);
         while (FASTER_KEY.consumeClick()) stepSpeed(1);
         while (SLOWER_KEY.consumeClick()) stepSpeed(-1);
         while (PREV_MARKER_KEY.consumeClick()) marker(-1);
@@ -257,7 +287,10 @@ public final class ReplayClient {
             ReplayDirector.Mode[] all = ReplayDirector.Mode.values();
             setMode(all[(ReplayDirector.mode().ordinal() + (shift ? all.length - 1 : 1)) % all.length]);
         }
-        while (HIDE_KEY.consumeClick()) hidden = !hidden;
+        while (HIDE_KEY.consumeClick()) {
+            hidden = !hidden;
+            if (!hidden) lastInput = System.currentTimeMillis();
+        }
         while (PANEL_KEY.consumeClick()) openPanel(mc);
     }
 
