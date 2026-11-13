@@ -63,6 +63,8 @@ public final class CraftMaster implements ModInitializer {
         Curtains.register();
         // Screen effects (fx/): post-processing of the view, wearable glasses and masks, /fx
         fr.lordfinn.craftmaster.fx.ScreenEffectsServer.register();
+        // Clips recorded in the game, videos and Twitch on the studio screens (media/): /cmtele, /cmclip, /cmchaine
+        fr.lordfinn.craftmaster.media.MediaServer.register();
 
         // Synced to the players' game (the mod is on both sides), so it parses the same way there
         ArgumentTypeRegistry.registerArgumentType(id("word"), WordArgument.class, SingletonArgumentInfo.contextFree(WordArgument::word));

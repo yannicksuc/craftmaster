@@ -37,6 +37,8 @@ import java.util.function.Supplier;
  * /round/next    starts the next round · /round/start?manche=pont · /round/end · /timer/stop
  * /publish       publishes the scores; press twice within 3 s (the first press only arms it) · /reveal/start too
  * /camera/cut?camera=2 · /camera/auto (?enabled=false)
+ * /clip/start · /clip/stop · /clip/toggle · /clip/status   in-game clip of this game's view (media/Clips)
+ * /tele?nom=gauche&amp;clip=dernier (or lien=URL, direct=Ensuri, image=URL, chat, off)   what a studio screen shows
  * /status       JSON: connected, organiser, open screen, season, undo / redo available
  * </pre>
  * Every answer is JSON {@code {"ok": true|false, ...}}; the game does the work on its own thread. Requests from a
@@ -258,6 +260,9 @@ public final class StreamDeckServer {
             case "/camera/auto" -> {
                 return send(action("camera.auto", "enabled", !"false".equals(query(uri, "enabled"))));
             }
+            case "/tele" -> {
+                return tele(uri);
+            }
             default -> {
                 return route(path, group);
             }
@@ -265,6 +270,7 @@ public final class StreamDeckServer {
     }
 
     private static JsonObject route(String path, String group) {
+        if (path.startsWith("/clip/")) return clip(path.substring("/clip/".length()));
         if (path.startsWith("/tablet/")) {
             String what = path.substring("/tablet/".length());
             if (!java.util.List.of("start", "pause", "toggle", "reset", "restart").contains(what)) return error("tablet: start, pause, toggle, reset, restart");
@@ -312,11 +318,62 @@ public final class StreamDeckServer {
             });
             default -> {
                 JsonObject o = error("unknown: " + path + " (menu, ranking, points, round/next, round/start, round/end, timer/stop, publish, reveal/start, "
-                        + "camera/cut, camera/auto, undo, redo, season/next, season/prev, tablet/<start|pause|toggle|reset|restart>, status)");
+                        + "camera/cut, camera/auto, tele, clip/<start|stop|toggle|status>, undo, redo, season/next, season/prev, tablet/<start|pause|toggle|reset|restart>, status)");
                 o.addProperty("code", 404);
                 yield o;
             }
         };
+    }
+
+    // ---------------------------------------------------------------- clips and studio screens
+
+    /** /clip/start, /clip/stop, /clip/toggle, /clip/status: the in-game clip of this game's view. */
+    private static JsonObject clip(String what) {
+        return onGame(() -> {
+            fr.lordfinn.craftmaster.client.media.Clips.Result r = switch (what) {
+                case "start" -> fr.lordfinn.craftmaster.client.media.Clips.start();
+                case "stop" -> fr.lordfinn.craftmaster.client.media.Clips.stop();
+                case "toggle" -> fr.lordfinn.craftmaster.client.media.Clips.toggle();
+                case "status" -> new fr.lordfinn.craftmaster.client.media.Clips.Result(true, fr.lordfinn.craftmaster.client.media.Clips.lastEvent());
+                default -> null;
+            };
+            if (r == null) return error("clip: start, stop, toggle, status");
+            JsonObject o = r.ok() ? ok() : error(r.message());
+            o.addProperty("message", r.message());
+            o.addProperty("recording", fr.lordfinn.craftmaster.client.media.Clips.recording());
+            o.addProperty("seconds", fr.lordfinn.craftmaster.client.media.Clips.elapsedMs() / 1000);
+            return o;
+        });
+    }
+
+    /**
+     * /tele?nom=gauche&amp;clip=dernier · &amp;lien=URL · &amp;direct=Ensuri · &amp;image=URL · &amp;off · &amp;chat (newest
+     * Twitch clip link from the chat): what a named studio screen shows (/cmtele on the server, which checks).
+     */
+    private static JsonObject tele(URI uri) {
+        String name = query(uri, "nom").isEmpty() ? query(uri, "tele") : query(uri, "nom");
+        if (!name.matches("[A-Za-z0-9_-]{1,32}")) return error("nom=<télé> needed (/cmtele liste)");
+        String q = uri.getRawQuery() == null ? "" : uri.getRawQuery();
+        String cmd;
+        if (!query(uri, "clip").isEmpty()) cmd = "clip " + query(uri, "clip").replaceAll("[^A-Za-z0-9-]", "");
+        else if (!query(uri, "lien").isEmpty()) cmd = "lien " + query(uri, "lien").replaceAll("\\s", "");
+        else if (!query(uri, "image").isEmpty()) cmd = "image " + query(uri, "image").replaceAll("\\s", "");
+        else if (!query(uri, "direct").isEmpty()) cmd = "direct " + query(uri, "direct").replaceAll("[^A-Za-z0-9_]", "");
+        else if (q.matches("(^|.*&)chat(=[^&]*)?(&.*|$)")) {
+            String link = fr.lordfinn.craftmaster.client.task.TwitchChat.lastClipLink();
+            if (link == null) return error("no Twitch clip link seen in the chat yet");
+            cmd = "lien " + link;
+        } else if (q.matches("(^|.*&)off(=[^&]*)?(&.*|$)")) cmd = "off";
+        else return error("tele: clip=… | lien=… | direct=… | image=… | chat | off");
+        String full = "cmtele " + name + " " + cmd;
+        return onGame(() -> {
+            Minecraft mc = Minecraft.getInstance();
+            if (!connected() || mc.player == null) return error("not connected");
+            mc.player.connection.sendCommand(full);
+            JsonObject o = ok();
+            o.addProperty("command", "/" + full);
+            return o;
+        });
     }
 
     private static boolean connected() {

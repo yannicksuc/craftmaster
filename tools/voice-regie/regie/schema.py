@@ -211,6 +211,17 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                 f("seconds", INT, doc="Durée en secondes ; absent = jusqu'à nouvel ordre.")]),
     "fx.clear": ("Enlève les effets d'écran (« enlève les effets »).",
                  [f("target", STR, doc="Absent = tout (diffusion et joueurs) ; sinon diffusion, tous, candidats ou un pseudo EXACT.")]),
+    # Studio screens and in-game clips (media/, docs/wiki/Clips.md)
+    "tele.show": ("Ce qu'affiche une télé nommée du studio : un clip enregistré en jeu (clip, « dernier » par défaut), "
+                  "un lien (clip Twitch, vidéo), le direct Twitch d'un candidat connecté (live), une image, ou la mire (off). "
+                  "Un seul de clip / link / live / image / off.",
+                  [f("tele", STR, True, "Nom de la télé (« gauche », « plateau »… ; « tout » = toutes les télés nommées)."),
+                   f("clip", STR, doc="Clip du serveur : « dernier », « avant-dernier », ou son numéro (1 = le plus ancien)."),
+                   f("link", STR, doc="Adresse web complète (https://clips.twitch.tv/…, vidéo…)."),
+                   f("live", STR, doc="Pseudo du candidat dont on montre le direct Twitch (sa chaîne liée), ou un nom de chaîne."),
+                   f("image", STR, doc="Adresse web d'une image."), f("off", BOOL, doc="true = remettre la mire.")]),
+    "clip.start": ("Démarre l'enregistrement d'un clip de la vue actuelle du jeu de LordFinn (« lance un clip », « clip ! »).", []),
+    "clip.stop": ("Arrête le clip en cours ; il est envoyé au serveur et devient le « dernier » clip (« coupe le clip »).", []),
     "say": ("Répond à LordFinn sans rien modifier : question, doute réel, ordre impossible ou incompris. "
             "Texte court en français.", [f("text", STR, True, "Réponse courte.")]),
 }
@@ -220,6 +231,7 @@ NO_SCOPE = {"say", "undo", "stopwatch.start", "stopwatch.stop", "stopwatch.reset
 NO_SCOPE |= {"spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off"}
 NO_SCOPE |= {"camera.path", "camera.focus", "camera.lieu", "camera.mosaic", "camera.pov"}
 NO_SCOPE |= {"fx.set", "fx.clear"}
+NO_SCOPE |= {"tele.show", "clip.start", "clip.stop"}
 SCOPE_FIELDS = [f("season", SCOPE, doc="Saison (id ou nom). Absent = saison active."),
                 f("partie", SCOPE, doc="Partie (id ou nom). Absent = partie active.")]
 

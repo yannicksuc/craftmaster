@@ -124,7 +124,9 @@ dégradé avec biseau. Chevalet de peintre en chêne : pieds derrière la tablet
 - Tenue en main, c'est un petit cadre « 25.7 » fixe : les chiffres vivants ne s'affichent que posée (à venir).
 
 ### `/image` : images sur les écrans
-Remplace le `/image <URL>` du plugin (qui passait par ImageFrame).
+Remplace le `/image <URL>` du plugin (qui passait par ImageFrame). Avec WaterMedia (modpack, 26.2), un écran passe
+aussi des vidéos, des clips Twitch, des directs et les clips enregistrés en jeu : écrans nommés et `/cmtele`, voir
+[Clips et télés](Clips.md).
 
 - `/image <URL> [largeur] [hauteur]` en **regardant un écran du studio** : il affiche l'image (et change de taille
   si on la donne). En regardant **un mur** : un nouvel écran y est accroché, centré sur le bloc visé, 5 × 3 par

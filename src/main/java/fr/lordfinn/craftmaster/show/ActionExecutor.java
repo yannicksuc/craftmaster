@@ -114,6 +114,18 @@ public final class ActionExecutor {
                 case "stop" -> fr.lordfinn.craftmaster.studio.Spotlights.stop(server);
                 default -> fr.lordfinn.craftmaster.studio.Spotlights.setLit(server, o.order().equals("on"));
             });
+            // Studio screens (media/): a clip, a Twitch link or live, a picture, the test card
+            case Actions.ScreenShow t -> {
+                fr.lordfinn.craftmaster.media.MediaServer.Kind kind = switch (t.kind()) {
+                    case "off" -> fr.lordfinn.craftmaster.media.MediaServer.Kind.OFF;
+                    case "direct" -> fr.lordfinn.craftmaster.media.MediaServer.Kind.LIVE;
+                    case "lien" -> fr.lordfinn.craftmaster.media.MediaServer.Kind.LINK;
+                    case "image" -> fr.lordfinn.craftmaster.media.MediaServer.Kind.IMAGE;
+                    default -> fr.lordfinn.craftmaster.media.MediaServer.Kind.CLIP;
+                };
+                var r = fr.lordfinn.craftmaster.media.MediaServer.show(server, t.tele(), kind, t.value());
+                if (!r.ok()) lines.add("⚠ " + r.message());
+            }
             case Actions.ScenePlaced s -> {
                 String error = StageControl.placeScene(server, s.name(), previousScene);
                 if (error != null) lines.add("⚠ " + error);

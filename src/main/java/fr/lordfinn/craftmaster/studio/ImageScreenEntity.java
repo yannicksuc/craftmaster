@@ -36,6 +36,10 @@ public class ImageScreenEntity extends Entity {
     private static final EntityDataAccessor<Integer> FACING = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.INT);
     /** True: the whole image, with bars if its shape differs; false: stretched to fill the screen. */
     private static final EntityDataAccessor<Boolean> FIT = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.BOOLEAN);
+    /** Name given by the organisers ("gauche", "plateau"...) to pick this screen from a command, the voice or the Stream Deck. */
+    private static final EntityDataAccessor<String> NAME = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.STRING);
+    /** Game time the address was set: a video starts there for everyone, someone arriving later joins it where it is. */
+    private static final EntityDataAccessor<Long> SHOWN_AT = SynchedEntityData.defineId(ImageScreenEntity.class, EntityDataSerializers.LONG);
 
     /** Thickness of the screen (blocks): it stands out of the wall like a flat TV. */
     public static final double DEPTH = 2 / 16.0;
@@ -77,19 +81,29 @@ public class ImageScreenEntity extends Entity {
         b.define(HEIGHT, ImageRequest.DEFAULT_HEIGHT);
         b.define(FACING, Direction.SOUTH.get2DDataValue());
         b.define(FIT, true);
+        b.define(NAME, "");
+        b.define(SHOWN_AT, -1L);
     }
 
     public String url() { return entityData.get(URL); }
     public int width() { return entityData.get(WIDTH); }
     public int height() { return entityData.get(HEIGHT); }
     public boolean fit() { return entityData.get(FIT); }
+    public String screenName() { return entityData.get(NAME); }
+    public long shownAt() { return entityData.get(SHOWN_AT); }
+
+    public void setScreenName(String name) {
+        entityData.set(NAME, name == null ? "" : name.strip());
+    }
 
     public Direction getFacing() {
         return Direction.from2DDataValue(entityData.get(FACING));
     }
 
+    /** New address; the same one again restarts its video from the beginning for everyone. */
     public void setUrl(String url) {
         entityData.set(URL, url == null ? "" : url.trim());
+        entityData.set(SHOWN_AT, level().getGameTime());
     }
 
     public void setFit(boolean fit) {
@@ -200,6 +214,7 @@ public class ImageScreenEntity extends Entity {
         entityData.set(WIDTH, ImageRequest.clamp(in.getIntOr("Width", ImageRequest.DEFAULT_WIDTH), ImageRequest.MAX_WIDTH));
         entityData.set(HEIGHT, ImageRequest.clamp(in.getIntOr("Height", ImageRequest.DEFAULT_HEIGHT), ImageRequest.MAX_HEIGHT));
         entityData.set(FIT, in.getBooleanOr("Fit", true));
+        entityData.set(NAME, in.getStringOr("Name", ""));
         setFacing(Direction.byName(in.getStringOr("Facing", "south")) instanceof Direction d ? d : Direction.SOUTH);
         refreshBox();
     }
@@ -210,6 +225,7 @@ public class ImageScreenEntity extends Entity {
         out.putInt("Width", width());
         out.putInt("Height", height());
         out.putBoolean("Fit", fit());
+        if (!screenName().isEmpty()) out.putString("Name", screenName());
         out.putString("Facing", getFacing().getSerializedName());
     }
 }

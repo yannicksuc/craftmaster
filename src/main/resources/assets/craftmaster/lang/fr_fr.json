@@ -6,6 +6,8 @@
   "entity.craftmaster.seat": "Siège",
   "key.category.craftmaster.main": "CraftMaster",
   "key.craftmaster.ranking": "Classement CraftMaster",
+  "key.craftmaster.clip_start": "Démarrer un clip (vue actuelle)",
+  "key.craftmaster.clip_stop": "Arrêter le clip",
   "message.craftmaster.chair_taken": "Quelqu'un est déjà assis ici",
   "message.craftmaster.remote_unlinked": "Clic droit sur un rideau pour lier la télécommande",
   "message.craftmaster.remote_lost": "Le rideau lié a disparu",

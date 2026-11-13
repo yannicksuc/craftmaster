@@ -167,6 +167,17 @@ Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`
 | `/tv spotlight <joueur> [raison]` | | « Tous les yeux sur lui » : la réalisation auto coupe dessus |
 | `/tv broadcast <joueur> <on\|off>` | | Active / coupe le mode diffusion de ce jeu à distance |
 
+## Clips et télés ([Clips](Clips.md), permission `craftmaster:image`)
+| Commande | Effet |
+|---|---|
+| `/cmtele nommer <nom>` | nomme l'écran du studio que tu regardes |
+| `/cmtele <nom> clip [n\|dernier]` · `lien <URL>` · `direct <joueur>` · `image <URL>` · `off` | ce que montre la télé (`tout` = toutes) |
+| `/cmtele liste` | les télés et ce qu'elles montrent |
+| `/cmclip liste` · `renommer <n> <nom>` · `supprimer <n>` | les clips gardés par le serveur |
+| `/cmchaine lier <joueur> <chaîne>` · `delier <joueur>` · `liste` | chaînes Twitch des candidats |
+| F9 / F10 (touches du jeu) | démarre / arrête le clip de la vue de ce jeu |
+| `/craftMasterTwitch clips` (commande du jeu) | liens de clips Twitch postés par le chat |
+
 ## Effets d'écran ([Effets](Effets.md))
 | Commande | Alias | Rôle |
 |---|---|---|

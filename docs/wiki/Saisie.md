@@ -65,6 +65,8 @@ Redémarrer le jeu après modification. `token` facultatif : s'il est rempli, aj
 | `/publish` · `/reveal/start` | Publier les scores · lancer la révélation : **deux appuis en 3 s** (le premier répond `"armed": true`) |
 | `/camera/cut?camera=2` · `/camera/auto` | Couper sur une caméra (numéro ou nom) · réalisation automatique (`?enabled=false` pour l'arrêter) |
 | `/tablet/start` · `/pause` · `/toggle` · `/reset` · `/restart` | Tablettes chrono (`?group=nom` : seulement ce groupe ; [Plateau](Plateau.md#tablette-chrono)) |
+| `/clip/start` · `/clip/stop` · `/clip/toggle` · `/clip/status` | Clip de la vue de ce jeu ([Clips](Clips.md)) |
+| `/tele?nom=gauche&clip=dernier` · `&lien=URL` · `&direct=Ensuri` · `&image=URL` · `&chat` · `&off` | Ce que montre une télé du studio ; `chat` = dernier clip Twitch posté par les viewers ([Clips](Clips.md)) |
 | `/status` | JSON : connecté, organisateur, écran ouvert, saison affichée, annulations / refaire possibles |
 
 Réponse toujours en JSON `{"ok": true}` ou `{"ok": false, "error": "…"}` (409 : pas connecté ou aucun écran ouvert,

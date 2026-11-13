@@ -94,6 +94,12 @@ public final class Actions {
     // Studio set (chantier F)
     /** Every loaded spotlight: {@code order} = follow (then {@code player}), stop, on or off. */
     public record SpotlightOrder(String order, String player) implements Effect {}
+
+    /**
+     * tele.show: what a named studio screen shows (media/MediaServer.show). {@code kind}: clip, lien, direct, image,
+     * off. Nothing in the data changes (no undo entry).
+     */
+    public record ScreenShow(String tele, String kind, String value) implements Effect {}
     /**
      * Screen effects (post-processing of the view, fx/): {@code target} = "diffusion", "tous", "candidats", "tout"
      * or an exact pseudo; {@code effect} canonical ("fisheye+masque_rond", "" = none); {@code seconds} 0 = until
@@ -127,6 +133,8 @@ public final class Actions {
             "task.set", "task.clear", "task.reveal", "task.hide", "task.show", "envelope.give", "task.reveal_more",
             // Studio set (chantier F)
             "spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off",
+            // Studio screens: clips, Twitch links and lives (media/)
+            "tele.show",
             // TV direction, lieux / travellings / intros (chantier E): no data change for these four
             "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu",
             // ... and the round intros, which are round data (undoable), and playing one
@@ -367,6 +375,8 @@ public final class Actions {
                 // Studio set (chantier F): world only, nothing in the data changes
                 case "spotlight.follow" -> spotlightFollow(a);
                 case "spotlight.stop", "spotlight.on", "spotlight.off" -> effects.add(new SpotlightOrder(type.substring("spotlight.".length()), null));
+                // Studio screens (media/): world only, nothing in the data changes
+                case "tele.show" -> teleShow(a);
                 // ---- round intros (chantier E, TV direction)
                 case "intro.set" -> introSet(a);
                 case "intro.shot.add" -> introShotAdd(a);
@@ -961,6 +971,22 @@ public final class Actions {
             for (String n : data.stage().curtains.keySet()) if (n.equalsIgnoreCase(name)) return n;
             throw new Invalid("rideau « " + name + " » inconnu (rideaux : "
                     + (data.stage().curtains.isEmpty() ? "aucun" : String.join(", ", data.stage().curtains.keySet())) + ").");
+        }
+
+        /**
+         * tele.show {tele, clip? | link? | live? | image? | off?}: one of the five (clip "dernier" when none is given);
+         * the screen's name and the rest are resolved in the world by media/MediaServer.
+         */
+        private void teleShow(Map<String, Object> a) {
+            String tele = required(a, "tele");
+            String kind, value = "";
+            if (Boolean.TRUE.equals(bool(a, "off"))) kind = "off";
+            else if (str(a, "live") != null) { kind = "direct"; value = str(a, "live"); }
+            else if (str(a, "link") != null) { kind = "lien"; value = str(a, "link"); }
+            else if (str(a, "image") != null) { kind = "image"; value = str(a, "image"); }
+            else { kind = "clip"; value = str(a, "clip") == null ? "dernier" : str(a, "clip"); }
+            effects.add(new ScreenShow(tele, kind, value));
+            line("Télé « " + tele + " » : " + kind + (value.isEmpty() ? "" : " " + value) + ".");
         }
 
         /**

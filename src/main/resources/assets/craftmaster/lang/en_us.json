@@ -6,6 +6,8 @@
   "entity.craftmaster.seat": "Seat",
   "key.category.craftmaster.main": "CraftMaster",
   "key.craftmaster.ranking": "CraftMaster ranking",
+  "key.craftmaster.clip_start": "Start a clip (current view)",
+  "key.craftmaster.clip_stop": "Stop the clip",
   "message.craftmaster.chair_taken": "Someone is already sitting here",
   "message.craftmaster.remote_unlinked": "Right-click a curtain to link this remote",
   "message.craftmaster.remote_lost": "The linked curtain is gone",

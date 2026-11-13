@@ -79,7 +79,33 @@ public final class TaskClient {
                         .then(ClientCommands.literal("test").executes(c -> {
                             TwitchChat.trigger("test");
                             return 1;
-                        })));
+                        }))
+                        // Twitch clip links posted in the chat: a click prepares /cmtele <tele> lien <link>
+                        .then(ClientCommands.literal("clips").executes(c -> {
+                            var links = TwitchChat.clipLinks();
+                            if (links.isEmpty()) {
+                                c.getSource().sendFeedback(Component.literal("Aucun lien de clip Twitch vu dans le chat.").withStyle(ChatFormatting.GRAY));
+                                return 0;
+                            }
+                            c.getSource().sendFeedback(Component.literal("Clips Twitch du chat (clic : /cmtele <tele> lien …) :").withStyle(ChatFormatting.GOLD));
+                            int i = 1;
+                            for (TwitchChat.ClipLink l : links) {
+                                String cmd = "/cmtele <tele> lien " + l.url();
+                                long ago = (System.currentTimeMillis() - l.at()) / 60_000;
+                                c.getSource().sendFeedback(Component.literal(" " + (i++) + ". ").withStyle(ChatFormatting.YELLOW)
+                                        .append(Component.literal(l.url()).withStyle(ChatFormatting.WHITE))
+                                        .append(Component.literal("  " + l.user() + ", il y a " + ago + " min").withStyle(ChatFormatting.GRAY))
+                                        .withStyle(st -> st.withClickEvent(new net.minecraft.network.chat.ClickEvent.SuggestCommand(cmd))));
+                            }
+                            return links.size();
+                        }))
+                        // As if a viewer had posted this message (checks the link detection without Twitch)
+                        .then(ClientCommands.literal("message").then(ClientCommands.argument("texte", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+                                .executes(c -> {
+                                    TwitchChat.clipLinks("test", com.mojang.brigadier.arguments.StringArgumentType.getString(c, "texte"));
+                                    c.getSource().sendFeedback(Component.literal("Liens de clips retenus : " + TwitchChat.clipLinks().size()).withStyle(ChatFormatting.GOLD));
+                                    return 1;
+                                }))));
         });
         TwitchChat.reload();
     }

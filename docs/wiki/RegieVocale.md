@@ -38,6 +38,8 @@ besoin de rien).
 | « générique », « générique de fin », « montre la tâche sur le stream », « montre les scores » | générique, habillage de la diffusion |
 | « la tâche du pont : construisez le pont le plus long… » / « ajoute à la tâche : … » | dicter la tâche ([Tâches](Taches.md)) |
 | « révèle la tâche » / « montre la tâche » / « donne les enveloppes » | révéler, carte à l'écran, enveloppes aux candidats |
+| « lance un clip » / « coupe le clip » | clip de la vue de ce jeu, enregistré puis envoyé au serveur ([Clips](Clips.md)) |
+| « mets le clip sur la télé de gauche » / « le direct d'Ensuri sur la télé plateau » / « éteins la télé de gauche » | télés du studio ([Clips](Clips.md)) |
 
 ## Ce qu'elle comprend
 - **Pseudos approximatifs** : surnoms (définis par joueur), fautes de transcription (« l'or fine » → LordFinn,

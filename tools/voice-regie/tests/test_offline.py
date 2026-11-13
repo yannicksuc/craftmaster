@@ -91,3 +91,12 @@ def test_offline_mode_is_opt_in(monkeypatch):
     # No key: Claude Code and the Claude subscription
     assert type(Regie(Settings(), transcriber=object()).understander).__name__ == "SubscriptionUnderstander"
     assert type(Regie(Settings(understanding="offline"), transcriber=object()).understander).__name__ == "OfflineUnderstander"
+
+
+def test_clips_and_screens(ctx):
+    def a(t):
+        return OfflineUnderstander().understand(ctx, t).actions
+    assert a("Lance un clip.") == [{"type": "clip.start"}]
+    assert a("Coupe le clip.") == [{"type": "clip.stop"}]
+    assert a("Mets le clip sur la télé de gauche.") == [{"type": "tele.show", "tele": "gauche", "clip": "dernier"}]
+    assert a("Mets le direct d'Ensuri sur la télé plateau.") == [{"type": "tele.show", "tele": "plateau", "live": "ensuri"}]

@@ -72,6 +72,17 @@ class OfflineUnderstander:
             return [{"type": "spotlight.on"}]
         if re.fullmatch(r"(?:les )?projecteurs? fixes?", text):
             return [{"type": "spotlight.stop"}]
+        # In-game clips and studio screens (media/)
+        if re.fullmatch(r"(?:lance|démarre|demarre|commence) (?:un |le )?clip|clip", text):
+            return [{"type": "clip.start"}]
+        if re.fullmatch(r"(?:coupe|arrête|arrete|stoppe|termine) (?:le )?clip", text):
+            return [{"type": "clip.stop"}]
+        m = re.fullmatch(r"(?:mets|montre|passe) (?:le )?(?:dernier )?clip sur (?:la )?(?:télé|tele|télévision) (?:de |du )?(?P<tele>[\w-]+)", text)
+        if m:
+            return [{"type": "tele.show", "tele": m.group("tele"), "clip": "dernier"}]
+        m = re.fullmatch(r"(?:mets|montre|passe) (?:le )?direct (?:de |d.)(?P<who>[\w-]+) sur (?:la )?(?:télé|tele) (?:de |du )?(?P<tele>[\w-]+)", text)
+        if m:
+            return [{"type": "tele.show", "tele": m.group("tele"), "live": m.group("who")}]
         # Screen effects: "passe la diffusion en noir et blanc", "mets Ensuri en flou", "enlève les effets"
         m = re.fullmatch(r"(?:enl[èe]v\w*|retir\w*|coupe\w*|plus d.|supprim\w*) (?:les |l.)?effets?"
                          r"(?: (?:de |du |sur |pour )(?P<who>.+))?", text)

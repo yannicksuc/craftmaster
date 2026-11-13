@@ -213,10 +213,24 @@ public final class VoiceRegie {
         }
         // "say" only talks: it is shown from the reply, the server has nothing to run for it
         String actions = RegieJson.withoutSay(r.actionsJson());
+        // The in-game clip records this game's view: run here, not on the server
+        List<String> local = new ArrayList<>();
+        for (String t : RegieJson.localTypes(actions)) {
+            var res = t.equals("clip.start") ? fr.lordfinn.craftmaster.client.media.Clips.start() : fr.lordfinn.craftmaster.client.media.Clips.stop();
+            local.add((res.ok() ? "" : "⚠ ") + res.message());
+        }
+        actions = RegieJson.withoutLocal(actions);
         if (actions.equals("[]")) {
-            show(r.warnings(), r.transcript(), true, r.reply().isBlank()
-                    ? Component.translatable("hud.craftmaster.regie.nothing_done").getString() : r.reply(), false);
+            List<String> lines = new ArrayList<>(r.warnings());
+            lines.addAll(local);
+            show(lines, r.transcript(), true, r.reply().isBlank()
+                    ? (local.isEmpty() ? Component.translatable("hud.craftmaster.regie.nothing_done").getString() : "") : r.reply(), false);
             return;
+        }
+        if (!local.isEmpty()) {
+            List<String> w = new ArrayList<>(r.warnings());
+            w.addAll(local);
+            r = new RegieService.Reply(r.transcript(), r.actionsJson(), r.actionCount(), r.reply(), w, r.error());
         }
         executingSince = System.currentTimeMillis();
         view = new View(Phase.EXECUTING, r.transcript(), r.reply(), r.warnings(), true, false, 0);

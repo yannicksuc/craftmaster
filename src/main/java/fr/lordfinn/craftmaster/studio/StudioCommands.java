@@ -167,7 +167,7 @@ public final class StudioCommands {
     }
 
     /** The studio screen the player looks at (nearest one hit by the view ray, through nothing solid). */
-    static Optional<ImageScreenEntity> lookedScreen(ServerPlayer player) {
+    public static Optional<ImageScreenEntity> lookedScreen(ServerPlayer player) {
         Vec3 eye = player.getEyePosition();
         Vec3 end = eye.add(player.getViewVector(1f).scale(REACH));
         double wall = lookedBlock(player).getLocation().distanceTo(eye);
