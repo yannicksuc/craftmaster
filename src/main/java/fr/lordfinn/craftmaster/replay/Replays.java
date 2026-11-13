@@ -101,6 +101,9 @@ public final class Replays {
         String lastManche;
         final Map<UUID, PlayerRec> players = new LinkedHashMap<>();
         final List<String> playerFolders = new ArrayList<>();
+        /** Server tick at each file's time 0 (folder → tick; the zone under ""), measured when its state goes in. */
+        final Map<String, Double> tick0 = new LinkedHashMap<>();
+        final Map<String, String> folderPlayer = new LinkedHashMap<>();
         final JsonArray markers = new JsonArray();
 
         Session(String key, String label, int season, int partie, int number, String mancheId) {
@@ -196,13 +199,39 @@ public final class Replays {
             state = Director.build(server);
             ServerReplayBridge.record(session.zone, new net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket(state));
             session.zoneNeedsState = false;
+            noteTick0(server, session, "", session.zone);
         }
         for (PlayerRec r : session.players.values()) {
             if (r.rec == null || !r.needsState || !ServerReplayBridge.ready(r.rec)) continue;
             if (state == null) state = Director.build(server);
             ServerReplayBridge.record(r.rec, new net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket(state));
+            addBossBars(server, r);
             r.needsState = false;
+            noteTick0(server, session, r.folder, r.rec);
         }
+    }
+
+    /**
+     * The boss bars this player sees already (round timer, stopwatches) go into their new file: it has their later
+     * updates but not their creation, which makes a game watching the file stop with an error.
+     */
+    private static void addBossBars(MinecraftServer server, PlayerRec r) {
+        ServerPlayer p = server.getPlayerList().getPlayerByName(r.name);
+        if (p == null) return;
+        List<net.minecraft.server.level.ServerBossEvent> bars = new ArrayList<>(fr.lordfinn.craftmaster.trial.Judging.bossBars());
+        if (fr.lordfinn.craftmaster.show.Show.timerBar() != null) bars.add(fr.lordfinn.craftmaster.show.Show.timerBar());
+        for (net.minecraft.server.level.ServerBossEvent b : bars)
+            if (b.isVisible() && b.getPlayers().contains(p))
+                ServerReplayBridge.record(r.rec, net.minecraft.network.protocol.game.ClientboundBossEventPacket.createAddPacket(b));
+    }
+
+    /**
+     * Notes which server tick the file's time 0 is: the files of one recording start a few tenths of a second
+     * apart, and the replay's timer and the switch from one file to another line up on the server's ticks.
+     */
+    private static void noteTick0(MinecraftServer server, Session ses, String folder, ServerReplayBridge.Recorder rec) {
+        long ms = ServerReplayBridge.recordingMs(rec);
+        if (ms >= 0) ses.tick0.put(folder, server.getTickCount() - ms / 50.0);
     }
 
     /** The recording the show calls for now, or null: "s1:p3:pont" (round) or "s1:p3" (game). */
@@ -353,6 +382,7 @@ public final class Replays {
                 if (rec == null) continue;
                 ses.players.put(pl.getUUID(), new PlayerRec(name, folder, rec));
                 if (!ses.playerFolders.contains(folder)) ses.playerFolders.add(folder);
+                ses.folderPlayer.put(folder, name);
             } catch (RuntimeException e) {
                 CraftMaster.LOG.error("[Replay] Enregistrement de {} impossible", name, e);
             }
@@ -457,7 +487,7 @@ public final class Replays {
     /** Appends this recording to {@code <recordings>/craftmaster.json} (folders, area, markers). */
     private static void writeIndex(Session ses) {
         try {
-            Path file = ServerReplayBridge.chunkFolder().toAbsolutePath().normalize().getParent().resolve("craftmaster.json");
+            Path file = indexFile();
             JsonArray all = new JsonArray();
             if (Files.exists(file)) {
                 try {
@@ -480,10 +510,19 @@ public final class Replays {
                 z.addProperty("world", ses.area.world());
                 z.addProperty("from", ses.area.fromX() + "," + ses.area.fromZ());
                 z.addProperty("to", ses.area.toX() + "," + ses.area.toZ());
+                Double t0 = ses.tick0.get("");
+                if (t0 != null) z.addProperty("tick0", Math.round(t0 * 100) / 100.0);
                 o.add("zone", z);
             }
             JsonArray players = new JsonArray();
-            for (String f : ses.playerFolders) players.add("players/" + f);
+            for (String f : ses.playerFolders) {
+                JsonObject pl = new JsonObject();
+                pl.addProperty("name", ses.folderPlayer.getOrDefault(f, f));
+                pl.addProperty("folder", "players/" + f);
+                Double t0 = ses.tick0.get(f);
+                if (t0 != null) pl.addProperty("tick0", Math.round(t0 * 100) / 100.0);
+                players.add(pl);
+            }
             o.add("players", players);
             o.add("markers", ses.markers);
             all.add(o);
@@ -492,6 +531,11 @@ public final class Replays {
         } catch (IOException | RuntimeException e) {
             CraftMaster.LOG.warn("[Replay] Index des replays non écrit : {}", e.toString());
         }
+    }
+
+    /** {@code <recordings>/craftmaster.json}: Server Replay's folders' parent. */
+    static Path indexFile() {
+        return ServerReplayBridge.chunkFolder().toAbsolutePath().normalize().getParent().resolve("craftmaster.json");
     }
 
     public static List<String> status() {

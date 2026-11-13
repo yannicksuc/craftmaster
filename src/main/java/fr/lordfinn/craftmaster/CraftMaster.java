@@ -60,6 +60,7 @@ public final class CraftMaster implements ModInitializer {
         Director.register();
         // Replays of the rounds with Server Replay, if installed (optional)
         fr.lordfinn.craftmaster.replay.Replays.register();
+        fr.lordfinn.craftmaster.replay.ReplayViewing.register();
         // Tasks, envelopes, hidden notes (chantier D)
         fr.lordfinn.craftmaster.task.Tasks.register();
         Curtains.register();

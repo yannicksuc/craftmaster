@@ -7,10 +7,16 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import fr.lordfinn.craftmaster.Permissions;
+import fr.lordfinn.craftmaster.replay.ReplayViewing;
 import fr.lordfinn.craftmaster.replay.Replays;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+
+import java.util.List;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -23,6 +29,7 @@ import static net.minecraft.commands.Commands.literal;
  *   <li>{@code /cmreplay start} / {@code stop} — by hand (the current round, else the active game)</li>
  *   <li>{@code /cmreplay joueurs on|off}, {@code zone on|off}, {@code marge <chunks>} — what is recorded</li>
  *   <li>{@code /cmreplay repere <texte>} — a marker on the timeline of the files being recorded</li>
+ *   <li>{@code /cmreplay voir [n [zone|joueur]]} — the recordings, newest first; watch one (Server Replay's viewer)</li>
  * </ul>
  * Reference: docs/wiki/Replays.md.
  */
@@ -59,11 +66,42 @@ public final class ReplayCommands {
                     Replays.save();
                     return say(c, "Marge autour de la zone : " + Replays.settings().margin + " chunk(s).");
                 })))
+                .then(literal("voir").executes(ReplayCommands::list)
+                        .then(argument("n", IntegerArgumentType.integer(1)).executes(c -> watch(c, null))
+                                .then(argument("vue", StringArgumentType.greedyString()).executes(c -> watch(c, StringArgumentType.getString(c, "vue"))))))
                 .then(literal("repere").then(argument("texte", StringArgumentType.greedyString()).executes(c -> {
                     if (!Replays.recording()) return say(c, "Aucun enregistrement en cours.");
                     Replays.marker(StringArgumentType.getString(c, "texte"), 0xFFFFFF);
                     return say(c, "Repère posé.");
                 })));
+    }
+
+    private static int watch(CommandContext<CommandSourceStack> c, String view) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        String msg = ReplayViewing.watch(c.getSource().getPlayerOrException(), IntegerArgumentType.getInteger(c, "n"), view);
+        c.getSource().sendSuccess(() -> Component.literal(msg).withStyle(msg.startsWith("Replay :") ? ChatFormatting.GREEN : ChatFormatting.RED), false);
+        return 1;
+    }
+
+    /** The recordings of the index, newest first, each with a link per file (zone, players). */
+    private static int list(CommandContext<CommandSourceStack> c) {
+        List<ReplayViewing.Entry> all = ReplayViewing.entries();
+        if (all.isEmpty()) return say(c, Replays.available() ? "Aucun enregistrement dans l'index." : "Server Replay n'est pas installé sur ce serveur.");
+        c.getSource().sendSuccess(() -> Component.literal("Replays (clic pour regarder, la barre de lecture en bas ; F8 : la réalisation) :").withStyle(ChatFormatting.GOLD), false);
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM HH:mm").withZone(java.time.ZoneId.systemDefault());
+        for (int i = 0; i < Math.min(all.size(), 15); i++) {
+            ReplayViewing.Entry e = all.get(i);
+            int n = i + 1;
+            MutableComponent line = Component.literal(n + ". ").withStyle(ChatFormatting.GRAY)
+                    .append(Component.literal(e.label()).withStyle(ChatFormatting.WHITE))
+                    .append(Component.literal(" · " + fmt.format(e.started()) + " · " + e.seconds() / 60 + ":" + String.format("%02d", e.seconds() % 60) + " ").withStyle(ChatFormatting.GRAY));
+            for (ReplayViewing.View v : e.views()) {
+                String cmd = "/craftMasterReplay voir " + n + " " + v.name();
+                line.append(Component.literal("[" + v.name() + "] ").withStyle(s -> s.withColor(v.name().equals("zone") ? ChatFormatting.AQUA : ChatFormatting.YELLOW)
+                        .withClickEvent(new ClickEvent.RunCommand(cmd)).withHoverEvent(new HoverEvent.ShowText(Component.literal(cmd)))));
+            }
+            c.getSource().sendSuccess(() -> line, false);
+        }
+        return 1;
     }
 
     private static int mode(CommandContext<CommandSourceStack> c, String mode) {

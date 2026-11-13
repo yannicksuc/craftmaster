@@ -169,7 +169,9 @@ Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`
 
 ## Replays (admin, [Replays](Replays.md))
 - `/craftMasterReplay` (`/cmreplay`) : état ; `mode manche|partie|off`, `start`, `stop`, `joueurs on|off`, `zone on|off`,
-  `marge <n>`, `repere <texte>`. Il faut Server Replay sur le serveur.
+  `marge <n>`, `repere <texte>`, `voir [<n> [zone|joueur]]` (regarder un enregistrement). Il faut Server Replay sur le
+  serveur.
+- `/cmbarre` (sur le jeu, pendant un replay) : la barre de lecture à la souris (comme la touche M).
 
 ## Effets d'écran ([Effets](Effets.md))
 | Commande | Alias | Rôle |

@@ -11,6 +11,9 @@ import net.minecraft.world.phys.Vec3;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -183,6 +186,223 @@ public final class ServerReplayBridge {
         } catch (ReflectiveOperationException e) {
             CraftMaster.LOG.warn("[Replay] Repère non enregistré : {}", e.toString());
         }
+    }
+
+    /** How long this recording has run (ms, pauses excluded): the time a packet recorded now gets in the file. */
+    public static long recordingMs(Recorder r) {
+        try {
+            if (recordingLength == null) recordingLength = r.handle().getClass().getMethod("getRecordingLength-UwyO8pc");
+            return durationMs((long) recordingLength.invoke(r.handle()));
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return -1;
+        }
+    }
+
+    private static Method recordingLength;
+
+    // ---------------------------------------------------------------- the viewer (/replay view)
+
+    /** One replay being watched (an Arcade {@code ReplayViewer}). */
+    public record Viewer(Object handle) {}
+
+    /** A marker read from the file being watched. */
+    public record FileMarker(String name, long ms, int color) {}
+
+    private static Boolean viewerLinked;
+    private static Method vHideProgress;
+    private static Method vCreate, vAll, vStart, vClose, vPlayer, vPaused, vSpeed, vSetSpeed, vSetPaused, vJump, vMarkers;
+    private static Method mName, mTime, mColor, rDuration, sendDirect;
+    private static java.lang.reflect.Field vProgress, vReader;
+    private static Object viewerDispatcher;
+
+    /** Server Replay's viewer is there and its API is the one this class knows. Checked once. */
+    public static boolean viewerAvailable() {
+        if (viewerLinked == null) viewerLinked = available() && linkViewer();
+        return viewerLinked;
+    }
+
+    private static boolean linkViewer() {
+        try {
+            ClassLoader cl = ServerReplayBridge.class.getClassLoader();
+            Class<?> viewers = Class.forName("net.casual.arcade.replay.viewer.ReplayViewers", true, cl);
+            Class<?> viewer = Class.forName("net.casual.arcade.replay.viewer.ReplayViewer", true, cl);
+            Class<?> marker = Class.forName("net.casual.arcade.replay.util.ReplayMarker", true, cl);
+            Class<?> reader = Class.forName("net.casual.arcade.replay.io.reader.ReplayReader", true, cl);
+            Class<?> commands = Class.forName("net.casual.arcade.replay.viewer.ReplayViewerCommands", true, cl);
+            Class<?> viewable = Class.forName("net.casual.arcade.replay.ducks.ReplayViewable", true, cl);
+            vCreate = viewers.getMethod("create", Path.class, ServerPlayer.class);
+            vAll = viewers.getMethod("viewers");
+            vStart = viewer.getMethod("start");
+            // stop(), as /replay view close: close() alone leaves the player off the server and the replay's things on their screen
+            vClose = viewer.getMethod("stop");
+            vPlayer = viewer.getMethod("getPlayer");
+            vPaused = viewer.getMethod("getPaused");
+            vSpeed = viewer.getMethod("getSpeedMultiplier");
+            vSetSpeed = viewer.getMethod("setSpeed", float.class);
+            vSetPaused = viewer.getMethod("setPaused", boolean.class);
+            vJump = viewer.getMethod("jumpTo-LRDsOJo", long.class);
+            vMarkers = viewer.getMethod("getMarkers");
+            vHideProgress = viewer.getMethod("hideProgress");
+            vProgress = viewer.getDeclaredField("progress");
+            vProgress.setAccessible(true);
+            vReader = viewer.getDeclaredField("reader");
+            vReader.setAccessible(true);
+            rDuration = reader.getMethod("getDuration-UwyO8pc");
+            mName = marker.getMethod("getName");
+            mTime = marker.getMethod("getTimestamp-UwyO8pc");
+            mColor = marker.getMethod("getColor");
+            sendDirect = viewable.getMethod("arcade_sendReplayViewerPacket", Packet.class);
+            java.lang.reflect.Field d = commands.getDeclaredField("dispatcher");
+            d.setAccessible(true);
+            viewerDispatcher = d.get(null);
+            return true;
+        } catch (ReflectiveOperationException | LinkageError | RuntimeException e) {
+            CraftMaster.LOG.warn("[Replay] Lecteur de Server Replay non reconnu : pas de barre de lecture CraftMaster ({})", e.toString());
+            return false;
+        }
+    }
+
+    /**
+     * The command tree Server Replay's viewer runs while a replay plays (the only commands that reach the server
+     * then); CraftMaster adds its {@code /replay view cm …} to it. Null without the viewer.
+     */
+    @SuppressWarnings("unchecked")
+    public static com.mojang.brigadier.CommandDispatcher<net.minecraft.commands.CommandSourceStack> viewerCommands() {
+        return viewerAvailable() ? (com.mojang.brigadier.CommandDispatcher<net.minecraft.commands.CommandSourceStack>) viewerDispatcher : null;
+    }
+
+    /** Plays this file to this player (who leaves the world until {@link #close}); null if it failed. */
+    public static Viewer view(Path file, ServerPlayer player) {
+        try {
+            Object v = vCreate.invoke(null, file, player);
+            if (v == null) return null;
+            vStart.invoke(v);
+            return new Viewer(v);
+        } catch (ReflectiveOperationException e) {
+            throw wrap(e);
+        }
+    }
+
+    /** Every replay being watched now. */
+    public static List<Viewer> viewers() {
+        List<Viewer> out = new ArrayList<>();
+        if (!viewerAvailable()) return out;
+        try {
+            for (Object v : (Collection<?>) vAll.invoke(null)) out.add(new Viewer(v));
+        } catch (ReflectiveOperationException e) {
+            CraftMaster.LOG.warn("[Replay] Lecteurs illisibles : {}", e.toString());
+        }
+        return out;
+    }
+
+    public static Viewer viewerOf(ServerPlayer player) {
+        for (Viewer v : viewers()) if (player.equals(player(v))) return v;
+        return null;
+    }
+
+    public static ServerPlayer player(Viewer v) {
+        try {
+            return (ServerPlayer) vPlayer.invoke(v.handle());
+        } catch (ReflectiveOperationException e) {
+            return null;
+        }
+    }
+
+    /** Position in the file (ms): the time of the last packet played. */
+    public static long progressMs(Viewer v) {
+        try {
+            return durationMs(vProgress.getLong(v.handle()));
+        } catch (ReflectiveOperationException e) {
+            return 0;
+        }
+    }
+
+    public static long durationMs(Viewer v) {
+        try {
+            return durationMs((long) rDuration.invoke(vReader.get(v.handle())));
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return 0;
+        }
+    }
+
+    public static boolean paused(Viewer v) {
+        try {
+            return (boolean) vPaused.invoke(v.handle());
+        } catch (ReflectiveOperationException e) {
+            return false;
+        }
+    }
+
+    public static float speed(Viewer v) {
+        try {
+            return (float) vSpeed.invoke(v.handle());
+        } catch (ReflectiveOperationException e) {
+            return 1;
+        }
+    }
+
+    public static void setSpeed(Viewer v, float speed) {
+        call(vSetSpeed, v, speed);
+    }
+
+    public static void setPaused(Viewer v, boolean paused) {
+        call(vSetPaused, v, paused);
+    }
+
+    /** Goes to {@code ms} in the file (backwards: the viewer replays from the start, quickly). */
+    public static boolean jumpTo(Viewer v, long ms) {
+        try {
+            return (boolean) vJump.invoke(v.handle(), Math.max(0, ms) * 1_000_000L << 1);
+        } catch (ReflectiveOperationException e) {
+            CraftMaster.LOG.warn("[Replay] Saut impossible : {}", e.toString());
+            return false;
+        }
+    }
+
+    /** Hides the viewer's own progress bar (a boss bar): CraftMaster's bar replaces it. */
+    public static void hideProgress(Viewer v) {
+        call(vHideProgress, v);
+    }
+
+    /** Stops watching: the player comes back to the server's world. */
+    public static void close(Viewer v) {
+        call(vClose, v);
+    }
+
+    public static List<FileMarker> markers(Viewer v) {
+        List<FileMarker> out = new ArrayList<>();
+        try {
+            for (Object m : (List<?>) vMarkers.invoke(v.handle()))
+                out.add(new FileMarker((String) mName.invoke(m), durationMs((long) mTime.invoke(m)), (int) mColor.invoke(m)));
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            // A file without markers, or unreadable ones: the bar just has none
+        }
+        out.sort(java.util.Comparator.comparingLong(FileMarker::ms));
+        return out;
+    }
+
+    /** Sends a packet to the player watching, past the viewer's filter (which drops what the real world sends). */
+    public static void sendToViewer(Viewer v, Packet<?> packet) {
+        ServerPlayer p = player(v);
+        if (p == null) return;
+        try {
+            sendDirect.invoke(p.connection, packet);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            // Not viewing any more (closed this tick)
+        }
+    }
+
+    private static void call(Method m, Viewer v, Object... args) {
+        try {
+            m.invoke(v.handle(), args);
+        } catch (ReflectiveOperationException e) {
+            CraftMaster.LOG.warn("[Replay] {} : {}", m.getName(), e.toString());
+        }
+    }
+
+    /** A Kotlin {@code Duration} (an inline class: a long, nanoseconds or, with the low bit set, milliseconds) in ms. */
+    static long durationMs(long raw) {
+        return (raw & 1) == 0 ? (raw >> 1) / 1_000_000L : raw >> 1;
     }
 
     private static RuntimeException wrap(ReflectiveOperationException e) {

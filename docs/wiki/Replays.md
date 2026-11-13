@@ -40,13 +40,54 @@ Dans les dossiers de Server Replay (`recordings/` du serveur par défaut), un do
 Format ReplayMod (`.mcpr`) par défaut ; le format se change dans la configuration de Server Replay
 (`config/server-replay/config.json`, `default_encoding`), comme les dossiers, les paquets ignorés, la taille maximale.
 
-## Regarder
-- **Sur le serveur, sans rien installer** : `/replay view chunks cm-s1-p3-m2-le-pont <date-heure>` (ou `players …`)
-  rejoue le fichier dans ton jeu (`/replay view pause`, `unpause`, `speed 2`, `restart`, `close`). Avec CraftMaster
-  sur ton jeu, **F8** (mode diffusion) montre l'habillage et les plans choisis en direct, tels qu'ils étaient.
-- **ReplayMod** : copier le `.mcpr` dans `replay_recordings/` du jeu. Les repères apparaissent sur sa timeline.
-- Flashback lit aussi ces fichiers si on choisit son format, mais son FFmpeg casse WaterMedia (écrans vidéo du
-  studio) : pas les deux dans le même jeu.
+## Regarder (la régie de replay)
+Sur le serveur qui a les fichiers, sans rien installer de plus chez le joueur : `/cmreplay voir` liste les
+enregistrements (le plus récent en premier), un clic sur `[zone]` ou sur un candidat lance la lecture
+(`/cmreplay voir <n> [zone|joueur]` à la main). Le lecteur est celui de Server Replay : pendant la lecture tu sors du
+monde réel, tu n'y reviens qu'à la fermeture.
+
+Avec CraftMaster sur ton jeu, le replay passe en **mode diffusion** et une **barre de lecture** s'affiche en bas
+(lecture / pause, temps, vitesse, ce que tu regardes, qui réalise, et la timeline avec les repères en couleur). Elle
+reste à la même place quel que soit le plan ou le fichier ; en mode diffusion elle s'efface au bout de 4 s sans
+toucher au replay (sauf en pause), **H** la cache.
+
+| Touche | Effet |
+|---|---|
+| **B** | Lecture / pause |
+| **←** **→** | 5 s en arrière / en avant (Maj : 30 s) |
+| **↑** **↓** | Plus vite / moins vite (×0,25 à ×8) |
+| **Page préc.** / **Page suiv.** | Repère précédent / suivant |
+| **G** | Réalisation : Direct → Auto → Manuel → Libre |
+| **1–9**, molette | Caméra du lieu (passe en Manuel) |
+| **0** | Plan large |
+| **Tab** (Maj+Tab) | Suivre le candidat suivant (le voir par ses yeux) |
+| **M** ou `/cmbarre` | Le panneau à la souris : clic sur la timeline pour sauter, survol d'un repère pour son nom, boutons pour tout le reste, dont **changer de fichier** |
+
+Les touches sont dans les contrôles, catégorie CraftMaster.
+
+**Qui réalise** :
+- **Direct** (par défaut) : les plans choisis en direct, tels qu'enregistrés (coupes, suivis, transitions,
+  habillage). Là où le direct n'avait pas de plan, la réalisation auto.
+- **Auto** : recalculée à partir des repères, comme la réalisation automatique du direct : qui marque est suivi 7 s,
+  qui est sous le projecteur (enveloppe, buzzer, projecteur) 9 s, sinon le plan large.
+- **Manuel** : tes touches, sur ce jeu seulement.
+- **Libre** : ta propre caméra de spectateur (mode diffusion coupé).
+
+**Changer de fichier** (panneau, « Fichier ») : la zone, ou ce que le jeu d'un candidat a reçu (sa vue, son
+interface). Le fichier est rouvert **au même instant** : les fichiers d'un enregistrement démarrent à quelques
+dixièmes de seconde d'écart, CraftMaster note le tick de départ de chacun dans l'index et recale. La pause et la
+vitesse sont gardées. Il faut 2 à 4 s (le monde est rechargé).
+
+**Le chrono** du bandeau est celui du direct, à la seconde, à toute vitesse et après un saut (calculé sur les ticks
+du serveur). Pour les enregistrements faits avant le 13/11/2026 (sans tick de départ dans l'index), il est compté
+sur l'horloge du replay : juste à vitesse normale, approximatif après un saut.
+
+Sans CraftMaster chez celui qui regarde, la lecture marche quand même (commandes de Server Replay :
+`/replay view pause`, `unpause`, `speed 2`, `restart`, `close`), sans barre ni réalisation.
+
+**ReplayMod** : copier le `.mcpr` dans `replay_recordings/` du jeu. Les repères apparaissent sur sa timeline (sans
+leurs couleurs : le format n'en garde pas). Flashback lit aussi ces fichiers si on choisit son format, mais son FFmpeg
+casse WaterMedia (écrans vidéo du studio) : pas les deux dans le même jeu.
 
 ## Commandes (`/craftMasterReplay`, alias `/cmreplay`, organisateurs)
 | Commande | Effet |
@@ -57,13 +98,22 @@ Format ReplayMod (`.mcpr`) par défaut ; le format se change dans la configurati
 | `/cmreplay joueurs on\|off` · `zone on\|off` | Un fichier par candidat / pour la zone (défaut : les deux) |
 | `/cmreplay marge <0..8>` | Chunks ajoutés autour de la zone |
 | `/cmreplay repere <texte>` | Un repère maintenant, dans tous les fichiers en cours |
+| `/cmreplay voir` · `voir <n> [zone\|joueur]` | Les enregistrements ; en regarder un (barre de lecture, voir plus haut) |
 
 Réglages : `config/craftmaster/replays.json`.
 
 ## Limites connues
-- Les fichiers des joueurs et de la zone démarrent au même tick, mais leur temps 0 peut différer de quelques
-  dixièmes de seconde.
-- Un fichier joueur pèse environ 4 Mo pour 30 s (le monde à la distance de vue au départ) ; la zone, bien moins.
+- **La taille** : un fichier joueur fait environ 0,3 Mo sur le disque pour 30 s (4 Mo une fois décompressé), presque
+  tout pour le monde envoyé au départ (la distance de vue) ; ensuite il grossit peu. La zone : moins de 0,1 Mo.
+- **Les caméras** ne montrent que ce qui est dans le fichier : une caméra qui filme hors de la zone enregistrée (le
+  studio pendant une manche dehors) ne voit que le ciel. Agrandir la zone : `/cmreplay marge`.
+- **Revenir en arrière** recharge le fichier (2 à 4 s) : c'est le lecteur de Server Replay qui repart du début.
+- Le lecteur retire le joueur de la liste du serveur pendant la lecture : un serveur où il est seul se croit vide
+  (« Server empty… pausing » au bout d'une minute) ; la lecture et la barre continuent quand même.
 - Server Replay ne garde dans la zone que ce que le serveur envoie à tout le monde : barres de boss propres à un
-  joueur, titres envoyés à un seul joueur… ne sont que dans le fichier de ce joueur.
-- Le chrono du bandeau, rejoué, se recale sur l'heure du replay : sa justesse n'a pas encore été mesurée.
+  joueur (le chrono), titres envoyés à un seul joueur… ne sont que dans le fichier de ce joueur.
+- Un joueur qui se déconnecte en pleine manche a deux fichiers dans son dossier : la régie ouvre celui qui finit le
+  plus près de la fin de l'enregistrement.
+- Des barres de boss enregistrées sans leur création (un fichier joueur commencé pendant le chrono) faisaient planter
+  le jeu de celui qui regarde : CraftMaster les ignore maintenant de son côté, et écrit leur création au début des
+  nouveaux fichiers.
