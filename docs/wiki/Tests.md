@@ -398,3 +398,19 @@ du studio (sépia, noir et blanc, vignette) sur le thème, `rythme theme`, `auto
 - `/tv intro <m> voir` donne « 3,2 s (6 temps) » par plan.
 Pas vérifié : un joueur sans le mod (cécité + titre), plusieurs joueurs et plusieurs points de TP, le son des
 touches de la machine à écrire et le calage à l'oreille sur le thème.
+
+## 9. Portes de garage et WorldEdit (vérifié en jeu sur 26.2 le 13/11/2026)
+Serveur `:26.2:runServer` (jeu 25931, RCON 25932) avec WorldEdit 7.4.5 dans `run-server-26.2/mods/` + client
+LordFinn `scripts\dev-client.ps1 -Version 26.2 -Server localhost:25931` (pont MCP 25971). Porte de 3 × 3 en béton
+rouge entre deux piliers de quartz, moteur au milieu du linteau.
+- Détection : « Porte trouvée : 3 × 3 (9 blocs) » ; glissement continu et adouci, chaque rangée rentre dans le
+  linteau (captures à 0,6 et 1,2 s par bloc) ; même teinte et même ombrage que les vrais blocs.
+- Joueur dans l'embrasure à la fermeture : poussé hors du plan juste avant l'arrivée du panneau (z 5,6 → 6,4).
+- Bouton sur un pilier : ouvre et la porte reste ouverte ; levier : ferme, le couper (> 2 s) rouvre.
+- `/cfga nom`, `/cfga porte atelier close`, Stream Deck `/garage/toggle?name=atelier` et `/garage/close`.
+- Moteur camouflé en quartz : invisible dans le linteau.
+- Serveur arrêté en pleine ouverture : au redémarrage la porte finit de s'ouvrir, plus aucune barrière.
+- WorldEdit : `/cfwe` montre la session « neighbors off, update off » dès la connexion ; `//set sand` en l'air laisse
+  le sable flotter (un bloc posé à côté le fait tomber, comme prévu).
+- Non vérifié : client 26.3 en jeu (compilé et testé unitairement), deux joueurs, très grande porte, `/cfwe perf on`
+  suivi d'une reconnexion.

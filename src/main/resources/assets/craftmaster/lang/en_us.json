@@ -757,5 +757,6 @@
   "screen.craftmaster.tablet.pose.wall": "On the wall",
   "screen.craftmaster.tablet.tilt": "Easel tilt",
   "screen.craftmaster.tablet.wall": "Hung on a wall (place it on another face to change)",
-  "screen.craftmaster.tablet.pose_hint": "Placing: on a wall = hung, on the ground = standing, sneaking = flat. Facing you, 16 directions."
+  "screen.craftmaster.tablet.pose_hint": "Placing: on a wall = hung, on the ground = standing, sneaking = flat. Facing you, 16 directions.",
+  "block.craftmaster.garage_door_motor": "Garage Door Motor"
 }

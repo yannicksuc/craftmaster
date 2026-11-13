@@ -62,6 +62,11 @@ class OfflineUnderstander:
             return [{"type": "curtain.open"}]
         if re.search(r"\bferm\w* (les |le )?rideaux?\b", text):
             return [{"type": "curtain.close"}]
+        # Garage doors: « ouvre / ferme la porte (du garage) »
+        if re.search(r"\bouvr\w* (la |les )?portes? (du |de |de la )?garage\b", text):
+            return [{"type": "garage.open"}]
+        if re.search(r"\bferm\w* (la |les )?portes? (du |de |de la )?garage\b", text):
+            return [{"type": "garage.close"}]
         # Studio spotlights (chantier F)
         m = re.fullmatch(r"(?:les )?(?:projecteurs?|lumières?|lumiere) sur (?P<player>.+)", text)
         if m:

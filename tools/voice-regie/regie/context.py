@@ -8,7 +8,7 @@ Expected shape (every key optional, see docs/design/emission.md section 4 "Conte
   players[{pseudo, aliases[], online, archived}]  (players of the active season),
   currentManche (id), currentMancheStartedAt (ms), lastScoreAt (ms), lastScoreManche (id),
   scores{live{manche id: {pseudo: int}}, published{...}}, totals{live{pseudo: int}, published{...}},
-  curtains[names], scenes[names], recentActions[strings or {text}]
+  curtains[names], scenes[names], garages[names], recentActions[strings or {text}]
 """
 from __future__ import annotations
 
@@ -90,6 +90,7 @@ class ShowContext:
         self.totals_published = totals.get("published") if isinstance(totals.get("published"), dict) else {}
         self.curtains = [str(c) for c in _as_list(r.get("curtains"))]
         self.scenes = [str(s) for s in _as_list(r.get("scenes"))]
+        self.garages = [str(g) for g in _as_list(r.get("garages"))]
         # TV direction (chantier E): [{number, name, role}], what is on air
         self.cameras = [c for c in _as_list(r.get("cameras")) if isinstance(c, dict)]
         self.on_air = str(r.get("onAir") or "none")
@@ -273,6 +274,8 @@ class ShowContext:
             out.extend(others)
         out.append("Rideaux : " + (", ".join(self.curtains) if self.curtains else "stage (défaut)"))
         out.append("Décors : " + (", ".join(self.scenes) if self.scenes else "aucun"))
+        if self.garages:
+            out.append("Portes de garage : " + ", ".join(self.garages))
         if self.cameras:
             focus = self.camera_focus
             here = [c for c in self.cameras if str(c.get("key", "")).rsplit(":", 1)[0] == focus] if any("key" in c for c in self.cameras) else self.cameras

@@ -61,6 +61,9 @@ public final class CraftMaster implements ModInitializer {
         // Tasks, envelopes, hidden notes (chantier D)
         fr.lordfinn.craftmaster.task.Tasks.register();
         Curtains.register();
+        // Garage doors that slide up into the lintel (garage/), WorldEdit without block updates at login (compat/)
+        fr.lordfinn.craftmaster.garage.GarageDoors.register();
+        fr.lordfinn.craftmaster.compat.WorldEditPerf.register();
         // Screen effects (fx/): post-processing of the view, wearable glasses and masks, /fx
         fr.lordfinn.craftmaster.fx.ScreenEffectsServer.register();
 

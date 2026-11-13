@@ -33,6 +33,9 @@ public final class CraftMasterClient implements ClientModInitializer {
         // Studio set (chantier F)
         fr.lordfinn.craftmaster.client.studio.StudioClient.init();
         CurtainClient.init();
+        // Garage doors: the panel sliding up into the lintel, the camouflaged motor
+        net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry.register(fr.lordfinn.craftmaster.garage.GarageDoors.MOTOR_BE,
+                fr.lordfinn.craftmaster.client.garage.GarageMotorRenderer::new);
         // Dev environment only: scripted mouse / keys for testing screens (docs/wiki/Tests.md)
         DevInput.init();
         KeyMappingHelper.registerKeyMapping(RANKING_KEY);

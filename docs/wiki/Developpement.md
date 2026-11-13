@@ -96,6 +96,12 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
   curtain/Curtains        animation d'ouverture / fermeture (file d'attente par tick), paquet de glissement
   curtain/CurtainCloth    forme du tissu pendant le glissement (plis, paquets sur les côtés, adoucissement), pur
   curtain/CurtainBlockEntity  bloc-entité vide : le client dessine le tissu (CurtainNetwork : paquet curtain_slide)
+  garage/GarageDoors      moteur de porte de garage (bloc, bloc-entité), portes nommées (garages.json), /cfga
+  garage/GarageMotorBlockEntity  panneau gardé, mouvement, barrières libérées rangée par rangée, joueurs poussés,
+                          redstone (impulsion = bascule, signal tenu), camouflage ; synchronisé aux clients
+  garage/GaragePanel      détection du panneau (même bloc que sous le moteur, plan le plus large) ou zone donnée
+  garage/GarageMotion     mouvement adouci, part visible de chaque bloc sous le linteau, cases libres : pur, testé
+  compat/WorldEditPerf    WorldEdit sans voisins ni mises à jour à la connexion (réflexion, worldedit.json, /cfwe)
   block/                  ChairBlock, CurtainBlock, Shapes4 (formes tournées dans les 4 sens)
   entity/SeatEntity       l'entité invisible sur laquelle on s'assoit
   item/CurtainRemoteItem  la télécommande
@@ -143,6 +149,7 @@ src/client/java/…/client/                   client uniquement (jamais chargé 
                           (skin du joueur ou image téléchargée, HD, cape), PortraitScreen (réglages),
                           PoseEditorScreen (aperçu 3D dessiné par PortraitRenderer, gestes, raccourcis)
   curtain/                CurtainClient (forme de chaque rideau, glissements en cours), CurtainRenderer (le tissu)
+  garage/GarageMotorRenderer  la porte qui glisse (blocs dessinés comme poussés par un piston), moteur camouflé
   DevInput                dev uniquement : clics / touches lus dans run/dev-input.txt pour tester les écrans
 src/main/resources/                         fabric.mod.json, mixins, assets et data (générés)
 src/test/java/                              tests unitaires JUnit 5

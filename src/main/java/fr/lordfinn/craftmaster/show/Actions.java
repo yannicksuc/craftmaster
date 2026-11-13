@@ -53,6 +53,9 @@ public final class Actions {
 
     public record CurtainMoved(String name, boolean open) implements Effect {}
 
+    /** A named garage door opens (true), closes (false) or switches (null): garage/GarageDoors. */
+    public record GarageMoved(String name, Boolean open) implements Effect {}
+
     public record ScenePlaced(String name) implements Effect {}
 
     // ---- chantier H: judging (results sheet, stopwatches, buzzers)
@@ -130,7 +133,9 @@ public final class Actions {
             // TV direction, lieux / travellings / intros (chantier E): no data change for these four
             "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu",
             // ... and the round intros, which are round data (undoable), and playing one
-            "intro.set", "intro.shot.add", "intro.shot.set", "intro.shot.remove", "intro.clear", "intro.play");
+            "intro.set", "intro.shot.add", "intro.shot.set", "intro.shot.remove", "intro.clear", "intro.play",
+            // Garage doors (garage/): no data change
+            "garage.open", "garage.close", "garage.toggle");
 
     /**
      * Applies the actions. {@code undo} is only accepted as the first action (it is done, then the rest is applied
@@ -340,6 +345,9 @@ public final class Actions {
                 case "timer.stop" -> effects.add(new TimerStopped());
                 case "curtain.open" -> curtain(a, true);
                 case "curtain.close" -> curtain(a, false);
+                case "garage.open" -> garage(a, true);
+                case "garage.close" -> garage(a, false);
+                case "garage.toggle" -> garage(a, null);
                 case "scene.set" -> sceneSet(a);
                 case "say" -> line(required(a, "text"));
                 // ---- chantier H: judging
@@ -1012,6 +1020,19 @@ public final class Actions {
             String name = curtainName(a);
             effects.add(new CurtainMoved(name, open));
             line((open ? "Ouverture" : "Fermeture") + " du rideau « " + name + " ».");
+        }
+
+        /** garage.open / garage.close / garage.toggle {name?}: a door named with /craftMasterGarage nom (the only one if none given). */
+        private void garage(Map<String, Object> a, Boolean open) {
+            String asked = str(a, "name");
+            String name = fr.lordfinn.craftmaster.garage.GarageDoors.resolve(asked);
+            if (name == null) {
+                java.util.Set<String> names = fr.lordfinn.craftmaster.garage.GarageDoors.names().keySet();
+                throw new Invalid(asked == null && names.size() > 1 ? "quelle porte de garage ? (" + String.join(", ", names) + ")"
+                        : "porte de garage « " + (asked == null ? "" : asked) + " » inconnue (portes : " + (names.isEmpty() ? "aucune" : String.join(", ", names)) + ").");
+            }
+            effects.add(new GarageMoved(name, open));
+            line((open == null ? "Porte de garage « " + name + " » actionnée" : (open ? "Ouverture" : "Fermeture") + " de la porte de garage « " + name + " »") + ".");
         }
 
         private void sceneSet(Map<String, Object> a) {

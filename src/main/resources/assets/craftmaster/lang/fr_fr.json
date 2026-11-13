@@ -757,5 +757,6 @@
   "screen.craftmaster.tablet.pose.wall": "Au mur",
   "screen.craftmaster.tablet.tilt": "Inclinaison",
   "screen.craftmaster.tablet.wall": "Accrochée au mur (la reposer ailleurs pour changer)",
-  "screen.craftmaster.tablet.pose_hint": "Pose : sur un mur = accrochée, au sol = debout, accroupi = à plat. Tournée vers vous, 16 directions."
+  "screen.craftmaster.tablet.pose_hint": "Pose : sur un mur = accrochée, au sol = debout, accroupi = à plat. Tournée vers vous, 16 directions.",
+  "block.craftmaster.garage_door_motor": "Moteur de porte de garage"
 }

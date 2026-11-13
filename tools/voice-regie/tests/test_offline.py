@@ -14,6 +14,8 @@ CASES = [
     ("Quatre points pour l'or fine sur le labyrinthe.",
      [{"type": "score.add", "player": "LordFinn", "points": 4, "manche": "labyrinthe"}]),
     ("Ouvrez les rideaux.", [{"type": "curtain.open"}]),
+    ("Ouvre la porte du garage.", [{"type": "garage.open"}]),
+    ("Fermez la porte de garage.", [{"type": "garage.close"}]),
     ("Manches suivantes.", [{"type": "manche.start", "manche": "tour"}]),
     ("Mettez à jour les scores.", [{"type": "scores.publish"}]),
     ("Annule.", [{"type": "undo", "count": 1}]),

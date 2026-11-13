@@ -7,7 +7,7 @@ from regie.validate import check
 SPEC_ACTIONS = """score.set score.add score.remove scores.publish reveal.start undo player.add player.update
 player.remove season.create season.update season.archive season.delete season.activate partie.create partie.update
 partie.archive partie.delete partie.activate manche.create manche.update manche.archive manche.delete manche.start
-manche.end timer.stop curtain.open curtain.close scene.set say
+manche.end timer.stop curtain.open curtain.close garage.open garage.close garage.toggle scene.set say
 result.set result.dq result.remove results.clear results.config results.apply stopwatch.start stopwatch.stop
 stopwatch.reset buzzer.reset
 camera.cut camera.follow camera.auto broadcast.lowerthird broadcast.task broadcast.scores broadcast.letterbox
