@@ -114,6 +114,7 @@
   "entity.craftmaster.camera": "Studio Camera",
   "key.craftmaster.broadcast": "Broadcast mode (TV picture)",
   "subtitles.craftmaster.show.theme": "CraftMaster theme plays",
+  "subtitles.craftmaster.show.intro": "Task intro music plays",
   "item.craftmaster.path_marker": "Travelling Marker",
   "item.craftmaster.path_marker.hint": "Path \"%s\": right click = a step at your eyes, sneak = remove the last one",
   "item.craftmaster.path_marker.unbound": "Bind it to a path: /cam trajet <name> objet",

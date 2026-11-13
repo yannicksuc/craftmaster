@@ -114,6 +114,7 @@
   "entity.craftmaster.camera": "Caméra de studio",
   "key.craftmaster.broadcast": "Mode diffusion (image TV)",
   "subtitles.craftmaster.show.theme": "Générique CraftMaster",
+  "subtitles.craftmaster.show.intro": "Musique d’intro d’épreuve",
   "item.craftmaster.path_marker": "Repère de travelling",
   "item.craftmaster.path_marker.hint": "Trajet « %s » : clic droit = une étape à tes yeux, accroupi = retirer la dernière",
   "item.craftmaster.path_marker.unbound": "À lier à un trajet : /cam trajet <nom> objet",

@@ -56,7 +56,7 @@ public final class ModContent {
     /** TV direction (chantier E, see camera/ and broadcast/): studio camera on its tripod, the show's theme. */
     public static Item CAMERA_ITEM;
     public static EntityType<CameraEntity> CAMERA;
-    public static SoundEvent SHOW_THEME;
+    public static SoundEvent SHOW_THEME, SHOW_INTRO;
     public static Item PATH_MARKER;
 
     private static final List<Item> TAB_ITEMS = new ArrayList<>();
@@ -106,6 +106,9 @@ public final class ModContent {
         PATH_MARKER = item("path_marker", fr.lordfinn.craftmaster.camera.PathMarkerItem::new, new Item.Properties().stacksTo(1));
         SHOW_THEME = Registry.register(BuiltInRegistries.SOUND_EVENT, CraftMaster.id("show.theme"),
                 SoundEvent.createVariableRangeEvent(CraftMaster.id("show.theme")));
+        // The short task intro music (scripts/gen_intro_music.py)
+        SHOW_INTRO = Registry.register(BuiltInRegistries.SOUND_EVENT, CraftMaster.id("show.intro"),
+                SoundEvent.createVariableRangeEvent(CraftMaster.id("show.intro")));
         // Tasks, envelopes, hidden notes (chantier D)
         fr.lordfinn.craftmaster.task.TaskContent.register();
 

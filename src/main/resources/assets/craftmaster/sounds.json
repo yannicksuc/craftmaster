@@ -9,6 +9,16 @@
       }
     ]
   },
+  "show.intro": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.show.intro",
+    "sounds": [
+      {
+        "name": "craftmaster:show/intro",
+        "stream": true
+      }
+    ]
+  },
   "studio.gong": {
     "subtitle": "subtitles.craftmaster.studio.gong",
     "sounds": [
