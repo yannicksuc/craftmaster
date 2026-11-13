@@ -31,9 +31,10 @@ public final class ReplayNetwork {
      * @param duration length of the file (ms)
      * @param tick0    the server's tick at the file's time 0 (to replay the timer exactly), -1 if unknown
      * @param markers  the file's markers, or null when unchanged since the last status (sent now and then)
+     * @param reopening the file closes and opens again now (a switch, a seek back): a few seconds with no status
      */
     public record ReplayStatus(String title, String view, List<String> views, long progress, long duration, boolean paused,
-                               float speed, double tick0, List<Marker> markers) implements CustomPacketPayload {
+                               float speed, double tick0, List<Marker> markers, boolean reopening) implements CustomPacketPayload {
 
         public static final Type<ReplayStatus> TYPE = new Type<>(CraftMaster.id("replay_status"));
         public static final StreamCodec<RegistryFriendlyByteBuf, ReplayStatus> CODEC = CustomPacketPayload.codec(ReplayStatus::write, ReplayStatus::read);
@@ -48,6 +49,7 @@ public final class ReplayNetwork {
             buf.writeBoolean(paused);
             buf.writeFloat(speed);
             buf.writeDouble(tick0);
+            buf.writeBoolean(reopening);
             buf.writeBoolean(markers != null);
             if (markers != null) {
                 buf.writeVarInt(markers.size());
@@ -67,12 +69,13 @@ public final class ReplayNetwork {
             boolean paused = buf.readBoolean();
             float speed = buf.readFloat();
             double tick0 = buf.readDouble();
+            boolean reopening = buf.readBoolean();
             List<Marker> markers = null;
             if (buf.readBoolean()) {
                 markers = new ArrayList<>();
                 for (int i = buf.readVarInt(); i > 0; i--) markers.add(new Marker(buf.readVarLong(), buf.readUtf(), buf.readInt()));
             }
-            return new ReplayStatus(title, view, views, progress, duration, paused, speed, tick0, markers);
+            return new ReplayStatus(title, view, views, progress, duration, paused, speed, tick0, markers, reopening);
         }
 
         @Override

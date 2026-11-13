@@ -91,6 +91,12 @@ public final class ReplayClient {
 
     private static void onStatus(ReplayStatus s) {
         long now = System.currentTimeMillis();
+        if (s.reopening()) {
+            // The server closes the file and opens it again (asked by someone else, a moderator): same replay
+            switchingUntil = now + 8_000;
+            statusAt = now;
+            return;
+        }
         // Smooth clock: keep ours unless the server's is far from it (seek, file switch, a hiccup)
         long mine = status == null ? -1 : nowMs();
         if (status != null && (!s.view().equals(status.view()) || s.progress() < status.progress() - 1_000)) switchingUntil = 0;

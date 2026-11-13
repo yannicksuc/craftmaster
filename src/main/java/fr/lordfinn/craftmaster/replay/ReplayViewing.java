@@ -363,24 +363,112 @@ public final class ReplayViewing {
         if (w != null) for (View o : w.entry().views()) views.add(o.name());
         return new ReplayStatus(w == null ? "Replay" : w.entry().label(), w == null ? "" : w.view().name(), views,
                 ServerReplayBridge.progressMs(v), ServerReplayBridge.durationMs(v), ServerReplayBridge.paused(v),
-                ServerReplayBridge.speed(v), w == null ? -1 : tick0At(w.view().clock(), ServerReplayBridge.progressMs(v)), markers);
+                ServerReplayBridge.speed(v), w == null ? -1 : tick0At(w.view().clock(), ServerReplayBridge.progressMs(v)), markers, false);
     }
 
     // ---------------------------------------------------------------- /replay view cm … (the playback bar)
 
     private static void registerViewerCommands(CommandDispatcher<CommandSourceStack> d) {
         d.register(literal("replay").then(literal("view").then(literal("cm")
-                .then(literal("seek").then(argument("ms", LongArgumentType.longArg(0)).executes(c -> withViewer(c, v ->
-                        seek(v, LongArgumentType.getLong(c, "ms"))))))
-                .then(literal("speed").then(argument("x", FloatArgumentType.floatArg(0.05f, 16f)).executes(c -> withViewer(c, v ->
-                        ServerReplayBridge.setSpeed(v, FloatArgumentType.getFloat(c, "x"))))))
-                .then(literal("pause").executes(c -> withViewer(c, v -> ServerReplayBridge.setPaused(v, true))))
-                .then(literal("play").executes(c -> withViewer(c, v -> ServerReplayBridge.setPaused(v, false))))
-                .then(literal("toggle").executes(c -> withViewer(c, v -> ServerReplayBridge.setPaused(v, !ServerReplayBridge.paused(v)))))
-                .then(literal("vue").then(argument("vue", StringArgumentType.greedyString()).executes(c -> withViewer(c, v ->
-                        switchView(c.getSource().getServer(), v, StringArgumentType.getString(c, "vue"))))))
+                .then(literal("seek").then(argument("ms", LongArgumentType.longArg(0)).executes(c -> withPlayer(c, p ->
+                        seekFor(p, LongArgumentType.getLong(c, "ms"))))))
+                .then(literal("speed").then(argument("x", FloatArgumentType.floatArg(0.05f, 16f)).executes(c -> withPlayer(c, p ->
+                        speedFor(p, FloatArgumentType.getFloat(c, "x"))))))
+                .then(literal("pause").executes(c -> withPlayer(c, p -> pausedFor(p, true))))
+                .then(literal("play").executes(c -> withPlayer(c, p -> pausedFor(p, false))))
+                .then(literal("toggle").executes(c -> withPlayer(c, p -> {
+                    ServerReplayBridge.Viewer v = ServerReplayBridge.viewerOf(p);
+                    return pausedFor(p, v == null || !ServerReplayBridge.paused(v));
+                })))
+                .then(literal("vue").then(argument("vue", StringArgumentType.greedyString()).executes(c -> withPlayer(c, p ->
+                        viewFor(p, StringArgumentType.getString(c, "vue"))))))
                 .then(literal("close").executes(c -> withViewer(c, ServerReplayBridge::close))))));
         CraftMaster.LOG.info("[Replay] Barre de lecture CraftMaster branchée sur le lecteur de Server Replay.");
+    }
+
+    private static int withPlayer(CommandContext<CommandSourceStack> c, java.util.function.Predicate<ServerPlayer> action) {
+        ServerPlayer p = c.getSource().getPlayer();
+        try {
+            return p != null && action.test(p) ? 1 : 0;
+        } catch (RuntimeException e) {
+            CraftMaster.LOG.warn("[Replay] Commande du lecteur : {}", e.toString());
+            return 0;
+        }
+    }
+
+    // ---------------------------------------------------------------- API for the rest of CraftMaster
+
+    /*
+     * Orders for the replay a player is watching, from anywhere in CraftMaster (the moderators' régie, the site):
+     * the same as the watcher's own bar. Use these, not ServerReplayBridge directly: a seek back (or after the file's
+     * end) closes the file and opens it again at that time, which takes up to a few seconds with no viewer at all;
+     * an order arriving then changes what the reopening will do instead of being lost. Each returns false when the
+     * player watches no replay. Server thread only.
+     */
+
+    /** Goes to {@code ms} in the file being watched. */
+    public static boolean seekFor(ServerPlayer watcher, long ms) {
+        UUID id = watcher.getUUID();
+        if (pending(id, s -> new Switch(s.player(), s.entry(), s.view(), Math.max(0, ms), s.paused(), s.speed(), s.at()),
+                j -> new Jump(Math.max(0, ms), j.paused(), j.since(), false))) return true;
+        ServerReplayBridge.Viewer v = ServerReplayBridge.viewerOf(watcher);
+        if (v == null) return false;
+        seek(v, ms);
+        return true;
+    }
+
+    public static boolean pausedFor(ServerPlayer watcher, boolean paused) {
+        UUID id = watcher.getUUID();
+        if (pending(id, s -> new Switch(s.player(), s.entry(), s.view(), s.targetMs(), paused, s.speed(), s.at()),
+                j -> new Jump(j.ms(), paused, j.since(), j.jumped()))) return true;
+        ServerReplayBridge.Viewer v = ServerReplayBridge.viewerOf(watcher);
+        if (v == null) return false;
+        ServerReplayBridge.setPaused(v, paused);
+        return true;
+    }
+
+    public static boolean speedFor(ServerPlayer watcher, float speed) {
+        UUID id = watcher.getUUID();
+        float x = Math.max(0.05f, Math.min(16f, speed));
+        if (pending(id, s -> new Switch(s.player(), s.entry(), s.view(), s.targetMs(), s.paused(), x, s.at()), null)) return true;
+        ServerReplayBridge.Viewer v = ServerReplayBridge.viewerOf(watcher);
+        if (v == null) return false;
+        ServerReplayBridge.setSpeed(v, x);
+        return true;
+    }
+
+    /** Another file of the recording ("zone", a player), same instant. */
+    public static boolean viewFor(ServerPlayer watcher, String view) {
+        ServerReplayBridge.Viewer v = ServerReplayBridge.viewerOf(watcher);
+        if (v == null) {
+            // Reopening: the file it opens is changed (the instant stays the one asked)
+            for (int i = 0; i < SWITCHES.size(); i++) {
+                Switch s = SWITCHES.get(i);
+                if (!s.player().equals(watcher.getUUID())) continue;
+                View to = s.entry().view(view);
+                if (to == null) return false;
+                SWITCHES.set(i, new Switch(s.player(), s.entry(), to, alignedMs(s.targetMs(), s.view().clock(), to.clock()), s.paused(), s.speed(), s.at()));
+                return true;
+            }
+            return false;
+        }
+        switchView(watcher.level().getServer(), v, view);
+        return true;
+    }
+
+    /** Applies an order to a reopening (or to the jump of a viewer just opened). True if there was one. */
+    private static boolean pending(UUID id, java.util.function.UnaryOperator<Switch> onSwitch, java.util.function.UnaryOperator<Jump> onJump) {
+        for (int i = 0; i < SWITCHES.size(); i++) {
+            if (!SWITCHES.get(i).player().equals(id)) continue;
+            SWITCHES.set(i, onSwitch.apply(SWITCHES.get(i)));
+            return true;
+        }
+        Jump j = JUMPS.get(id);
+        if (j != null && onJump != null && !j.jumped()) {
+            JUMPS.put(id, onJump.apply(j));
+            return true;
+        }
+        return false;
     }
 
     private static int withViewer(CommandContext<CommandSourceStack> c, java.util.function.Consumer<ServerReplayBridge.Viewer> action) {
@@ -422,6 +510,9 @@ public final class ReplayViewing {
         boolean paused = ServerReplayBridge.paused(v);
         float speed = ServerReplayBridge.speed(v);
         SWITCHES.removeIf(s -> s.player().equals(p.getUUID()));
+        ReplayStatus now = status(p, v, false);
+        ServerReplayBridge.sendToViewer(v, new ClientboundCustomPayloadPacket(new ReplayStatus(now.title(), now.view(), now.views(),
+                now.progress(), now.duration(), now.paused(), now.speed(), now.tick0(), null, true)));
         // Stopped first, closed a moment later: nothing of it still on its way when the other file starts
         ServerReplayBridge.setPaused(v, true);
         SWITCHES.add(new Switch(p.getUUID(), w.entry(), to, target, paused, speed, System.currentTimeMillis() + 400));
