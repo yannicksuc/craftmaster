@@ -1,88 +1,202 @@
 # Intro d'épreuve : ce que fait Taskmaster, ce qu'on en fait
 
 Ce document part des **intros d'épreuve** de Taskmaster, à ne pas confondre avec le générique de l'émission. Ce
-sont les quelques secondes qui ouvrent chaque tâche avant que le candidat la lise. Il sert de référence pour le
-mode automatique et pour l'éditeur d'intros. Les observations viennent de quatre intros regardées image par image,
-une image toutes les 0,7 à 0,9 s, sans le son :
+sont les 8 à 10 secondes qui ouvrent chaque tâche filmée, avant que le candidat la lise. Il sert de référence pour
+le mode automatique et pour l'éditeur d'intros de CraftMaster.
+
+## Méthode
+
+Cinq intros ont été étudiées, sur des vidéos de la chaîne officielle en 1080p :
 - « Write the best lyrics » (début) ;
 - « Discover the name of the person in the lab » (début) ;
-- S4E8 à 7:30 (une cloche de service en argent) ;
-- S4E8 à 21:43 (des objets alignés sur un terrain de foot) ;
-- S4E8 à 29:04 (une baignoire devant la caravane).
+- la saison 4, épisode 8, à 7:30, 21:43 et 29:04.
 
-## Ce qu'on voit
+Les coupes ont été **mesurées** : une image tous les dixièmes de seconde, et l'écart entre deux images voisines.
+Un pic d'écart marque une coupe. Un écart moyen et continu marque un mouvement, une bascule de mise au point ou un
+timelapse. Un pic de luminosité marque un flash. Deux images nettes ont ensuite été prises par plan, au début et à
+la fin.
 
-**Durée et rythme.** L'intro dure 8 à 10 s. Elle compte 5 à 8 plans, de 0,8 à 2 s chacun, coupés sur la musique.
-On y entend la petite musique propre aux tâches, pas le thème complet.
+Limites :
+- pas de son, donc le calage sur la musique est déduit des durées ;
+- les images de pub au milieu de l'épisode ont été écartées ;
+- aucune source publique n'explique les choix de l'équipe (voir « Ce qu'on sait de l'équipe »). Tout ce qui suit
+  est donc une lecture des images.
 
-**Le sujet des plans : des objets.** Les plans montrent des objets du lieu et des objets de la tâche, presque jamais
-des gens :
-- des instruments et des partitions pour la tâche de paroles ;
-- une montre, des fioles et un microscope pour le laboratoire ;
-- un sablier et une cloche de service ;
-- un drapeau de corner, un canard, une balle et une noix de coco sur le terrain ;
-- une horloge sur un pignon, un canard dans une baignoire.
+## Les intros, plan par plan
 
-Le décor parle de la tâche : on devine le thème avant de lire.
+**« Write the best lyrics »** : 7 plans en 10,1 s, coupes à 0,9 / 3,1 / 4,5 / 5,9 / 7,7 / 8,8 / 10,1 s.
+1. 0,9 s : macro des cordes d'une guitare, très faible profondeur de champ, lent glissement.
+2. 2,2 s : un saxophone net au premier plan, une cage à oiseau floue derrière. Puis la mise au point lâche tout, et
+   le saxophone devient des taches de lumière (un « flou de sortie » qui sert de transition).
+3. 1,4 s : trois couches. Une coupe de fruits au premier plan, Greg au milieu, Alex au fond qui accroche un
+   cadre. Plan fixe.
+4. 1,4 s : plan large frontal et symétrique. Greg au bureau, un portrait géant de lui derrière, Alex à gauche.
+5. 1,8 s : la même scène au fisheye, depuis la surface de la table, qui occupe la moitié basse de l'image.
+6. 1,1 s : une guitare et des gants bleus, en **stop motion** (images saccadées), étalonnage bleu-vert, vignette
+   très forte et flou de bord.
+7. 1,3 s : la partition « TASKMASTER – The Horne Section », marquée ♩ = 100, en lent zoom avant.
+8. Fin : **l'enveloppe au cachet de cire posée sur la table**, à côté des partitions. C'est l'objet de la tâche.
 
-**Les cadrages.**
-- **Très gros plan** à faible profondeur de champ : les cordes d'une guitare, le cadran d'une montre.
-- **Contre-plongée à ras du sol** : objet au premier plan, ciel ou maison derrière. Exemples : une figurine de
-  jardin devant la cabine rouge, le drapeau de corner.
-- **Premier plan net, fond flou, puis l'inverse.** Le saxophone net devant la cage floue, puis la cage nette. Le
-  visage d'Alex net devant Greg flou, puis Greg net. C'est la mise au point qui raconte le plan.
-- **Vue à travers quelque chose** : un oculaire de microscope (masque rond), du verre, une loupe.
-- **Plongée verticale** sur l'objet : la baignoire vue d'en haut, le canard dedans.
-- **Fisheye** : une contre-plongée déformée sur la table ou le jardin.
+**« Discover the name of the person in the lab »** : environ 9 s, avec des flashs blancs à 3,5 / 4,3 / 6,0 /
+8,8 s.
+1. 0 à 3,3 s : des lentilles de microscope en très gros plan, qui tournent. Le visage de Greg apparaît **dans** la
+   lentille.
+2. Flash blanc, puis 0,5 s : une statue d'autruche cadrée dans un cercle (oculaire), en contre-plongée.
+3. Flash, puis 0,5 s : l'autruche, contre-plongée sur le ciel.
+4. 0,9 s : l'autruche et la caravane à taches de vache. Le plan bouge vite, sans doute un timelapse.
+5. Flash, puis 1,9 s : la tête de l'autruche à ras du sol, au premier plan, au fisheye, avec la cabine rouge.
+6. 0,4 s : Greg en gros plan, en contre-plongée, sur fond noir, sourcils froncés.
+7. Flash, puis la fin : l'autruche devant la maison, **l'œil de Greg en surimpression dans les nuages**.
 
-**Les traitements.**
-- Image chaude, désaturée, vert-jaune.
-- Vignettage fort, grain de film.
-- Parfois un **kaléidoscope / miroir** comme transition entre le plateau et l'intro.
-- Des **timelapses** : nuages qui filent au-dessus d'une façade.
-- Du **stop motion** : une main gantée qui avance image par image.
-- Des **bascules de mise au point**.
+Pendant toute l'intro, **le texte de la tâche s'écrit lettre par lettre** en bas de l'image, en police machine à
+écrire : « Dis… », puis « Discover the nam… », jusqu'à la phrase complète.
 
-**Les apparitions de Greg.** Un plan sombre de Greg (le Taskmaster), parfois derrière un objet net, revient une
-fois dans l'intro. C'est le « maître » qui regarde.
+**S4E8, 7:30 (une cloche de service)** : 6 plans d'environ 1,2 à 1,6 s.
+1. Greg en gros plan, un portrait peint de lui derrière, des tournesols.
+2. Il pose un sablier devant lui : **la mise au point passe de Greg au sablier**.
+3. Le sablier net, Greg flou derrière.
+4. Le bouton d'une cloche en argent, net, devant le visage peint de Greg, flou.
+5. La cloche entière sur la table du salon, avec un léger arc de caméra autour d'elle.
+6. Fin : la cloche, sous un autre angle.
 
-**Le dernier plan, qui est la règle à garder.** Il montre **la tâche dans son lieu** :
-- soit le lieu où le candidat arrive, avec l'objet de la tâche dans le même cadre (la baignoire devant la
-  caravane, la cloche sur la table du salon) ;
-- soit, juste avant, un gros plan de l'objet de la tâche, puis le lieu.
+**S4E8, 21:43 (des objets sur un terrain de foot)** :
+1. Une transition **kaléidoscope** (le ciel du couchant en miroir dans quatre directions).
+2. Une contre-plongée sur un bâtiment au crépuscule, aux fenêtres éclairées, avec des nuages en timelapse.
+3. Un drapeau de corner énorme au premier plan, la ligne du terrain qui fuit.
+4. Un sac de golf et un parapluie, plan moyen.
+5. Les objets alignés sur la ligne, à ras du sol (anneau rouge, canard, noix de coco, balle) : profondeur de champ
+   courte, perspective qui fuit.
+6. L'anneau rouge en macro dans l'herbe.
+7. La noix de coco.
 
-Ce dernier plan prépare le spectateur à voir le candidat entrer dans ce cadre.
+**S4E8, 29:04 (une baignoire)** :
+1. Alex net au premier plan, regard levé, Greg flou derrière.
+2. Une horloge sur un pignon de brique, en contre-plongée.
+3. Retour sur Alex, puis **la mise au point passe sur Greg**, bras croisés.
+4. La baignoire vue de dessus, **l'enveloppe au sceau rouge** et un canard dedans.
+5. Fin : la baignoire posée **devant la caravane**. C'est le lieu où le candidat arrive, avec la tâche dans le
+   cadre.
 
-**Le texte de la tâche.** On entend souvent la voix qui lit la consigne, sous-titrée, pendant les derniers plans.
+## Analyse
+
+**1. Une ouverture à l'envers.** Au cinéma, une scène s'ouvre souvent sur un plan d'ensemble (« plan
+d'établissement ») avant d'entrer dans les détails. Ces intros font l'inverse : elles partent du détail
+(cordes, lentilles, sablier) et finissent sur le plan qui situe (la baignoire devant la caravane, la cloche sur la
+table). Le spectateur reconstitue le lieu morceau par morceau, comme une énigme. Le dernier plan est la réponse, et
+c'est exactement le cadre où le candidat va entrer.
+
+**2. Des objets qui annoncent la tâche.** Presque chaque plan est un **insert** : un objet isolé. Ces objets sont
+des indices. Instruments et partition pour une tâche de chanson, loupe et microscope pour une enquête, sablier pour
+une tâche contre la montre. C'est une **annonce visuelle** (« foreshadowing ») : on devine le thème avant de lire la
+consigne. Le décor n'est jamais neutre, il est choisi pour la tâche.
+
+**3. Le regard du maître.** Greg apparaît dans presque toutes les intros, mais jamais comme un présentateur. On le
+voit :
+- dans une lentille ;
+- en portrait peint ;
+- flou derrière un objet ;
+- en œil géant dans les nuages ;
+- en gros plan sombre en contre-plongée.
+
+C'est une figure qui **surveille**. La contre-plongée et l'obscurité le rendent menaçant, et le portrait géant ou
+l'œil dans le ciel le rendent omniprésent. Alex, lui, est montré en train de préparer (accrocher un cadre, poser
+un objet) : c'est l'assistant. La hiérarchie de l'émission se lit dans le cadrage.
+
+**4. La profondeur de champ comme outil de récit.** Le procédé le plus constant est la **bascule de mise au point**
+(« rack focus ») : un plan contient deux sujets à deux distances, et la mise au point passe de l'un à l'autre :
+- le saxophone, puis la cage ;
+- Greg, puis le sablier ;
+- Alex, puis Greg.
+
+Sans couper, on dit « regardez ceci, maintenant cela ». Ces plans en couches (premier plan, milieu, fond) donnent du
+relief à de simples objets posés. La faible profondeur de champ (fond très flou, taches de lumière) fait « cinéma »
+et isole l'objet.
+
+**5. Les angles bas et les optiques extrêmes.**
+- La **contre-plongée à ras du sol** grandit les objets ordinaires : statue d'autruche, drapeau de corner,
+  bâtiment. Ils deviennent des monuments.
+- Le **fisheye** et la **macro** sortent du regard normal. Le jardin et le salon deviennent un monde à part,
+  légèrement absurde, ce qui convient à l'humour de l'émission.
+
+**6. Le rythme.** Les plans durent de 0,4 à 2,2 s, avec une médiane d'environ 1,4 s. Les durées tombent sur des
+multiples d'environ 0,45 s, ce qui laisse penser à une coupe sur les temps d'une musique autour de 130 BPM. C'est
+une déduction, car je n'avais pas le son. Le rythme n'est pas mécanique : un plan long (2 s, qui bouge ou bascule)
+alterne avec deux ou trois plans courts, puis un plan court et choc (Greg, 0,4 s) précède la fin. Le dernier plan
+dure plus longtemps et respire.
+
+**7. Les transitions.** Elles signalent qu'on change de monde (du plateau vers la maison), puis rythment l'intro :
+- le **kaléidoscope** en miroir pour sortir du plateau ;
+- des **flashs blancs**, comme une fuite de lumière sur la pellicule ;
+- la **surimpression** (l'œil dans le ciel) ;
+- le **flou de sortie** (la mise au point qui lâche).
+
+**8. La texture : du « vieux film ».** L'image a ces traits :
+- elle est chaude et désaturée, avec des ombres vertes ou bleu-vert et des hautes lumières jaunes (deux teintes,
+  « split toning ») ;
+- une vignette forte, parfois un cercle complet ;
+- du grain ;
+- des bords flous, comme une optique ancienne ;
+- certains plans en stop motion.
+
+Cette texture distingue l'intro, un petit film onirique, du reste de la tâche, filmé de façon neutre. Le wiki des
+fans parle d'une image « plus granuleuse et austère ». Elle évoque aussi le bricolage et l'artisanal, en accord avec
+l'esprit des tâches.
+
+**9. Le texte tapé.** Quand la consigne est tapée à la machine en bas de l'image pendant l'intro, le texte devient
+un élément de rythme : chaque lettre est un petit événement. C'est aussi l'identité graphique de l'émission, en
+police machine à écrire.
+
+## Ce qu'on sait de l'équipe
+
+Sources : la fiche de l'équipe sur le British Comedy Guide, une interview Channel 4, le site Edit Girls et Fonts
+In Use.
+- **Réalisateur de la série** : Andy Devonshire, venu de *The Apprentice* et du *Great British Bake Off*.
+- **Directeur de la photo** : Sam Montague, depuis la saison 2 ou 3.
+- **Monteurs « VT »** (les séquences de tâche), crédités à part depuis la saison 13.
+- **Thème** : The Horne Section. Dru Masters et Tom Howe sont crédités pour la musique, sans plus de détail.
+- **Polices** (Fonts In Use) : *Veteran Typewriter* pour les titres, les scores et le générique, et
+  vraisemblablement *Courier* sur les sceaux.
+- **Non trouvé** : les caméras, les optiques, l'étalonnage, ou la façon de monter les ouvertures.
+- **Piste à écouter** : l'épisode « Behind the Scenes – The Director of Photography » du podcast officiel *The
+  People's Podcast*, consacré à Sam Montague.
 
 ## Traduction dans CraftMaster
 
 | Taskmaster | CraftMaster |
 |---|---|
-| plans d'objets du lieu | caméras de la manche qui visent des blocs ou des entités précis (un « sujet » par caméra) |
-| contre-plongée à ras du sol, objet au premier plan | caméra posée à 0,2-0,5 bloc du sol, visant vers le haut, un bloc ou une entité entre elle et le fond |
-| premier plan net, fond flou, puis l'inverse | effet « bascule de mise au point » : flou selon la profondeur, qui glisse du premier plan au fond pendant le plan |
-| très gros plan, faible profondeur | champ de vision réduit (`/cam zoom 20`) et flou du fond |
-| oculaire, loupe | effet `masque_rond` (existe) |
-| fisheye | effet `fisheye` (existe) |
-| image chaude désaturée, vignette, grain | un « look Taskmaster » : `sepia` léger + `vignette` + grain, appliqué à toute l'intro |
-| kaléidoscope en transition | nouvelle transition « miroir » |
-| timelapse | le temps du monde accéléré pour ce plan seulement (nuages, soleil, ombres), sur la diffusion |
-| stop motion | effet « saccadé » : l'image ne se rafraîchit que 6 à 8 fois par seconde |
-| plan sombre du Taskmaster | caméra « trône » du studio (rôle `trone`), assombrie |
-| dernier plan : la tâche dans son lieu | caméra « lieu de la tâche » : le point de TP du joueur et l'enveloppe posée dans le même cadre |
-| musique propre aux tâches | une musique d'intro d'épreuve, plus courte que le thème (à fournir, ou un extrait du thème) |
-| voix et sous-titre de la consigne | le texte de la tâche tapé à la machine en bas de l'image, si la tâche est révélée au lancement |
+| inserts d'objets qui annoncent la tâche | caméras qui visent un sujet précis : bloc, objet d'épreuve, entité |
+| ouverture à l'envers, fin sur le lieu et la tâche | ordre imposé : détails d'abord, puis la caméra « lieu de la tâche » (point de TP et enveloppe posée dans le cadre) |
+| bascule de mise au point | effet de flou selon la profondeur, dont la mise au point glisse d'une distance à une autre pendant le plan |
+| faible profondeur de champ, macro | champ de vision réduit (`/cam zoom 20`) et fond flou |
+| plans en couches | caméra placée pour qu'un bloc ou une entité soit entre elle et le sujet |
+| contre-plongée à ras du sol | caméra à 0,2-0,5 bloc du sol, visant vers le haut |
+| fisheye, oculaire | effets `fisheye` et `masque_rond` (existent) |
+| texture de vieux film : deux teintes, vignette, grain, bords flous | un « look intro » appliqué à toute l'intro |
+| stop motion | effet saccadé : l'image se rafraîchit 6 à 8 fois par seconde |
+| timelapse | temps du monde accéléré pour ce plan, sur la diffusion seulement |
+| kaléidoscope, flash blanc, surimpression | nouvelles transitions « miroir », « flash » et « surimpression » (un plan du trône par-dessus le ciel) |
+| le regard du maître | caméra « trône » (rôle `trone`), assombrie, en contre-plongée : un plan court avant la fin |
+| texte de la tâche tapé en bas | la consigne tapée lettre par lettre en bas de l'image, si la tâche est révélée à ce moment-là |
+| coupe sur une musique d'environ 130 BPM | coupe sur le rythme (existe), avec une musique d'intro d'épreuve courte |
+| police machine à écrire | une police machine à écrire proche de Veteran Typewriter, à la place de la police pixel actuelle (voir ci-dessous) |
 
 ### La tâche est un objet posé
 
-La tâche est **l'enveloppe posée** sur une table, dans le lieu. Le dernier plan la montre. Le candidat arrive
-(téléporté pendant le noir), la voit et la lit :
-- **clic droit** : elle se lit sur place, comme en main ;
-- **la casser** : on la récupère.
+La tâche est **l'enveloppe posée** dans le lieu. Le dernier plan la montre. Le candidat arrive (téléporté pendant le
+noir), la voit et la lit d'un clic droit. La casser permet de la récupérer. C'est en place (docs/wiki/Taches.md).
+Pour la mise en scène automatique, l'enveloppe posée la plus proche du point de TP est « l'objet de la tâche ».
 
-C'est déjà en place (docs/wiki/Taches.md). Pour la mise en scène automatique, l'enveloppe posée la plus proche du
-point de TP est « l'objet de la tâche ».
+### La police
+
+Le mod utilise **CraftMaster Typewriter**, une police pixel tirée de Cairopixel (licence OFL), utile pour les
+lettres en jeu.
+
+Pour les titres de diffusion (le titre tapé sur le noir, la consigne tapée en bas de l'image), une vraie police
+machine à écrire en haute définition serait plus fidèle à l'émission. Minecraft sait charger une police TTF
+directement (fournisseur `ttf`). Deux candidates :
+- **Veteran Typewriter** : c'est la police de l'émission, marquée « 100 % gratuite » sur DaFont, mais il faut lire
+  sa licence avant de la distribuer dans un mod ;
+- **Special Elite** (Google Fonts, licence Apache 2.0) : très proche, encrage irrégulier, distribuable sans souci.
 
 ## Mode automatique (proposition)
 
@@ -90,16 +204,20 @@ point de TP est « l'objet de la tâche ».
 1. **Sujets** : les caméras de la manche, les blocs et entités remarquables de sa zone (enveloppes posées, objets
    d'épreuve, tablettes chrono, horloges, animaux, blocs rares) et les mots de la tâche. Une tâche qui parle de
    moutons fait chercher les moutons de la zone, ou en faire apparaître un qui traverse.
-2. **Plans** : 5 à 7 plans d'une mesure (environ 2 s), dans cet ordre :
-   - un plan d'ambiance (contre-plongée ou timelapse du ciel) ;
-   - 2 à 4 plans d'objets (gros plans, bascule de mise au point, à travers un masque) ;
-   - un plan sombre du trône ;
-   - le gros plan de l'objet de la tâche ;
-   - le plan « lieu de la tâche » (point de TP et enveloppe dans le cadre).
+2. **Structure**, 6 à 8 plans sur la musique :
+   1. une transition de sortie du plateau (miroir ou flash) ;
+   2. un plan d'ambiance : contre-plongée sur le lieu, timelapse du ciel ;
+   3. 3 ou 4 inserts d'objets : macro, couches, bascule de mise au point, à travers un masque. Ils alternent long
+      et court ;
+   4. le regard du maître : un plan court et sombre du trône ;
+   5. le gros plan de l'objet de la tâche ;
+   6. le plan « lieu de la tâche » (point de TP et enveloppe dans le cadre), plus long.
+
+   Le texte de la tâche est tapé en bas de l'image pendant les derniers plans, si elle est révélée.
 3. **Caméras générées** quand l'épreuve n'en a pas assez : placées automatiquement autour des sujets (à ras du sol,
-   en plongée, à 2-4 blocs), sans gêner les joueurs (elles ne sont que des points de vue de la diffusion).
-4. **Variété** : jamais deux fois le même cadrage de suite, un effet différent par plan, une contre-plongée et un
-   plan fixe au moins.
+   en plongée, à 2-4 blocs). Ce ne sont que des points de vue de la diffusion, elles ne gênent pas les joueurs.
+4. **Variété** : jamais deux fois le même cadrage de suite, un traitement par plan, au moins une contre-plongée et
+   une bascule de mise au point.
 
 L'organisateur peut ensuite tout retoucher dans l'éditeur : remplacer un plan, changer un effet, fixer une caméra
 générée.
@@ -112,12 +230,13 @@ Existe :
 - lancement enchaîné (noir, TP, titre tapé, révélation) ;
 - effets `sepia`, `noir_blanc`, `vignette`, `fisheye`, `masque_rond`, `pixel` ;
 - zoom par caméra, rôles de caméra (`trone`, `large`) ;
-- enveloppe posée, lisible sur place.
+- enveloppe posée, lisible sur place, récupérée en la cassant.
 
 Manque, dans l'ordre proposé :
-1. le « look » d'intro (grain + teinte chaude) et l'effet bascule de mise au point ;
-2. le plan « lieu de la tâche » et la recherche de l'enveloppe posée ;
-3. le mode automatique (choix des sujets, caméras générées, ordre des plans) ;
-4. timelapse, stop motion, transition miroir ;
-5. l'éditeur (frise sur la musique, aperçu, remplacer un plan) ;
-6. une musique d'intro d'épreuve courte.
+1. le « look intro » (deux teintes, grain, vignette, bords flous) et la bascule de mise au point ;
+2. la police machine à écrire haute définition et la consigne tapée en bas de l'image ;
+3. le plan « lieu de la tâche » et la recherche de l'enveloppe posée ;
+4. le mode automatique (sujets, caméras générées, structure) ;
+5. le stop motion, le timelapse, et les transitions miroir, flash et surimpression ;
+6. l'éditeur (frise sur la musique, aperçu, remplacer un plan) ;
+7. une musique d'intro d'épreuve courte.
