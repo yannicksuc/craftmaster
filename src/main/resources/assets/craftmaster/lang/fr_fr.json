@@ -869,5 +869,6 @@
   "color.craftmaster.red.m": "rouge",
   "color.craftmaster.red.f": "rouge",
   "color.craftmaster.black.m": "noir",
-  "color.craftmaster.black.f": "noire"
+  "color.craftmaster.black.f": "noire",
+  "block.craftmaster.garage_door_motor": "Moteur de porte de garage"
 }

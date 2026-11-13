@@ -1,0 +1,31 @@
+{
+  "variants": {
+    "camouflaged=false,facing=north": {
+      "model": "craftmaster:block/garage_door_motor"
+    },
+    "camouflaged=true,facing=north": {
+      "model": "craftmaster:block/garage_door_motor_hidden"
+    },
+    "camouflaged=false,facing=east": {
+      "model": "craftmaster:block/garage_door_motor",
+      "y": 90
+    },
+    "camouflaged=true,facing=east": {
+      "model": "craftmaster:block/garage_door_motor_hidden"
+    },
+    "camouflaged=false,facing=south": {
+      "model": "craftmaster:block/garage_door_motor",
+      "y": 180
+    },
+    "camouflaged=true,facing=south": {
+      "model": "craftmaster:block/garage_door_motor_hidden"
+    },
+    "camouflaged=false,facing=west": {
+      "model": "craftmaster:block/garage_door_motor",
+      "y": 270
+    },
+    "camouflaged=true,facing=west": {
+      "model": "craftmaster:block/garage_door_motor_hidden"
+    }
+  }
+}

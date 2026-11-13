@@ -29,6 +29,8 @@ Règles :
    « la révélation », « révèle le classement » = reveal_start.
 7. « ouvrez / fermez les rideaux » = curtain_open / curtain_close sans nom (rideau de scène), sauf si un rideau
    nommé du contexte est cité.
+   « ouvre / ferme la porte (du garage) » = garage_open / garage_close (name : une porte du contexte si elle est
+   citée ou s'il y en a plusieurs).
 7b. « projecteurs sur Ensuri », « lumière sur Juste » = spotlight_follow ; « projecteurs fixes » = spotlight_stop ;
    « éteins / allume les projecteurs » = spotlight_off / spotlight_on.
 7c. « lance un clip », « clip ! », « on clippe » = clip_start ; « coupe / arrête le clip » = clip_stop.

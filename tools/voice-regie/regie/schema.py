@@ -84,6 +84,11 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                     [f("text", STR, doc="Note courte facultative (« belle chute »).")]),
     "curtain.open": ("Ouvre un rideau (« ouvrez les rideaux »).", [f("name", STR, doc="Nom du rideau ; absent = rideau de scène.")]),
     "curtain.close": ("Ferme un rideau.", [f("name", STR, doc="Nom du rideau ; absent = rideau de scène.")]),
+    "garage.open": ("Ouvre une porte de garage (« ouvre la porte du garage »).",
+                    [f("name", STR, doc="Nom de la porte (du contexte) ; absent = la seule porte.")]),
+    "garage.close": ("Ferme une porte de garage.", [f("name", STR, doc="Nom de la porte (du contexte) ; absent = la seule porte.")]),
+    "garage.toggle": ("Ouvre une porte de garage fermée, ferme une porte ouverte.",
+                      [f("name", STR, doc="Nom de la porte (du contexte) ; absent = la seule porte.")]),
     "scene.set": ("Pose un décor enregistré à l'ancre de scène.", [f("name", STR, True, "Nom du décor (du contexte).")]),
     # ---- chantier H: the judge's results sheet, stopwatches, buzzers
     "result.set": ("Note le résultat d'un candidat sur la feuille de résultats de la manche (« Ensuri a fait 42 "

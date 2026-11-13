@@ -112,6 +112,7 @@ public final class ShowContext {
         out.put("players", cast);
         out.put("onlinePlayers", new ArrayList<>(online));
         out.put("curtains", new ArrayList<>(data.stage().curtains.keySet()));
+        out.put("garages", new ArrayList<>(fr.lordfinn.craftmaster.garage.GarageDoors.names().keySet()));
         out.put("scenes", new ArrayList<>(data.stage().scenes.keySet()));
         out.put("currentScene", live.scene);
         // TV direction (chantier E): studio cameras ({number, name, role}), the shot on air, automatic direction

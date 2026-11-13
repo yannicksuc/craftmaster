@@ -23,6 +23,9 @@ passe par le même exécuteur que la régie vocale : même comportement, et **to
 | `/craftMasterReveal timing [rideau tambour joueur podium]` | | Durées en secondes (sans argument : les affiche) |
 | `/craftMasterStage curtain open\|close [nom]` | cfsg | Ouvre / ferme un rideau nommé (défaut : `stage`) |
 | `/craftMasterStage scene place <décor>` | | Pose un décor à l'ancre de scène |
+| `/craftMasterGarage open\|close\|toggle <x y z>` | cfga | Ouvre / ferme la porte de garage d'un moteur ([Portes de garage](PortesGarage.md)) |
+| `/craftMasterGarage porte <nom> open\|close\|toggle` | | Idem par le nom de la porte (`nom`, `oublier`, `liste`, `zone`, `vitesse`, `info`) |
+| `/craftMasterWorldEdit [perf on\|off]` | cfwe | WorldEdit sans voisins ni mises à jour à chaque connexion (défaut : oui) |
 | `/craftMasterUndo [nombre]` | cfun | Annule la ou les dernières modifications (50 gardées depuis le démarrage) |
 | `/craftMasterRedo [nombre]` | cfrf | Refait ce qui vient d'être annulé (toute nouvelle modification vide le « refaire ») |
 | `/craftMasterScores [saison]` | cfsc | Écran de saisie des points de l'arbitre (aussi touche **U**, [Saisie](Saisie.md)) |

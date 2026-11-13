@@ -869,5 +869,6 @@
   "color.craftmaster.red.m": "Red",
   "color.craftmaster.red.f": "Red",
   "color.craftmaster.black.m": "Black",
-  "color.craftmaster.black.f": "Black"
+  "color.craftmaster.black.f": "Black",
+  "block.craftmaster.garage_door_motor": "Garage Door Motor"
 }

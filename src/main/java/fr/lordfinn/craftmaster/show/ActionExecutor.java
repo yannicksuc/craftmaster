@@ -160,6 +160,10 @@ public final class ActionExecutor {
                 String error = StageControl.moveCurtain(server, c.name(), c.open());
                 if (error != null) lines.add("⚠ " + error);
             }
+            case Actions.GarageMoved g -> {
+                String r = fr.lordfinn.craftmaster.garage.GarageDoors.move(server, g.name(), g.open());
+                if (r.startsWith("⚠")) lines.add(r);
+            }
             // Studio set (chantier F)
             case Actions.SpotlightOrder o -> lines.add(switch (o.order()) {
                 case "follow" -> fr.lordfinn.craftmaster.studio.Spotlights.follow(server, o.player());

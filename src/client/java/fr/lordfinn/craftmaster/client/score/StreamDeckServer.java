@@ -271,6 +271,11 @@ public final class StreamDeckServer {
             case "/tele" -> {
                 return tele(uri);
             }
+            case "/garage/open", "/garage/close", "/garage/toggle" -> {
+                String name = query(uri, "name");
+                String type = "garage." + path.substring("/garage/".length());
+                return send(name.isEmpty() ? action(type) : action(type, "name", name));
+            }
             default -> {
                 return route(path, group);
             }
@@ -380,7 +385,7 @@ public final class StreamDeckServer {
             });
             default -> {
                 JsonObject o = error("unknown: " + path + " (menu, ranking, points, round/next, round/start, round/end, timer/stop, publish, reveal/start, "
-                        + "camera/cut, camera/auto, tele, clip/<start|stop|toggle|status>, undo, redo, season/next, season/prev, tablet/<start|pause|toggle|reset|restart>, status)");
+                        + "camera/cut, camera/auto, tele, clip/<start|stop|toggle|status>, garage/<open|close|toggle>, undo, redo, season/next, season/prev, tablet/<start|pause|toggle|reset|restart>, status)");
                 o.addProperty("code", 404);
                 yield o;
             }

@@ -159,6 +159,7 @@ class ActionsTest {
                 run(a("score.add", "manche", "pont", "player", "Cyllu", "points", "trois")).lines());
         assertEquals(List.of("action inconnue « dance »."), run(a("dance")).lines());
         assertEquals(List.of("rideau « stage » inconnu (rideaux : aucun)."), run(a("curtain.open")).lines());
+        assertEquals(List.of("porte de garage « atelier » inconnue (portes : aucune)."), run(a("garage.open", "name", "atelier")).lines());
         assertEquals(List.of("précisez la saison à supprimer (« season »)."), run(a("season.delete")).lines());
         assertEquals(List.of("Cyllu n'a pas de score pour « Le Pont »."), run(a("score.remove", "manche", "pont", "player", "Cyllu")).lines());
     }
