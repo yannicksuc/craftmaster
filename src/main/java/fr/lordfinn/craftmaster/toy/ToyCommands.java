@@ -55,6 +55,27 @@ public final class ToyCommands {
                 .then(literal("glow").executes(c -> glow(c, 10))
                         .then(argument("seconds", IntegerArgumentType.integer(1, 600)).executes(c -> glow(c, IntegerArgumentType.getInteger(c, "seconds")))))
                 .then(literal("collect").executes(ToyCommands::collect))
+                // How much goes to the chat: tout, important (records, objects in a target), rien
+                .then(literal("annonces").executes(c -> {
+                    c.getSource().sendSystemMessage(Component.literal("Annonces des objets : " + Toys.announce.word
+                            + " (tout | important | rien)").withStyle(ChatFormatting.GOLD));
+                    return 1;
+                }).then(argument("level", com.mojang.brigadier.arguments.StringArgumentType.word())
+                        .suggests((c, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("tout", "important", "rien"), b))
+                        .executes(c -> {
+                            Toys.Announce a = Toys.Announce.parse(com.mojang.brigadier.arguments.StringArgumentType.getString(c, "level"));
+                            if (a == null) {
+                                c.getSource().sendFailure(Component.literal("Annonces : tout, important ou rien."));
+                                return 0;
+                            }
+                            Toys.announce = a;
+                            c.getSource().sendSystemMessage(Component.literal(switch (a) {
+                                case ALL -> "Chaque lancer et chaque prise s'écrit dans le chat.";
+                                case IMPORTANT -> "Dans le chat : les records et les objets dans une cible ; les autres lancers au-dessus de la barre.";
+                                case NONE -> "Plus rien dans le chat : tout est dans /cfty status et le journal des épreuves.";
+                            }).withStyle(ChatFormatting.GOLD));
+                            return 1;
+                        })))
                 .then(literal("egg").then(argument("blocks", DoubleArgumentType.doubleArg(0, 64)).executes(c -> {
                     ServerPlayer p = c.getSource().getPlayerOrException();
                     ItemStack stack = p.getMainHandItem();

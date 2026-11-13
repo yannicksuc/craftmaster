@@ -251,9 +251,46 @@ public final class Toys {
         return out;
     }
 
-    /** A line in every organiser's chat (and in the trial log). */
+    /** How much of the toys' news goes to the organisers' chat (everything is in the log and /cfty status). */
+    public enum Announce {
+        ALL("tout"), IMPORTANT("important"), NONE("rien");
+        public final String word;
+
+        Announce(String word) {
+            this.word = word;
+        }
+
+        public static Announce parse(String s) {
+            String k = s == null ? "" : s.strip().toLowerCase(java.util.Locale.ROOT);
+            for (Announce a : values()) if (a.word.equals(k)) return a;
+            return switch (k) {
+                case "all", "tous" -> ALL;
+                case "none", "aucun", "off", "non" -> NONE;
+                default -> null;
+            };
+        }
+    }
+
+    /** Default "important": records and objects in a target; plain throws only above the hotbar. */
+    public static volatile Announce announce = Announce.IMPORTANT;
+
+    /**
+     * An everyday line (a plain throw): in the chat only with "tout", else above the hotbar of the organisers
+     * near it; always in the trial log.
+     */
+    public static void tellMinor(MinecraftServer server, Component chatLine, Component overlay, java.util.function.Predicate<ServerPlayer> near) {
+        TrialLog.add(server, chatLine.getString());
+        for (ServerPlayer p : organisers(server)) {
+            if (!near.test(p)) continue;
+            if (announce == Announce.ALL) p.sendSystemMessage(chatLine);
+            else if (announce == Announce.IMPORTANT) p.sendOverlayMessage(overlay);
+        }
+    }
+
+    /** A line in every organiser's chat (and in the trial log); nothing in the chat with "rien". */
     public static void tellOrganisers(MinecraftServer server, Component line) {
         TrialLog.add(server, line.getString());
+        if (announce == Announce.NONE) return;
         for (ServerPlayer p : organisers(server)) p.sendSystemMessage(line);
     }
 

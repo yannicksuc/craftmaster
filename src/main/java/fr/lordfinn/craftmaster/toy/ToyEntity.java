@@ -301,13 +301,15 @@ public class ToyEntity extends Entity {
         ServerPlayer sp = level.getServer().getPlayerList().getPlayerByName(thrower);
         Component m = Component.literal("↔ " + ToyPhysics.blocksText(d) + (best ? " (record)" : "")).withStyle(ChatFormatting.GOLD);
         if (sp != null) sp.sendOverlayMessage(m);
-        // Organisers near the throw see it with the button to write it down
-        for (ServerPlayer o : Toys.organisers(level.getServer())) {
-            if (o.level() != level || o.distanceToSqr(this) > 64 * 64 || o == sp && !Permissions.isAdmin(sp)) continue;
-            o.sendSystemMessage(Component.literal("↔ " + thrower + " : lancer de " + ToyPhysics.blocksText(d)).withStyle(ChatFormatting.GOLD)
-                    .append(Component.literal(" (" + Toys.frName(stack()) + ")").withStyle(ChatFormatting.GRAY))
-                    .append(Toys.noteButton(thrower, d, ResultSheet.Kind.DISTANCE, ToyPhysics.blocksText(d))));
-        }
+        // Organisers near the throw: a record in the chat with the button to write it down; a plain throw above
+        // the hotbar only (unless /cfty annonces tout) — all of them are in /cfty status and the trial log
+        net.minecraft.network.chat.MutableComponent line = Component.literal("↔ " + thrower + " : lancer de " + ToyPhysics.blocksText(d) + (best ? " (record)" : "")).withStyle(ChatFormatting.GOLD)
+                .append(Component.literal(" (" + Toys.frName(stack()) + ")").withStyle(ChatFormatting.GRAY))
+                .append(Toys.noteButton(thrower, d, ResultSheet.Kind.DISTANCE, ToyPhysics.blocksText(d)));
+        java.util.function.Predicate<ServerPlayer> near = o -> o.level() == level && o.distanceToSqr(this) <= 64 * 64 && o != sp;
+        if (best) Toys.tellOrganisers(level.getServer(), line);
+        else Toys.tellMinor(level.getServer(), line,
+                Component.literal("↔ " + thrower + " : " + ToyPhysics.blocksText(d)).withStyle(ChatFormatting.GOLD), near);
     }
 
     public void breakEgg(ServerLevel level, String how) {
