@@ -73,6 +73,8 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         Vec3 hookOffset = Vec3.ZERO;
         float yaw;
         float sway;
+        /** Light where the runner hangs (the air under the ceiling block), not the frame's: lit like the ceiling. */
+        int hookLight;
         double hangLength;
         boolean window;
         int windowDepth, windowSize;
@@ -219,6 +221,10 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         s.pose = preview != null ? preview : e.pose();
         s.skin = e.anonymous() ? PortraitSkins.defaultSkin() : PortraitSkins.resolve(e.shownPlayer(), e.skinUrl());
         s.hookOffset = currentHook(e, partialTick).subtract(s.x, s.y, s.z);
+        net.minecraft.core.BlockPos under = net.minecraft.core.BlockPos.containing(currentHook(e, partialTick).add(0, -0.1, 0));
+        int hb = e.level().getBrightness(net.minecraft.world.level.LightLayer.BLOCK, under);
+        int hs = e.level().getBrightness(net.minecraft.world.level.LightLayer.SKY, under);
+        s.hookLight = LightCoordsUtil.pack(hb, hs);
         s.yaw = e.yaw();
         s.hangLength = e.hangLengthAt(PortraitClock.ticks(e.level().getGameTime()));
         s.window = e.window();
@@ -296,9 +302,13 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         // Hook and string, in blocks: one straight vertical line from the runner down to the knot, which
         // portraitOrigin puts right under the hook (and the centre of gravity right under the knot)
         float knotY = (float) -s.hangLength;
+        // The runner takes the light under the ceiling; the string the brighter of that and the frame's
+        int hookLight = s.highlighted ? light : s.hookLight;
+        int stringLight = LightCoordsUtil.pack(Math.max(LightCoordsUtil.block(light), LightCoordsUtil.block(hookLight)),
+                Math.max(LightCoordsUtil.sky(light), LightCoordsUtil.sky(hookLight)));
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(FRAME_TEXTURE), (p, c) -> {
-            hook(c, p, light);
-            string(c, p, knotY, light);
+            hook(c, p, hookLight);
+            string(c, p, knotY, stringLight);
         });
 
         poseStack.translate(origin.x, origin.y, origin.z);
@@ -497,10 +507,28 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         vertex(c, p, x1, y0, z1, u1, v1, w, light, 1, 0, 0); vertex(c, p, x1, y0, z0, u0, v1, w, light, 1, 0, 0);
     }
 
-    /** The brass runner on the rail, 4 × 2 × 4 px, under the ceiling. */
+    /**
+     * The brass runner on the rail, 4 × 2 × 4 px, under the ceiling: one texel per pixel on every face (the sides
+     * take a 4 × 2 strip of the brass, not the whole 4 × 4 squeezed).
+     */
     private static void hook(VertexConsumer c, PoseStack.Pose p, int light) {
-        float h = 2 / 16f;
-        box(c, p, -h, -h, -h, h, 0, h, 112, 0, 116, 4, light);
+        float h = 2 / 16f, x0 = -h, y0 = -h, z0 = -h, x1 = h, y1 = 0, z1 = h;
+        int w = 0xFFFFFFFF;
+        float u0 = 112, u1 = 116, v0 = 0, v1 = 4, vs = 2;
+        // -y (seen from below), +y
+        vertex(c, p, x0, y0, z0, u0, v0, w, light, 0, -1, 0); vertex(c, p, x1, y0, z0, u1, v0, w, light, 0, -1, 0);
+        vertex(c, p, x1, y0, z1, u1, v1, w, light, 0, -1, 0); vertex(c, p, x0, y0, z1, u0, v1, w, light, 0, -1, 0);
+        vertex(c, p, x0, y1, z1, u0, v0, w, light, 0, 1, 0); vertex(c, p, x1, y1, z1, u1, v0, w, light, 0, 1, 0);
+        vertex(c, p, x1, y1, z0, u1, v1, w, light, 0, 1, 0); vertex(c, p, x0, y1, z0, u0, v1, w, light, 0, 1, 0);
+        // the four sides: 4 px wide, 2 px tall
+        vertex(c, p, x0, y1, z0, u0, v0, w, light, 0, 0, -1); vertex(c, p, x1, y1, z0, u1, v0, w, light, 0, 0, -1);
+        vertex(c, p, x1, y0, z0, u1, vs, w, light, 0, 0, -1); vertex(c, p, x0, y0, z0, u0, vs, w, light, 0, 0, -1);
+        vertex(c, p, x1, y1, z1, u0, v0, w, light, 0, 0, 1); vertex(c, p, x0, y1, z1, u1, v0, w, light, 0, 0, 1);
+        vertex(c, p, x0, y0, z1, u1, vs, w, light, 0, 0, 1); vertex(c, p, x1, y0, z1, u0, vs, w, light, 0, 0, 1);
+        vertex(c, p, x0, y1, z1, u0, v0, w, light, -1, 0, 0); vertex(c, p, x0, y1, z0, u1, v0, w, light, -1, 0, 0);
+        vertex(c, p, x0, y0, z0, u1, vs, w, light, -1, 0, 0); vertex(c, p, x0, y0, z1, u0, vs, w, light, -1, 0, 0);
+        vertex(c, p, x1, y1, z0, u0, v0, w, light, 1, 0, 0); vertex(c, p, x1, y1, z1, u1, v0, w, light, 1, 0, 0);
+        vertex(c, p, x1, y0, z1, u1, vs, w, light, 1, 0, 0); vertex(c, p, x1, y0, z0, u0, vs, w, light, 1, 0, 0);
     }
 
     /** Two crossed strips, half a pixel wide, straight down from the runner to the knot (x = z = 0). */
