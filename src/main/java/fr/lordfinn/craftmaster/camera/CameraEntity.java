@@ -22,18 +22,21 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * A studio camera on its tripod ({@code craftmaster:camera}): the physical prop of a {@link CameraSpot}. Its
- * position is the tripod's feet; the lens is {@link #LENS_HEIGHT} above, turned by the synced yaw and pitch. The
+ * A studio camera ({@code craftmaster:camera}): the physical prop of a {@link CameraSpot}. It is mounted like the
+ * studio lights ({@link CameraMount}): on its own floor tripod, on a tripod stand or a rig rod, hung under a ceiling
+ * or a rod, on a wall arm or a rod's side. Its position is the mount's anchor (the tripod's feet on the floor); the
+ * lens is {@link CameraMount#lensDy()} above (or below) it, turned by the synced yaw and pitch. The
  * broadcast clients never draw it (they see through it). Organisers get its number and the useful commands with a
  * right click, and remove it (with its camera) with a hit.
  */
 public class CameraEntity extends Entity {
 
-    /** From the feet to the lens (blocks): roughly a standing player's eyes. */
-    public static final double LENS_HEIGHT = 1.5;
+    /** Floor tripod: from the feet to the lens (blocks), roughly a standing player's eyes. */
+    public static final double LENS_HEIGHT = CameraMount.LEGS_LENS;
 
     private static final EntityDataAccessor<Integer> NUMBER = SynchedEntityData.defineId(CameraEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<String> NAME = SynchedEntityData.defineId(CameraEntity.class, EntityDataSerializers.STRING);
@@ -41,6 +44,11 @@ public class CameraEntity extends Entity {
     private static final EntityDataAccessor<Float> PITCH = SynchedEntityData.defineId(CameraEntity.class, EntityDataSerializers.FLOAT);
     /** The camera's group ("studio", "pont", "pont:ensuri"): with the number, its key. */
     private static final EntityDataAccessor<String> GROUP = SynchedEntityData.defineId(CameraEntity.class, EntityDataSerializers.STRING);
+    /** {@link CameraMount#id()}: how it is mounted, which the client draws (legs, stem, arm, upside-down). */
+    private static final EntityDataAccessor<String> MOUNT = SynchedEntityData.defineId(CameraEntity.class, EntityDataSerializers.STRING);
+
+    /** Parsed {@link #MOUNT}, cached. */
+    private CameraMount mount = CameraMount.FLOOR;
 
     public CameraEntity(EntityType<? extends CameraEntity> type, Level level) {
         super(type, level);
@@ -62,7 +70,14 @@ public class CameraEntity extends Entity {
         entityData.set(YAW, spot.yaw());
         entityData.set(PITCH, spot.pitch());
         entityData.set(GROUP, spot.group());
-        snapTo(spot.x(), spot.y() - LENS_HEIGHT, spot.z(), spot.yaw(), 0);
+        setMount(spot.mount());
+        snapTo(spot.x(), spot.y() - mount.lensDy(), spot.z(), spot.yaw(), 0);
+    }
+
+    private void setMount(CameraMount m) {
+        mount = m;
+        entityData.set(MOUNT, m.id());
+        refreshBox();
     }
 
     @Override
@@ -72,6 +87,28 @@ public class CameraEntity extends Entity {
         b.define(YAW, 0f);
         b.define(PITCH, 0f);
         b.define(GROUP, CameraSpot.STUDIO);
+        b.define(MOUNT, CameraMount.FLOOR.id());
+    }
+
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> accessor) {
+        super.onSyncedDataUpdated(accessor);
+        if (accessor == MOUNT) {
+            mount = CameraMount.parse(entityData.get(MOUNT));
+            refreshBox();
+        }
+    }
+
+    private void refreshBox() {
+        if (entityData != null) setBoundingBox(makeBoundingBox(position()));
+    }
+
+    /** On its floor tripod: the whole tripod (the type's size); mounted: around the camera's body only. */
+    @Override
+    protected AABB makeBoundingBox(Vec3 pos) {
+        if (mount == null || mount.legs()) return super.makeBoundingBox(pos);
+        Vec3 lens = pos.add(0, mount.lensDy(), 0);
+        return new AABB(lens.x - 0.35, lens.y - 0.35, lens.z - 0.35, lens.x + 0.35, lens.y + 0.35, lens.z + 0.35);
     }
 
     public int number() { return entityData.get(NUMBER); }
@@ -79,11 +116,12 @@ public class CameraEntity extends Entity {
     public float lensYaw() { return entityData.get(YAW); }
     public float lensPitch() { return entityData.get(PITCH); }
     public String group() { return entityData.get(GROUP); }
+    public CameraMount mount() { return mount; }
     /** "studio:2", "pont:ensuri:1" (see {@link CameraSpot#key()}). */
     public String cameraKey() { return group() + ":" + number(); }
 
     public Vec3 lens() {
-        return position().add(0, LENS_HEIGHT, 0);
+        return position().add(0, mount.lensDy(), 0);
     }
 
     // ---------------------------------------------------------------- behaviour
@@ -165,6 +203,8 @@ public class CameraEntity extends Entity {
         entityData.set(PITCH, in.getFloatOr("LensPitch", 0f));
         // Tripods saved before the lieux belong to the studio
         entityData.set(GROUP, in.getStringOr("Group", CameraSpot.STUDIO));
+        // Cameras saved before the mounts stand on their floor tripod
+        setMount(CameraMount.parse(in.getStringOr("Mount", "")));
     }
 
     @Override
@@ -174,5 +214,6 @@ public class CameraEntity extends Entity {
         out.putFloat("LensYaw", lensYaw());
         out.putFloat("LensPitch", lensPitch());
         out.putString("Group", group());
+        out.putString("Mount", mount.id());
     }
 }

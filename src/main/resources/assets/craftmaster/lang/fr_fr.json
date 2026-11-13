@@ -112,7 +112,7 @@
   "screen.craftmaster.pose.load": "Partir de",
   "screen.craftmaster.pose.use": "Utiliser la pose",
   "item.craftmaster.camera": "Caméra de studio",
-  "item.craftmaster.camera.hint": "Pose une caméra au sol (réservé à la réalisation)",
+  "item.craftmaster.camera.hint": "Pose une caméra au sol, sur un trépied, une barre, un mur ou au plafond (réservé à la réalisation)",
   "entity.craftmaster.camera": "Caméra de studio",
   "key.craftmaster.broadcast": "Mode diffusion (image TV)",
   "subtitles.craftmaster.show.theme": "Générique CraftMaster",

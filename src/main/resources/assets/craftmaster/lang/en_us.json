@@ -112,7 +112,7 @@
   "screen.craftmaster.pose.load": "Start from",
   "screen.craftmaster.pose.use": "Use this pose",
   "item.craftmaster.camera": "Studio Camera",
-  "item.craftmaster.camera.hint": "Use it on the floor to stand a camera (directors only)",
+  "item.craftmaster.camera.hint": "Use it on the floor, a tripod, a rod, a wall or a ceiling to mount a camera (directors only)",
   "entity.craftmaster.camera": "Studio Camera",
   "key.craftmaster.broadcast": "Broadcast mode (TV picture)",
   "subtitles.craftmaster.show.theme": "CraftMaster theme plays",

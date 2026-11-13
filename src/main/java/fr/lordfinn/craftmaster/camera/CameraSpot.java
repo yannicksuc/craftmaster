@@ -22,9 +22,11 @@ import java.util.Locale;
  * @param motion one of {@link #MOTIONS}
  * @param lieu   {@link #STUDIO} or a round id
  * @param zone   "" (the whole lieu) or a zone name; always "" in the studio
+ * @param mount  how its prop is mounted (floor tripod, on a stand or a rod, hung, on a wall): server only, not sent
+ *               to the clients (the prop entity carries it)
  */
 public record CameraSpot(int number, String name, String role, String world, double x, double y, double z,
-                         float yaw, float pitch, float fov, String motion, String lieu, String zone) {
+                         float yaw, float pitch, float fov, String motion, String lieu, String zone, CameraMount mount) {
 
     public static final String WIDE = "large", THRONE = "trone", PODIUM = "podium";
     public static final java.util.List<String> ROLES = java.util.List.of(WIDE, THRONE, PODIUM);
@@ -46,6 +48,13 @@ public record CameraSpot(int number, String name, String role, String world, dou
         pitch = Math.max(-90, Math.min(90, pitch));
         lieu = normalizeLieu(lieu);
         zone = STUDIO.equals(lieu) ? "" : normalizeZone(zone);
+        if (mount == null) mount = CameraMount.FLOOR;
+    }
+
+    /** A camera on its floor tripod (as every camera was before the mounts). */
+    public CameraSpot(int number, String name, String role, String world, double x, double y, double z,
+                      float yaw, float pitch, float fov, String motion, String lieu, String zone) {
+        this(number, name, role, world, x, y, z, yaw, pitch, fov, motion, lieu, zone, CameraMount.FLOOR);
     }
 
     /** A studio camera (as every camera was before the lieux). */
@@ -146,27 +155,28 @@ public record CameraSpot(int number, String name, String role, String world, dou
     }
 
     public CameraSpot withName(String n) {
-        return new CameraSpot(number, n, role, world, x, y, z, yaw, pitch, fov, motion, lieu, zone);
+        return new CameraSpot(number, n, role, world, x, y, z, yaw, pitch, fov, motion, lieu, zone, mount);
     }
 
     public CameraSpot withRole(String r) {
-        return new CameraSpot(number, name, r, world, x, y, z, yaw, pitch, fov, motion, lieu, zone);
+        return new CameraSpot(number, name, r, world, x, y, z, yaw, pitch, fov, motion, lieu, zone, mount);
     }
 
     public CameraSpot withFov(float f) {
-        return new CameraSpot(number, name, role, world, x, y, z, yaw, pitch, f, motion, lieu, zone);
+        return new CameraSpot(number, name, role, world, x, y, z, yaw, pitch, f, motion, lieu, zone, mount);
     }
 
     public CameraSpot withMotion(String m) {
-        return new CameraSpot(number, name, role, world, x, y, z, yaw, pitch, fov, m, lieu, zone);
+        return new CameraSpot(number, name, role, world, x, y, z, yaw, pitch, fov, m, lieu, zone, mount);
     }
 
+    /** Moved (to the player's eyes): back on a floor tripod. */
     public CameraSpot withPlace(String w, double nx, double ny, double nz, float nyaw, float npitch) {
-        return new CameraSpot(number, name, role, w, nx, ny, nz, nyaw, npitch, fov, motion, lieu, zone);
+        return new CameraSpot(number, name, role, w, nx, ny, nz, nyaw, npitch, fov, motion, lieu, zone, CameraMount.FLOOR);
     }
 
     public CameraSpot withRotation(float nyaw, float npitch) {
-        return new CameraSpot(number, name, role, world, x, y, z, nyaw, npitch, fov, motion, lieu, zone);
+        return new CameraSpot(number, name, role, world, x, y, z, nyaw, npitch, fov, motion, lieu, zone, mount);
     }
 
     /**
@@ -175,7 +185,7 @@ public record CameraSpot(int number, String name, String role, String world, dou
      */
     public CameraSpot withLieu(String newLieu, String newZone, int newNumber) {
         String n = name.equals(defaultName(number)) ? null : name;
-        return new CameraSpot(newNumber, n, role, world, x, y, z, yaw, pitch, fov, motion, newLieu, newZone);
+        return new CameraSpot(newNumber, n, role, world, x, y, z, yaw, pitch, fov, motion, newLieu, newZone, mount);
     }
 
     /** "2 · Plan large (large)"; outside the studio the group comes first: "pont:ensuri 1 · Caméra 1". */
@@ -184,8 +194,8 @@ public record CameraSpot(int number, String name, String role, String world, dou
     }
 
     public String describe() {
-        return String.format(Locale.ROOT, "%s · %.1f %.1f %.1f, regard %.0f° / %.0f°%s, %s", placeName(), x, y, z, yaw, pitch,
-                fov > 0 ? ", zoom " + Math.round(fov) + "°" : "", motion);
+        return String.format(Locale.ROOT, "%s · %.1f %.1f %.1f, regard %.0f° / %.0f°%s, %s, %s", placeName(), x, y, z, yaw, pitch,
+                fov > 0 ? ", zoom " + Math.round(fov) + "°" : "", motion, mount.label());
     }
 
     public void write(FriendlyByteBuf buf) {
