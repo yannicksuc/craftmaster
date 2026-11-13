@@ -59,6 +59,8 @@ public final class CraftMaster implements ModInitializer {
         fr.lordfinn.craftmaster.trial.Trials.register();
         // Wardrobe: change into a complete outfit in one click (docs/wiki/GardeRobe.md)
         fr.lordfinn.craftmaster.wardrobe.Wardrobes.register();
+        // Task toys: rubber ducks, balls, eggs, golf, balloons, targets that count, graduated glass (toy/)
+        fr.lordfinn.craftmaster.toy.Toys.register();
         // TV direction (chantier E): cameras, show state, overlay cues, credits
         Director.register();
         // Replays of the rounds with Server Replay, if installed (optional)

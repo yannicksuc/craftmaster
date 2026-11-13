@@ -42,6 +42,7 @@ public final class CraftMasterClient implements ClientModInitializer {
         // Chantier H: task props, results sheet, drawing boards, plinth
         fr.lordfinn.craftmaster.client.trial.TrialClient.init();
         fr.lordfinn.craftmaster.client.wardrobe.WardrobeClient.init();
+        fr.lordfinn.craftmaster.client.toy.ToysClient.init();
         // TV direction (chantier E): broadcast mode, director's shots, overlay, camera tripods
         Broadcast.init();
         // Replays (Server Replay's viewer): playback bar and direction

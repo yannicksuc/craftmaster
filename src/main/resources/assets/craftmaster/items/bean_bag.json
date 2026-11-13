@@ -1,0 +1,125 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:component",
+    "component": "minecraft:dyed_color",
+    "cases": [
+      {
+        "when": 16383998,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_white"
+        }
+      },
+      {
+        "when": 16351261,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_orange"
+        }
+      },
+      {
+        "when": 13061821,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_magenta"
+        }
+      },
+      {
+        "when": 3847130,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_light_blue"
+        }
+      },
+      {
+        "when": 16701501,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_yellow"
+        }
+      },
+      {
+        "when": 8439583,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_lime"
+        }
+      },
+      {
+        "when": 15961002,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_pink"
+        }
+      },
+      {
+        "when": 4673362,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_gray"
+        }
+      },
+      {
+        "when": 10329495,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_light_gray"
+        }
+      },
+      {
+        "when": 1481884,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_cyan"
+        }
+      },
+      {
+        "when": 8991416,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_purple"
+        }
+      },
+      {
+        "when": 3949738,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_blue"
+        }
+      },
+      {
+        "when": 8606770,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_brown"
+        }
+      },
+      {
+        "when": 6192150,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_green"
+        }
+      },
+      {
+        "when": 11546150,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_red"
+        }
+      },
+      {
+        "when": 1908001,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bean_bag_black"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "craftmaster:item/toy/bean_bag"
+    }
+  }
+}

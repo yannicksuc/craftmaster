@@ -1,0 +1,31 @@
+{
+  "variants": {
+    "fill=0": {
+      "model": "craftmaster:block/toy/measuring_tank_0"
+    },
+    "fill=1": {
+      "model": "craftmaster:block/toy/measuring_tank_1"
+    },
+    "fill=2": {
+      "model": "craftmaster:block/toy/measuring_tank_2"
+    },
+    "fill=3": {
+      "model": "craftmaster:block/toy/measuring_tank_3"
+    },
+    "fill=4": {
+      "model": "craftmaster:block/toy/measuring_tank_4"
+    },
+    "fill=5": {
+      "model": "craftmaster:block/toy/measuring_tank_5"
+    },
+    "fill=6": {
+      "model": "craftmaster:block/toy/measuring_tank_6"
+    },
+    "fill=7": {
+      "model": "craftmaster:block/toy/measuring_tank_7"
+    },
+    "fill=8": {
+      "model": "craftmaster:block/toy/measuring_tank_8"
+    }
+  }
+}

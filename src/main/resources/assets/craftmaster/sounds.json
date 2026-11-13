@@ -43,5 +43,26 @@
         "volume": 0.9
       }
     ]
+  },
+  "toy.squeak": {
+    "subtitle": "subtitles.craftmaster.toy.squeak",
+    "sounds": [
+      "craftmaster:toy/squeak1",
+      "craftmaster:toy/squeak2"
+    ]
+  },
+  "toy.pop": {
+    "subtitle": "subtitles.craftmaster.toy.pop",
+    "sounds": [
+      "craftmaster:toy/pop1",
+      "craftmaster:toy/pop2"
+    ]
+  },
+  "toy.puff": {
+    "subtitle": "subtitles.craftmaster.toy.puff",
+    "sounds": [
+      "craftmaster:toy/puff1",
+      "craftmaster:toy/puff2"
+    ]
   }
 }

@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:slime_ball",
+    "minecraft:string",
+    "minecraft:red_dye"
+  ],
+  "result": {
+    "id": "craftmaster:balloon",
+    "count": 3
+  }
+}

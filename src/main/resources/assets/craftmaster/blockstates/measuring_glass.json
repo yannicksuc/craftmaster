@@ -1,0 +1,31 @@
+{
+  "variants": {
+    "fill=0": {
+      "model": "craftmaster:block/toy/measuring_glass_0"
+    },
+    "fill=1": {
+      "model": "craftmaster:block/toy/measuring_glass_1"
+    },
+    "fill=2": {
+      "model": "craftmaster:block/toy/measuring_glass_2"
+    },
+    "fill=3": {
+      "model": "craftmaster:block/toy/measuring_glass_3"
+    },
+    "fill=4": {
+      "model": "craftmaster:block/toy/measuring_glass_4"
+    },
+    "fill=5": {
+      "model": "craftmaster:block/toy/measuring_glass_5"
+    },
+    "fill=6": {
+      "model": "craftmaster:block/toy/measuring_glass_6"
+    },
+    "fill=7": {
+      "model": "craftmaster:block/toy/measuring_glass_7"
+    },
+    "fill=8": {
+      "model": "craftmaster:block/toy/measuring_glass_8"
+    }
+  }
+}

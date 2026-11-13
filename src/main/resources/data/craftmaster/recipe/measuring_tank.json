@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:cauldron",
+    "minecraft:glass",
+    "minecraft:stick"
+  ],
+  "result": {
+    "id": "craftmaster:measuring_tank",
+    "count": 1
+  }
+}

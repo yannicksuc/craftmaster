@@ -1,0 +1,7 @@
+{
+  "parent": "craftmaster:item/toy/balloon_2",
+  "textures": {
+    "tex": "craftmaster:item/toy/balloon_cyan",
+    "particle": "craftmaster:item/toy/balloon_cyan"
+  }
+}

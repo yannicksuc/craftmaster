@@ -1,0 +1,326 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "glass": "craftmaster:block/toy/measuring_glass",
+    "water": "craftmaster:block/toy/measured_water",
+    "particle": "craftmaster:block/toy/measuring_glass"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        10,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            6,
+            6,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            6,
+            6,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            6,
+            6,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            6,
+            6,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#glass",
+          "uv": [
+            0,
+            6,
+            6,
+            12
+          ],
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        0,
+        10.99
+      ],
+      "to": [
+        11,
+        10,
+        10.99
+      ],
+      "faces": {
+        "north": {
+          "texture": "#glass",
+          "uv": [
+            6,
+            6,
+            0,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        0,
+        5.01
+      ],
+      "to": [
+        11,
+        10,
+        5.01
+      ],
+      "faces": {
+        "south": {
+          "texture": "#glass",
+          "uv": [
+            6,
+            6,
+            0,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        10.99,
+        0,
+        5
+      ],
+      "to": [
+        10.99,
+        10,
+        11
+      ],
+      "faces": {
+        "west": {
+          "texture": "#glass",
+          "uv": [
+            6,
+            6,
+            0,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        5.01,
+        0,
+        5
+      ],
+      "to": [
+        5.01,
+        10,
+        11
+      ],
+      "faces": {
+        "east": {
+          "texture": "#glass",
+          "uv": [
+            6,
+            6,
+            0,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        5.5,
+        0.5,
+        5.5
+      ],
+      "to": [
+        10.5,
+        6.125,
+        10.5
+      ],
+      "faces": {
+        "up": {
+          "texture": "#water",
+          "uv": [
+            5.5,
+            5.5,
+            10.5,
+            10.5
+          ]
+        },
+        "north": {
+          "texture": "#water",
+          "uv": [
+            5.5,
+            9.875,
+            10.5,
+            15.5
+          ]
+        },
+        "south": {
+          "texture": "#water",
+          "uv": [
+            5.5,
+            9.875,
+            10.5,
+            15.5
+          ]
+        },
+        "east": {
+          "texture": "#water",
+          "uv": [
+            5.5,
+            9.875,
+            10.5,
+            15.5
+          ]
+        },
+        "west": {
+          "texture": "#water",
+          "uv": [
+            5.5,
+            9.875,
+            10.5,
+            15.5
+          ]
+        }
+      }
+    }
+  ],
+  "display": {
+    "gui": {
+      "rotation": [
+        30,
+        225,
+        0
+      ],
+      "translation": [
+        0,
+        1,
+        0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.25,
+        0.25,
+        0.25
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.375,
+        0.375,
+        0.375
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        225,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    }
+  }
+}

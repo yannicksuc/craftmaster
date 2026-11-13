@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:paper",
+    "minecraft:wheat_seeds",
+    "minecraft:string"
+  ],
+  "result": {
+    "id": "craftmaster:bean_bag",
+    "count": 2
+  }
+}

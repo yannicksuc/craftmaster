@@ -1,0 +1,7 @@
+{
+  "parent": "craftmaster:item/toy/bouncy_ball",
+  "textures": {
+    "tex": "craftmaster:item/toy/bouncy_ball_gray",
+    "particle": "craftmaster:item/toy/bouncy_ball_gray"
+  }
+}

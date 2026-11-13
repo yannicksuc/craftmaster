@@ -1,0 +1,214 @@
+{
+  "textures": {
+    "tex": "craftmaster:item/toy/bean_bag_natural",
+    "particle": "craftmaster:item/toy/bean_bag_natural"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        3,
+        11
+      ],
+      "faces": {
+        "up": {
+          "texture": "#tex",
+          "uv": [
+            0.0,
+            8.0,
+            6.0,
+            14.0
+          ]
+        },
+        "down": {
+          "texture": "#tex",
+          "uv": [
+            8.0,
+            8.0,
+            14.0,
+            14.0
+          ]
+        },
+        "north": {
+          "texture": "#tex",
+          "uv": [
+            0.0,
+            0.0,
+            6.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#tex",
+          "uv": [
+            0.0,
+            0.0,
+            6.0,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#tex",
+          "uv": [
+            0.0,
+            0.0,
+            6.0,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#tex",
+          "uv": [
+            0.0,
+            0.0,
+            6.0,
+            3.0
+          ]
+        }
+      }
+    }
+  ],
+  "display": {
+    "gui": {
+      "rotation": [
+        30,
+        225,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        1.8,
+        1.8,
+        1.8
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.7,
+        0.7,
+        0.7
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1.4400000000000002,
+        1.4400000000000002,
+        1.4400000000000002
+      ]
+    },
+    "head": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        13,
+        0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        135,
+        0
+      ],
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        135,
+        0
+      ],
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    }
+  }
+}

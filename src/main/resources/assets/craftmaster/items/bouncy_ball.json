@@ -1,0 +1,125 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:component",
+    "component": "minecraft:dyed_color",
+    "cases": [
+      {
+        "when": 16383998,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_white"
+        }
+      },
+      {
+        "when": 16351261,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_orange"
+        }
+      },
+      {
+        "when": 13061821,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_magenta"
+        }
+      },
+      {
+        "when": 3847130,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_light_blue"
+        }
+      },
+      {
+        "when": 16701501,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_yellow"
+        }
+      },
+      {
+        "when": 8439583,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_lime"
+        }
+      },
+      {
+        "when": 15961002,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_pink"
+        }
+      },
+      {
+        "when": 4673362,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_gray"
+        }
+      },
+      {
+        "when": 10329495,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_light_gray"
+        }
+      },
+      {
+        "when": 1481884,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_cyan"
+        }
+      },
+      {
+        "when": 8991416,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_purple"
+        }
+      },
+      {
+        "when": 3949738,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_blue"
+        }
+      },
+      {
+        "when": 8606770,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_brown"
+        }
+      },
+      {
+        "when": 6192150,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_green"
+        }
+      },
+      {
+        "when": 11546150,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_red"
+        }
+      },
+      {
+        "when": 1908001,
+        "model": {
+          "type": "minecraft:model",
+          "model": "craftmaster:item/toy/bouncy_ball_black"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "craftmaster:item/toy/bouncy_ball_red"
+    }
+  }
+}

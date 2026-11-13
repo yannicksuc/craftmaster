@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=north,powered=false": {
+      "model": "craftmaster:block/toy/mug_target"
+    },
+    "facing=north,powered=true": {
+      "model": "craftmaster:block/toy/mug_target"
+    },
+    "facing=east,powered=false": {
+      "model": "craftmaster:block/toy/mug_target",
+      "y": 90
+    },
+    "facing=east,powered=true": {
+      "model": "craftmaster:block/toy/mug_target",
+      "y": 90
+    },
+    "facing=south,powered=false": {
+      "model": "craftmaster:block/toy/mug_target",
+      "y": 180
+    },
+    "facing=south,powered=true": {
+      "model": "craftmaster:block/toy/mug_target",
+      "y": 180
+    },
+    "facing=west,powered=false": {
+      "model": "craftmaster:block/toy/mug_target",
+      "y": 270
+    },
+    "facing=west,powered=true": {
+      "model": "craftmaster:block/toy/mug_target",
+      "y": 270
+    }
+  }
+}

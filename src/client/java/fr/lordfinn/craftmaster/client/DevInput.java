@@ -28,6 +28,7 @@ import java.util.Locale;
  * hold NAME seconds              the key reads as held down ({@link #held}) for that long (pressed once too)
  * quit                           closes the game (stops a test client cleanly)
  * slowmo factor                  animations that ask {@link #timeScale} run this many times slower (1 = normal)
+ * use seconds                    holds the "use" key in the world that long, then lets go (charge a throw, a bow…)
  * </pre>
  */
 public final class DevInput {
@@ -36,6 +37,8 @@ public final class DevInput {
 
     private static final java.util.Map<Integer, Long> HELD = new java.util.HashMap<>();
     private static float slow = 1;
+    /** A "use" line holds the use key until then (nanoTime), 0 when not holding. */
+    private static long useUntil;
 
     /** Is this key (InputConstants.KEY_*) held by a {@code hold} line? Always false outside development. */
     public static boolean held(int key) {
@@ -52,6 +55,10 @@ public final class DevInput {
         if (!FabricLoader.getInstance().isDevelopmentEnvironment()) return;
         Path file = FabricLoader.getInstance().getGameDir().resolve("dev-input.txt");
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+            if (useUntil != 0 && System.nanoTime() > useUntil) {
+                mc.options.keyUse.setDown(false);
+                useUntil = 0;
+            }
             if (!Files.exists(file)) return;
             List<String> lines;
             try {
@@ -68,6 +75,12 @@ public final class DevInput {
                 }
                 if (line.strip().toLowerCase(Locale.ROOT).startsWith("slowmo")) {
                     slow = Math.max(0.01f, Float.parseFloat(line.strip().split("\\s+")[1]));
+                    continue;
+                }
+                if (line.strip().toLowerCase(Locale.ROOT).startsWith("use")) {
+                    String[] a = line.strip().split("\\s+");
+                    useUntil = System.nanoTime() + (long) (Double.parseDouble(a.length > 1 ? a[1] : "0.2") * 1e9);
+                    mc.options.keyUse.setDown(true);
                     continue;
                 }
                 if (screen == null) continue;

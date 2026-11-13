@@ -14,6 +14,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Tableaux suspendus (galeries, poses, éditeur)](Tableaux.md)
 - [Épreuves : objets d'épreuve, buzzers, feuille de résultats, chrono, tableaux à dessiner](Epreuves.md)
 - [Garde-robe : changer de tenue en un clic (vêtements Selfexpression, toute armure)](GardeRobe.md)
+- [Objets à manipuler : canards en plastique, balles, ballons, œuf fragile, golf, cibles qui comptent, verre gradué](Objets.md)
 - [Tâches, enveloppes scellées et notes cachées](Taches.md)
 - [Rideaux de scène](Rideaux.md)
 - [Finitions v4 : rideau fluide, éditeur de poses, skins HD](Finitions.md)

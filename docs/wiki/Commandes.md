@@ -135,6 +135,9 @@ l'exécuteur des actions : **annulable** et identique à la voix.
 | `/craftMasterZone players <nom> <joueurs…\|all>` · `enable <nom> <true\|false>` · `show` · `remove` · `list` | | Réglages des zones |
 | `/craftMasterTrial log` · `reset` · `prop` | cftr | Journal (boutons, buzzers, premiers, sorties de zone) / remise à zéro / réglages de l'objet regardé |
 | `/craftMasterBoard size <l> <h>` · `clear` · `lock <true\|false>` · `text <texte>` | cfbd | Tableau à dessin regardé (`\n` = retour à la ligne) |
+| `/craftMasterToys` · `status` | cfty | Objets à manipuler ([Objets](Objets.md)) : qui a trouvé quoi, prises dans les cibles, plus long lancer, golf, ballons crevés, œufs cassés, avec les boutons pour noter |
+| `/craftMasterToys list` · `glow [secondes]` · `collect` | | Objets cachés restants : où (clic = téléportation), les faire briller, tous les ramasser |
+| `/craftMasterToys reset` · `egg <blocs>` | | Remet les compteurs à zéro / règle l'œuf fragile tenu (0 = casse au moindre choc) |
 
 ## Pour tous
 | Commande | Alias | Effet |

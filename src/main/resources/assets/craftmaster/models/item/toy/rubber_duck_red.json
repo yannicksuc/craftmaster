@@ -1,0 +1,7 @@
+{
+  "parent": "craftmaster:item/toy/rubber_duck",
+  "textures": {
+    "duck": "craftmaster:item/toy/rubber_duck_red",
+    "particle": "craftmaster:item/toy/rubber_duck_red"
+  }
+}

@@ -4,6 +4,9 @@ Tout ce qu'il faut pour **monter**, **jouer** et **arbitrer** une épreuve en je
 tâches : des objets avec lesquels les candidats interagissent, les outils du juge (feuille de résultats, chrono,
 mètre, compteur, balance, zone) et des objets pour laisser libre cours à l'imagination (tableaux à
 dessiner, socle d'exposition, objets nommés). Tout est dans l'onglet créatif CraftMaster.
+Les petits objets qu'on pose, ramasse et lance (canards en plastique, balles, sachets, ballons, œuf fragile,
+minigolf) et les récipients qui comptent ou mesurent (seau, poubelle et tasse-cibles, verre gradué) ont leur page :
+[Objets à manipuler](Objets.md).
 
 « Candidats » = les joueurs (non archivés) de la **saison active**. « Organisateurs » = permission
 `craftmaster:admin` ou opérateur.

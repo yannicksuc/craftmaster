@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " Y",
+    "SS"
+  ],
+  "key": {
+    "Y": "minecraft:yellow_dye",
+    "S": "minecraft:slime_ball"
+  },
+  "result": {
+    "id": "craftmaster:rubber_duck",
+    "count": 2
+  }
+}
