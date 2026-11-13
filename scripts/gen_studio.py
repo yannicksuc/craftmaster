@@ -91,6 +91,7 @@ def wood_grain(pal, x, y, w, h):
 def generate(g):
     A, D = g.A, g.D
     wj, cube, self_drop = g.write_json, g.cube, g.self_drop
+    from gen_toys import gui_fit  # inventory icon centred in the slot at a set size
     FY = g.FACING_Y
     en, fr = g.en, g.fr
 
@@ -470,13 +471,16 @@ def generate(g):
     # Banker's lamp: brass base and stem, green glass shade, the light on a plane under the shade (only it glows)
     DL = tex("desk_lamp")
     for lit in (False, True):
-        model("desk_lamp" + ("_lit" if lit else ""), [
+        els = [
             box([4, 0, 5], [12, 1, 11], "#lamp", uvs([0, 6, 8, 7], [8, 6, 14, 7], [0, 0, 8, 6], [0, 0, 8, 6])),
             box([7, 1, 7], [9, 6, 9], "#lamp", uvs([8, 0, 10, 5], [8, 0, 10, 5])),
             box([3, 6, 5], [13, 9, 11], "#lamp", uvs([0, 7, 10, 10], [10, 7, 16, 10], [0, 10, 10, 16])),
             box([3, 6, 5], [13, 6, 11], "#glow", {"down": [3, 5, 13, 11]}, 12 if lit else 0),
             box([7, 9, 7], [9, 10, 9], "#lamp", uvs([12, 0, 14, 1], [12, 0, 14, 1], [12, 0, 14, 2])),
-        ], {"particle": DL, "lamp": DL, "glow": tex("lamp_glow" if lit else "lamp_off")}, extra={"ambientocclusion": False})
+        ]
+        # A small lamp on its own: drawn bigger and centred in the slot (it filled 8 x 9 px, low)
+        model("desk_lamp" + ("_lit" if lit else ""), els, {"particle": DL, "lamp": DL, "glow": tex("lamp_glow" if lit else "lamp_off")},
+              extra={"ambientocclusion": False, "display": {"gui": gui_fit(els, 13)}})
     facing_states("desk_lamp", lambda c: "desk_lamp" + ("_lit" if c["lit"] == "true" else ""), {"lit": ["false", "true"]})
     item_block("desk_lamp", "desk_lamp_lit")
 
@@ -528,7 +532,7 @@ def generate(g):
                 "east": {"texture": t, "uv": [10, 0, 10.75, 10]}, "west": {"texture": t, "uv": [10, 0, 10.75, 10]},
                 "up": {"texture": t, "uv": [0, 10, 10, 13]}, "down": {"texture": t, "uv": [0, 10, 10, 13]}}}],
             {"particle": tex("on_air_lit" if lit else "on_air"), "box": tex("on_air_lit" if lit else "on_air")},
-            extra={"ambientocclusion": False, "display": WIDE_DISPLAY})
+            extra={"ambientocclusion": False, "display": {**WIDE_DISPLAY, "gui": gui_fit([{"from": [-12, 3, 13], "to": [28, 13, 16]}], 15, (0, 180, 0))}})
     facing_states("on_air_sign", lambda c: "on_air_sign" + ("_lit" if c["lit"] == "true" else ""),
                   {"lit": ["false", "true"], "powered": ["false", "true"]})
     item_block("on_air_sign", "on_air_sign_lit")
@@ -559,7 +563,8 @@ def generate(g):
             if not right:
                 els += [el([14, 0, 4], [16, 13, 15], "#wood"), el([15, 16, 1], [16, 16.5, 15], "#gold")]
             model("contestant_desk" + sfx, els, {"particle": SP, "wood": SP, "front": RW, "gold": GB,
-                                                 "plate": tex("name_plate")}, extra={"ambientocclusion": False})
+                                                 "plate": tex("name_plate")},
+                  extra={"ambientocclusion": False, "display": {"gui": gui_fit(els, 15)}})
     facing_states("contestant_desk", lambda c: "contestant_desk" + joined_suffix(c["left"] == "true", c["right"] == "true"),
                   {"left": ["false", "true"], "right": ["false", "true"]})
     item_block("contestant_desk")
@@ -567,7 +572,8 @@ def generate(g):
     for pressed in (False, True):
         els = [el([4, 0, 4], [12, 1, 12], "#wood"), el([5, 1, 5], [11, 4, 11], "#dome")]
         els.append(el([7, 4, 7], [9, 4.5 if pressed else 5, 9], "#gold"))
-        model("desk_bell" + ("_pressed" if pressed else ""), els, {"particle": tex("bell_dome"), "wood": W, "dome": tex("bell_dome"), "gold": GP})
+        model("desk_bell" + ("_pressed" if pressed else ""), els, {"particle": tex("bell_dome"), "wood": W, "dome": tex("bell_dome"), "gold": GP},
+              extra={"display": {"gui": gui_fit(els, 12)}})
     facing_states("desk_bell", lambda c: "desk_bell" + ("_pressed" if c["powered"] == "true" else ""), {"powered": ["false", "true"]})
     item_block("desk_bell")
 

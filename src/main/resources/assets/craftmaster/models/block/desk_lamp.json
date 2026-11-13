@@ -266,5 +266,24 @@
       }
     }
   ],
-  "ambientocclusion": false
+  "ambientocclusion": false,
+  "display": {
+    "gui": {
+      "rotation": [
+        30,
+        225,
+        0
+      ],
+      "translation": [
+        0.0,
+        2.83,
+        0
+      ],
+      "scale": [
+        0.993,
+        0.993,
+        0.993
+      ]
+    }
+  }
 }
