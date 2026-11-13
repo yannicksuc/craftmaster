@@ -76,7 +76,9 @@ Le lien n'accepte que `https://` (ou `http://127.0.0.1` / `localhost` pour les e
   branche replays : `ReplayViewing.seekFor` / `pausedFor` / `speedFor` / `viewFor` (et pas `ServerReplayBridge` : pendant
   la réouverture d'un fichier, il n'y a plus de lecteur et l'ordre serait perdu ; ces fonctions l'appliquent à la
   réouverture). La réalisation du replay (Direct, Auto, Manuel, caméra, vue d'un joueur) sera envoyée à ce jeu par
-  `ServerReplayBridge.sendToViewer`, puis `ReplayControl.run` côté client (payload ajouté par la branche replays).
+  `ReplayViewing.directFor(watcher, action)` (fait dans la branche replays : `replay.control`, `camera.cut`, `camera.follow`,
+  `camera.pov`, `camera.auto`). Le jeu qui regarde est retiré de la liste des joueurs pendant la lecture : le retrouver
+  avec `ReplayViewing.watcher(server, nom)`, pas `getPlayerByName` ni un sélecteur.
 
 ## Vérifié (13/11/2026, 26.2)
 Serveur de dev + Joueur2 (non opérateur) dans la liste : régie ouverte par `/regie` avec le seul onglet Caméras, coupe
