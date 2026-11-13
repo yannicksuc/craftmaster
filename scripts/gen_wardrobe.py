@@ -373,6 +373,9 @@ def half(lower, opened):
 
 
 def item_model():
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # run with -I: no script folder on the path
+    from gen_toys import gui_fit  # the inventory icon inside the slot
     """The item: the whole armoire in 3D (both halves, closed). Two blocks high, so it is drawn smaller than a block
     and moved down by its extra height (centre y 16 instead of 8): s = scale, translation y = -8 s."""
     lower, upper = half(True, False), half(False, False)
@@ -386,7 +389,7 @@ def item_model():
     def d(rot, s, ty=0.0):
         return {"rotation": rot, "translation": [0, round(-8 * s + ty, 3), 0], "scale": [s, s, s]}
     return {"parent": "minecraft:block/block", "textures": TEXTURES, "elements": els,
-            "display": {"gui": d([30, 225, 0], 0.4), "ground": d([0, 0, 0], 0.2, 3), "fixed": d([0, 180, 0], 0.45),
+            "display": {"gui": gui_fit(els, 15), "ground": d([0, 0, 0], 0.2, 3), "fixed": d([0, 180, 0], 0.45),
                         "thirdperson_righthand": d([75, 45, 0], 0.3, 2.5), "thirdperson_lefthand": d([75, 45, 0], 0.3, 2.5),
                         "firstperson_righthand": d([0, 45, 0], 0.3, 2), "firstperson_lefthand": d([0, 225, 0], 0.3, 2)}}
 

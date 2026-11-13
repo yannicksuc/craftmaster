@@ -211,6 +211,8 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
             lv = {p: min(6, v + 1) for p, v in lv.items()}
         return lv
 
+    from gen_toys import gui_fit  # inventory icon centred in the slot at a set size
+
     def buzzer_model(name, dome, lit):
         dome_el = {"from": [5, 4, 5], "to": [11, 7, 11], "faces": {
             **{d: {"texture": "#dome", "uv": [0, 6, 6, 9]} for d in ("north", "south", "east", "west")},
@@ -227,7 +229,9 @@ def generate(A, D, en, fr, write_json, write_png, self_drop, shaped, colors):
                          {"from": [3, 3, 3], "to": [13, 4, 13], "faces": {
                              **{d: {"texture": "#band", "uv": [3, 12, 13, 13]} for d in ("north", "south", "east", "west")},
                              "up": {"texture": "#band", "uv": [3, 3, 13, 13]}}},
-                         dome_el]})
+                         dome_el],
+                     # Drawn bigger and centred in the inventory slot (it filled 9 x 8 px at the bottom)
+                     "display": {"gui": gui_fit([{"from": [3, 0, 3], "to": [13, 7, 13]}], 12.5)}})
 
     for color, (rgb, en_name, fr_name) in colors.items():
         name = f"{color}_buzzer"

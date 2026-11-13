@@ -4,6 +4,7 @@ Called by gen_assets.py."""
 import os
 
 import gen_studio
+from gen_toys import gui_fit
 
 RED = (255, 54, 40)
 DIM = (40, 10, 8)
@@ -256,7 +257,7 @@ def generate(g):
         "elements": [{"from": [0, 2, 7], "to": [16, 14, 8],
                       "faces": {"south": face, "north": face, "east": side, "west": side, "up": edge, "down": edge}}],
         "display": {
-            "gui": {"rotation": [0, 0, 0], "translation": [0, 0, 0], "scale": [1.1, 1.1, 1.1]},
+            "gui": gui_fit([{"from": [0, 2, 7], "to": [16, 14, 8]}], 15, (0, 0, 0)),   # inside the slot
             "ground": {"rotation": [0, 0, 0], "translation": [0, 2, 0], "scale": [0.5, 0.5, 0.5]},
             "fixed": {"rotation": [0, 180, 0], "scale": [1, 1, 1]},
             # Held up in front, face towards the others (like Taskmaster's assistant)
