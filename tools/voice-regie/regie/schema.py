@@ -70,7 +70,7 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                       [f("manche", MANCHE, True, MANCHE_DOC), f("name", STR, doc="Nouveau nom."),
                        f("aliases", STR_LIST, doc="Nouvelle liste complète de surnoms."), f("onStage", BOOL),
                        f("scene", STR), f("timer", INT, doc="Chrono en secondes."),
-                       f("timerStart", STR, doc="Quand le chrono démarre : « lancement » (avec la manche), « lettre » (quand un joueur ouvre la lettre de la tâche) ou « bouton » (joueurs figés jusqu'à ce qu'ils cliquent « Commencer l'épreuve » dans la lettre)."),
+                       f("timerStart", STR, doc="Quand le chrono démarre : « lancement » (avec la manche), « lettre » (par défaut : quand un joueur ouvre la lettre de la tâche ; au lancement si la manche n'a pas de tâche écrite) ou « bouton » (joueurs figés jusqu'à ce qu'ils cliquent « Commencer l'épreuve » dans la lettre)."),
                        f("order", INT, doc="Nouvelle position (1 = première).")]),
     "manche.archive": ("Archive ou désarchive une manche.", [f("manche", MANCHE, True, MANCHE_DOC), f("archived", BOOL, True)]),
     "manche.delete": ("Supprime une manche (annulable).", [f("manche", MANCHE, True, MANCHE_DOC)]),

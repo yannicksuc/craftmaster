@@ -961,12 +961,16 @@ public final class Actions {
             s.activePartie = p.id;
             if (p.status.equals(Partie.PREPARATION)) p.status = Partie.EN_COURS;
             List<String> cast = s.players.values().stream().filter(x -> !x.archived).map(x -> x.name).toList();
-            effects.add(new MancheStarted(s.id, p.number(r), r.name, r.timer, List.copyOf(r.tp), cast, r.id, r.timerStart));
+            // No written task, no letter to read: the timer starts with the round
+            String start = r.timerStart.equals(fr.lordfinn.craftmaster.task.RoundStart.LETTER) && (r.task == null || r.task.isEmpty())
+                    ? fr.lordfinn.craftmaster.task.RoundStart.LAUNCH : r.timerStart;
+            effects.add(new MancheStarted(s.id, p.number(r), r.name, r.timer, List.copyOf(r.tp), cast, r.id, start));
             // Starting the round reveals its task, unless only the envelopes may (chantier D)
             if (r.task != null && r.task.revealOnStart && !r.task.isEmpty()) effects.add(new TaskRevealed(s.id, r.id, false));
             line("Manche " + p.number(r) + " — " + r.name + " lancée" + (r.timer > 0 ? " (chrono " + clock(r.timer)
-                    + (r.timerStart.equals(fr.lordfinn.craftmaster.task.RoundStart.LAUNCH) ? "" : ", départ " + fr.lordfinn.craftmaster.task.RoundStart.describe(r.timerStart)) + ")"
-                    : r.timerStart.equals(fr.lordfinn.craftmaster.task.RoundStart.BUTTON) ? " (joueurs figés jusqu'au bouton « Commencer »)" : "") + ".");
+                    + (start.equals(fr.lordfinn.craftmaster.task.RoundStart.LAUNCH) ? "" : ", départ " + fr.lordfinn.craftmaster.task.RoundStart.describe(start)
+                    + (start.equals(fr.lordfinn.craftmaster.task.RoundStart.BUTTON) ? "" : ", /cfti go pour le lancer avant")) + ")"
+                    : start.equals(fr.lordfinn.craftmaster.task.RoundStart.BUTTON) ? " (joueurs figés jusqu'au bouton « Commencer »)" : "") + ".");
         }
 
         private void mancheEnd() {

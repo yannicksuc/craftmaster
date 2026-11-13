@@ -21,11 +21,11 @@ public final class Manche {
     /** Countdown in seconds when it starts, 0 = none. */
     public int timer;
     /**
-     * When the timer starts: "lancement" (with the round, default), "lettre" (a player of the round first reads its
-     * letter) or "bouton" (players frozen until they click « Commencer l'épreuve » in it; the first click starts it).
+     * When the timer starts: "lettre" (default: a player of the round first reads its letter; a round without a
+     * written task starts it at the launch), "lancement" (with the round) or "bouton" (players frozen until they click « Commencer l'épreuve » in it; the first click starts it).
      * See fr.lordfinn.craftmaster.task.RoundStart.
      */
-    public String timerStart = "lancement";
+    public String timerStart = "lettre";
     /** Where the season's players are teleported when it starts (shared out in turn). */
     public final List<Spot> tp = new ArrayList<>();
     /** Put away: no longer listed nor "next", its points still count. */
@@ -50,7 +50,7 @@ public final class Manche {
         Maps.putIf(m, "onStage", onStage);
         Maps.putIf(m, "scene", scene);
         Maps.putIf(m, "timer", timer);
-        if (!"lancement".equals(timerStart)) m.put("timerStart", timerStart);
+        if (!"lettre".equals(timerStart)) m.put("timerStart", timerStart);
         List<Object> spots = new ArrayList<>();
         for (Spot s : tp) spots.add(s.toYaml());
         Maps.putIf(m, "tp", spots);
@@ -68,8 +68,8 @@ public final class Manche {
         r.onStage = Maps.bool(m.get("onStage"));
         r.scene = m.get("scene") == null ? null : String.valueOf(m.get("scene"));
         r.timer = Maps.toInt(m.get("timer"));
-        String start = fr.lordfinn.craftmaster.task.RoundStart.parse(Maps.str(m.get("timerStart"), "lancement"));
-        r.timerStart = start == null ? "lancement" : start;
+        String start = fr.lordfinn.craftmaster.task.RoundStart.parse(Maps.str(m.get("timerStart"), "lettre"));
+        r.timerStart = start == null ? "lettre" : start;
         for (Object o : Maps.list(m.get("tp"))) {
             Spot s = Spot.fromYaml(Maps.map(o));
             if (s != null) r.tp.add(s);

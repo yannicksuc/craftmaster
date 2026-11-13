@@ -68,13 +68,15 @@ class ActionsTest {
     }
 
     @Test
-    void theTimerStartsAtTheLaunchTheLetterOrItsButton() {
+    void theTimerStartsAtTheLetterTheLaunchOrItsButton() {
         prepare();
-        assertEquals("lancement", partie().manches.get(1).timerStart, "as before by default");
+        assertEquals("lettre", partie().manches.get(1).timerStart, "at the letter's opening by default");
+        assertEquals("lancement", ((Actions.MancheStarted) run(a("manche.start", "manche", "La Tour")).effects().getFirst()).timerStart(),
+                "no written task, no letter to wait for: the timer starts with the round");
         assertTrue(run(a("manche.update", "manche", "La Tour", "timerStart", "bouton")).ok());
-        assertTrue(run(a("manche.update", "manche", "pont", "timerStart", "à l'ouverture")).ok());
+        assertTrue(run(a("manche.update", "manche", "pont", "timerStart", "au lancement")).ok());
         assertFalse(run(a("manche.update", "manche", "pont", "timerStart", "demain")).ok(), "unknown mode");
-        assertEquals("lettre", partie().manches.get(0).timerStart);
+        assertEquals("lancement", partie().manches.get(0).timerStart);
 
         Actions.MancheStarted started = (Actions.MancheStarted) run(a("manche.start", "manche", "La Tour")).effects().getFirst();
         assertEquals("bouton", started.timerStart());
@@ -86,7 +88,8 @@ class ActionsTest {
         CraftMasterData again = new CraftMasterData(dir.resolve("config.yml"), LoggerFactory.getLogger("test"));
         again.load(null);
         assertEquals("bouton", again.activeSeason().activePartie().manches.get(1).timerStart);
-        assertEquals("lancement", again.activeSeason().activePartie().manches.get(2).timerStart);
+        assertEquals("lancement", again.activeSeason().activePartie().manches.get(0).timerStart);
+        assertEquals("lettre", again.activeSeason().activePartie().manches.get(2).timerStart);
     }
 
     @Test

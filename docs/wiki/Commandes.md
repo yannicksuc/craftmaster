@@ -55,7 +55,7 @@ passe par le même exécuteur que la régie vocale : même comportement, et **to
 | `/craftMasterManche aliases <manche> [surnoms…]` | Surnoms pour la voix (séparés par des virgules ou espaces ; rien = aucun) |
 | `/craftMasterManche order <manche> <position>` | Change l'ordre |
 | `/craftMasterManche timer <manche> <secondes>` | Chrono (0 = aucun) |
-| `/craftMasterManche depart <manche> <lancement\|lettre\|bouton>` | Quand le chrono démarre : au lancement (défaut) ; quand un joueur de la manche ouvre la lettre de la tâche ; ou au bouton « Commencer l'épreuve » de la lettre : la lettre s'ouvre seule devant chaque joueur au lancement, il reste figé (ni marcher, ni casser, ni poser, ni utiliser, sauf la lettre) jusqu'à son clic, le premier clic lance le chrono. Le même bouton est dans le chat (jeu sans le mod), J rouvre la lettre |
+| `/craftMasterManche depart <manche> <lancement\|lettre\|bouton>` | Quand le chrono démarre : quand un joueur de la manche ouvre la lettre de la tâche (défaut ; une manche sans tâche écrite démarre au lancement, et `/cfti go` le lance avant) ; au lancement ; ou au bouton « Commencer l'épreuve » de la lettre : la lettre s'ouvre seule devant chaque joueur au lancement, il reste figé (ni marcher, ni casser, ni poser, ni utiliser, sauf la lettre) jusqu'à son clic, le premier clic lance le chrono. Le même bouton est dans le chat (jeu sans le mod), J rouvre la lettre |
 | `/craftMasterManche stage <manche> <true\|false>` | Se joue sur scène |
 | `/craftMasterManche scene <manche> <décor\|aucun>` | Décor posé au lancement (si sur scène) |
 | `/craftMasterManche tp add <manche>` | Ajoute l'endroit où l'on se tient (et la direction du regard) comme point de TP |
