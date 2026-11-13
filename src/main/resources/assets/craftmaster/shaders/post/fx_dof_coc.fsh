@@ -18,9 +18,11 @@ layout(std140) uniform FxMode {
 const float NEAR = 0.05;
 const float FAR = 1024.0;
 
-// 1 / distance in blocks. Same formula for OpenGL (depth stored as (z + 1) / 2) and zero-to-one depth.
+// 1 / distance in blocks. Minecraft (26.2 and 26.3) uses a reversed depth: Projection.getMatrix gives far as near
+// and near as far to setPerspective, so the depth buffer holds 1 at the near plane and 0 at the far plane (cleared to
+// 0, see core/integrate_depth.fsh). Window depth is affine in 1 / distance in both OpenGL and zero-to-one modes.
 float invDistance(float d) {
-    return (1.0 - d) / NEAR + d / FAR;
+    return d / NEAR + (1.0 - d) / FAR;
 }
 
 float focusInv() {
