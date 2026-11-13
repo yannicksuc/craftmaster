@@ -64,7 +64,12 @@ public final class ReplayViewing {
     }
 
     /** A replay started from here: which recording and file it is. */
-    private record Watch(Entry entry, View view) {}
+    private record Watch(Entry entry, View view, boolean nativeSeek) {}
+
+    /** A seek in progress, to log how long the viewer took to get there (long files). */
+    private record Seeking(long target, long since) {}
+
+    private static final Map<UUID, Seeking> SEEKING = new HashMap<>();
 
     /** A switch to another file, waiting for the old viewer to close. */
     private record Switch(UUID player, Entry entry, View view, long targetMs, boolean paused, float speed, long at) {}
@@ -159,7 +164,9 @@ public final class ReplayViewing {
         long bestGap = Long.MAX_VALUE;
         try (Stream<Path> s = Files.list(dir)) {
             for (Path p : (Iterable<Path>) s::iterator) {
-                if (!p.getFileName().toString().endsWith(".mcpr")) continue;
+                String n = p.getFileName().toString();
+                // ReplayMod (.mcpr) or Flashback (.zip) files; not the folders of a recording in progress
+                if (Files.isDirectory(p) || !(n.endsWith(".mcpr") || n.endsWith(".zip") || n.endsWith(".flashback"))) continue;
                 long gap = Math.abs(Files.getLastModifiedTime(p).toMillis() - end);
                 if (gap < bestGap) {
                     bestGap = gap;
@@ -191,10 +198,13 @@ public final class ReplayViewing {
         if (file == null) return false;
         ServerReplayBridge.Viewer viewer = ServerReplayBridge.view(file, player);
         if (viewer == null) return false;
-        WATCHING.put(player.getUUID(), new Watch(e, v));
+        // Flashback files are cut in pieces with a snapshot each: the viewer jumps straight to one (both ways)
+        String n = file.getFileName().toString();
+        WATCHING.put(player.getUUID(), new Watch(e, v, n.endsWith(".zip") || n.endsWith(".flashback")));
         SENT.remove(player.getUUID());
         if (speed != 1) ServerReplayBridge.setSpeed(viewer, speed);
         // The viewer starts its playback a moment later (and a jump before that is lost): jump then, pause after
+        if (ms > 0) SEEKING.put(player.getUUID(), new Seeking(ms, System.currentTimeMillis()));
         if (ms > 0 || paused) JUMPS.put(player.getUUID(), new Jump(ms, paused, System.currentTimeMillis(), false));
         return true;
     }
@@ -270,6 +280,16 @@ public final class ReplayViewing {
                 p.sendSystemMessage(net.minecraft.network.chat.Component.literal("Replay : fichier introuvable (" + s.view().folder() + ")."));
         }
         applyJumps(server, now);
+        for (Iterator<Map.Entry<UUID, Seeking>> it = SEEKING.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<UUID, Seeking> e = it.next();
+            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+            ServerReplayBridge.Viewer v = p == null ? null : ServerReplayBridge.viewerOf(p);
+            long at = v == null ? -1 : ServerReplayBridge.progressMs(v);
+            if (v != null && Math.abs(at - e.getValue().target()) < 1_500) {
+                CraftMaster.LOG.info("[Replay] Saut à {} s atteint en {} ms", e.getValue().target() / 1000, now - e.getValue().since());
+                it.remove();
+            } else if (now - e.getValue().since() > 120_000) it.remove();
+        }
         List<ServerReplayBridge.Viewer> viewers = ServerReplayBridge.viewers();
         java.util.Set<UUID> alive = new java.util.HashSet<>();
         for (ServerReplayBridge.Viewer v : viewers) {
@@ -339,8 +359,9 @@ public final class ReplayViewing {
     private static void seek(ServerReplayBridge.Viewer v, long ms) {
         ServerPlayer p = ServerReplayBridge.player(v);
         Watch w = p == null ? null : WATCHING.get(p.getUUID());
-        if (w != null && ms < ServerReplayBridge.progressMs(v)) reopen(p, v, w, w.view(), ms);
+        if (w != null && !w.nativeSeek() && ms < ServerReplayBridge.progressMs(v)) reopen(p, v, w, w.view(), ms);
         else ServerReplayBridge.jumpTo(v, ms);
+        if (p != null) SEEKING.put(p.getUUID(), new Seeking(ms, System.currentTimeMillis()));
     }
 
     /** Same instant, other file of the recording: closes this viewer, the switch opens the other one a moment later. */

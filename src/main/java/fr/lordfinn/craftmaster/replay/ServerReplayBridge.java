@@ -86,6 +86,23 @@ public final class ServerReplayBridge {
         }
     }
 
+    /** Format asked by CraftMaster: "flashback", "replay_mod", or "" for Server Replay's own setting. */
+    private static String wantedFormat = "";
+
+    public static void setFormat(String name) {
+        wantedFormat = name == null ? "" : name;
+    }
+
+    /** The format files are written in: CraftMaster's choice, else Server Replay's {@code default_encoding}. */
+    private static Object format(Object cfg) throws ReflectiveOperationException {
+        if (!wantedFormat.isEmpty()) {
+            Class<?> f = defaultFormat.getReturnType();
+            for (Object c : f.getEnumConstants())
+                if (((Enum<?>) c).name().replace("_", "").equalsIgnoreCase(wantedFormat.replace("_", ""))) return c;
+        }
+        return defaultFormat.invoke(cfg);
+    }
+
     private static Object config() throws ReflectiveOperationException {
         return getConfig.invoke(null);
     }
@@ -111,7 +128,7 @@ public final class ServerReplayBridge {
     /** Whether this player is being recorded already (by us or by {@code /replay start players}). */
     public static boolean isRecording(ServerPlayer player) {
         try {
-            return (boolean) hasPlayer.invoke(null, player.getUUID(), defaultFormat.invoke(config()));
+            return (boolean) hasPlayer.invoke(null, player.getUUID(), format(config()));
         } catch (ReflectiveOperationException e) {
             throw wrap(e);
         }
@@ -129,7 +146,7 @@ public final class ServerReplayBridge {
     public static Recorder startPlayer(ServerPlayer player, Path folder) {
         try {
             Object cfg = config();
-            Object r = createPlayer.invoke(null, player, folder, defaultFormat.invoke(cfg), createSettings.invoke(cfg));
+            Object r = createPlayer.invoke(null, player, folder, format(cfg), createSettings.invoke(cfg));
             return (boolean) start.invoke(r, startMode) ? new Recorder(r) : null;
         } catch (ReflectiveOperationException e) {
             throw wrap(e);
@@ -144,7 +161,7 @@ public final class ServerReplayBridge {
         try {
             Object cfg = config();
             Object area = chunkArea.newInstance(level, from, to);
-            Object r = createChunks.invoke(null, area, folder, defaultFormat.invoke(cfg), createSettings.invoke(cfg), camera, name);
+            Object r = createChunks.invoke(null, area, folder, format(cfg), createSettings.invoke(cfg), camera, name);
             return (boolean) start.invoke(r, startMode) ? new Recorder(r) : null;
         } catch (ReflectiveOperationException e) {
             throw wrap(e);

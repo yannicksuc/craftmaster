@@ -61,6 +61,10 @@ public final class ReplayCommands {
                     Replays.save();
                     return say(c, "Un fichier pour la zone de l'épreuve : " + (Replays.settings().zone ? "oui" : "non") + " (dès le prochain enregistrement).");
                 })))
+                .then(literal("format")
+                        .then(literal("flashback").executes(c -> format(c, "flashback")))
+                        .then(literal("replaymod").executes(c -> format(c, "replaymod")))
+                        .then(literal("serveur").executes(c -> format(c, ""))))
                 .then(literal("marge").then(argument("chunks", IntegerArgumentType.integer(0, 8)).executes(c -> {
                     Replays.settings().margin = IntegerArgumentType.getInteger(c, "chunks");
                     Replays.save();
@@ -102,6 +106,13 @@ public final class ReplayCommands {
             c.getSource().sendSuccess(() -> line, false);
         }
         return 1;
+    }
+
+    private static int format(CommandContext<CommandSourceStack> c, String f) {
+        Replays.settings().format = f;
+        Replays.save();
+        fr.lordfinn.craftmaster.replay.ServerReplayBridge.setFormat(f);
+        return say(c, "Format des prochains enregistrements : " + (f.isEmpty() ? "celui de Server Replay (default_encoding)" : f) + ".");
     }
 
     private static int mode(CommandContext<CommandSourceStack> c, String mode) {

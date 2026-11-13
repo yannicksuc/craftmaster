@@ -72,6 +72,8 @@ public final class Replays {
         public boolean zone = true;
         /** Chunks added around the area, and the widest area (chunks). */
         public int margin = 2, maxSpan = 40;
+        /** File format: "flashback", "replaymod", or "" (Server Replay's default_encoding). */
+        public String format = "";
     }
 
     /** One recorded player. */
@@ -163,6 +165,8 @@ public final class Replays {
             }
         }
         if (!List.of(MANCHE, PARTIE, OFF).contains(settings.mode)) settings.mode = MANCHE;
+        if (settings.format == null) settings.format = "";
+        ServerReplayBridge.setFormat(settings.format);
     }
 
     public static void save() {
@@ -389,11 +393,25 @@ public final class Replays {
         }
     }
 
+    private static void logDrift(MinecraftServer server, Session ses, String folder, ServerReplayBridge.Recorder rec) {
+        Double t0 = ses.tick0.get(folder);
+        long ms = ServerReplayBridge.recordingMs(rec);
+        if (t0 == null || ms < 0) return;
+        double ticksMs = (server.getTickCount() - t0) * 50;
+        CraftMaster.LOG.info("[Replay] {} : {} s de fichier, {} s de ticks, écart {} ms", folder.isEmpty() ? "zone" : folder,
+                ms / 1000, Math.round(ticksMs / 1000), Math.round(ticksMs - ms));
+    }
+
     private static void stop(MinecraftServer server, String why) {
         Session ses = session;
         if (ses == null) return;
         marker(ses.number > 0 ? "Fin de la manche" : "Fin de la partie", 0xF2C14E);
         session = null;
+        // How far each file's clock went from the server's ticks since its start (lag makes ticks slower than time)
+        if (server != null) {
+            if (ses.zone != null) logDrift(server, ses, "", ses.zone);
+            for (PlayerRec r : ses.players.values()) if (r.rec != null) logDrift(server, ses, r.folder, r.rec);
+        }
         if (ses.zone != null) ServerReplayBridge.stop(ses.zone);
         for (PlayerRec r : ses.players.values()) if (r.rec != null) ServerReplayBridge.stop(r.rec);
         writeIndex(ses);

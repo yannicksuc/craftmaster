@@ -37,8 +37,25 @@ Dans les dossiers de Server Replay (`recordings/` du serveur par défaut), un do
 | `recordings/chunks/cm-s1-p3/…`, `players/cm-s1-p3-ensuri/…` | Mode partie : toute la partie 3 |
 | `recordings/craftmaster.json` | L'index : chaque enregistrement, ses dossiers, sa zone, ses repères (secondes) |
 
-Format ReplayMod (`.mcpr`) par défaut ; le format se change dans la configuration de Server Replay
-(`config/server-replay/config.json`, `default_encoding`), comme les dossiers, les paquets ignorés, la taille maximale.
+**Format** : `/cmreplay format flashback` (conseillé pour les longues épreuves), `replaymod`, ou `serveur` (celui de
+la configuration de Server Replay, `config/server-replay/config.json`, `default_encoding` : `.mcpr` par défaut).
+Flashback (`.zip`) découpe l'enregistrement en morceaux de 5 min, chacun avec le monde : le lecteur saute
+directement au bon moment (dans les deux sens), et après un arrêt brutal du serveur le fichier est récupéré jusqu'au
+dernier morceau. Il ne faut pas le mod Flashback pour regarder (le lecteur est sur le serveur).
+
+**Mesures** (26.2, serveur à 20 TPS, 2 joueurs + zone) :
+
+| | ReplayMod, 12 min | Flashback, 10 min |
+|---|---|---|
+| Joueur qui se déplace (sur le disque) | 1,64 Mo | 0,20 Mo |
+| Autre joueur | 0,47 Mo | 0,21 Mo |
+| Zone | 0,24 Mo | 0,15 Mo |
+| Saut de 9–11 min en avant | 0,3 s | 0,2 s |
+| Retour en arrière | rechargement, 2–4 s | instantané |
+| Serveur tué en pleine manche | non testé | récupéré au redémarrage, sauf la fin du morceau en cours (≤ 5 min) |
+
+Soit environ 1 à 1,5 Mo par heure et par fichier en Flashback. L'écart entre l'horloge des fichiers et les ticks du
+serveur a été de 0,2 s au plus en 12 min.
 
 ## Regarder (la régie de replay)
 Sur le serveur qui a les fichiers, sans rien installer de plus chez le joueur : `/cmreplay voir` liste les
@@ -105,18 +122,21 @@ casse WaterMedia (écrans vidéo du studio) : pas les deux dans le même jeu.
 | `/cmreplay start` · `stop` | À la main : la manche en cours, sinon la partie active ; `stop` sauvegarde et n'est pas relancé avant la manche suivante |
 | `/cmreplay joueurs on\|off` · `zone on\|off` | Un fichier par candidat / pour la zone (défaut : les deux) |
 | `/cmreplay marge <0..8>` | Chunks ajoutés autour de la zone |
+| `/cmreplay format flashback\|replaymod\|serveur` | Format des prochains enregistrements |
 | `/cmreplay repere <texte>` | Un repère maintenant, dans tous les fichiers en cours |
 | `/cmreplay voir` · `voir <n> [zone\|joueur]` | Les enregistrements ; en regarder un (barre de lecture, voir plus haut) |
 
 Réglages : `config/craftmaster/replays.json`.
 
 ## Limites connues
-- **La taille** : un fichier joueur fait environ 0,3 Mo sur le disque pour 30 s (4 Mo une fois décompressé), presque
-  tout pour le monde envoyé au départ (la distance de vue) ; ensuite il grossit peu. La zone : moins de 0,1 Mo.
+- **La taille** : voir les mesures plus haut. En ReplayMod, l'enregistrement en cours est écrit non compressé
+  (environ 30 Mo pour 12 min et 3 fichiers) puis compressé à la fin.
 - **Les caméras** ne montrent que ce qui est dans le fichier : une caméra qui filme hors de la zone enregistrée (le
   studio pendant une manche dehors) ne voit que le ciel. Agrandir la zone : `/cmreplay marge`.
-- **Revenir en arrière** recharge le fichier (2 à 4 s, l'écran de chargement passe à l'image) : c'est le lecteur de
-  Server Replay qui repart du début. Pour un replay montré en direct, mieux vaut aller en avant (repères suivants).
+- **Revenir en arrière** en ReplayMod recharge le fichier (2 à 4 s, l'écran de chargement passe à l'image) : le
+  lecteur de Server Replay repart du début. En Flashback, c'est instantané.
+- Après un arrêt brutal, Server Replay récupère le fichier, mais l'index CraftMaster n'est pas écrit : le replay
+  n'apparaît pas dans `/cmreplay voir` (à corriger).
 - Le lecteur retire le joueur de la liste du serveur pendant la lecture : un serveur où il est seul se croit vide
   (« Server empty… pausing » au bout d'une minute) ; la lecture et la barre continuent quand même.
 - Server Replay ne garde dans la zone que ce que le serveur envoie à tout le monde : barres de boss propres à un
