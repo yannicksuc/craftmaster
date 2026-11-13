@@ -133,7 +133,15 @@ public final class ActionExecutor {
                 }
             }
             // Tasks, envelopes (chantier D)
-            case Actions.TaskEffect t -> fr.lordfinn.craftmaster.task.Tasks.play(server, t, lines);
+            case Actions.TaskEffect t -> {
+                // The task revealed with the round's start waits for its real start (after a chained intro)
+                if (t instanceof Actions.TaskRevealed r && !r.announce()
+                        && fr.lordfinn.craftmaster.broadcast.MancheIntros.atReveal(r.manche(), () -> fr.lordfinn.craftmaster.task.Tasks.play(server, t, new ArrayList<>()))) {
+                    lines.add("La tâche sera révélée quand l'image s'ouvre sur les candidats.");
+                } else {
+                    fr.lordfinn.craftmaster.task.Tasks.play(server, t, lines);
+                }
+            }
         }
     }
 

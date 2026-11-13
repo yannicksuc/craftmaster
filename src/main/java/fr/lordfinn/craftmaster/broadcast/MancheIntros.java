@@ -39,6 +39,25 @@ public final class MancheIntros {
     private static Actions.MancheStarted pending;
     /** Between the black and the reveal of a launched round. */
     private static boolean launching;
+    /** Id of the round waiting ({@link #pending}) and what runs when the picture opens on it (task reveal…). */
+    private static String pendingId;
+    private static final List<Runnable> AT_REVEAL = new ArrayList<>();
+
+    /**
+     * Round {@code mancheId} is waiting for its intro to end: {@code run} is kept for the moment the picture opens
+     * on the players (true); false when that round is not waiting (run it now).
+     */
+    public static boolean atReveal(String mancheId, Runnable run) {
+        if ((pending == null && !launching) || !mancheId.equals(pendingId)) return false;
+        AT_REVEAL.add(run);
+        return true;
+    }
+
+    private static void dropPending() {
+        pending = null;
+        pendingId = null;
+        AT_REVEAL.clear();
+    }
 
     private MancheIntros() {}
 
@@ -69,6 +88,7 @@ public final class MancheIntros {
         String line = play(server, m.id);
         if (running == null) return null;
         pending = start;
+        pendingId = m.id;
         return line + " La manche démarre à la fin : noir, téléportation, titre, révélation.";
     }
 
@@ -80,7 +100,7 @@ public final class MancheIntros {
         if (intro.shots.isEmpty())
             return "⚠ La manche « " + m.name + " » n'a pas encore d'intro (/tv intro " + m.id + " ajouter camera <caméra>).";
         // A round still waiting for an earlier intro is dropped: another one is being introduced
-        pending = null;
+        dropPending();
         stop(server);
         Credits.stop(server);
         running = m.id;
@@ -212,6 +232,11 @@ public final class MancheIntros {
                 if (!net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(p, ShowCue.TYPE)) Show.roundTitle(p, start);
             Show.announce(server, start, false);
             Show.roundStarted(server, start);
+            // The task revealed with the start (and anything else kept for this moment)
+            List<Runnable> kept = new ArrayList<>(AT_REVEAL);
+            AT_REVEAL.clear();
+            pendingId = null;
+            for (Runnable r : kept) r.run();
             // The round's banner comes back with the picture
             Director.sync(server);
             CraftMaster.LOG.info("[Réalisation] Manche « {} » lancée après son intro", start.name());
@@ -232,7 +257,7 @@ public final class MancheIntros {
         if (server == null) {
             STEPS.clear();
             running = null;
-            pending = null;
+            dropPending();
             launching = false;
             return was;
         }
