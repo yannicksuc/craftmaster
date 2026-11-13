@@ -53,6 +53,7 @@ public final class CraftMaster implements ModInitializer {
         // The referee's score entry screen
         fr.lordfinn.craftmaster.network.ScoreEntryNetwork.register();
         RegieServer.register();
+        fr.lordfinn.craftmaster.regie.ModoDesk.register();
         Portraits.register();
         // Chantier H: task props, judging tools, creative objects
         fr.lordfinn.craftmaster.trial.Trials.register();
