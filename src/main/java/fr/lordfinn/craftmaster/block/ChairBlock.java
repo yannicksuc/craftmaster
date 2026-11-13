@@ -25,10 +25,22 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.Map;
 
-/** A chair: right-click to sit, sneak to get up. FACING is where the seated player looks. */
+/**
+ * A chair: right-click to sit, sneak to get up. It faces one of 16 directions, like a standing sign: FACING (the
+ * quarter) plus TILT, 0 to 3 steps of 22.5° turning clockwise from it ({@link #yaw}). Chairs placed before TILT
+ * existed keep their direction (TILT 0). The seated player looks the same way as the chair.
+ */
 public class ChairBlock extends Block {
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final net.minecraft.world.level.block.state.properties.IntegerProperty TILT =
+            net.minecraft.world.level.block.state.properties.IntegerProperty.create("tilt", 0, 3);
+
+    /** Where a chair (or any seat of the mod) faces, as an entity yaw (south 0, west 90, north 180, east 270). */
+    public static float yaw(BlockState state) {
+        float base = state.getValue(FACING).toYRot();
+        return state.hasProperty(TILT) ? base + 22.5f * state.getValue(TILT) : base;
+    }
 
     /** Height of the seat top (block/chair_template.json: seat at y 7..9 px). */
     public static final double SEAT_TOP = 9 / 16.0;
@@ -42,7 +54,7 @@ public class ChairBlock extends Block {
 
     public ChairBlock(Properties props) {
         super(props);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(TILT, 0));
     }
 
     /** Height of the seat top in blocks, where the seated player's hips go (studio seats override it). */
@@ -52,13 +64,14 @@ public class ChairBlock extends Block {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> b) {
-        b.add(FACING);
+        b.add(FACING, TILT);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
-        // The seat faces the player who places it, the backrest is on the far side
-        return defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getOpposite());
+        // The seat faces the player who places it (16 directions), the backrest is on the far side
+        int step = net.minecraft.util.Mth.floor((ctx.getRotation() + 180) * 16 / 360f + 0.5) & 15;
+        return defaultBlockState().setValue(FACING, Direction.from2DDataValue(step / 4)).setValue(TILT, step % 4);
     }
 
     @Override
@@ -85,7 +98,7 @@ public class ChairBlock extends Block {
                 sp.sendOverlayMessage(Component.translatable("message.craftmaster.chair_taken").withStyle(ChatFormatting.GRAY));
             return InteractionResult.CONSUME;
         }
-        SeatEntity.sit(server, pos, state.getValue(FACING), player);
+        SeatEntity.sit(server, pos, yaw(state), player);
         return InteractionResult.SUCCESS_SERVER;
     }
 }

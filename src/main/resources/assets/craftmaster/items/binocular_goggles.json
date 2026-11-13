@@ -7,13 +7,33 @@
         "when": "head",
         "model": {
           "type": "minecraft:model",
-          "model": "craftmaster:item/fx/binocular_goggles_worn"
+          "model": "craftmaster:item/fx/glasses_worn",
+          "tints": [
+            {
+              "type": "minecraft:constant",
+              "value": -1
+            },
+            {
+              "type": "minecraft:dye",
+              "default": -1
+            }
+          ]
         }
       }
     ],
     "fallback": {
       "type": "minecraft:model",
-      "model": "craftmaster:item/binocular_goggles"
+      "model": "craftmaster:item/glasses",
+      "tints": [
+        {
+          "type": "minecraft:constant",
+          "value": -1
+        },
+        {
+          "type": "minecraft:dye",
+          "default": -1
+        }
+      ]
     }
   }
 }

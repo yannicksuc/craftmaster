@@ -16,7 +16,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.Map;
 
-/** A block of the set turned toward the player who places it (trophy, podium steps, desks...). */
+/** A block of the set turned toward the player who places it (podium steps, the tripod...). */
 public class DecorBlock extends Block {
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;

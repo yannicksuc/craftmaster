@@ -98,6 +98,42 @@ public final class StudioCommands {
                     s.discard();
                     return "Écran retiré.";
                 })))
+                // Videos (WaterMedia): the same for every player
+                .then(literal("play").executes(c -> onScreen(c, s -> {
+                    s.playVideo();
+                    return "▶ Lecture.";
+                })))
+                .then(literal("pause").executes(c -> onScreen(c, s -> {
+                    s.pauseVideo();
+                    return "⏸ Pause à " + clock(s.pausedAt()) + ".";
+                })))
+                .then(literal("restart").executes(c -> onScreen(c, s -> {
+                    s.restartVideo();
+                    return "⏮ Vidéo relancée depuis le début.";
+                })))
+                .then(literal("seek").then(argument("seconds", integer(0)).executes(c -> {
+                    int sec = getInteger(c, "seconds");
+                    return onScreen(c, s -> {
+                        boolean paused = s.paused();
+                        s.restartVideo();
+                        s.playVideoAt(sec * 1000L, paused);
+                        return "Vidéo à " + clock(sec * 1000L) + ".";
+                    });
+                })))
+                .then(literal("volume").then(argument("percent", integer(0, 100)).executes(c -> {
+                    int v = getInteger(c, "percent");
+                    return onScreen(c, s -> {
+                        s.setVolume(v);
+                        return "Volume de l'écran : " + v + " %.";
+                    });
+                })))
+                .then(literal("loop").then(argument("value", BoolArgumentType.bool()).executes(c -> {
+                    boolean loop = BoolArgumentType.getBool(c, "value");
+                    return onScreen(c, s -> {
+                        s.setLoop(loop);
+                        return loop ? "La vidéo tourne en boucle." : "La vidéo s'arrête à la fin.";
+                    });
+                })))
                 .then(literal("fit").then(argument("value", BoolArgumentType.bool()).executes(c -> {
                     boolean fit = BoolArgumentType.getBool(c, "value");
                     return onScreen(c, s -> {
@@ -153,6 +189,11 @@ public final class StudioCommands {
         screen.playSound(SoundEvents.PAINTING_PLACE, 1f, 0.8f);
         ok(c, "✅ Écran de " + req.width() + " × " + req.height() + " blocs posé : l'image se charge chez chaque joueur.");
         return 1;
+    }
+
+    private static String clock(long ms) {
+        long s = ms / 1000;
+        return s >= 3600 ? String.format("%d:%02d:%02d", s / 3600, s / 60 % 60, s % 60) : String.format("%d:%02d", s / 60, s % 60);
     }
 
     private static int onScreen(CommandContext<CommandSourceStack> c, Function<ImageScreenEntity, String> action) {

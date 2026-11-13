@@ -240,6 +240,21 @@ public final class TrialCommands {
     private static LiteralArgumentBuilder<CommandSourceStack> buzzer(String name) {
         return literal(name).requires(Permissions.ADMIN)
                 .then(literal("reset").executes(c -> run(c, action("buzzer.reset"))))
+                .then(literal("mode").executes(TrialCommands::buzzerModes)
+                        .then(argument("mode", word()).suggests((c, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+                                java.util.Arrays.stream(Buzzers.Mode.values()).map(m -> m.id), b)).executes(c -> {
+                            Buzzers.Mode m = Buzzers.Mode.byId(str(c, "mode"));
+                            fr.lordfinn.craftmaster.CraftMaster.data().change("Mode des buzzers : " + m.label,
+                                    () -> fr.lordfinn.craftmaster.CraftMaster.data().stage().buzzerMode = m.id);
+                            Buzzers.reset(c.getSource().getServer());
+                            return buzzerModes(c);
+                        })))
+                .then(literal("rearm").then(argument("seconds", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 300)).executes(c -> {
+                    int sec = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "seconds");
+                    fr.lordfinn.craftmaster.CraftMaster.data().change("Réarmement des buzzers : " + sec + " s",
+                            () -> fr.lordfinn.craftmaster.CraftMaster.data().stage().buzzerRearm = sec);
+                    return buzzerModes(c);
+                })))
                 .then(literal("status").executes(c -> {
                     header(c, "Buzzers");
                     List<BuzzerLock.Press> presses = Buzzers.LOCK.presses();
@@ -249,6 +264,28 @@ public final class TrialCommands {
                                 .withStyle(p.first() ? ChatFormatting.GOLD : ChatFormatting.WHITE));
                     return 1;
                 }));
+    }
+
+    /** The organisers' buzzer menu in the chat: the current mode, each mode as a button, the re-arm delay. */
+    private static int buzzerModes(CommandContext<CommandSourceStack> c) {
+        header(c, "Buzzers");
+        Buzzers.Mode current = Buzzers.mode();
+        for (Buzzers.Mode m : Buzzers.Mode.values()) {
+            boolean on = m == current;
+            info(c, Component.literal(on ? " ● " : " ○ ").withStyle(on ? ChatFormatting.GOLD : ChatFormatting.GRAY)
+                    .append(Component.literal("[" + m.label + "]").withStyle(st -> st.withColor(on ? ChatFormatting.GOLD : ChatFormatting.YELLOW)
+                            .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/craftMasterBuzzer mode " + m.id))
+                            .withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(Component.literal(m.help)))))
+                    .append(Component.literal("  " + m.help).withStyle(ChatFormatting.GRAY)));
+        }
+        info(c, Component.literal(" Réarmement automatique : " + Buzzers.rearmSeconds() + " s ").withStyle(ChatFormatting.GRAY)
+                .append(Component.literal("[changer]").withStyle(st -> st.withColor(ChatFormatting.YELLOW)
+                        .withClickEvent(new net.minecraft.network.chat.ClickEvent.SuggestCommand("/craftMasterBuzzer rearm ")))));
+        info(c, Component.literal(" Remise à zéro : ").withStyle(ChatFormatting.GRAY)
+                .append(Component.literal("[maintenant]").withStyle(st -> st.withColor(ChatFormatting.GREEN)
+                        .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/craftMasterBuzzer reset"))))
+                .append(Component.literal(", la voix, accroupi + clic sur un buzzer, ou un signal redstone dans un buzzer").withStyle(ChatFormatting.GRAY)));
+        return 1;
     }
 
     // ---------------------------------------------------------------- zones

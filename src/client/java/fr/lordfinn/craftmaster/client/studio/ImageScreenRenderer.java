@@ -19,7 +19,8 @@ import net.minecraft.util.LightCoordsUtil;
 
 /**
  * Draws a studio screen: a thin black bezel standing out of the wall, and the picture on it, lit by itself (full
- * brightness, no shading, like a real screen). No image, loading or failed: the CraftMaster test card, with a short
+ * brightness, no shading, like a real screen): an image ({@link ScreenImages}) or the current frame of a video
+ * ({@link ScreenVideos}, with WaterMedia). No image, loading or failed: the CraftMaster test card, with a short
  * message for the last two.
  */
 public class ImageScreenRenderer extends EntityRenderer<ImageScreenEntity, ImageScreenRenderer.State> {
@@ -59,7 +60,18 @@ public class ImageScreenRenderer extends EntityRenderer<ImageScreenEntity, Image
         s.pictureW = 16;
         s.pictureH = 9;
         s.message = null;
-        if (!e.url().isEmpty()) {
+        if (ScreenVideos.plays(e.url())) {
+            ScreenVideos.Frame f = ScreenVideos.frame(e, partialTick);
+            switch (f.status()) {
+                case READY -> {
+                    s.picture = f.texture();
+                    s.pictureW = f.width();
+                    s.pictureH = f.height();
+                }
+                case LOADING -> s.message = Component.translatable("screen.craftmaster.studio_screen.loading").withStyle(ChatFormatting.WHITE);
+                case FAILED -> s.message = Component.translatable("screen.craftmaster.studio_screen.video_failed", f.error()).withStyle(ChatFormatting.YELLOW);
+            }
+        } else if (!e.url().isEmpty()) {
             ScreenImages.Entry img = ScreenImages.get(e.url());
             switch (img.status()) {
                 case READY -> {
@@ -68,7 +80,10 @@ public class ImageScreenRenderer extends EntityRenderer<ImageScreenEntity, Image
                     s.pictureH = img.height();
                 }
                 case LOADING -> s.message = Component.translatable("screen.craftmaster.studio_screen.loading").withStyle(ChatFormatting.WHITE);
-                case FAILED -> s.message = Component.translatable("screen.craftmaster.studio_screen.failed", img.error()).withStyle(ChatFormatting.YELLOW);
+                // Not an image, and no WaterMedia here to play it: say what is missing
+                case FAILED -> s.message = (ScreenVideos.isImageUrl(e.url()) || ScreenVideos.available()
+                        ? Component.translatable("screen.craftmaster.studio_screen.failed", img.error())
+                        : Component.translatable("screen.craftmaster.studio_screen.no_video")).withStyle(ChatFormatting.YELLOW);
             }
         }
     }

@@ -1,9 +1,15 @@
 {
   "variants": {
-    "lit=false": {
+    "lit=false,powered=false": {
       "model": "craftmaster:block/orange_buzzer"
     },
-    "lit=true": {
+    "lit=false,powered=true": {
+      "model": "craftmaster:block/orange_buzzer"
+    },
+    "lit=true,powered=false": {
+      "model": "craftmaster:block/orange_buzzer_lit"
+    },
+    "lit=true,powered=true": {
       "model": "craftmaster:block/orange_buzzer_lit"
     }
   }

@@ -35,6 +35,9 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
     /** Panel size in panel pixels (scaled to the block entity's size). */
     private static final float PW = 40, PH = 16;
 
+    /** The title band: centre and usable height / width (panel pixels), height of the font's capitals. */
+    private static final float BAND_CENTRE = 13f, BAND_TEXT = 1.5f, BAND_WIDTH = 34f, CAPS = 7f;
+
     private static final int GOLD = 0xFFC83C, RED = 0xFF3A30, CREAM = 0xE8D9B0, OFF = 0x2A1C14;
 
     public static class State extends BlockEntityRenderState {
@@ -69,9 +72,10 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
         poseStack.pushPose();
         poseStack.translate(0.5, 0.5, 0.5);
         poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-s.yaw));
-        // Against the wall (block's back face at z = -0.5), standing on the block's bottom, centred
+        // Against the wall (block's back face at z = -0.5), standing just above the block's bottom (a hair above
+        // the floor's top face, which flickered through the panel's bottom), centred
         float k = s.size / PH;           // blocks per panel pixel
-        poseStack.translate(0, -0.5f, -0.5f);
+        poseStack.translate(0, -0.5f + 0.004f, -0.5f + 0.002f);
         poseStack.scale(k, k, k);
         int light = LightCoordsUtil.FULL_BRIGHT;
 
@@ -100,13 +104,14 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
         // were in the game (the digits vanished in the merged build)
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (p, c) -> digits(c, p, v.clock(), lit, unlit));
 
-        // Title on the velvet band: "3 · Le Pont" (or the show's name)
+        // Title on the velvet band (panel y 12..14): "3 · Le Pont" (or the show's name). Sized on the capitals
+        // (7 of the font's 9 px line), centred on the band, never wider than the band
         Component title = Component.literal(v.title().isEmpty() ? "CraftMaster" : v.title());
         FormattedCharSequence text = title.getVisualOrderText();
         int w = Math.max(1, font.width(text));
-        float scale = Math.min(2.2f / font.lineHeight, 34f / w);
+        float scale = Math.min(BAND_TEXT / CAPS, BAND_WIDTH / w);
         poseStack.pushPose();
-        poseStack.translate(0, 13.6f + font.lineHeight * scale / 2 - 0.2f, 1.25f);
+        poseStack.translate(0, BAND_CENTRE + CAPS * scale / 2, 1.25f);
         poseStack.scale(scale, -scale, scale);
         collector.submitText(poseStack, -w / 2f, 0, text, false, Font.DisplayMode.POLYGON_OFFSET, light, 0xFFFFD86A, 0, 0);
         poseStack.popPose();

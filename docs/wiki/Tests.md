@@ -398,3 +398,33 @@ du studio (sépia, noir et blanc, vignette) sur le thème, `rythme theme`, `auto
 - `/tv intro <m> voir` donne « 3,2 s (6 temps) » par plan.
 Pas vérifié : un joueur sans le mod (cécité + titre), plusieurs joueurs et plusieurs points de TP, le son des
 touches de la machine à écrire et le calage à l'oreille sur le thème.
+
+## 9. Retours de LordFinn sur le mobilier du studio (vérifié en 26.2 le 12/11/2026)
+Serveur `:26.2:runServer` (jeu 25951, RCON 25952) + client 26.2 (pont MCP 25991), WaterMedia 3.0.1 et WaterMedia
+Binaries 3.0.1 dans `run-26.2/mods/`. Plateau posé par RCON, captures MCP.
+
+| Vérification | Résultat |
+|---|---|
+| Gong : cadre en chêne noir du jeu (bûche écorcée, planches), plus de bout jaune | ✔ |
+| Lampe de bureau : socle et tige en laiton, abat-jour vert ombré normalement, lumière dessous | ✔ |
+| Suspension : rosace, chaîne dorée continue jusqu'à l'abat-jour à deux étages, ampoule | ✔ |
+| Enseigne « EN DIRECT » : côtés et dessus dorés ; icône entière dans l'inventaire | ✔ |
+| Lampadaire : icône entière dans l'inventaire | ✔ |
+| Chrono géant : « CraftMaster » dans son bandeau (tailles 1 et 4), plus de support qui dépasse ni de scintillement en bas | ✔ |
+| 3 pupitres côte à côte : un seul long pupitre ; clic droit : « Tiroir du pupitre » (9 cases) | ✔ |
+| 3 tables des prix côte à côte : une seule table sous un drapé ; clic sur le drapé : étagère (27 cases) ; clic sur le dessus : le prix se pose (données du bloc vérifiées) | ✔ |
+| `craftmaster:trophy` (alias) : donne une tête de joueur | ✔ |
+| Icônes clap, caméra, télécommande, tableau dans la barre | ✔ |
+| Écran du studio + MP4 direct : la vidéo joue ; `/image pause` fige l'image, `/image play` repart | ✔ |
+| Écran du studio + lien YouTube (WaterMedia) : la vidéo joue | ✔ |
+| Adresse en 404 : « Vidéo indisponible : HTTP 404… » sur la mire | ✔ |
+| Son des vidéos selon la distance, deux joueurs synchronisés | non vérifié (jeu muet, un seul client) |
+| `podium_first` donné : bloc de quartz (alias) ; anciennes lunettes floues données : deviennent `craftmaster:glasses` (effet « flou », verres bleus) | ✔ |
+| Cordon des poteaux : une face par côté, plus de scintillement ; poteau en laiton sans taches d'ombre | ✔ |
+| Buzzers en textures vanilla ; appui : allumé ; bloc de redstone à côté : remis à zéro ; mode `free` : clignote 1 s puis s'éteint ; menu `/craftMasterBuzzer mode` dans le chat | ✔ |
+| Compteur sur un wagonnet à coffre et un porte-armure (API de transfert, entités) | ✔ (utilisé ; total en barre d'action) |
+| Mètre ruban entre deux points visés au sol : « 5,1 m » au milieu, ruban jaune 10 s | ✔ |
+| Ardoise, tableau blanc, toile : cadres en bois / fer vanilla de 2 px, auget ; ardoise mate sans poussière | ✔ |
+| Socle d'exposition en quartz et laine rouge ; pupitre en sapin, laine rouge, baguette dorée | ✔ |
+| Chaises chêne / cerisier / biscornue en 16 directions (vue de dessus), modèle validé par LordFinn | ✔ |
+| Icônes : porte-bloc, lampe torche UV, cachet, chronomètre rond, mètre, compteur, tableaux, enveloppe et lettre de LordFinn | ✔ |

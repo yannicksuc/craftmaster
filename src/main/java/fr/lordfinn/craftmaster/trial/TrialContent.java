@@ -4,15 +4,12 @@ import fr.lordfinn.craftmaster.CraftMaster;
 import fr.lordfinn.craftmaster.trial.block.BalanceBlock;
 import fr.lordfinn.craftmaster.trial.block.BigRedButtonBlock;
 import fr.lordfinn.craftmaster.trial.block.BuzzerBlock;
-import fr.lordfinn.craftmaster.trial.block.CostumeChestBlock;
-import fr.lordfinn.craftmaster.trial.block.CostumeChestBlockEntity;
 import fr.lordfinn.craftmaster.trial.block.PlinthBlock;
 import fr.lordfinn.craftmaster.trial.block.PlinthBlockEntity;
 import fr.lordfinn.craftmaster.trial.item.BoardItem;
 import fr.lordfinn.craftmaster.trial.item.CounterItem;
 import fr.lordfinn.craftmaster.trial.item.MeasuringTapeItem;
 import fr.lordfinn.craftmaster.trial.item.PropWandItem;
-import fr.lordfinn.craftmaster.trial.item.RedCardItem;
 import fr.lordfinn.craftmaster.trial.item.StopwatchItem;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
@@ -42,18 +39,18 @@ import java.util.function.Function;
 
 /**
  * Blocks, items and entities of the tasks (chantier H): task props, buzzers and big red button, judging tools,
- * drawing boards, display plinth, costume trunk. Added to the CraftMaster creative tab.
+ * drawing boards, display plinth. Added to the CraftMaster creative tab. The costume trunk and the red card were
+ * taken out (LordFinn's feedback): old worlds load them as a plain chest / nothing ({@link #removed()}).
  */
 public final class TrialContent {
 
     private TrialContent() {}
 
-    public static Block BIG_RED_BUTTON, BALANCE, PLINTH, COSTUME_CHEST;
+    public static Block BIG_RED_BUTTON, BALANCE, PLINTH;
     public static final Map<DyeColor, BuzzerBlock> BUZZERS = new LinkedHashMap<>();
     public static BlockEntityType<PlinthBlockEntity> PLINTH_ENTITY;
-    public static BlockEntityType<CostumeChestBlockEntity> COSTUME_CHEST_ENTITY;
 
-    public static Item PROP_WAND, JUDGE_STOPWATCH, MEASURING_TAPE, TALLY_COUNTER, RED_CARD;
+    public static Item PROP_WAND, JUDGE_STOPWATCH, MEASURING_TAPE, TALLY_COUNTER;
     public static final Map<BoardEntity.Variant, Item> BOARD_ITEMS = new EnumMap<>(BoardEntity.Variant.class);
 
     public static EntityType<TrialPropEntity> TRIAL_PROP;
@@ -75,18 +72,14 @@ public final class TrialContent {
         TALLY_COUNTER = item("tally_counter", CounterItem::new, new Item.Properties().stacksTo(1));
         BALANCE = block("balance", BalanceBlock::new,
                 BlockBehaviour.Properties.of().mapColor(MapColor.GOLD).strength(2f).sound(SoundType.METAL).noOcclusion());
-        RED_CARD = item("red_card", RedCardItem::new, new Item.Properties().stacksTo(1));
         for (BoardEntity.Variant v : BoardEntity.Variant.values())
             BOARD_ITEMS.put(v, item(v.id, p -> new BoardItem(v, p), new Item.Properties().stacksTo(16)));
         PLINTH = block("display_plinth", PlinthBlock::new,
                 BlockBehaviour.Properties.of().mapColor(MapColor.QUARTZ).strength(2f).sound(SoundType.STONE).noOcclusion());
-        COSTUME_CHEST = block("costume_chest", CostumeChestBlock::new,
-                BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(2.5f).sound(SoundType.WOOD).noOcclusion().ignitedByLava());
 
         PLINTH_ENTITY = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, CraftMaster.id("display_plinth"),
                 new BlockEntityType<>(PlinthBlockEntity::new, Set.of(PLINTH)));
-        COSTUME_CHEST_ENTITY = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, CraftMaster.id("costume_chest"),
-                new BlockEntityType<>(CostumeChestBlockEntity::new, Set.of(COSTUME_CHEST)));
+        removed();
 
         ResourceKey<EntityType<?>> propKey = ResourceKey.create(Registries.ENTITY_TYPE, CraftMaster.id("trial_prop"));
         TRIAL_PROP = Registry.register(BuiltInRegistries.ENTITY_TYPE, propKey,
@@ -99,6 +92,15 @@ public final class TrialContent {
 
         ResourceKey<CreativeModeTab> tab = ResourceKey.create(Registries.CREATIVE_MODE_TAB, CraftMaster.id("craftmaster"));
         CreativeModeTabEvents.modifyOutputEvent(tab).register(out -> TAB.forEach(i -> out.accept(new ItemStack(i), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS)));
+    }
+
+    /** Old worlds: the costume trunk becomes a plain (empty) chest, the red card disappears. */
+    private static void removed() {
+        net.minecraft.resources.Identifier trunk = CraftMaster.id("costume_chest"), chest = net.minecraft.resources.Identifier.parse("minecraft:chest");
+        BuiltInRegistries.BLOCK.addAlias(trunk, chest);
+        BuiltInRegistries.ITEM.addAlias(trunk, chest);
+        BuiltInRegistries.BLOCK_ENTITY_TYPE.addAlias(trunk, chest);
+        BuiltInRegistries.ITEM.addAlias(CraftMaster.id("red_card"), net.minecraft.resources.Identifier.parse("minecraft:air"));
     }
 
     private static <B extends Block> B block(String name, Function<BlockBehaviour.Properties, B> factory, BlockBehaviour.Properties props) {

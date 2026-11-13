@@ -130,7 +130,7 @@ public final class FxCommands {
 
     private static int wear(CommandContext<CommandSourceStack> c, boolean lock) throws CommandSyntaxException {
         Collection<ServerPlayer> players = EntityArgument.getPlayers(c, "players");
-        Item item = FxContent.wearable(c.getArgument("item", String.class));
+        net.minecraft.world.item.ItemStack item = FxContent.wearable(c.getArgument("item", String.class));
         if (item == null) {
             fail(c, "Objet inconnu (objets : " + String.join(", ", FxContent.ITEMS.keySet()) + ").");
             return 0;

@@ -1,6 +1,6 @@
 """Studio set assets (chantier F, docs/wiki/Plateau.md): models, blockstates, item definitions, textures, recipes,
 loot tables, sounds and translations of the throne, seats, lights, spotlight, giant timer, studio screen, desks,
-prize table, gong, bell, podium, trophy, "EN DIRECT" sign and stanchions.
+prize table, gong, bell, "EN DIRECT" sign and stanchions.
 
 Called by scripts/gen_assets.py (generate(g) with the gen_assets module, before the translations are written).
 Textures are painted from each texel's place on the object: limited palettes (gold, red velvet, walnut, black
@@ -59,21 +59,6 @@ def bevel(pal, x, y, w, h, flat=1):
     if y == h - 1 or x == w - 1:
         return pal[3]
     return pal[flat]
-
-
-def gold_ornament(x, y, w, h):
-    """Gold with a bevelled border and an inner fillet, a small diamond every 8 px: the throne's carved frame."""
-    if x in (0, w - 1) or y in (0, h - 1):
-        return bevel(GOLD, x, y, w, h)
-    if x in (1, w - 2) or y in (1, h - 2):
-        return GOLD[2]
-    cx, cy = (x - 2) % 8, (y - 2) % 8
-    d = abs(cx - 3.5) + abs(cy - 3.5)
-    if d < 1.6:
-        return GOLD[0]
-    if d < 2.6:
-        return GOLD[3] if cx > 3.5 or cy > 3.5 else GOLD[1]
-    return GOLD[1] if (x + y) % 7 else GOLD[2]
 
 
 def tufted(pal, x, y, w, h, step=4, buttons=GOLD[1]):
@@ -185,9 +170,6 @@ def generate(g):
         return f"craftmaster:block/studio/{name}"
 
     # ================================================================== textures (block atlas)
-    gold = Img(16, 16)
-    gold.paint(0, 0, 16, 16, gold_ornament)
-    gold.save(g, "block/studio/gold")
 
     plain_gold = Img(16, 16)
     plain_gold.paint(0, 0, 16, 16, lambda x, y, w, h: GOLD[1] if (x * 3 + y * 5) % 11 else GOLD[2] if y > 7 else GOLD[0])
@@ -210,23 +192,8 @@ def generate(g):
     walnut.paint(0, 0, 16, 16, lambda x, y, w, h: wood_grain(WALNUT, x, y, w, h))
     walnut.save(g, "block/studio/walnut")
 
-    # Desk top: walnut with a gold edge all round
-    desk_top = Img(16, 16)
-    desk_top.paint(0, 0, 16, 16, lambda x, y, w, h: GOLD[1] if x in (0, 15) or y in (0, 15) else wood_grain(WALNUT, x, y, w, h))
-    desk_top.save(g, "block/studio/desk_top")
-
-    # Desk front: velvet panel with gold trims top and bottom and gold side stiles
-    def desk_front(x, y, w, h):
-        if y in (3, 4) or y == 15:
-            return GOLD[1] if y != 4 else GOLD[3]
-        if x in (0, 15):
-            return GOLD[2]
-        if y < 3:
-            return wood_grain(WALNUT, x, y, w, h)
-        return velvet_folds(VELVET, x, y, w, h, 8)
-    df = Img(16, 16)
-    df.paint(0, 0, 16, 16, desk_front)
-    df.save(g, "block/studio/desk_front")
+    def joined_suffix(left, right):
+        return ("_" + ("l" if left else "") + ("r" if right else "")) if (left or right) else ""
 
     # Brass name plate (front 10 x 4 at x 3..13, y 6..10 of the block = rows 6..9 of the texture)
     plate = Img(16, 16, GOLD[2])
@@ -265,15 +232,48 @@ def generate(g):
     dark_glow.paint(0, 0, 16, 16, lambda x, y, w, h: CREAM[3] if max(abs(x - 7.5), abs(y - 7.5)) < 3 else CREAM[4])
     dark_glow.save(g, "block/studio/lamp_off")
 
-    green = Img(16, 16)
-    green.paint(0, 0, 16, 16, lambda x, y, w, h: GREEN_GLASS[0] if y == 1 and 2 < x < 13 else GREEN_GLASS[1] if y < 4 else GREEN_GLASS[2] if y < 12 else GREEN_GLASS[3])
-    green.save(g, "block/studio/green_glass")
+    # Banker's desk lamp atlas: base top 8 x 6 (0, 0), stem 2 x 5 (8, 0), knob 2 x 2 (12, 0), base sides (0, 6) and
+    # (8, 6), green shade sides 10 x 3 (0, 7) and 6 x 3 (10, 7), shade top 10 x 6 (0, 10): lit from the top left
+    dl = Img(16, 16)
+    dl.paint(0, 0, 8, 6, lambda x, y, w, h: bevel(GOLD, x, y, w, h))
+    dl.paint(8, 0, 10, 5, lambda x, y, w, h: GOLD[0] if x == 0 else GOLD[2])
+    dl.paint(12, 0, 14, 2, lambda x, y, w, h: GOLD[0] if x == 0 and y == 0 else GOLD[1] if x + y < 2 else GOLD[3])
+    dl.rect(0, 6, 8, 7, GOLD[3])
+    dl.rect(8, 6, 14, 7, GOLD[3])
 
+    def shade_side(x, y, w, h):
+        if y == 0:
+            return GREEN_GLASS[1]
+        if y == 1:
+            return GREEN_GLASS[0] if 1 <= x <= 2 else GREEN_GLASS[2]
+        return GOLD[2]
+    dl.paint(0, 7, 10, 10, shade_side)
+    dl.paint(10, 7, 16, 10, shade_side)
+    dl.paint(0, 10, 10, 16, lambda x, y, w, h: (200, 240, 206) if (y == 2 and x in (1, 2))
+             else [GREEN_GLASS[2], GREEN_GLASS[1], GREEN_GLASS[0], GREEN_GLASS[1], GREEN_GLASS[2], GREEN_GLASS[3]][y])
+    dl.save(g, "block/studio/desk_lamp")
+
+    # Ceiling pendant atlas: canopy 6 x 6 (0, 0) and its side (0, 6), small shade side 6 x 2 (6, 0), big shade side
+    # 10 x 4 (6, 2), big shade top 10 x 10 (6, 6): polished gold, light at the top
+    pd = Img(16, 16)
+    pd.paint(0, 0, 6, 6, lambda x, y, w, h: bevel(GOLD, x, y, w, h))
+    pd.rect(0, 6, 6, 7, GOLD[2])
+    pd.paint(6, 0, 12, 2, lambda x, y, w, h: GOLD[1] if y == 0 else GOLD[2])
+    pd.paint(6, 2, 16, 6, lambda x, y, w, h: GOLD[0] if (y == 1 and x in (2, 3)) else [GOLD[0], GOLD[1], GOLD[2], GOLD[3]][y])
+    pd.paint(6, 6, 16, 16, lambda x, y, w, h: GOLD[1] if max(abs(x - 4.5), abs(y - 4.5)) < 3.5 else GOLD[0] if x + y < 9 else GOLD[2])
+    pd.save(g, "block/studio/pendant")
+
+
+    # Gold chain, laid out like the vanilla chain (columns 0..2: links seen flat, 3..5: links seen edge-on), so the
+    # two crossed planes show a continuous chain
+    chain_rows = ["...D.D", "LMMDDM", "M.D...", "DDMLMM", "...M.D", "...D.D", "LMMDDM", "M.D...",
+                  "D.D...", "DDMMMM", "...M.D", "...D.D", "LMMDDM", "M.D...", "DDMLMM", "...M.D"]
+    chain_pal = {"L": GOLD[0], "M": GOLD[2], "D": GOLD[4]}
     chain = Img(16, 16)
-    for y in range(16):
-        if y % 4 in (0, 1, 2):
-            chain.set(7 if y % 8 < 4 else 8, y, GOLD[2] if y % 4 else GOLD[0])
-            chain.set(8 if y % 8 < 4 else 7, y, GOLD[3])
+    for y, row in enumerate(chain_rows):
+        for x, c in enumerate(row):
+            if c != ".":
+                chain.set(x, y, chain_pal[c])
     chain.save(g, "block/studio/chain")
 
     # "EN DIRECT" light box, 64 x 16 (front 40 x 10 at the top left), off and lit
@@ -298,68 +298,11 @@ def generate(g):
                     if px == "#":
                         s.set(x + gx, 3 + gy - 1 + 1, (255, 246, 214) if lit else (120, 70, 66))
             x += len(glyph[0]) + 1
-        # Sides and top (40..64 x 0..16): dark lacquer with a gold line
-        s.paint(40, 0, 64, 16, lambda x, y, w, h: frame[2] if y == 0 else (34, 20, 22))
-        s.paint(0, 10, 40, 16, lambda x, y, w, h: frame[2] if y == 0 else (34, 20, 22))
+        # Back (40..64): dark; sides (40..43 x 0..10) and top / bottom (0..40 x 10..13): the gold frame, wrapping round
+        s.paint(40, 0, 64, 16, lambda x, y, w, h: (34, 20, 22))
+        s.paint(40, 0, 43, 10, lambda x, y, w, h, frame=frame: frame[1] if y == 0 else frame[3] if y == h - 1 else frame[2] if x == 1 else frame[1])
+        s.paint(0, 10, 40, 13, lambda x, y, w, h, frame=frame: frame[1] if y == 1 else frame[2] if y == 0 else frame[3])
         s.save(g, "block/studio/on_air" + ("_lit" if lit else ""))
-
-    # Podium sides: white marble, band of the medal colour at the top, big numeral (bottom aligned to the height)
-    # Bold numerals (2 px strokes, 6 x 8) for the 1st and 2nd steps, a small one (3 x 5) for the low 3rd step
-    numerals = {
-        1: ["..##..", ".###..", "####..", "..##..", "..##..", "..##..", "..##..", "######"],
-        2: [".####.", "##..##", "....##", "...##.", "..##..", ".##...", "##....", "######"],
-        3: ["###", "..#", ".##", "..#", "###"],
-    }
-    for rank, (pal, height) in {1: (GOLD, 16), 2: (SILVER, 12), 3: (BRONZE, 8)}.items():
-        s = Img(16, 16, T)
-        top = 16 - height
-        band = 2 if height <= 8 else 3
-
-        def side(x, y, w, h, top=top, pal=pal, band=band):
-            if y < top:
-                return None
-            if y == top:
-                return pal[0]
-            if y < top + band:
-                return pal[1] if y == top + 1 else pal[3]
-            if y == 15:
-                return MARBLE[3]
-            vein = (x * 2 + y * 3) % 13 == 0
-            return MARBLE[2] if vein else MARBLE[1] if x % 8 else MARBLE[0]
-        s.paint(0, 0, 16, 16, side)
-        glyph = numerals[rank]
-        gw, gh = len(glyph[0]), len(glyph)
-        ox = (16 - gw) // 2
-        oy = top + band + max(0, (15 - (top + band) - gh) // 2)
-        for gy, row in enumerate(glyph):
-            for gx, px in enumerate(row):
-                if px == "#":
-                    s.set(ox + gx, oy + gy, pal[2] if gy < gh / 2 else pal[3])
-        s.save(g, f"block/studio/podium_{rank}")
-        topt = Img(16, 16)
-        topt.paint(0, 0, 16, 16, lambda x, y, w, h, pal=pal: pal[1] if x in (0, 15) or y in (0, 15) else MARBLE[1] if (x + y) % 6 else MARBLE[0])
-        topt.save(g, f"block/studio/podium_{rank}_top")
-
-    # Trophy cup: polished gold, a vertical highlight, the CM letters engraved on the front
-    cup = Img(16, 16)
-
-    def cup_px(x, y, w, h):
-        if y == 0:
-            return GOLD[0]
-        if x in (5, 6):
-            return GOLD[0]
-        if x >= 12:
-            return GOLD[3]
-        return GOLD[1] if x < 9 else GOLD[2]
-    cup.paint(0, 0, 16, 16, cup_px)
-    for (x, y) in [(6, 6), (6, 7), (6, 8), (7, 5), (7, 9), (9, 5), (9, 6), (9, 7), (9, 8), (9, 9), (10, 6), (11, 5), (11, 6), (11, 7), (11, 8), (11, 9)]:
-        cup.set(x - 1, y, GOLD[4])
-    cup.save(g, "block/studio/trophy_cup")
-
-    # Gong frame wood (dark lacquered), with gold caps
-    lacq = Img(16, 16)
-    lacq.paint(0, 0, 16, 16, lambda x, y, w, h: (64, 24, 22) if x % 5 else (50, 18, 18))
-    lacq.save(g, "block/studio/lacquer")
 
     # Bell dome: polished gold with a round highlight
     dome = Img(16, 16)
@@ -457,44 +400,43 @@ def generate(g):
     gong.rect(24, 0, 25, 4, (150, 30, 30))
     gong.save(g, "entity/gong")
 
+    # Stanchion atlas: foot top 6 x 6 (0, 0) and side (0, 6), post side 2 x 12 (6, 0), cap top 4 x 4 (8, 0) and side 4 x 2
+    # (8, 4): polished brass, a light edge on the lit side, darker toward the bottom
+    st = Img(16, 16)
+    st.paint(0, 0, 6, 6, lambda x, y, w, h: bevel(GOLD, x, y, w, h))
+    st.rect(0, 6, 6, 7, GOLD[3])
+    st.paint(6, 0, 8, 12, lambda x, y, w, h: (GOLD[0] if y < 6 else GOLD[1]) if x == 0 else (GOLD[2] if y < 8 else GOLD[3]))
+    st.paint(8, 0, 12, 4, lambda x, y, w, h: bevel(GOLD, x, y, w, h))
+    st.paint(8, 4, 12, 6, lambda x, y, w, h: GOLD[1] if y == 0 else GOLD[3])
+    st.save(g, "block/studio/stanchion")
+
+    # Velvet cord (rows 6..7): a twisted cord, strands running diagonally, lit on the upper row
     rope = Img(16, 16)
-    rope.paint(0, 6, 16, 8, lambda x, y, w, h: VELVET[1] if (x + y) % 3 else VELVET[3])
+    rope.paint(0, 6, 16, 8, lambda x, y, w, h: (VELVET[1] if y == 0 else VELVET[2]) if (x + y) % 4 else (VELVET[3] if y == 0 else VELVET[4]))
     rope.save(g, "entity/velvet_rope")
 
     # ================================================================== models and blockstates
-    G, GP, V, VF, VP, W = tex("gold"), tex("gold_plain"), tex("velvet_tufted"), tex("velvet_folds"), tex("velvet"), tex("walnut")
+    GP, V, VF, VP, W = tex("gold_plain"), tex("velvet_tufted"), tex("velvet_folds"), tex("velvet"), tex("walnut")
 
     # Throne: LordFinn's own model from his server, see scripts/gen_furniture.py
 
-    model("assistant_chair", [
-        el([2, 0, 2], [4, 7, 4], "#gold"), el([12, 0, 2], [14, 7, 4], "#gold"),
-        el([2, 0, 12], [4, 7, 14], "#gold"), el([12, 0, 12], [14, 7, 14], "#gold"),
-        el([2, 7, 2], [14, 10, 14], "#velvet"),
-        el([2, 10, 12], [14, 16, 14], "#velvet"), el([2, 16, 12], [14, 21, 14], "#velvet"),
-        el([1, 21, 11], [15, 23, 15], "#gold"),
-    ], {"particle": V, "gold": GP, "velvet": V})
-    facing_states("assistant_chair", lambda c: "assistant_chair")
-    item_block("assistant_chair")
-
-    # Sofa: armrests only on the sides that are not joined (left = west when facing north)
-    for left in ("false", "true"):
-        for right in ("false", "true"):
-            els = [
-                el([1, 0, 2], [3, 1, 4], "#gold"), el([13, 0, 2], [15, 1, 4], "#gold"),
-                el([1, 0, 12], [3, 1, 14], "#gold"), el([13, 0, 12], [15, 1, 14], "#gold"),
-                el([0, 1, 1], [16, 7, 15], "#folds"),
-                el([0, 7, 1], [16, 9, 12], "#velvet"),
-                el([0, 7, 12], [16, 16, 15], "#velvet"), el([0, 16, 12], [16, 19, 15], "#velvet"),
-            ]
-            if left == "false":
-                els.append(el([0, 7, 0], [3, 13, 12], "#velvet", faces={"up": "#plain"}))
-            if right == "false":
-                els.append(el([13, 7, 0], [16, 13, 12], "#velvet", faces={"up": "#plain"}))
-            model(f"sofa_{'l' if left == 'true' else ''}{'r' if right == 'true' else ''}".rstrip("_") or "sofa", els,
-                  {"particle": V, "gold": GP, "velvet": V, "folds": VF, "plain": VP})
-    sofa_name = lambda c: "sofa" + ("_" + ("l" if c["left"] == "true" else "") + ("r" if c["right"] == "true" else "") if "true" in (c["left"], c["right"]) else "")
-    facing_states("sofa", sofa_name, {"left": ["false", "true"], "right": ["false", "true"]})
-    item_block("sofa")
+    # Item views of the pieces bigger than a block: smaller, centred in the slot / the hand / the frame
+    TALL_DISPLAY = {
+        "gui": {"rotation": [30, 225, 0], "translation": [0, -3.25, 0], "scale": [0.4, 0.4, 0.4]},
+        "ground": {"rotation": [0, 0, 0], "translation": [0, 1, 0], "scale": [0.2, 0.2, 0.2]},
+        "fixed": {"rotation": [0, 0, 0], "translation": [0, -3.5, 0], "scale": [0.4, 0.4, 0.4]},
+        "thirdperson_righthand": {"rotation": [75, 45, 0], "translation": [0, 0, 0], "scale": [0.25, 0.25, 0.25]},
+        "firstperson_righthand": {"rotation": [0, 45, 0], "translation": [0, -2, 0], "scale": [0.25, 0.25, 0.25]},
+        "firstperson_lefthand": {"rotation": [0, 225, 0], "translation": [0, -2, 0], "scale": [0.25, 0.25, 0.25]},
+    }
+    WIDE_DISPLAY = {
+        "gui": {"rotation": [0, 180, 0], "translation": [0, 0, 0], "scale": [0.4, 0.4, 0.4]},
+        "ground": {"rotation": [0, 0, 0], "translation": [0, 2, 0], "scale": [0.2, 0.2, 0.2]},
+        "fixed": {"rotation": [0, 180, 0], "translation": [0, 0, 0], "scale": [0.38, 0.38, 0.38]},
+        "thirdperson_righthand": {"rotation": [75, 45, 0], "translation": [0, 2.5, 0], "scale": [0.25, 0.25, 0.25]},
+        "firstperson_righthand": {"rotation": [0, 225, 0], "translation": [0, 0, 0], "scale": [0.25, 0.25, 0.25]},
+        "firstperson_lefthand": {"rotation": [0, 225, 0], "translation": [0, 0, 0], "scale": [0.25, 0.25, 0.25]},
+    }
 
     # Floor lamp (2 blocks high in one block: the shade is above)
     for lit in (False, True):
@@ -505,34 +447,58 @@ def generate(g):
             el([3, 21, 3], [13, 27, 13], "#shade", faces={"down": "#glow", "up": "#shade_top"}, emission=e),
             el([4, 27, 4], [12, 31, 12], "#shade", faces={"down": None, "up": "#glow"}, emission=e),
         ], {"particle": tex("brass"), "brass": tex("brass"), "shade": tex("lampshade_lit" if lit else "lampshade"),
-            "shade_top": tex("lampshade_lit" if lit else "lampshade"), "glow": tex("lamp_glow" if lit else "lamp_off")})
+            "shade_top": tex("lampshade_lit" if lit else "lampshade"), "glow": tex("lamp_glow" if lit else "lamp_off")},
+            extra={"ambientocclusion": False, "display": TALL_DISPLAY})
     facing_states("floor_lamp", lambda c: "floor_lamp" + ("_lit" if c["lit"] == "true" else ""), {"lit": ["false", "true"]})
     item_block("floor_lamp", "floor_lamp_lit")
 
+    def uvs(sides_long, sides_short, up=None, down=None):
+        """Faces of a box facing north: long sides north / south, short ones east / west."""
+        f = {"north": sides_long, "south": sides_long, "east": sides_short, "west": sides_short}
+        if up:
+            f["up"] = up
+        if down:
+            f["down"] = down
+        return f
+
+    def box(frm, to, tex_ref, uv, emission=0):
+        e = {"from": frm, "to": to, "faces": {k: {"texture": tex_ref, "uv": v} for k, v in uv.items()}}
+        if emission:
+            e["light_emission"] = emission
+        return e
+
+    # Banker's lamp: brass base and stem, green glass shade, the light on a plane under the shade (only it glows)
+    DL = tex("desk_lamp")
     for lit in (False, True):
         model("desk_lamp" + ("_lit" if lit else ""), [
-            el([4, 0, 5], [12, 1, 11], "#brass"),
-            el([7, 1, 7], [9, 6, 9], "#brass"),
-            el([3, 6, 5], [13, 9, 11], "#glass", faces={"down": "#glow"}, emission=12 if lit else 0),
-            el([7, 9, 7], [9, 10, 9], "#brass"),
-        ], {"particle": tex("green_glass"), "brass": tex("brass"), "glass": tex("green_glass"),
-            "glow": tex("lamp_glow" if lit else "lamp_off")})
+            box([4, 0, 5], [12, 1, 11], "#lamp", uvs([0, 6, 8, 7], [8, 6, 14, 7], [0, 0, 8, 6], [0, 0, 8, 6])),
+            box([7, 1, 7], [9, 6, 9], "#lamp", uvs([8, 0, 10, 5], [8, 0, 10, 5])),
+            box([3, 6, 5], [13, 9, 11], "#lamp", uvs([0, 7, 10, 10], [10, 7, 16, 10], [0, 10, 10, 16])),
+            box([3, 6, 5], [13, 6, 11], "#glow", {"down": [3, 5, 13, 11]}, 12 if lit else 0),
+            box([7, 9, 7], [9, 10, 9], "#lamp", uvs([12, 0, 14, 1], [12, 0, 14, 1], [12, 0, 14, 2])),
+        ], {"particle": DL, "lamp": DL, "glow": tex("lamp_glow" if lit else "lamp_off")}, extra={"ambientocclusion": False})
     facing_states("desk_lamp", lambda c: "desk_lamp" + ("_lit" if c["lit"] == "true" else ""), {"lit": ["false", "true"]})
     item_block("desk_lamp", "desk_lamp_lit")
 
+    # Ceiling pendant: canopy under the ceiling, a vanilla-style chain right down to the shade (no gap), two-tier gold
+    # shade, glowing bulb and the light inside the shade
+    PD = tex("pendant")
     chain_planes = [
-        {"from": [8, 9, 6.5], "to": [8, 15, 9.5], "rotation": {"angle": 45, "axis": "y", "origin": [8, 8, 8]}, "shade": False,
-         "faces": {"east": {"texture": "#chain", "uv": [6.5, 1, 9.5, 7]}, "west": {"texture": "#chain", "uv": [6.5, 1, 9.5, 7]}}},
-        {"from": [6.5, 9, 8], "to": [9.5, 15, 8], "rotation": {"angle": 45, "axis": "y", "origin": [8, 8, 8]}, "shade": False,
-         "faces": {"north": {"texture": "#chain", "uv": [6.5, 1, 9.5, 7]}, "south": {"texture": "#chain", "uv": [6.5, 1, 9.5, 7]}}},
+        {"from": [6.5, 10, 8], "to": [9.5, 15, 8], "rotation": {"angle": 45, "axis": "y", "origin": [8, 8, 8]}, "shade": False,
+         "faces": {"north": {"texture": "#chain", "uv": [3, 0, 0, 5]}, "south": {"texture": "#chain", "uv": [0, 0, 3, 5]}}},
+        {"from": [8, 10, 6.5], "to": [8, 15, 9.5], "rotation": {"angle": 45, "axis": "y", "origin": [8, 8, 8]}, "shade": False,
+         "faces": {"west": {"texture": "#chain", "uv": [6, 0, 3, 5]}, "east": {"texture": "#chain", "uv": [3, 0, 6, 5]}}},
     ]
     for lit in (False, True):
         model("ceiling_pendant" + ("_lit" if lit else ""), [
-            el([5, 15, 5], [11, 16, 11], "#gold"),
+            box([5, 15, 5], [11, 16, 11], "#pendant", uvs([0, 6, 6, 7], [0, 6, 6, 7], None, [0, 0, 6, 6])),
             *chain_planes,
-            el([3, 3, 3], [13, 9, 13], "#gold", faces={"down": "#glow"}),
-            el([6, 1, 6], [10, 3, 10], "#glow", emission=15 if lit else 0),
-        ], {"particle": GP, "gold": GP, "chain": tex("chain"), "glow": tex("lamp_glow" if lit else "lamp_off")})
+            box([5, 8, 5], [11, 10, 11], "#pendant", uvs([6, 0, 12, 2], [6, 0, 12, 2], [0, 0, 6, 6])),
+            box([3, 4, 3], [13, 8, 13], "#pendant", uvs([6, 2, 16, 6], [6, 2, 16, 6], [6, 6, 16, 16])),
+            box([3, 4, 3], [13, 4, 13], "#glow", {"down": [3, 3, 13, 13]}, 15 if lit else 0),
+            box([6, 3, 6], [10, 4, 10], "#glow", uvs([6, 7, 10, 8], [6, 7, 10, 8], None, [6, 6, 10, 10]), 15 if lit else 0),
+        ], {"particle": PD, "pendant": PD, "chain": tex("chain"), "glow": tex("lamp_glow" if lit else "lamp_off")},
+            extra={"ambientocclusion": False})
     facing_states("ceiling_pendant", lambda c: "ceiling_pendant" + ("_lit" if c["lit"] == "true" else ""), {"lit": ["false", "true"]})
     item_block("ceiling_pendant", "ceiling_pendant_lit")
 
@@ -560,25 +526,42 @@ def generate(g):
             "faces": {
                 "north": {"texture": t, "uv": [0, 0, 10, 10]}, "south": {"texture": t, "uv": [10, 0, 16, 10]},
                 "east": {"texture": t, "uv": [10, 0, 10.75, 10]}, "west": {"texture": t, "uv": [10, 0, 10.75, 10]},
-                "up": {"texture": t, "uv": [0, 10, 10, 10.75]}, "down": {"texture": t, "uv": [0, 10, 10, 10.75]}}}],
-            {"particle": tex("on_air_lit" if lit else "on_air"), "box": tex("on_air_lit" if lit else "on_air")})
+                "up": {"texture": t, "uv": [0, 10, 10, 13]}, "down": {"texture": t, "uv": [0, 10, 10, 13]}}}],
+            {"particle": tex("on_air_lit" if lit else "on_air"), "box": tex("on_air_lit" if lit else "on_air")},
+            extra={"ambientocclusion": False, "display": WIDE_DISPLAY})
     facing_states("on_air_sign", lambda c: "on_air_sign" + ("_lit" if c["lit"] == "true" else ""),
                   {"lit": ["false", "true"], "powered": ["false", "true"]})
     item_block("on_air_sign", "on_air_sign_lit")
 
-    # Giant timer: a wall bracket (the panel is drawn by TimerDisplayRenderer); flat item icon
-    model("timer_display", [el([4, 0, 15], [12, 6, 16], "#metal"), el([6, 1, 13], [10, 4, 15], "#metal")], {"particle": M, "metal": M})
+    # Giant timer: nothing but the panel drawn by TimerDisplayRenderer (the old wall bracket stuck out through the
+    # panel's face and flickered); flat item icon
+    model("timer_display", [], {"particle": M})
     facing_states("timer_display", lambda c: "timer_display")
     item_flat("timer_display")
 
-    # Contestant desk (front at north = toward the audience)
-    model("contestant_desk", [
-        el([0, 13, 0], [16, 16, 16], "#top", faces={"north": "#wood", "south": "#wood", "east": "#wood", "west": "#wood"}),
-        el([0, 0, 1], [16, 13, 4], "#front", faces={"up": "#wood", "down": "#wood", "east": "#wood", "west": "#wood", "south": "#wood"}),
-        el([0, 0, 4], [2, 13, 15], "#wood"), el([14, 0, 4], [16, 13, 15], "#wood"),
-        el([3, 6, 0], [13, 10, 1], "#plate"),
-    ], {"particle": W, "top": tex("desk_top"), "wood": W, "front": tex("desk_front"), "plate": tex("name_plate")})
-    facing_states("contestant_desk", lambda c: "contestant_desk")
+    # Contestant desk (front at north = toward the audience), in Minecraft's own textures (LordFinn): spruce planks,
+    # a red wool front panel, a thin gold-block moulding on the free edges of the top. Desks side by side (same
+    # direction) join into one long desk: no side panel or moulding between them (left = west when facing north)
+    SP, RW, GB = "minecraft:block/spruce_planks", "minecraft:block/red_wool", "minecraft:block/gold_block"
+    for left in (False, True):
+        for right in (False, True):
+            sfx = joined_suffix(left, right)
+            skip = tuple(f for f, j in (("west", left), ("east", right)) if j)
+            els = [
+                el([0, 13, 0], [16, 16, 16], "#wood", skip=skip),
+                el([0, 0, 1], [16, 13, 4], "#wood", faces={"north": "#front"}, skip=skip),
+                el([3, 6, 0], [13, 10, 1], "#plate"),
+                # Moulding: front and back edges always, the ends where not joined (half a pixel proud)
+                el([0, 16, 0], [16, 16.5, 1], "#gold"), el([0, 16, 15], [16, 16.5, 16], "#gold"),
+            ]
+            if not left:
+                els += [el([0, 0, 4], [2, 13, 15], "#wood"), el([0, 16, 1], [1, 16.5, 15], "#gold")]
+            if not right:
+                els += [el([14, 0, 4], [16, 13, 15], "#wood"), el([15, 16, 1], [16, 16.5, 15], "#gold")]
+            model("contestant_desk" + sfx, els, {"particle": SP, "wood": SP, "front": RW, "gold": GB,
+                                                 "plate": tex("name_plate")}, extra={"ambientocclusion": False})
+    facing_states("contestant_desk", lambda c: "contestant_desk" + joined_suffix(c["left"] == "true", c["right"] == "true"),
+                  {"left": ["false", "true"], "right": ["false", "true"]})
     item_block("contestant_desk")
 
     for pressed in (False, True):
@@ -588,46 +571,49 @@ def generate(g):
     facing_states("desk_bell", lambda c: "desk_bell" + ("_pressed" if c["powered"] == "true" else ""), {"powered": ["false", "true"]})
     item_block("desk_bell")
 
-    L = tex("lacquer")
+    # Gong frame in Minecraft's dark oak: stripped log posts and beam (grain along the beam, rings at its ends), plank
+    # feet
+    beam_side = {"texture": "#log", "uv": [0, 0, 2, 16], "rotation": 90}
     model("gong", [
-        el([0, 0, 5], [2, 1, 11], "#wood"), el([14, 0, 5], [16, 1, 11], "#wood"),
-        el([0, 1, 7], [2, 14, 9], "#wood"), el([14, 1, 7], [16, 14, 9], "#wood"),
-        el([0, 14, 6], [16, 16, 10], "#wood", faces={"east": "#gold", "west": "#gold"}),
-    ], {"particle": L, "wood": L, "gold": GP})
+        el([0, 0, 5], [2, 1, 11], "#planks"), el([14, 0, 5], [16, 1, 11], "#planks"),
+        el([0, 1, 7], [2, 14, 9], "#log", faces={"up": "#log_top", "down": "#log_top"}),
+        el([14, 1, 7], [16, 14, 9], "#log", faces={"up": "#log_top", "down": "#log_top"}),
+        {"from": [0, 14, 6], "to": [16, 16, 10], "faces": {
+            "north": beam_side, "south": beam_side,
+            "up": {"texture": "#log", "uv": [0, 0, 4, 16], "rotation": 90},
+            "down": {"texture": "#log", "uv": [4, 0, 8, 16], "rotation": 90},
+            "east": {"texture": "#log_top", "uv": [6, 7, 10, 9]}, "west": {"texture": "#log_top", "uv": [6, 7, 10, 9]}}},
+    ], {"particle": "minecraft:block/stripped_dark_oak_log", "log": "minecraft:block/stripped_dark_oak_log",
+        "log_top": "minecraft:block/stripped_dark_oak_log_top", "planks": "minecraft:block/dark_oak_planks"},
+        extra={"ambientocclusion": False})
     facing_states("gong", lambda c: "gong", {"powered": ["false", "true"]})
     item_block("gong")
 
-    model("prize_table", [
-        el([0, 12, 0], [16, 16, 16], "#cloth", faces={"up": "#top"}),
-        el([1, 0, 1], [15, 12, 15], "#folds", skip=("up",)),
-    ], {"particle": V, "cloth": tex("prize_cloth"), "top": VP, "folds": VF})
+    # Prize table: tables side by side (same direction) join into one long table under one drape
+    for left in (False, True):
+        for right in (False, True):
+            skip = tuple(f for f, j in (("west", left), ("east", right)) if j)
+            model("prize_table" + joined_suffix(left, right), [
+                el([0, 12, 0], [16, 16, 16], "#cloth", faces={"up": "#top"}, skip=skip),
+                el([0 if left else 1, 0, 1], [16 if right else 15, 12, 15], "#folds", skip=("up",) + skip),
+            ], {"particle": V, "cloth": tex("prize_cloth"), "top": VP, "folds": VF})
     cloth = Img(16, 16)
     # The drape's sides are 4 px high (rows 0..3): velvet, a gold band, then the gold fringe
     cloth.paint(0, 0, 16, 16, lambda x, y, w, h: VELVET[1] if y == 0 else VELVET[2] if y == 1 else GOLD[1] if y == 2
                 else (GOLD[2] if x % 2 else GOLD[4]) if y == 3 else VELVET[2])
     cloth.save(g, "block/studio/prize_cloth")
-    facing_states("prize_table", lambda c: "prize_table")
+    facing_states("prize_table", lambda c: "prize_table" + joined_suffix(c["left"] == "true", c["right"] == "true"),
+                  {"left": ["false", "true"], "right": ["false", "true"]})
     item_block("prize_table")
 
-    for rank, name, height in ((1, "podium_first", 16), (2, "podium_second", 12), (3, "podium_third", 8)):
-        side = tex(f"podium_{rank}")
-        model(name, [el([0, 0, 0], [16, height, 16], "#side", faces={"up": "#top", "down": "#bottom"})],
-              {"particle": side, "side": side, "top": tex(f"podium_{rank}_top"), "bottom": tex(f"podium_{rank}_top")})
-        facing_states(name, lambda c, name=name: name)
-        item_block(name)
-
-    model("trophy", [
-        el([5, 0, 5], [11, 2, 11], "#wood"),
-        el([7, 2, 7], [9, 5, 9], "#gold"), el([6, 5, 6], [10, 6, 10], "#gold"),
-        el([4, 6, 4], [12, 13, 12], "#cup", faces={"up": "#gold", "down": "#gold"}),
-        el([2, 8, 7], [4, 12, 9], "#gold"), el([12, 8, 7], [14, 12, 9], "#gold"),
-    ], {"particle": tex("trophy_cup"), "wood": W, "gold": GP, "cup": tex("trophy_cup")})
-    facing_states("trophy", lambda c: "trophy")
-    item_block("trophy")
-
+    # Rope stanchion: brass foot, post and cap on one atlas (1 texel per pixel, light from the top left), no ambient
+    # occlusion (it darkened the thin post unevenly)
+    ST = tex("stanchion")
     model("stanchion", [
-        el([5, 0, 5], [11, 1, 11], "#brass"), el([7, 1, 7], [9, 13, 9], "#brass"), el([6, 13, 6], [10, 15, 10], "#gold"),
-    ], {"particle": tex("brass"), "brass": tex("brass"), "gold": GP})
+        box([5, 0, 5], [11, 1, 11], "#s", uvs([0, 6, 6, 7], [0, 6, 6, 7], [0, 0, 6, 6], [0, 0, 6, 6])),
+        box([7, 1, 7], [9, 13, 9], "#s", uvs([6, 0, 8, 12], [6, 0, 8, 12])),
+        box([6, 13, 6], [10, 15, 10], "#s", uvs([8, 4, 12, 6], [8, 4, 12, 6], [8, 0, 12, 4], [8, 0, 12, 4])),
+    ], {"particle": ST, "s": ST}, extra={"ambientocclusion": False})
     wj(os.path.join(A, "blockstates/stanchion.json"), {"variants": {"": {"model": "craftmaster:block/stanchion"}}})
     item_block("stanchion")
 
@@ -653,18 +639,17 @@ def generate(g):
     ti.save(g, "item/timer_display")
 
     # ================================================================== loot, tags, sounds, recipes
-    blocks = ["throne", "assistant_chair", "sofa", "floor_lamp", "desk_lamp", "ceiling_pendant", "spotlight", "on_air_sign",
-              "timer_display", "contestant_desk", "desk_bell", "gong", "prize_table", "podium_first", "podium_second",
-              "podium_third", "trophy", "stanchion"]
+    blocks = ["throne", "floor_lamp", "desk_lamp", "ceiling_pendant", "spotlight", "on_air_sign",
+              "timer_display", "contestant_desk", "desk_bell", "gong", "prize_table", "stanchion"]
     for b in blocks:
         loot(b)
     # Axe: the chairs (written again with them) and the wooden studio pieces
     wj(os.path.join(D, "minecraft/tags/block/mineable/axe.json"), {"replace": False, "values":
         [f"craftmaster:{w}_chair" for w in g.WOODS] + [f"craftmaster:{b}" for b in
-                                                        ("throne", "assistant_chair", "sofa", "contestant_desk", "gong", "prize_table")]})
+                                                        ("throne", "contestant_desk", "gong", "prize_table")]})
     wj(os.path.join(D, "minecraft/tags/block/mineable/pickaxe.json"), {"replace": False, "values": [
         f"craftmaster:{b}" for b in ("floor_lamp", "desk_lamp", "ceiling_pendant", "spotlight", "on_air_sign", "timer_display",
-                                     "desk_bell", "podium_first", "podium_second", "podium_third", "trophy", "stanchion")]})
+                                     "desk_bell", "stanchion")]})
 
     # Sounds: vanilla sounds re-pitched, replaceable by a resource pack (same event names)
     g.SOUNDS.update({
@@ -677,8 +662,6 @@ def generate(g):
 
     shaped = g.shaped
     shaped("throne", ["G G", "GRG", "GBG"], {"G": "minecraft:gold_ingot", "R": "minecraft:red_wool", "B": "minecraft:gold_block"}, "throne", 1, "building")
-    shaped("assistant_chair", ["R  ", "RRR", "N N"], {"R": "minecraft:red_wool", "N": "minecraft:gold_nugget"}, "assistant_chair", 1, "building")
-    shaped("sofa", ["R  ", "RRR", "PPP"], {"R": "minecraft:red_wool", "P": "#minecraft:planks"}, "sofa", 3, "building")
     shaped("floor_lamp", ["W", "T", "G"], {"W": "minecraft:white_wool", "T": "minecraft:torch", "G": "minecraft:gold_ingot"}, "floor_lamp", 1, "building")
     shaped("desk_lamp", ["E", "T", "N"], {"E": "minecraft:green_stained_glass", "T": "minecraft:torch", "N": "minecraft:gold_nugget"}, "desk_lamp", 1, "building")
     shaped("ceiling_pendant", ["N", "G", "T"], {"N": "minecraft:gold_nugget", "G": "minecraft:gold_ingot", "T": "minecraft:torch"}, "ceiling_pendant", 1, "building")
@@ -690,17 +673,11 @@ def generate(g):
     shaped("desk_bell", ["N", "G", "S"], {"N": "minecraft:gold_nugget", "G": "minecraft:gold_ingot", "S": "#minecraft:wooden_slabs"}, "desk_bell", 1, "redstone")
     shaped("gong", ["SSS", "SGS", "S S"], {"S": "minecraft:stick", "G": "minecraft:gold_block"}, "gong", 1, "misc")
     shaped("prize_table", ["RRR", "PNP", "P P"], {"R": "minecraft:red_wool", "P": "#minecraft:planks", "N": "minecraft:gold_nugget"}, "prize_table", 1, "building")
-    shaped("podium_first", ["GGG", "QQQ", "QQQ"], {"G": "minecraft:gold_ingot", "Q": "minecraft:quartz_block"}, "podium_first", 1, "building")
-    shaped("podium_second", ["III", "QQQ"], {"I": "minecraft:iron_ingot", "Q": "minecraft:quartz_block"}, "podium_second", 1, "building")
-    shaped("podium_third", ["CCC", "QQQ"], {"C": "minecraft:copper_ingot", "Q": "minecraft:quartz_slab"}, "podium_third", 1, "building")
-    shaped("trophy", ["G G", "GGG", " S "], {"G": "minecraft:gold_ingot", "S": "minecraft:dark_oak_slab"}, "trophy", 1, "misc")
     shaped("stanchion", ["N", "S", "G"], {"N": "minecraft:gold_nugget", "S": "minecraft:stick", "G": "minecraft:gold_ingot"}, "stanchion", 2, "building")
 
     # ================================================================== translations
     names = {
         "throne": ("Master's Throne", "Trône du maître du jeu"),
-        "assistant_chair": ("Assistant's Armchair", "Fauteuil de l'assistant"),
-        "sofa": ("Velvet Sofa", "Canapé de velours"),
         "floor_lamp": ("Floor Lamp", "Lampadaire"),
         "desk_lamp": ("Desk Lamp", "Lampe de bureau"),
         "ceiling_pendant": ("Ceiling Pendant", "Suspension"),
@@ -711,16 +688,14 @@ def generate(g):
         "desk_bell": ("Counter Bell", "Sonnette de comptoir"),
         "gong": ("Gong", "Gong"),
         "prize_table": ("Prize Table", "Table des prix"),
-        "podium_first": ("Podium (1st)", "Podium (1er)"),
-        "podium_second": ("Podium (2nd)", "Podium (2e)"),
-        "podium_third": ("Podium (3rd)", "Podium (3e)"),
-        "trophy": ("CraftMaster Trophy", "Trophée CraftMaster"),
         "stanchion": ("Rope Stanchion", "Poteau à cordon"),
     }
     for b, (e, f) in names.items():
         en[f"block.craftmaster.{b}"] = e
         fr[f"block.craftmaster.{b}"] = f
     en.update({
+        "container.craftmaster.desk_drawer": "Desk Drawer",
+        "container.craftmaster.prize_table": "Under the Drape",
         "item.craftmaster.studio_screen": "Studio Screen",
         "item.craftmaster.studio_screen.hint": "Use it on a wall; /image <URL> while looking at it",
         "entity.craftmaster.studio_screen": "Studio Screen",
@@ -735,8 +710,8 @@ def generate(g):
         "message.craftmaster.bell_rung": "♪ %s rang the bell",
         "message.craftmaster.bell_rung_timer": "♪ %s rang the bell (%s left)",
         "screen.craftmaster.studio_screen": "Studio screen",
-        "screen.craftmaster.studio_screen.url": "Image (URL)",
-        "screen.craftmaster.studio_screen.url_hint": "Address of a PNG, JPEG or GIF image (http:// or https://). Empty: test card.",
+        "screen.craftmaster.studio_screen.url": "Image or video (URL)",
+        "screen.craftmaster.studio_screen.url_hint": "A PNG, JPEG or GIF image, or with WaterMedia a video (YouTube, Twitch, MP4...). Empty: test card.",
         "screen.craftmaster.studio_screen.width": "Width",
         "screen.craftmaster.studio_screen.height": "Height",
         "screen.craftmaster.studio_screen.size": "Size (blocks)",
@@ -748,8 +723,12 @@ def generate(g):
         "screen.craftmaster.studio_screen.bad_size": "Size: 1 to %s blocks wide, 1 to %s high",
         "screen.craftmaster.studio_screen.loading": "Loading…",
         "screen.craftmaster.studio_screen.failed": "Image unavailable: %s",
+        "screen.craftmaster.studio_screen.video_failed": "Video unavailable: %s",
+        "screen.craftmaster.studio_screen.no_video": "Not an image: videos need the WaterMedia mod",
     })
     fr.update({
+        "container.craftmaster.desk_drawer": "Tiroir du pupitre",
+        "container.craftmaster.prize_table": "Sous le drapé",
         "item.craftmaster.studio_screen": "Écran du studio",
         "item.craftmaster.studio_screen.hint": "S'utilise sur un mur ; /image <URL> en le regardant",
         "entity.craftmaster.studio_screen": "Écran du studio",
@@ -764,8 +743,8 @@ def generate(g):
         "message.craftmaster.bell_rung": "♪ %s a sonné",
         "message.craftmaster.bell_rung_timer": "♪ %s a sonné (%s restantes)",
         "screen.craftmaster.studio_screen": "Écran du studio",
-        "screen.craftmaster.studio_screen.url": "Image (adresse)",
-        "screen.craftmaster.studio_screen.url_hint": "Adresse d'une image PNG, JPEG ou GIF (http:// ou https://). Vide : la mire.",
+        "screen.craftmaster.studio_screen.url": "Image ou vidéo (adresse)",
+        "screen.craftmaster.studio_screen.url_hint": "Une image PNG, JPEG ou GIF, ou avec WaterMedia une vidéo (YouTube, Twitch, MP4…). Vide : la mire.",
         "screen.craftmaster.studio_screen.width": "Largeur",
         "screen.craftmaster.studio_screen.height": "Hauteur",
         "screen.craftmaster.studio_screen.size": "Taille (blocs)",
@@ -777,4 +756,6 @@ def generate(g):
         "screen.craftmaster.studio_screen.bad_size": "Taille : de 1 à %s blocs de large, de 1 à %s de haut",
         "screen.craftmaster.studio_screen.loading": "Chargement…",
         "screen.craftmaster.studio_screen.failed": "Image indisponible : %s",
+        "screen.craftmaster.studio_screen.video_failed": "Vidéo indisponible : %s",
+        "screen.craftmaster.studio_screen.no_video": "Pas une image : les vidéos demandent le mod WaterMedia",
     })

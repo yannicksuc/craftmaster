@@ -1,7 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "craftmaster:item/envelope_open",
-    "layer1": "craftmaster:item/envelope_wax_broken"
+    "layer0": "craftmaster:item/envelope_open"
   }
 }

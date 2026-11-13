@@ -11,7 +11,14 @@
     "P": "minecraft:paper"
   },
   "result": {
-    "id": "craftmaster:vintage_glasses",
-    "count": 1
+    "id": "craftmaster:glasses",
+    "count": 1,
+    "components": {
+      "craftmaster:screen_fx": "vieux_film+vignette",
+      "minecraft:dyed_color": 14912044,
+      "minecraft:item_name": {
+        "translate": "item.craftmaster.vintage_glasses"
+      }
+    }
   }
 }

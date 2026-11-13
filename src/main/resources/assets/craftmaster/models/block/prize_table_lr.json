@@ -1,0 +1,102 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "craftmaster:block/studio/velvet_tufted",
+    "cloth": "craftmaster:block/studio/prize_cloth",
+    "top": "craftmaster:block/studio/velvet",
+    "folds": "craftmaster:block/studio/velvet_folds"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        12,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#cloth",
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ]
+        },
+        "south": {
+          "texture": "#cloth",
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ]
+        },
+        "up": {
+          "texture": "#top",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#cloth",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        0,
+        1
+      ],
+      "to": [
+        16,
+        12,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#folds",
+          "uv": [
+            0,
+            4,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#folds",
+          "uv": [
+            0,
+            4,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#folds",
+          "uv": [
+            0,
+            1,
+            16,
+            15
+          ]
+        }
+      }
+    }
+  ]
+}

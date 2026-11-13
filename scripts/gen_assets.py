@@ -10,6 +10,9 @@ import os
 import random
 import struct
 import zlib
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gen_icons  # noqa: E402  (item icons drawn from shapes)
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "main", "resources")
 A = os.path.join(ROOT, "assets", "craftmaster")
@@ -102,26 +105,54 @@ def self_drop(block):
 
 # ------------------------------------------------------------------ chairs
 # Facing north = the seated player looks north; the backrest is on the south side.
+# One chair for the 12 woods (vanilla planks and stripped log of each): log legs and back posts, a plank seat, a
+# back of a lower rail, two slats and a crest rail, for relief; no ambient occlusion (the turned models)
 chair_template = {
     "parent": "minecraft:block/block",
+    "ambientocclusion": False,
     "textures": {"particle": "#planks"},
     "elements": [
         cube([2, 0, 2], [4, 7, 4], "#log"), cube([12, 0, 2], [14, 7, 4], "#log"),
         cube([2, 0, 12], [4, 7, 14], "#log"), cube([12, 0, 12], [14, 7, 14], "#log"),
         cube([2, 7, 2], [14, 9, 14], "#planks"),                       # seat
-        tall_cube([2, 9, 12], [4, 21, 14], "#log"), tall_cube([12, 9, 12], [14, 21, 14], "#log"),  # back posts
-        tall_cube([4, 12, 12.5], [12, 20, 13.5], "#planks"),           # backrest
-        tall_cube([4, 20, 12], [12, 21, 14], "#log"),                  # top rail
+        tall_cube([2, 9, 12], [4, 22, 14], "#log"), tall_cube([12, 9, 12], [14, 22, 14], "#log"),  # back posts
+        cube([4, 11, 12.5], [12, 13, 13.5], "#log"),                    # lower rail
+        tall_cube([5, 13, 12.5], [7, 18, 13.5], "#planks"), tall_cube([9, 13, 12.5], [11, 18, 13.5], "#planks"),  # slats
+        tall_cube([4, 18, 12], [12, 21, 14], "#planks"),               # crest rail
     ],
 }
 write_json(os.path.join(A, "models/block/chair_template.json"), chair_template)
+# 16 directions (ChairBlock: FACING + TILT): the same model turned by 0, 22.5 or 45 degrees clockwise (seen from
+# above); the 4th step is the next quarter turned back by 22.5 (a model may only turn by -45..45)
+CHAIR_TILTS = {"t0": 0, "t1": -22.5, "t2": -45, "tm1": 22.5}
+for suffix, angle in CHAIR_TILTS.items():
+    t = {"parent": "minecraft:block/block", "textures": {"particle": "#planks"}, "elements": []}
+    for e in chair_template["elements"]:
+        e = dict(e)
+        if angle:
+            e["rotation"] = {"angle": angle, "axis": "y", "origin": [8, 8, 8]}
+        t["elements"].append(e)
+    write_json(os.path.join(A, f"models/block/chair_template_{suffix}.json"), t)
+FACING_ORDER = ["south", "west", "north", "east"]   # clockwise, as the yaw turns
 for wood, (log, _, _) in WOODS.items():
     name = f"{wood}_chair"
+    for suffix in CHAIR_TILTS:
+        write_json(os.path.join(A, f"models/block/{name}_{suffix}.json"), {
+            "parent": f"craftmaster:block/chair_template_{suffix}",
+            "textures": {"planks": f"minecraft:block/{wood}_planks", "log": f"minecraft:block/{log}"}})
     write_json(os.path.join(A, f"models/block/{name}.json"), {
         "parent": "craftmaster:block/chair_template",
         "textures": {"planks": f"minecraft:block/{wood}_planks", "log": f"minecraft:block/{log}"}})
-    write_json(os.path.join(A, f"blockstates/{name}.json"), {"variants": {
-        f"facing={f}": {"model": f"craftmaster:block/{name}", **({"y": y} if y else {})} for f, y in FACING_Y.items()}})
+    variants = {}
+    for f, y in FACING_Y.items():
+        for tilt in range(4):
+            if tilt < 3:
+                model, yy = f"{name}_t{tilt}", y
+            else:
+                nxt = FACING_ORDER[(FACING_ORDER.index(f) + 1) % 4]
+                model, yy = f"{name}_tm1", FACING_Y[nxt]
+            variants[f"facing={f},tilt={tilt}"] = {"model": f"craftmaster:block/{model}", **({"y": yy} if yy else {})}
+    write_json(os.path.join(A, f"blockstates/{name}.json"), {"variants": variants})
     write_json(os.path.join(A, f"items/{name}.json"), {"model": {"type": "minecraft:model", "model": f"craftmaster:block/{name}"}})
     write_json(os.path.join(D, f"craftmaster/loot_table/blocks/{name}.json"), self_drop(name))
 write_json(os.path.join(D, "minecraft/tags/block/mineable/axe.json"),
@@ -210,7 +241,7 @@ for color, (rgb, _, _) in COLORS.items():
 
 # ------------------------------------------------------------------ remote
 write_json(os.path.join(A, "models/item/curtain_remote.json"),
-           {"parent": "minecraft:item/handheld", "textures": {"layer0": "craftmaster:item/curtain_remote"}})
+           {"parent": "minecraft:item/generated", "textures": {"layer0": "craftmaster:item/curtain_remote"}})
 write_json(os.path.join(A, "items/curtain_remote.json"), {"model": {"type": "minecraft:model", "model": "craftmaster:item/curtain_remote"}})
 T = (0, 0, 0, 0)
 K = (34, 30, 40, 255)      # outline
@@ -238,7 +269,7 @@ art = [
     "................",
 ]
 pal = {".": T, "K": K, "B": B, "L": L, "R": R, "G": G, "W": W}
-write_png(os.path.join(A, "textures/item/curtain_remote.png"), 16, 16, [[pal[c] for c in row] for row in art])
+write_png(os.path.join(A, "textures/item/curtain_remote.png"), 16, 16, gen_icons.remote())  # upright (scripts/gen_icons.py)
 
 # ------------------------------------------------------------------ mod icon (128 px): a stage with red curtains
 S = 32
@@ -433,7 +464,7 @@ for y in range(5, 12):
     for x in range(5, 11):
         if pix[y][x] == T:
             pix[y][x] = (112, 26, 38, 255)
-write_png(os.path.join(A, "textures/item/portrait.png"), 16, 16, pix)
+write_png(os.path.join(A, "textures/item/portrait.png"), 16, 16, gen_icons.portrait())  # scripts/gen_icons.py
 
 # ==================================================================================================================
 # TV direction (chantier E): studio camera (entity texture, item), the CM wax seal of the broadcast overlay, the
@@ -582,7 +613,7 @@ art = [
 pal = {".": T, "k": (28, 26, 32, 255), "K": (52, 50, 58, 255), "M": (52, 50, 58, 255), "m": (70, 68, 78, 255),
        "b": (206, 156, 52, 255), "Y": (206, 156, 52, 255), "y": (160, 110, 34, 255), "g": (36, 52, 86, 255),
        "o": (150, 190, 230, 255), "O": (24, 34, 58, 255), "r": (236, 48, 44, 255), "w": (96, 64, 38, 255)}
-write_png(os.path.join(A, "textures/item/camera.png"), 16, 16, [[pal[c] for c in row] for row in art])
+write_png(os.path.join(A, "textures/item/camera.png"), 16, 16, gen_icons.camera())  # scripts/gen_icons.py
 
 # The CM wax seal of the overlay (32 x 32): a round blob of red wax, uneven rim, embossed ring and letters
 SEAL = [[(0, 0, 0, 0)] * 32 for _ in range(32)]
@@ -947,7 +978,7 @@ art = [
 pal = {".": T, "s": (40, 38, 44, 255), "k": (40, 38, 44, 255), "W": (236, 228, 208, 255), "h": (206, 156, 52, 255),
        "D": (58, 56, 64, 255), "d": (30, 28, 34, 255), "S": (64, 70, 66, 255), "c": (196, 204, 196, 255),
        "r": (224, 44, 46, 255)}
-write_png(os.path.join(A, "textures/item/path_marker.png"), 16, 16, [[pal[c] for c in row] for row in art])
+write_png(os.path.join(A, "textures/item/path_marker.png"), 16, 16, gen_icons.clapperboard())  # scripts/gen_icons.py
 en.update({
     "item.craftmaster.path_marker": "Travelling Marker",
     "item.craftmaster.path_marker.hint": "Path \"%s\": right click = a step at your eyes, sneak = remove the last one",
@@ -1255,9 +1286,15 @@ def d_wax_item(cxp, cyp, r, broken=False):
 
 
 d_save("textures/item/envelope_wax.png", d_wax_item(8, 8.5, 2.7))
-d_save("textures/item/envelope_wax_broken.png", d_wax_item(8, 2.2, 1.9, broken=True))
+# LordFinn's own task icons from his server (scripts/ia_sandbox/textures): the sealed envelope (its seal becomes the
+# tinted wax layer, so the wax colour still shows) and the unfolded task letter
+_IA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ia_sandbox", "textures")
+_paper, _wax = gen_icons.lordfinn_envelope(os.path.join(_IA, "task_enveloppe.png"))
+d_save("textures/item/envelope.png", _paper)
+d_save("textures/item/envelope_wax.png", _wax)
+d_save("textures/item/envelope_open.png", gen_icons.lordfinn_texture(os.path.join(_IA, "task.png")))
 d_item_model("envelope", ["envelope", "envelope_wax"])
-d_item_model("envelope_open", ["envelope_open", "envelope_wax_broken"])
+d_item_model("envelope_open", ["envelope_open"])
 D_TINTS = [{"type": "minecraft:constant", "value": -1},
            {"type": "minecraft:custom_model_data", "index": 0, "default": D_WAX["red"][0]}]
 write_json(os.path.join(A, "items/envelope.json"), {"model": {
@@ -1284,9 +1321,8 @@ seal_rows = [
     "................",
     "................",
 ]
-d_save("textures/item/wax_seal.png", d_art(seal_rows, {"h": d_rgba((150, 96, 56)), "H": d_rgba((118, 72, 40)), "d": d_rgba((82, 48, 26)),
-                                                      "b": d_rgba((150, 104, 30)), "B": d_rgba((214, 160, 44)), "Y": d_rgba((255, 230, 140))}))
-d_save("textures/item/wax_seal_wax.png", d_wax_item(11.5, 11.5, 3.6))
+d_save("textures/item/wax_seal.png", gen_icons.brass_seal())  # a brass seal (scripts/gen_icons.py)
+d_save("textures/item/wax_seal_wax.png", d_wax_item(11.5, 12, 3.2))  # a round wax seal next to it
 d_item_model("wax_seal", ["wax_seal", "wax_seal_wax"])
 write_json(os.path.join(A, "items/wax_seal.json"), {"model": {"type": "minecraft:model", "model": "craftmaster:item/wax_seal", "tints": D_TINTS}})
 
@@ -1354,9 +1390,7 @@ lamp_rows = [
     "................",
     "................",
 ]
-d_save("textures/item/uv_lamp.png", d_art(lamp_rows, {
-    "m": d_rgba((52, 46, 66)), "M": d_rgba((92, 84, 112)), "s": d_rgba((200, 60, 60)),
-    "v": d_rgba((122, 76, 255)), "V": d_rgba((176, 140, 255)), "W": d_rgba((240, 230, 255))}))
+d_save("textures/item/uv_lamp.png", gen_icons.uv_torch())  # a UV torch (scripts/gen_icons.py)
 d_item_model("uv_lamp", ["uv_lamp"])
 write_json(os.path.join(A, "items/uv_lamp.json"), {"model": {"type": "minecraft:model", "model": "craftmaster:item/uv_lamp"}})
 

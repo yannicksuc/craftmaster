@@ -202,9 +202,9 @@ public final class ScreenEffectsServer {
      * {@code lock}, the item gets the Curse of Binding: the player cannot take it off (survival / adventure) until
      * {@link #takeOff}.
      */
-    public static String wear(ServerPlayer p, Item item, boolean lock) {
+    public static String wear(ServerPlayer p, ItemStack item, boolean lock) {
         ItemStack old = p.getItemBySlot(EquipmentSlot.HEAD);
-        ItemStack stack = new ItemStack(item);
+        ItemStack stack = item.copy();
         if (lock) {
             stack.enchant(binding(p.level().getServer()), 1);
             // Locked, but it keeps its look on camera (no enchantment shine)

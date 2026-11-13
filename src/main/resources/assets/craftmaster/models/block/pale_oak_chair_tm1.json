@@ -1,0 +1,7 @@
+{
+  "parent": "craftmaster:block/chair_template_tm1",
+  "textures": {
+    "planks": "minecraft:block/pale_oak_planks",
+    "log": "minecraft:block/stripped_pale_oak_log"
+  }
+}

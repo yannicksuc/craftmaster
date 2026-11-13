@@ -11,7 +11,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import java.util.Map;
 
 /**
- * A seat of the studio set (the master's throne, the assistant's armchair): sits like a {@link ChairBlock}, with its
+ * A seat of the studio set (the master's throne): sits like a {@link ChairBlock}, with its
  * own outline and seat height. The model may reach above the block (the throne's backrest), the outline stops at
  * {@code shapes}.
  */

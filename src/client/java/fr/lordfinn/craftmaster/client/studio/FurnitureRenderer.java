@@ -111,9 +111,9 @@ public class FurnitureRenderer implements BlockEntityRenderer<FurnitureBlockEnti
                 // (a softbox on an ordinary wall stands with its back to it, as before)
             }
         } else {
-            // Seats: FACING is where the seated player looks
+            // Seats: where the seated player looks (16 directions, FACING + TILT)
             s.face = AttachFace.FLOOR;
-            s.yaw = state.getValue(StudioSeatBlock.FACING).toYRot();
+            s.yaw = fr.lordfinn.craftmaster.block.ChairBlock.yaw(state);
         }
         ItemDisplayContext ctx = s.mount == Furniture.Mount.FRAME ? ItemDisplayContext.FIXED : ItemDisplayContext.HEAD;
         items.updateForTopItem(s.item, stack(look.model()), ctx, be.getLevel(), null, 0);

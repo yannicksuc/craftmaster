@@ -27,8 +27,10 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
- * Measuring tape: use it on a first block, then on a second one: the distance between their centres (straight
- * line, plus the horizontal distance and the height), shown along a line of gold dust. Sneak + use starts over.
+ * Measuring tape: use it on a first point, then on a second one: the distance between the exact points aimed at (where
+ * the crosshair touches the block's face, not the block's centre), straight line, plus the horizontal distance and
+ * the height. For 10 seconds a yellow tape lies between the two points with the distance written above it, seen by
+ * everyone ({@link TapeRibbons}). Sneak + use starts over.
  * Organisers get buttons to write the distance down for a contestant. The two last points also define a task
  * zone ({@code /craftMasterZone create <name>}).
  */
@@ -50,24 +52,24 @@ public class MeasuringTapeItem extends Item {
         if (!(ctx.getLevel() instanceof ServerLevel level) || !(ctx.getPlayer() instanceof ServerPlayer player)) return InteractionResult.SUCCESS;
         ItemStack stack = ctx.getItemInHand();
         BlockPos pos = ctx.getClickedPos().immutable();
+        Vec3 hit = ctx.getClickLocation();
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         if (player.isShiftKeyDown() || !tag.contains("ax")) {
-            tag.putInt("ax", pos.getX());
-            tag.putInt("ay", pos.getY());
-            tag.putInt("az", pos.getZ());
+            tag.putDouble("ax", hit.x);
+            tag.putDouble("ay", hit.y);
+            tag.putDouble("az", hit.z);
             CustomData.set(DataComponents.CUSTOM_DATA, stack, tag);
-            player.sendOverlayMessage(Component.literal("📏 Point A : " + pos.getX() + " " + pos.getY() + " " + pos.getZ() + " — utilise le mètre sur le point B")
+            player.sendOverlayMessage(Component.literal(String.format(java.util.Locale.ROOT, "📏 Point A : %.1f %.1f %.1f — utilise le mètre sur le point B", hit.x, hit.y, hit.z))
                     .withStyle(ChatFormatting.GOLD));
             level.playSound(null, pos, SoundEvents.CHAIN_PLACE, SoundSource.PLAYERS, 0.6f, 1.6f);
             return InteractionResult.SUCCESS_SERVER;
         }
-        BlockPos a = new BlockPos(tag.getIntOr("ax", 0), tag.getIntOr("ay", 0), tag.getIntOr("az", 0));
+        Vec3 va = new Vec3(tag.getDoubleOr("ax", 0), tag.getDoubleOr("ay", 0), tag.getDoubleOr("az", 0)), vb = hit;
         stack.remove(DataComponents.CUSTOM_DATA);
-        LAST.put(player.getUUID(), new BlockPos[]{a, pos});
-        Vec3 va = Vec3.atCenterOf(a), vb = Vec3.atCenterOf(pos);
+        LAST.put(player.getUUID(), new BlockPos[]{BlockPos.containing(va), pos});
         double d = va.distanceTo(vb);
         double flat = Math.sqrt(Math.pow(vb.x - va.x, 2) + Math.pow(vb.z - va.z, 2));
-        int height = pos.getY() - a.getY();
+        double height = vb.y - va.y;
         // A line of gold dust between the two points
         DustParticleOptions dust = new DustParticleOptions(0xFFC23D, 1.2f);
         int steps = Math.max(2, (int) (d * 4));
@@ -77,11 +79,12 @@ public class MeasuringTapeItem extends Item {
         }
         level.playSound(null, pos, SoundEvents.CHAIN_PLACE, SoundSource.PLAYERS, 0.8f, 1.1f);
         String text = ResultSheet.format(ResultSheet.Kind.DISTANCE, d);
+        fr.lordfinn.craftmaster.trial.TapeRibbons.show(level, va, vb, "📏 " + text);
         player.sendOverlayMessage(Component.literal("📏 " + text).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
         Judging.offerMeasure(player, Component.literal("📏 Distance : ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal(text).withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD))
                 .append(Component.literal(" (à plat " + ResultSheet.format(ResultSheet.Kind.DISTANCE, flat) + ", hauteur "
-                        + (height >= 0 ? "+" : "") + height + " m)").withStyle(ChatFormatting.GRAY)), d, ResultSheet.Kind.DISTANCE);
+                        + (height >= 0 ? "+" : "") + ResultSheet.format(ResultSheet.Kind.DISTANCE, height) + ")").withStyle(ChatFormatting.GRAY)), d, ResultSheet.Kind.DISTANCE);
         return InteractionResult.SUCCESS_SERVER;
     }
 

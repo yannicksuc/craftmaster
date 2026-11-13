@@ -1,9 +1,12 @@
 # Installation
 
 1. Serveur : Fabric Loader ≥ 0.19.5 pour Minecraft 26.3, Fabric API, et `craftmaster-<version>.jar` dans `mods/`.
-2. Joueurs : le même jar et Fabric API (le mod ajoute des blocs, une entité et un écran : le jeu des joueurs doit
+2. Facultatif, pour les **vidéos** des écrans du studio (`/image <lien YouTube, MP4…>`) : WaterMedia et WaterMedia
+   Binaries (Minecraft 26.2) dans le jeu des joueurs (voir [Plateau](Plateau.md#image--images-et-vidéos-sur-les-écrans)).
+   Sans eux, les écrans montrent les images seulement.
+3. Joueurs : le même jar et Fabric API (le mod ajoute des blocs, une entité et un écran : le jeu des joueurs doit
    les connaître).
-3. Solo / LAN : marche aussi, les données sont alors celles de ce PC.
+4. Solo / LAN : marche aussi, les données sont alors celles de ce PC.
 
 ## Venir du plugin Paper
 Au premier démarrage, si `plugins/CraftMaster/config.yml` existe dans le dossier du serveur et que

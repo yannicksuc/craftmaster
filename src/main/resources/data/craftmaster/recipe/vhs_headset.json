@@ -11,7 +11,14 @@
     "R": "minecraft:redstone"
   },
   "result": {
-    "id": "craftmaster:vhs_headset",
-    "count": 1
+    "id": "craftmaster:glasses",
+    "count": 1,
+    "components": {
+      "craftmaster:screen_fx": "vhs",
+      "minecraft:dyed_color": 9129942,
+      "minecraft:item_name": {
+        "translate": "item.craftmaster.vhs_headset"
+      }
+    }
   }
 }

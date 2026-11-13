@@ -43,10 +43,10 @@ public class SeatEntity extends Entity {
         return !level.getEntitiesOfClass(SeatEntity.class, new AABB(pos).expandTowards(0, 1, 0), Entity::isVehicle).isEmpty();
     }
 
-    public static void sit(ServerLevel level, BlockPos pos, Direction facing, Player player) {
+    public static void sit(ServerLevel level, BlockPos pos, float yaw, Player player) {
         SeatEntity seat = ModContent.SEAT.create(level, EntitySpawnReason.TRIGGERED);
         if (seat == null) return;
-        seat.snapTo(pos.getX() + 0.5, pos.getY() + seatTop(level, pos) - RIDE_OFFSET, pos.getZ() + 0.5, facing.toYRot(), 0);
+        seat.snapTo(pos.getX() + 0.5, pos.getY() + seatTop(level, pos) - RIDE_OFFSET, pos.getZ() + 0.5, yaw, 0);
         level.addFreshEntity(seat);
         if (!player.startRiding(seat)) seat.discard();
     }
@@ -83,7 +83,7 @@ public class SeatEntity extends Entity {
         return level().getBlockState(pos).getBlock() instanceof ChairBlock ? pos : pos.below();
     }
 
-    /** Seat height of the chair at {@code pos} (each kind of seat has its own: chairs, throne, sofa...). */
+    /** Seat height of the chair at {@code pos} (each kind of seat has its own: chairs, throne...). */
     private static double seatTop(Level level, BlockPos pos) {
         return level.getBlockState(pos).getBlock() instanceof ChairBlock chair ? chair.seatTop() : ChairBlock.SEAT_TOP;
     }
