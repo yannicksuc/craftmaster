@@ -6,6 +6,7 @@ import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Shot;
 import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowState;
 import fr.lordfinn.craftmaster.camera.CameraList;
 import fr.lordfinn.craftmaster.camera.CameraSpot;
+import fr.lordfinn.craftmaster.client.broadcast.DirectorCamera;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,9 @@ import java.util.List;
  *   or is put in the spotlight (envelope, buzzer, projecteur) is followed for 7 or 9 s, the wide shot otherwise;</li>
  *   <li>{@link Mode#MANUAL}: the keys 1–9 and the mouse wheel (cameras of the focused lieu), 0 the wide shot, Tab a
  *   follow shot on the next contestant (Shift: through their eyes), here on this game only;</li>
- *   <li>{@link Mode#FREE}: no direction, this game's own spectator camera (broadcast mode off).</li>
+ *   <li>{@link Mode#FREE}: no direction, this game's own spectator camera (the broadcast look kept: no game
+ *   interface), starting exactly where the picture was (or at a chosen camera, {@link #free}); the keys 1–9, 0 and
+ *   the wheel go back to a camera, G to the live direction.</li>
  * </ul>
  */
 public final class ReplayDirector {
@@ -50,8 +53,51 @@ public final class ReplayDirector {
     }
 
     static void setMode(Mode m) {
+        // Into the free camera: from where the picture is now
+        if (m == Mode.FREE && mode != Mode.FREE) placeAt(DirectorCamera.lastPose());
         mode = m;
         if (m != Mode.MANUAL) manual = null;
+    }
+
+    /**
+     * The free camera from camera {@code ref} (number, name, role, key; null = the picture now): this game's spectator
+     * is put exactly at its position and angle. False if there is no such camera.
+     */
+    public static boolean free(String ref) {
+        DirectorCamera.Pose pose = DirectorCamera.lastPose();
+        String label = "Caméra libre";
+        if (ref != null && !ref.isBlank()) {
+            CameraSpot spot = spot(ref);
+            if (spot == null) return false;
+            pose = new DirectorCamera.Pose(new net.minecraft.world.phys.Vec3(spot.x(), spot.y(), spot.z()), spot.yaw(), spot.pitch(), spot.fov());
+            label = "Caméra libre depuis " + spot.label();
+        }
+        placeAt(pose);
+        mode = Mode.FREE;
+        manual = null;
+        fr.lordfinn.craftmaster.client.broadcast.Broadcast.set(true);
+        ReplayBar.caption(label);
+        return true;
+    }
+
+    /** This game's own camera (the spectator's eyes) at {@code pose}. */
+    static void placeAt(DirectorCamera.Pose pose) {
+        var mc = net.minecraft.client.Minecraft.getInstance();
+        if (pose == null || mc.player == null) return;
+        var p = mc.player;
+        p.snapTo(pose.position().x, pose.position().y - p.getEyeHeight(), pose.position().z, pose.yaw(), pose.pitch());
+        p.setYHeadRot(pose.yaw());
+        p.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+        ReplayClient.placedFreeCamera();
+    }
+
+    private static CameraSpot spot(String ref) {
+        CameraList all = fr.lordfinn.craftmaster.client.broadcast.ShowStateClient.cameras();
+        CameraSpot spot = fr.lordfinn.craftmaster.client.broadcast.ShowStateClient.focused().resolve(ref);
+        if (spot == null) spot = all.get(ref);
+        if (spot == null) spot = all.resolve(ref);
+        if (spot == null && CameraList.fold(ref).matches("(plan )?(large|general)")) spot = wideSpot();
+        return spot;
     }
 
     static void reset() {
@@ -66,7 +112,8 @@ public final class ReplayDirector {
     public static Shot override(ShowState recorded) {
         if (!ReplayClient.active()) return null;
         return switch (mode) {
-            case FREE -> null;
+            // The camera is this game's own: no recorded shot (nor its name on screen)
+            case FREE -> Shot.NONE;
             case MANUAL -> manual;
             case AUTO -> auto(recorded);
             case DIRECT -> recorded.shot().kind() == BroadcastNetwork.SHOT_NONE && recorded.sequence().isEmpty() ? auto(recorded) : null;

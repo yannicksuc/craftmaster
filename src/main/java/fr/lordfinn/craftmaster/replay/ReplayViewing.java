@@ -61,9 +61,14 @@ public final class ReplayViewing {
      * @param player the player of a player's file
      * @param lastTick the server tick of its last clock sample, -1 if unknown
      */
-    public record View(String name, String folder, ReplayClock clock, String file, boolean zone, String player, double lastTick) {
+    public record View(String name, String folder, ReplayClock clock, String file, boolean zone, String player, double lastTick,
+                       double[] origin) {
         public View(String name, String folder, ReplayClock clock) {
-            this(name, folder, clock, null, folder.startsWith("chunks/"), folder.startsWith("chunks/") ? null : name, -1);
+            this(name, folder, clock, null, folder.startsWith("chunks/"), folder.startsWith("chunks/") ? null : name, -1, null);
+        }
+
+        public View(String name, String folder, ReplayClock clock, String file, boolean zone, String player, double lastTick) {
+            this(name, folder, clock, file, zone, player, lastTick, null);
         }
 
         /** Its file covers this server tick (an outing covers a part of the recording only). */
@@ -216,7 +221,12 @@ public final class ReplayViewing {
             JsonArray c = o.getAsJsonArray("clock");
             last = c.get(c.size() - 1).getAsJsonArray().get(1).getAsDouble();
         }
-        return new View(name, o.get("folder").getAsString(), clock(o), o.has("file") ? o.get("file").getAsString() : null, zone, player, last);
+        double[] origin = null;
+        if (o.has("origin")) {
+            String[] c = o.get("origin").getAsString().split(",");
+            origin = new double[]{Double.parseDouble(c[0]), Double.parseDouble(c[1]), Double.parseDouble(c[2])};
+        }
+        return new View(name, o.get("folder").getAsString(), clock(o), o.has("file") ? o.get("file").getAsString() : null, zone, player, last, origin);
     }
 
     /** A file's clock from the index: its {ms, tick} samples, else its first tick. */
@@ -445,7 +455,8 @@ public final class ReplayViewing {
         if (w != null) for (View o : w.entry().views()) views.add(o.name());
         return new ReplayStatus(w == null ? "Replay" : w.entry().label(), w == null ? "" : w.view().name(), views,
                 ServerReplayBridge.progressMs(v), ServerReplayBridge.durationMs(v), ServerReplayBridge.paused(v),
-                ServerReplayBridge.speed(v), w == null ? -1 : tick0At(w.view().clock(), ServerReplayBridge.progressMs(v)), markers, false);
+                ServerReplayBridge.speed(v), w == null ? -1 : tick0At(w.view().clock(), ServerReplayBridge.progressMs(v)), markers, false,
+                w == null ? null : w.view().origin());
     }
 
     // ---------------------------------------------------------------- /replay view cm … (the playback bar)
@@ -628,7 +639,7 @@ public final class ReplayViewing {
         SWITCHES.removeIf(s -> s.player().equals(p.getUUID()));
         ReplayStatus now = status(p, v, false);
         ServerReplayBridge.sendToViewer(v, new ClientboundCustomPayloadPacket(new ReplayStatus(now.title(), now.view(), now.views(),
-                now.progress(), now.duration(), now.paused(), now.speed(), now.tick0(), null, true)));
+                now.progress(), now.duration(), now.paused(), now.speed(), now.tick0(), null, true, now.origin())));
         // Stopped first, closed a moment later: nothing of it still on its way when the other file starts
         ServerReplayBridge.setPaused(v, true);
         SWITCHES.add(new Switch(p.getUUID(), w.entry(), to, target, paused, speed, System.currentTimeMillis() + 400));

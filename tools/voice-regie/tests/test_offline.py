@@ -107,6 +107,7 @@ REPLAY_CASES = [
     ("Les moments d'Ensuri.", [{"type": "replay.control", "do": "filter", "player": "Ensuri"}]),
     ("Les repères de la zone B.", [{"type": "replay.control", "do": "filter", "zone": "b"}]),
     ("Enlève le filtre.", [{"type": "replay.control", "do": "clear_filter"}]),
+    ("Caméra libre depuis la caméra 2.", [{"type": "replay.control", "do": "mode", "mode": "libre", "camera": "2"}]),
     ("Vitesse 2.", [{"type": "replay.control", "do": "speed", "speed": "2"}]),
     ("Au ralenti.", [{"type": "replay.control", "do": "speed", "speed": "0.5"}]),
     ("Repère suivant.", [{"type": "replay.control", "do": "next_marker"}]),

@@ -223,7 +223,8 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                         f("seconds", INT, doc="back / forward : combien de secondes (défaut 10) ; goto : le moment, en secondes depuis le début."),
                         f("speed", STR, doc="speed : la vitesse, ex. « 2 », « 0.5 »."),
                         f("view", STR, doc="view : « zone » ou le pseudo EXACT du candidat dont on veut l'écran."),
-                        f("mode", STR, doc="mode : direct (les plans du direct), auto, manuel ou libre.")]),
+                        f("mode", STR, doc="mode : direct (les plans du direct), auto, manuel ou libre."),
+                        f("camera", STR, doc="mode libre : la caméra (numéro ou nom) d'où part la caméra libre ; absent = l'image actuelle.")]),
     "say": ("Répond à LordFinn sans rien modifier : question, doute réel, ordre impossible ou incompris. "
             "Texte court en français.", [f("text", STR, True, "Réponse courte.")]),
 }

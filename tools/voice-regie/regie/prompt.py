@@ -74,7 +74,7 @@ Règles :
     cloches » = filter {kind: "morts"} ; « les moments d'Ensuri » = filter {player: "Ensuri"} ; « les repères de la
     zone B » = filter {zone: "B"} ; « tous les repères », « enlève le filtre » = clear_filter ; « l'écran d'Ensuri » = view {view:
     "Ensuri"} ; « la zone » = view {view: "zone"} ; « les plans du direct » = mode {mode: "direct"} ; « caméra
-    libre » = mode {mode: "libre"} ; « ferme le replay » = close. « caméra 2 », « plan large », « suis Ensuri »,
+    libre » = mode {mode: "libre"} ; « caméra libre depuis la caméra 2 » = mode {mode: "libre", camera: "2"} ; « ferme le replay » = close. « caméra 2 », « plan large », « suis Ensuri »,
     « vue d'Ensuri » (camera_pov), « réalisation auto » gardent leurs outils : ils agissent sur le replay. Tout autre
     ordre (points, manches…) : say, impossible pendant un replay. Hors replay, « marque ce moment », « drapeau »,
     « pose un drapeau » = replay_flag {} (avec text si LordFinn ajoute une note).

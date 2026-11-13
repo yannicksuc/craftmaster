@@ -123,6 +123,8 @@ public final class Replays {
          * spread, 17 to 25 ms for a zone, 28 to 46 ms for a player, never two in the same tick.
          */
         int phase;
+        /** A trial zone's corner (block), the same point of each cloned arena; null for a deduced area. */
+        int[] origin;
 
         Rec(boolean zone, boolean outing, String name, String folder, ReplayArea.Chunks area, UUID player, long fromSeconds,
             ServerReplayBridge.Recorder rec) {
@@ -486,7 +488,9 @@ public final class Replays {
                     if (camera == null && (CameraSpot.WIDE.equals(c.role()) || c.number() == 1)) camera = new Vec3(c.x(), c.y(), c.z());
                 }
             if (camera == null) camera = new Vec3((z.x0() + z.x1()) / 2.0, z.y1() + 2, (z.z0() + z.z1()) / 2.0);
-            startZone(server, ses, z.name(), ReplayArea.of(boxes, settings.margin, settings.maxSpan), camera);
+            Rec r = startZone(server, ses, z.name(), ReplayArea.of(boxes, settings.margin, settings.maxSpan), camera);
+            // Its corner: cloned arenas, one per contestant, have their free camera at the same place in each
+            if (r != null) r.origin = new int[]{z.x0(), z.y0(), z.z0()};
         }
         if (!zones.isEmpty()) return;
         // No zone given: one area around the round's cameras and teleport points (else its players)
@@ -505,21 +509,24 @@ public final class Replays {
         startZone(server, ses, "zone", ReplayArea.of(boxes, settings.margin, settings.maxSpan), camera);
     }
 
-    private static void startZone(MinecraftServer server, Session ses, String name, ReplayArea.Chunks area, Vec3 camera) {
-        if (area == null) return;
+    private static Rec startZone(MinecraftServer server, Session ses, String name, ReplayArea.Chunks area, Vec3 camera) {
+        if (area == null) return null;
         ServerLevel level = Busts.level(server, area.world());
         if (level == null) {
             CraftMaster.LOG.warn("[Replay] Monde « {} » introuvable : pas d'enregistrement de la zone {}", area.world(), name);
-            return;
+            return null;
         }
         String folder = ReplayArea.folder(ses.season, ses.partie, ses.number, ses.mancheId, name.equals("zone") ? null : "zone-" + name);
         if (ServerReplayBridge.hasChunkRecorder(folder)) {
             CraftMaster.LOG.warn("[Replay] Une zone « {} » s'enregistre déjà", folder);
-            return;
+            return null;
         }
         ServerReplayBridge.Recorder rec = ServerReplayBridge.startChunks(level, new ChunkPos(area.fromX(), area.fromZ()),
                 new ChunkPos(area.toX(), area.toZ()), ServerReplayBridge.chunkFolder().resolve(folder), folder, camera);
-        if (rec != null) add(ses, new Rec(true, false, name, folder, area, null, Math.round(ses.seconds()), rec));
+        if (rec == null) return null;
+        Rec r = new Rec(true, false, name, folder, area, null, Math.round(ses.seconds()), rec);
+        add(ses, r);
+        return r;
     }
 
     /** Adds a file, its pieces cut at a moment of the 10 s the others leave free (as far as possible). */
@@ -776,6 +783,7 @@ public final class Replays {
                     e.addProperty("world", r.area.world());
                     e.addProperty("from", r.area.fromX() + "," + r.area.fromZ());
                     e.addProperty("to", r.area.toX() + "," + r.area.toZ());
+                    if (r.origin != null) e.addProperty("origin", r.origin[0] + "," + r.origin[1] + "," + r.origin[2]);
                 } else {
                     if (r.outing) e.addProperty("outing", true);
                     e.addProperty("at", r.fromSeconds);

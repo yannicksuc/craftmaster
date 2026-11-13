@@ -140,6 +140,7 @@ badge « EN DIRECT » devient « REPLAY ».
 | « suis Ensuri » · « vue d'Ensuri » | **Tab** · **Maj+Tab** | `follow?player=Ensuri` · `pov?player=Ensuri` |
 | « l'écran d'Ensuri » · « la zone » | | `view?name=Ensuri` · `view?name=zone` |
 | « les plans du direct » · « réalisation auto » · « caméra libre » | **G** | `mode?m=direct\|auto\|manuel\|libre` (ou `/camera/auto`) |
+| « caméra libre depuis la caméra 2 » | | `mode?m=libre&camera=2` |
 | « ferme le replay » | | `close` |
 
 À la souris : **M** (ou `/cmbarre`) donne la souris sur la ligne de temps, et rien d'autre : un clic y saute, le
@@ -156,7 +157,15 @@ répondent « pas pendant un replay ».
 - **Auto** : recalculée à partir des repères, comme la réalisation automatique du direct : qui marque est suivi 7 s,
   qui est sous le projecteur (enveloppe, buzzer, projecteur) 9 s, sinon le plan large.
 - **Manuel** : tes touches, sur ce jeu seulement.
-- **Libre** : ta propre caméra de spectateur (mode diffusion coupé).
+- **Libre** : ta propre caméra de spectateur, qui part **exactement** de l'image du moment (position et angle du plan
+  à l'antenne, travelling ou suivi compris) ou d'une caméra choisie (« caméra libre depuis la caméra 2 »). L'habillage
+  reste celui de la diffusion (rien de l'interface du jeu à l'image) ; tu te déplaces comme en spectateur. Pour en
+  sortir : **1–9** ou la molette (une caméra), **0** (plan large), **G** (retour aux plans du direct), ou les mêmes
+  ordres à la voix et au Stream Deck.
+  - **Arènes clonées** (une par candidat, `/cfma zones`) : en changeant de zone (« la zone B »), la caméra libre
+    garde sa place **par rapport au coin de la zone** : même endroit, même angle dans l'autre arène. Après un recul
+    qui rouvre le fichier, elle revient où elle était. Une zone déduite (sans zone d'épreuve) n'a pas de coin : la
+    caméra repart du début du fichier.
 
 **Changer de fichier** (« l'écran d'Ensuri », « la zone ») : la zone, ou ce que le jeu d'un candidat a reçu (sa vue, son
 interface). Le fichier est rouvert **au même instant** : les fichiers d'un enregistrement démarrent à quelques

@@ -38,7 +38,7 @@ import java.util.function.Supplier;
  * /publish       publishes the scores; press twice within 3 s (the first press only arms it) · /reveal/start too
  * /camera/cut?camera=2 · /camera/auto (?enabled=false)   (during a replay: its direction, on this game)
  * /replay/toggle · play · pause · back?s=10 · forward?s=10 · goto?s=75 · start · faster · slower · speed?x=2 ·
- *   marker/next · marker/prev · view?name=zone|Ensuri · mode?m=direct|auto|manuel|libre · camera?camera=2 ·
+ *   marker/next · marker/prev · view?name=zone|Ensuri · mode?m=direct|auto|manuel|libre (libre&camera=2) · camera?camera=2 ·
  *   follow?player=Ensuri · pov?player=Ensuri · filter?kind=morts&player=Ensuri&zone=B · filter/clear · close
  *   (while a replay plays, /cmreplay voir) · /replay/flag (?text=) live: a flag on the recording's timeline
  * /status       JSON: connected, organiser, open screen, season, undo / redo available
@@ -296,7 +296,11 @@ public final class StreamDeckServer {
                     a.addProperty(k, query(uri, k));
             }
             case "filter/clear" -> a = action("replay.control", "do", "clear_filter");
-            case "mode" -> a = action("replay.control", "do", "mode", "mode", query(uri, "m"));
+            case "mode" -> {
+                a = action("replay.control", "do", "mode", "mode", query(uri, "m"));
+                // mode?m=libre&camera=2: the free camera from camera 2
+                if (!query(uri, "camera").isEmpty()) a.addProperty("camera", query(uri, "camera"));
+            }
             case "toggle", "play", "pause", "start", "faster", "slower", "close" -> a = action("replay.control", "do", what);
             default -> {
                 JsonObject o = error("unknown: /replay/" + what + " (toggle, play, pause, back, forward, goto, start, faster, slower, speed, "

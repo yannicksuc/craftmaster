@@ -118,7 +118,10 @@ public final class ReplayControl {
                     default -> null;
                 };
                 if (m == null) return Result.no("Réalisation « " + str(a, "mode") + " » inconnue");
-                ReplayClient.setMode(m);
+                // "caméra libre depuis la caméra 2": the free camera from that camera's position and angle
+                if (m == ReplayDirector.Mode.FREE && !str(a, "camera").isEmpty()) {
+                    if (!ReplayDirector.free(str(a, "camera"))) return Result.no("Pas de caméra « " + str(a, "camera") + " »");
+                } else ReplayClient.setMode(m);
             }
             case "close" -> ReplayClient.close();
             default -> {

@@ -111,7 +111,14 @@ public final class ReplayClient {
             // The server closes the file and opens it again (asked by someone else, a moderator): same replay
             switchingUntil = now + 8_000;
             statusAt = now;
+            keepFreeCamera(s);
             return;
+        }
+        // After a reopening, the new file's first status (the old one closes 250 ms after saying so, the new one opens
+        // 400 ms after): the free camera is put back
+        if (keep != null) {
+            if (now - keep.since() > 15_000) keep = null;
+            else if (!s.view().equals(keep.view()) || now - keep.since() > 1_200) placeKept(s, now);
         }
         // Smooth clock: keep ours unless the server's is far from it (seek, file switch, a hiccup)
         long mine = status == null ? -1 : nowMs();
@@ -128,6 +135,67 @@ public final class ReplayClient {
             // Not applied yet
         } else expectPaused = null;
         statusAt = now;
+    }
+
+    // ---------------------------------------------------------------- the free camera through a reopening
+
+    /** Where the free camera was when its file closed (to put it back, or at the same place of another arena). */
+    private record Kept(String view, net.minecraft.world.phys.Vec3 eye, float yaw, float pitch, double[] origin, long since) {}
+
+    private static Kept keep;
+    private static fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.Pose placeAt;
+    private static long placeAtTime;
+
+    /** A file closes and opens again (seek back, other file): in free camera, where it is now is remembered. */
+    private static void keepFreeCamera(ReplayStatus closing) {
+        Minecraft mc = Minecraft.getInstance();
+        if (ReplayDirector.mode() != ReplayDirector.Mode.FREE || mc.player == null || keep != null && System.currentTimeMillis() - keep.since() < 3_000) return;
+        keep = new Kept(closing.view(), mc.player.getEyePosition(), mc.player.getYRot(), mc.player.getXRot(), closing.origin(), System.currentTimeMillis());
+    }
+
+    /**
+     * The new file plays: the free camera goes back where it was, or for another zone with the same corner (cloned
+     * arenas) at the same place relative to it. Another zone without corners: it stays where the file puts it.
+     */
+    private static void placeKept(ReplayStatus now, long at) {
+        Kept k = keep;
+        keep = null;
+        net.minecraft.world.phys.Vec3 eye = k.eye();
+        if (!now.view().equals(k.view())) {
+            if (k.origin() == null || now.origin() == null) return;
+            eye = eye.add(now.origin()[0] - k.origin()[0], now.origin()[1] - k.origin()[1], now.origin()[2] - k.origin()[2]);
+        }
+        // Held there a few seconds: the file puts the spectator where it was recorded once its world is loaded
+        placeAt = new fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.Pose(eye, k.yaw(), k.pitch(), 0);
+        placeAtTime = at + 4_000;
+    }
+
+    private static fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.Pose lastFree;
+
+    /** The free camera was put somewhere on purpose (a camera's place, back after a jump): not a jump to undo. */
+    static void placedFreeCamera() {
+        lastFree = null;
+    }
+
+    /**
+     * A jump in the same file (Flashback seeks without reopening it, from here or a moderator) puts the spectator back
+     * where the file starts: the free camera is put back where it was. Seen as a move of more than 16 blocks in a tick,
+     * which flying does not do.
+     */
+    private static void holdThroughJumps(Minecraft mc, boolean act) {
+        if (!act || mc.player == null || ReplayDirector.mode() != ReplayDirector.Mode.FREE || keep != null) {
+            lastFree = null;
+            return;
+        }
+        if (placeAt != null) return;
+        var eye = mc.player.getEyePosition();
+        if (lastFree != null && eye.distanceTo(lastFree.position()) > 16) {
+            placeAt = lastFree;
+            placeAtTime = System.currentTimeMillis() + 2_000;
+            ReplayDirector.placeAt(lastFree);
+            return;
+        }
+        lastFree = new fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.Pose(eye, mc.player.getYRot(), mc.player.getXRot(), 0);
     }
 
     /** A replay is playing on this game (and its CraftMaster bar is wanted). */
@@ -269,7 +337,8 @@ public final class ReplayClient {
 
     public static void setMode(ReplayDirector.Mode m) {
         ReplayDirector.setMode(m);
-        Broadcast.set(m != ReplayDirector.Mode.FREE);
+        // The free camera too: the broadcast look stays (no game interface), only the camera is this game's own
+        Broadcast.set(true);
         ReplayBar.caption("Réalisation : " + m.label);
     }
 
@@ -296,6 +365,11 @@ public final class ReplayClient {
             if (!act && mc.gui.screen() == null && ClientPlayNetworking.canSend(fr.lordfinn.craftmaster.replay.ReplayNetwork.ReplayFlag.TYPE))
                 ClientPlayNetworking.send(new fr.lordfinn.craftmaster.replay.ReplayNetwork.ReplayFlag(""));
         if (act && panelWanted && mc.gui.screen() == null && mc.player != null) openPanel(mc);
+        if (placeAt != null && mc.player != null) {
+            if (System.currentTimeMillis() > placeAtTime || !act || ReplayDirector.mode() != ReplayDirector.Mode.FREE) placeAt = null;
+            else if (mc.player.getEyePosition().distanceTo(placeAt.position()) > 2) ReplayDirector.placeAt(placeAt);
+        }
+        holdThroughJumps(mc, act);
         if (!act) panelWanted = false;
         if (!act || mc.gui.screen() != null) {
             for (KeyMapping k : KEYS) while (k.consumeClick()) {}

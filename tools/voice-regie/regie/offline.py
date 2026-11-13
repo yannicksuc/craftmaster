@@ -101,6 +101,10 @@ def _replay(text: str, ctx: ShowContext) -> list[dict] | None:
         return [{"type": "camera.pov", "player": m.group("who") or m.group("who2")}]
     if re.fullmatch(r"(?:la réalisation du direct|les plans du direct|réalisation direct)", text):
         return ctl("mode", mode="direct")
+    m = re.fullmatch(r"(?:caméra|réalisation) libre (?:depuis|à partir de|sur) (?:la )?(?:caméra )?(?P<cam>.+)", text)
+    if m:
+        n = m.group("cam")
+        return ctl("mode", mode="libre", camera=str(FRENCH_NUMBERS.get(n, n)))
     if re.fullmatch(r"(?:caméra|réalisation) libre", text):
         return ctl("mode", mode="libre")
     if re.fullmatch(r"réalisation manuelle", text):
