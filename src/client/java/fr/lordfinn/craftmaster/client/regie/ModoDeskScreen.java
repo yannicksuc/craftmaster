@@ -32,7 +32,7 @@ public class ModoDeskScreen extends Screen {
     private static final int PANEL = 0xE8140E10, BORDER = 0xFFD4A53A, VELVET = 0xFF6B1420, TEXT = 0xFFF1E6C8, DIM = 0xFF9A8A70,
             LIVE = 0xFFE04040, OK = 0xFF7FD67F;
 
-    enum Tab { CAMERAS("cameras"), MANCHE("manche"), POINTS("points"), JOURNAL("journal");
+    enum Tab { CAMERAS("cameras"), SCENE("scene"), MANCHE("manche"), POINTS("points"), JOURNAL("journal");
         final String id;
         Tab(String id) { this.id = id; }
     }
@@ -85,7 +85,10 @@ public class ModoDeskScreen extends Screen {
 
     private List<Tab> tabs() {
         List<Tab> out = new ArrayList<>();
-        if (has("camera")) out.add(Tab.CAMERAS);
+        if (has("camera")) {
+            out.add(Tab.CAMERAS);
+            out.add(Tab.SCENE);
+        }
         if (has("jeu")) {
             out.add(Tab.MANCHE);
             out.add(Tab.POINTS);
@@ -152,6 +155,7 @@ public class ModoDeskScreen extends Screen {
         int y = top + 46;
         switch (tab) {
             case CAMERAS -> cameras(y);
+            case SCENE -> scene(y);
             case MANCHE -> manche(y);
             case POINTS -> pointsTab(y);
             case JOURNAL -> {}
@@ -215,6 +219,58 @@ public class ModoDeskScreen extends Screen {
         }
     }
 
+    /** Colours of the quick row: beam colour word (studio/Spotlights) and the swatch drawn on the button. */
+    private static final String[][] SWATCHES = {{"chaud", "FFF1D6"}, {"froid", "DDEBFF"}, {"ambre", "FFC46B"}, {"rouge", "FF6060"},
+            {"bleu", "7FA0FF"}, {"violet", "C080FF"}, {"vert", "80E080"}, {"rose", "FF9AD0"}};
+
+    private void scene(int y) {
+        // Looks: one click plays one (with its own fade)
+        int cols = 4, bw = (w - 12 - (cols - 1) * 3) / cols, i = 0;
+        for (JsonElement e : array("looks")) {
+            String name = e.getAsString();
+            Button b = button(Component.literal("◐ " + name), left + 6 + (i % cols) * (bw + 3), y + (i / cols) * 22, bw, () -> run("look.play", "name", name));
+            b.setTooltip(Tooltip.create(t("scene.look.tip", name)));
+            if (++i >= 8) break;
+        }
+        y += Math.max(1, (i + cols - 1) / cols) * 22 + 4;
+        // Cue lists, then stop and blackout
+        i = 0;
+        JsonArray cues = array("cues");
+        for (JsonElement e : cues) {
+            String name = e.getAsString();
+            Button b = button(Component.literal("▶ " + name), left + 6 + (i % cols) * (bw + 3), y + (i / cols) * 22, bw, () -> run("cue.play", "name", name));
+            b.setTooltip(Tooltip.create(t("scene.cue.tip", name)));
+            if (++i >= 6) break;
+        }
+        int sx = left + 6 + (i % cols) * (bw + 3), sy = y + (i / cols) * 22;
+        if (i % cols > cols - 2) {
+            sx = left + 6;
+            sy += 22;
+            i += cols - i % cols;
+        }
+        button(t("scene.stop").copy().withStyle(ChatFormatting.YELLOW), sx, sy, bw / 2 - 1, () -> run("cue.stop"));
+        button(t("scene.noir").copy().withStyle(ChatFormatting.GRAY), sx + bw / 2 + 1, sy, bw / 2 - 1, () -> run("stage.blackout", "fade", 2));
+        y = sy + 26;
+        // Every spotlight: a colour in one click (1.5 s fade)
+        int sw = (w - 12 - 70 - (SWATCHES.length - 1) * 2) / SWATCHES.length;
+        int x = left + 6 + 70;
+        for (String[] c : SWATCHES) {
+            Button b = button(Component.literal("■").withStyle(st -> st.withColor(Integer.parseInt(c[1], 16))), x, y, sw, () -> run("spotlight.set", "on", true, "color", c[0], "fade", 1.5));
+            b.setTooltip(Tooltip.create(Component.literal(c[0])));
+            x += sw + 2;
+        }
+        y += 24;
+        // Follow-spots: who the beams follow by themselves
+        int fw = (w - 12 - 70 - 4 * 3) / 5;
+        x = left + 6 + 70;
+        for (String[] f : new String[][]{{"@scene", "scene.follow.stage"}, {"@moment", "scene.follow.moment"}, {"@candidat", "scene.follow.contestant"},
+                {"@proche", "scene.follow.nearest"}, {"", "scene.follow.none"}}) {
+            Button b = button(t(f[1]), x, y, fw, () -> run("spotlight.set", "follow", f[0]));
+            b.setTooltip(Tooltip.create(t(f[1] + ".tip")));
+            x += fw + 3;
+        }
+    }
+
     private void manche(int y) {
         int b3 = (w - 12 - 2 * 3) / 3, b4 = (w - 12 - 3 * 3) / 4;
         button(t("next"), left + 6, y, b3, () -> run("manche.start", "manche", "next"));
@@ -271,6 +327,7 @@ public class ModoDeskScreen extends Screen {
             case MANCHE -> drawManche(g);
             case POINTS -> drawPoints(g);
             case JOURNAL -> drawJournal(g);
+            case SCENE -> drawScene(g);
             case CAMERAS -> {
                 JsonArray cast = array("cast");
                 if (!cast.isEmpty()) {
@@ -281,6 +338,23 @@ public class ModoDeskScreen extends Screen {
             }
         }
         super.extractRenderState(g, mouseX, mouseY, partial);
+    }
+
+    private void drawScene(GuiGraphicsExtractor g) {
+        String status = state.has("cueStatus") ? state.get("cueStatus").getAsString() : "";
+        g.text(font, font.plainSubstrByWidth(status, w - 16), left + 8, top + h - 14, status.startsWith("Aucune") ? DIM : OK, false);
+        if (array("looks").isEmpty() && array("cues").isEmpty())
+            g.text(font, t("scene.empty"), left + 8, top + h - 26, DIM, false);
+        // Labels of the quick rows (positions follow scene(): same arithmetic)
+        int cols = 4;
+        int looks = Math.min(8, array("looks").size()), cues = Math.min(6, array("cues").size());
+        int y = top + 46 + Math.max(1, (looks + cols - 1) / cols) * 22 + 4;
+        int i = cues;
+        int sy = y + (i / cols) * 22;
+        if (i % cols > cols - 2) sy += 22;
+        y = sy + 26;
+        g.text(font, t("scene.colors"), left + 8, y + 6, DIM, false);
+        g.text(font, t("scene.follow"), left + 8, y + 30, DIM, false);
     }
 
     private void drawManche(GuiGraphicsExtractor g) {

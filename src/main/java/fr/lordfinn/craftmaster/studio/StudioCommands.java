@@ -230,8 +230,9 @@ public final class StudioCommands {
         List<String> l = new java.util.ArrayList<>(List.of("tout"));
         for (String n : Spotlights.names()) {
             l.add(n);
+            // A group: the name without its number ("face" = face1, face2…)
             String g = n.replaceAll("[0-9]+$", "");
-            if (!g.equals(n) && !l.contains(g + "*")) l.add(g + "*");
+            if (!g.equals(n) && !g.isEmpty() && !l.contains(g)) l.add(g);
         }
         return SharedSuggestionProvider.suggest(l, b);
     };
@@ -255,7 +256,7 @@ public final class StudioCommands {
             spotlightOrders(all, c -> Spotlights.ALL);
             root.then(all);
         }
-        var target = argument("target", StringArgumentType.word()).suggests(SPOT_TARGETS);
+        var target = argument("target", StringArgumentType.string()).suggests(SPOT_TARGETS);
         spotlightOrders(target, c -> StringArgumentType.getString(c, "target"));
         root.then(literal("groupe").then(target));
         // Names the spotlight looked at: "face1", "contre", "poursuite"... (groups: same start, /cfsp groupe face* …)
@@ -355,7 +356,7 @@ public final class StudioCommands {
                 return 1;
             }
         }
-        fail(c, "Regarde un projecteur (ou /cfsp tout …, /cfsp groupe <nom> …).");
+        fail(c, "Regarde un projecteur (ou /cfsp tout …, /cfsp groupe <nom ou début de nom> …).");
         return 0;
     }
 

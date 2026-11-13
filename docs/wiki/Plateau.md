@@ -145,7 +145,7 @@ une vidéo** : YouTube, Twitch, Kick, un lien MP4 / WebM direct… Le mod CraftM
 
 - `/image <URL> [largeur] [hauteur]` en **regardant un écran du studio** : il affiche l'image (et change de taille
   si on la donne). En regardant **un mur** : un nouvel écran y est accroché, centré sur le bloc visé, 5 × 3 par
-  défaut comme le plugin (largeur seule : hauteur en 5:3), au plus 16 × 9 blocs.
+  défaut comme le plugin (largeur seule : hauteur en 5:3), au plus 64 × 36 blocs (écran géant de scène).
 - `/image clear` (retour à la mire), `/image remove`, `/image size <l> <h>`, `/image fit <true|false>` (image
   entière avec bandes noires, ou étirée), sur l'écran regardé.
 - Clic droit sur un écran (avec la permission) : réglages (adresse, taille, image entière / étirée, mire).

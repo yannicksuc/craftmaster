@@ -11,8 +11,8 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Orders given to several spotlights at once: all of them, one by name, or a group ({@code face*} = every spotlight
- * whose name starts with "face"). Used by the commands, the voice control and Stream Deck ({@code spotlight.*}
+ * Orders given to several spotlights at once: all of them, one by name, or a group: a name nobody has exactly, or
+ * {@code face*}, means every spotlight whose name starts with it ("face" = face1, face2…). Used by the commands, the voice control and Stream Deck ({@code spotlight.*}
  * actions), the stage looks and cue lists. Each order returns a French line saying what was done.
  */
 public final class Spotlights {
@@ -83,8 +83,8 @@ public final class Spotlights {
         if (set.color() != null) parts.add("couleur " + colorName(set.color()));
         if (set.intensity() != null) parts.add("intensité " + set.intensity() + " %");
         if (set.cone() != null) parts.add("cône " + seconds(set.cone()).replace(" s", "") + "°");
-        if (set.follow() != null) parts.add(set.follow().isEmpty() ? "ne suivent plus personne" : "suivent " + SpotlightFollow.describe(set.follow()));
         if (set.aimAt() != null || set.yaw() != null) parts.add("pointés");
+        else if (set.follow() != null) parts.add(set.follow().isEmpty() ? "ne suivent plus personne" : "suivent " + SpotlightFollow.describe(set.follow()));
         return parts.isEmpty() ? "rien à changer" : String.join(", ", parts);
     }
 

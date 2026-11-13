@@ -10,7 +10,8 @@ import java.util.Locale;
 public record ImageRequest(String url, int width, int height) {
 
     public static final int DEFAULT_WIDTH = 5, DEFAULT_HEIGHT = 3;
-    public static final int MAX_WIDTH = 16, MAX_HEIGHT = 9;
+    /** A giant screen for the stage: up to 64 × 36 blocks (16:9). */
+    public static final int MAX_WIDTH = 64, MAX_HEIGHT = 36;
     public static final int MAX_URL_LENGTH = 1024;
 
     /** A refused request: the message is French and shown as is. */

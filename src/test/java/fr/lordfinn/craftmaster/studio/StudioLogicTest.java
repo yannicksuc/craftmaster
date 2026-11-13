@@ -88,8 +88,8 @@ class StudioLogicTest {
         assertEquals(new ImageRequest("http://x.fr/i.jpg", 4, 2), ImageRequest.parse("http://x.fr/i.jpg 4 2"));
         // Width only: keeps the 5:3 look
         assertEquals(6, ImageRequest.parse("http://x.fr/i.jpg 10").height());
-        // Clamped to 16 x 9
-        ImageRequest big = ImageRequest.parse("http://x.fr/i.jpg 40 40");
+        // Clamped to 64 x 36
+        ImageRequest big = ImageRequest.parse("http://x.fr/i.jpg 100 100");
         assertEquals(ImageRequest.MAX_WIDTH, big.width());
         assertEquals(ImageRequest.MAX_HEIGHT, big.height());
         assertEquals(1, ImageRequest.parse("http://x.fr/i.jpg 0 0").width());

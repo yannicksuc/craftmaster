@@ -17,6 +17,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Objets à manipuler : canards en plastique, balles, ballons, œuf fragile, golf, cibles qui comptent, verre gradué](Objets.md)
 - [Tâches, enveloppes scellées et notes cachées](Taches.md)
 - [Rideaux de scène](Rideaux.md)
+- [Scénographie : projecteurs (couleur, intensité, cône, poursuite auto), ambiances et conduites automatiques](Scenographie.md)
 - [Portes de garage animées, WorldEdit sans mises à jour](PortesGarage.md)
 - [Finitions v4 : rideau fluide, éditeur de poses, skins HD](Finitions.md)
 - [Chaises](Chaises.md)

@@ -68,6 +68,17 @@ public final class ModoState {
             o.addProperty("auto", show.auto());
             o.addProperty("focus", show.focus());
         }
+        if (cam) {
+            // Stage: looks and cue lists to play in one click (stage/)
+            JsonArray looks = new JsonArray();
+            fr.lordfinn.craftmaster.stage.Scenography.book().looks.keySet().forEach(looks::add);
+            o.add("looks", looks);
+            JsonArray cues = new JsonArray();
+            fr.lordfinn.craftmaster.stage.Scenography.book().cues.keySet().forEach(cues::add);
+            o.add("cues", cues);
+            o.addProperty("cueStatus", fr.lordfinn.craftmaster.stage.Cues.status());
+            o.addProperty("spotlights", fr.lordfinn.craftmaster.studio.SpotlightBlockEntity.loaded().size());
+        }
 
         if (game && data != null) {
             Manche cur = data.currentManche();
