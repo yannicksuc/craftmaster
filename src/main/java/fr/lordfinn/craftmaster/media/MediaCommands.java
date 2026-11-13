@@ -20,6 +20,7 @@ import net.minecraft.server.level.ServerPlayer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -75,11 +76,31 @@ public final class MediaCommands {
                         .then(literal("off").executes(c -> show(c, MediaServer.Kind.OFF, ""))));
     }
 
+    /**
+     * Like the voice, the Stream Deck and the control room: a tele.show action through the action executor (one
+     * path, the same effect). A refusal ("⚠ …") is shown in red.
+     */
     private static int show(CommandContext<CommandSourceStack> c, MediaServer.Kind kind, String arg) {
-        MediaServer.Result r = MediaServer.show(c.getSource().getServer(), StringArgumentType.getString(c, "tele"), kind, arg);
-        if (r.ok()) ok(c, r.message());
-        else fail(c, r.message());
-        return r.ok() ? 1 : 0;
+        Map<String, Object> a = new LinkedHashMap<>();
+        a.put("type", "tele.show");
+        a.put("tele", StringArgumentType.getString(c, "tele"));
+        switch (kind) {
+            case CLIP -> a.put("clip", arg);
+            case LINK -> a.put("link", arg);
+            case LIVE -> a.put("live", arg);
+            case IMAGE -> a.put("image", arg);
+            case OFF -> a.put("off", true);
+        }
+        fr.lordfinn.craftmaster.show.ActionExecutor.Result r = fr.lordfinn.craftmaster.show.ActionExecutor.execute(c.getSource().getServer(), List.of(a));
+        boolean ok = r.ok();
+        for (String line : r.lines()) {
+            if (line.startsWith("⚠")) {
+                ok = false;
+                fail(c, line.substring(1).strip());
+            } else if (r.ok()) ok(c, line);
+            else fail(c, line);
+        }
+        return ok ? 1 : 0;
     }
 
     private static int listScreens(CommandContext<CommandSourceStack> c) {

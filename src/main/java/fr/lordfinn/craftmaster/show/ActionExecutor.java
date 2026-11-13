@@ -124,7 +124,7 @@ public final class ActionExecutor {
                     default -> fr.lordfinn.craftmaster.media.MediaServer.Kind.CLIP;
                 };
                 var r = fr.lordfinn.craftmaster.media.MediaServer.show(server, t.tele(), kind, t.value());
-                if (!r.ok()) lines.add("⚠ " + r.message());
+                lines.add(r.ok() ? r.message() : "⚠ " + r.message());
             }
             case Actions.ScenePlaced s -> {
                 String error = StageControl.placeScene(server, s.name(), previousScene);

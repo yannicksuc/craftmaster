@@ -116,8 +116,8 @@ Voix ([Régie vocale](RegieVocale.md)) :
 
 Le clip tourne sur le jeu qui l'a demandé : la régie web ne peut pas le lancer, sauf par le Stream Deck local.
 Les ordres des télés du Stream Deck et de la voix sont des actions `tele.show`, comme ceux de la régie des
-modérateurs. Le serveur vérifie le droit de chacune et la note dans le journal (`/modo journal`). `/cmtele` en
-commande, elle, passe à côté des deux.
+modérateurs. `/cmtele` tapée à la main passe aussi par cette action : commande, voix, Stream Deck, régie
+en jeu et site suivent un seul chemin, avec le même effet (droits et journal de la régie des modos).
 
 Action `tele.show` : `{tele, clip | link | live | image | off}`. Un seul champ parmi les cinq ; sans aucun, c'est le
 dernier clip. `off: true` remet la mire.

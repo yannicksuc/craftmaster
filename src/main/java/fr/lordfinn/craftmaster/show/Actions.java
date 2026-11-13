@@ -985,8 +985,8 @@ public final class Actions {
             else if (str(a, "link") != null) { kind = "lien"; value = str(a, "link"); }
             else if (str(a, "image") != null) { kind = "image"; value = str(a, "image"); }
             else { kind = "clip"; value = str(a, "clip") == null ? "dernier" : str(a, "clip"); }
+            // The line comes from the world (MediaServer.show says what is shown, or why not)
             effects.add(new ScreenShow(tele, kind, value));
-            line("Télé « " + tele + " » : " + kind + (value.isEmpty() ? "" : " " + value) + ".");
         }
 
         /**
