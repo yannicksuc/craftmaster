@@ -81,12 +81,16 @@ public final class CraftMaster implements ModInitializer {
             Cameras.load(fl.getConfigDir().resolve("craftmaster/cameras.json"));
             fr.lordfinn.craftmaster.camera.CameraPaths.load(fl.getConfigDir().resolve("craftmaster/trajets.json"));
             fr.lordfinn.craftmaster.show.Moderators.load(fl.getConfigDir().resolve("craftmaster/moderateurs.json"));
+            fr.lordfinn.craftmaster.regie.SiteLink.load(fl.getConfigDir().resolve("craftmaster/site.json"));
         });
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             Busts.updateAll(server);
             ActionExecutor.onServerStarted();
+            // Moderators' page on lordfinn.fr: this server calls the site (never the reverse)
+            fr.lordfinn.craftmaster.regie.SiteLink.start(server);
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            fr.lordfinn.craftmaster.regie.SiteLink.stop();
             Show.reset(server);
             if (data != null) data.save();
             Curtains.clear();

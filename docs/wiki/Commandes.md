@@ -138,6 +138,18 @@ l'exécuteur des actions : **annulable** et identique à la voix.
 |---|---|---|
 | `/craftMasterName [nom]` | cfnm | Nomme l'objet tenu (codes `&6`, `&l`…) ; sans nom : retire le nom |
 
+## Régie des modos (organisateur) — [RegieModos](RegieModos.md)
+Droits `camera`, `tv`, `replay`, `jeu` (permissions `craftmaster:camera|tv|replay|jeu`, `craftmaster:modo` = camera + tv +
+replay), ou la liste du mod :
+| Commande | Alias | Effet |
+|---|---|---|
+| `/craftMasterModo [liste]` | modo, cfmo | Les modos (Twitch, Minecraft, droits) |
+| `/modo ajouter <twitch> [minecraft\|-] [camera,tv,replay,jeu]` | | Ajoute / modifie (par défaut camera,tv,replay) |
+| `/modo retirer <nom>` · `/modo pause` · `/modo reprendre` | | Retire · coupe toutes les régies des modos · les rend |
+| `/modo journal [n]` | | Qui a fait quoi (ordres réussis et refusés) |
+| `/modo site [etat\|on\|off]` · `/modo site lier [adresse]` | | Lien avec lordfinn.fr : état, activer, couper · nouveau secret |
+| `/regie` (client) | | Ouvre la régie des modos (aussi touche `;`) |
+
 ## Réalisation TV (organisateur ou permission `craftmaster:camera`)
 Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`large`, `trone`, `podium`) ;
 `[transition]` = `coupe`, `fondu` ou `enchaine`.

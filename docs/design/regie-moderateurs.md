@@ -1,4 +1,9 @@
-# Régie des modérateurs — proposition (à valider par LordFinn, rien codé)
+# Régie des modérateurs — proposition (validée par LordFinn le 13/11/2026 : lordfinn.fr, Twitch, liste tenue par le mod)
+
+Réalisé : couche (acteur, droits, journal, tablettes), régie en jeu, lien et page du site. Mode d'emploi :
+[wiki RegieModos](../wiki/RegieModos.md). Écart avec ce qui suit : le lien n'est pas un WebSocket mais des requêtes HTTPS
+longues (le serveur Minecraft garde une requête ouverte vers le site pour recevoir les ordres, et pousse l'état) : même
+sécurité (sortant seulement, secret partagé), rien à changer dans nginx, aucune dépendance de plus dans l'API.
 
 But : des modos pilotent l'émission comme le Stream Deck de LordFinn (caméras, manches, points, télés, replays),
 **dans le jeu** (connectés au serveur) et **depuis un site web**, sans recoder chaque action une 3e et 4e fois et

@@ -73,6 +73,20 @@ public final class ModoCommands {
                     Moderators.setPaused(false);
                     return say(c, "Régies des modos rendues.", true);
                 }))
+                .then(literal("site")
+                        .executes(c -> say(c, fr.lordfinn.craftmaster.regie.SiteLink.describe(), true))
+                        .then(literal("etat").executes(c -> say(c, fr.lordfinn.craftmaster.regie.SiteLink.describe(), true)))
+                        .then(literal("on").executes(c -> {
+                            fr.lordfinn.craftmaster.regie.SiteLink.setEnabled(true);
+                            return say(c, "Lien avec le site activé.", true);
+                        }))
+                        .then(literal("off").executes(c -> {
+                            fr.lordfinn.craftmaster.regie.SiteLink.setEnabled(false);
+                            return say(c, "Lien avec le site coupé : la page des modos ne peut plus rien faire.", true);
+                        }))
+                        .then(literal("lier")
+                                .executes(c -> pair(c, ""))
+                                .then(argument("adresse", StringArgumentType.greedyString()).executes(c -> pair(c, StringArgumentType.getString(c, "adresse"))))))
                 .then(literal("journal")
                         .executes(c -> journal(c, 10))
                         .then(argument("n", IntegerArgumentType.integer(1, 100)).executes(c -> journal(c, IntegerArgumentType.getInteger(c, "n")))));
@@ -117,6 +131,17 @@ public final class ModoCommands {
             c.getSource().sendSuccess(() -> Component.literal(text).withStyle(l.ok() ? ChatFormatting.GRAY : ChatFormatting.RED), false);
         }
         return lines.size();
+    }
+
+    /** New secret, shown once, click to copy: it goes in the site's .env (CRAFTMASTER_LINK_SECRET). */
+    private static int pair(CommandContext<CommandSourceStack> c, String url) {
+        String secret = fr.lordfinn.craftmaster.regie.SiteLink.pair(url);
+        c.getSource().sendSuccess(() -> Component.literal("Nouveau secret du lien (clique pour copier, à mettre dans le .env du site : CRAFTMASTER_LINK_SECRET) :")
+                .withStyle(ChatFormatting.GREEN), false);
+        c.getSource().sendSuccess(() -> Component.literal(secret).withStyle(s -> s.withColor(ChatFormatting.GOLD)
+                .withClickEvent(new net.minecraft.network.chat.ClickEvent.CopyToClipboard(secret))), false);
+        c.getSource().sendSuccess(() -> Component.literal(fr.lordfinn.craftmaster.regie.SiteLink.describe()).withStyle(ChatFormatting.GRAY), false);
+        return 1;
     }
 
     private static int say(CommandContext<CommandSourceStack> c, String text, boolean ok) {

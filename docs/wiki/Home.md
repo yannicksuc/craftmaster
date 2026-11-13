@@ -19,6 +19,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Chaises](Chaises.md)
 - [Plateau : trône, éclairage, projecteurs, chrono géant, écrans /image, pupitres, gong…](Plateau.md)
 - [Régie vocale (piloter à la voix)](RegieVocale.md)
+- [Régie des modos : dans le jeu (touche ;) et sur lordfinn.fr](RegieModos.md)
 - [Réalisation TV : caméras, mode diffusion, habillage, générique](Realisation.md)
 - [Effets d'écran : noir et blanc, fish-eye, judas, VHS… et lunettes à porter](Effets.md)
 - [Fichier de données](Donnees.md)
