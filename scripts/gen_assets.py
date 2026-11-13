@@ -406,15 +406,6 @@ for y in range(64):
 write_png(os.path.join(A, "textures/entity/portrait_backdrop.png"), 64, 64, curtain)
 
 
-def room_wall(x, y):
-    """Plain dark velvet for the room's walls, floor and ceiling: a soft pile, no folds, tiling on 16 px."""
-    n = ((x * 7 + y * 13) ^ (x * y * 3)) % 9
-    f = 0.62 + 0.03 * (n % 3) - (0.05 if (x * 5 + y * 3) % 13 == 0 else 0)
-    return (int(196 * f), int(28 * f), int(40 * f), 255)
-
-
-write_png(os.path.join(A, "textures/entity/portrait_room.png"), 16, 16, [[room_wall(x, y) for x in range(16)] for y in range(16)])
-
 # Brass hook (112..116 x 0..4) and string (120..121 x 0..16)
 face(112, 0, 4, 4, lambda x, y, w, h: (186, 140, 60) if (x + y) % 2 else (150, 108, 44))
 face(120, 0, 1, 16, lambda x, y, w, h: (226, 214, 186))   # uniform: the string reads as one straight line

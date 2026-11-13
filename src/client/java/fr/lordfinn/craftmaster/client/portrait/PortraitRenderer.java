@@ -61,8 +61,6 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
     public static final Identifier FRAME_TEXTURE = CraftMaster.id("textures/entity/portrait_frame.png");
     /** Painted velvet backdrop seen through the opening with the window look. */
     public static final Identifier BACKDROP_TEXTURE = CraftMaster.id("textures/entity/portrait_backdrop.png");
-    /** Plain velvet of the room's walls, floor and ceiling (16 x 16, repeated). */
-    public static final Identifier ROOM_TEXTURE = CraftMaster.id("textures/entity/portrait_room.png");
     private static final int TEX_W = 128, TEX_H = 64;
 
     /** Sway: a few degrees, one period of 8 to 12 seconds. */
@@ -303,11 +301,6 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
                 PortraitClipper clip = PortraitClipper.portal(c, frameToCamera, canvasFront - 0.02f,
                         (float) PortraitGeometry.OPEN_HW, (float) PortraitGeometry.OPEN_HH);
                 roomBack(clip, p, depth, scale, light);
-                clip.flush();
-            });
-            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(ROOM_TEXTURE), (p, c) -> {
-                PortraitClipper clip = PortraitClipper.portal(c, frameToCamera, canvasFront - 0.02f,
-                        (float) PortraitGeometry.OPEN_HW, (float) PortraitGeometry.OPEN_HH);
                 roomWalls(clip, p, depth, scale, light);
                 clip.flush();
             });
@@ -503,16 +496,13 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
 
     /**
      * Window look: the room behind the opening (pixels, frame space): {@code scale} times the opening (so moving
-     * around reveals more of it), {@code depth} px deep. Everything at one texel per frame pixel, like the game:
-     * the velvet curtain at the back (the middle of its texture), plain velvet walls, floor and ceiling.
+     * around reveals more of it), {@code depth} px deep. Back, sides, floor and ceiling all in the same velvet, at
+     * one texel per frame pixel like the game; the walls continue the back's texture at its edges.
      */
     private static void roomBack(VertexConsumer c, PoseStack.Pose p, float depth, float scale, int light) {
         float hw = (float) PortraitGeometry.OPEN_HW * scale, hh = (float) PortraitGeometry.OPEN_HH * scale;
         float z1 = (float) PortraitGeometry.CANVAS_FRONT - depth;
-        // The vertex helper divides u by TEX_W and v by TEX_H: texel t of a 64 px texture is t * TEX_W / 64
-        float su = TEX_W / 64f, sv = TEX_H / 64f;
-        float u0 = Math.max(0, 32 - hw), u1 = Math.min(64, 32 + hw), v0 = Math.max(0, 22 - hh), v1 = Math.min(64, 22 + hh);
-        quad(c, p, -hw, hh, z1, hw, hh, z1, hw, -hh, z1, -hw, -hh, z1, u0 * su, v0 * sv, u1 * su, v1 * sv, 0xFFFFFFFF, light, 0, 0, 1);
+        tiled(c, p, -hw, hh, z1, 1, 0, 0, 2 * hw, BACK_U - hw, 0, -1, 0, 2 * hh, BACK_V - hh, 0xFFFFFFFF, light, 0, 0, 1);
     }
 
     private static void roomWalls(VertexConsumer c, PoseStack.Pose p, float depth, float scale, int light) {
@@ -520,34 +510,41 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         float z0 = (float) PortraitGeometry.CANVAS_FRONT - 0.05f, z1 = (float) PortraitGeometry.CANVAS_FRONT - depth;
         int side = 0xFFC8B4B4, top = 0xFF8C7878, bottom = 0xFFE0CCCC;
         float dz = z0 - z1;
-        tiled(c, p, -hw, hh, z0, 0, 0, -1, dz, 0, -1, 0, 2 * hh, side, light, 1, 0, 0);
-        tiled(c, p, hw, hh, z1, 0, 0, 1, dz, 0, -1, 0, 2 * hh, side, light, -1, 0, 0);
-        tiled(c, p, -hw, hh, z0, 1, 0, 0, 2 * hw, 0, 0, -1, dz, top, light, 0, -1, 0);
-        tiled(c, p, -hw, -hh, z1, 1, 0, 0, 2 * hw, 0, 0, 1, dz, bottom, light, 0, 1, 0);
+        // Sides: same rows as the back, the columns going on past its edge toward the viewer
+        tiled(c, p, -hw, hh, z0, 0, 0, -1, dz, BACK_U - hw - dz, 0, -1, 0, 2 * hh, BACK_V - hh, side, light, 1, 0, 0);
+        tiled(c, p, hw, hh, z1, 0, 0, 1, dz, BACK_U + hw, 0, -1, 0, 2 * hh, BACK_V - hh, side, light, -1, 0, 0);
+        // Ceiling and floor: same columns as the back, the rows going on past its top / bottom edge
+        tiled(c, p, -hw, hh, z0, 1, 0, 0, 2 * hw, BACK_U - hw, 0, 0, -1, dz, BACK_V - hh - dz, top, light, 0, -1, 0);
+        tiled(c, p, -hw, -hh, z1, 1, 0, 0, 2 * hw, BACK_U - hw, 0, 0, 1, dz, BACK_V + hh, bottom, light, 0, 1, 0);
     }
 
-    /** Size of the wall velvet texture (texels), drawn one texel per frame pixel. */
-    private static final float ROOM_TILE = 16;
+    /** The velvet texture's size (texels) and the texel at the middle of the back. */
+    private static final float BACKDROP_SIZE = 64, BACK_U = 32, BACK_V = 22;
 
     /**
-     * A wall from corner (ox, oy, oz) along unit directions u (lenU px) and v (lenV px), in tiles of the wall
-     * texture at one texel per pixel; the last tiles take only the part of the texture they need.
+     * A wall from corner (ox, oy, oz) along unit directions u (lenU px) and v (lenV px) at one texel per pixel, the
+     * corner showing texel (tu, tv) of the velvet; the texture repeats (pieces cut at its edges, never stretched).
      */
     private static void tiled(VertexConsumer c, PoseStack.Pose p, float ox, float oy, float oz,
-                              float ux, float uy, float uz, float lenU, float vx, float vy, float vz, float lenV,
+                              float ux, float uy, float uz, float lenU, float tu, float vx, float vy, float vz, float lenV, float tv,
                               int color, int light, float nx, float ny, float nz) {
-        float su = TEX_W / ROOM_TILE, sv = TEX_H / ROOM_TILE;
-        for (float a = 0; a < lenU - 1e-4f; a += ROOM_TILE) {
-            float a1 = Math.min(lenU, a + ROOM_TILE);
-            for (float b = 0; b < lenV - 1e-4f; b += ROOM_TILE) {
-                float b1 = Math.min(lenV, b + ROOM_TILE);
+        // The vertex helper divides u by TEX_W and v by TEX_H (the frame texture's size)
+        float su = TEX_W / BACKDROP_SIZE, sv = TEX_H / BACKDROP_SIZE;
+        for (float a = 0; a < lenU - 1e-4f; ) {
+            float ta = Math.floorMod((int) Math.floor(tu + a + 1e-4f), (int) BACKDROP_SIZE) + (tu + a - (float) Math.floor(tu + a + 1e-4f));
+            float a1 = Math.min(lenU, a + (BACKDROP_SIZE - ta));
+            for (float b = 0; b < lenV - 1e-4f; ) {
+                float tb = Math.floorMod((int) Math.floor(tv + b + 1e-4f), (int) BACKDROP_SIZE) + (tv + b - (float) Math.floor(tv + b + 1e-4f));
+                float b1 = Math.min(lenV, b + (BACKDROP_SIZE - tb));
                 float x0 = ox + ux * a + vx * b, y0 = oy + uy * a + vy * b, z0 = oz + uz * a + vz * b;
                 float x1 = ox + ux * a1 + vx * b, y1 = oy + uy * a1 + vy * b, z1 = oz + uz * a1 + vz * b;
                 float x2 = ox + ux * a1 + vx * b1, y2 = oy + uy * a1 + vy * b1, z2 = oz + uz * a1 + vz * b1;
                 float x3 = ox + ux * a + vx * b1, y3 = oy + uy * a + vy * b1, z3 = oz + uz * a + vz * b1;
                 quad(c, p, x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3,
-                        0, 0, (a1 - a) * su, (b1 - b) * sv, color, light, nx, ny, nz);
+                        ta * su, tb * sv, (ta + a1 - a) * su, (tb + b1 - b) * sv, color, light, nx, ny, nz);
+                b = b1;
             }
+            a = a1;
         }
     }
 
