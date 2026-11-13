@@ -105,8 +105,9 @@ public class EnvelopeBlock extends BaseEntityBlock {
         if (!(level instanceof ServerLevel server) || !(player instanceof ServerPlayer sp)) return InteractionResult.SUCCESS;
         if (!(level.getBlockEntity(pos) instanceof EnvelopeBlockEntity be)) return InteractionResult.PASS;
         TaskComponents.Envelope env = be.envelope();
-        if (player.isShiftKeyDown()) {
-            // Opened where it lies: it stays on the table, opened
+        if (!player.isShiftKeyDown()) {
+            // Read where it lies, as if in hand: it stays on the table (opened once its seal is broken). Breaking
+            // it, or sneaking, takes it back
             Tasks.openEnvelope(sp, env, opened -> {
                 be.setEnvelope(opened);
                 server.setBlock(pos, stateFor(state, opened), Block.UPDATE_ALL);
@@ -121,6 +122,16 @@ public class EnvelopeBlock extends BaseEntityBlock {
         sp.sendOverlayMessage(Component.translatable(env.opened() ? "message.craftmaster.envelope_taken_open" : "message.craftmaster.envelope_taken")
                 .withStyle(ChatFormatting.GOLD));
         return InteractionResult.SUCCESS_SERVER;
+    }
+
+    /** Broken in creative (no drops there): the envelope goes into the player's inventory, never lost. */
+    @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (!level.isClientSide() && player.isCreative() && level.getBlockEntity(pos) instanceof EnvelopeBlockEntity be) {
+            ItemStack stack = TaskComponents.setEnvelope(new ItemStack(TaskContent.ENVELOPE), be.envelope());
+            if (!player.getInventory().add(stack)) player.spawnAtLocation((ServerLevel) level, stack);
+        }
+        return super.playerWillDestroy(level, pos, state, player);
     }
 
     /** Broken or blown up: the envelope drops with its content (never lost). */
