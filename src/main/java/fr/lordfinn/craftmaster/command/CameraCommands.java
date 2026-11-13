@@ -72,8 +72,8 @@ public final class CameraCommands {
         CraftMasterCommands.add(d, CameraCommands::tv, "craftMasterTv", "tv");
     }
 
-    /** Effects of the screen effects system (client.fx); others are accepted too. */
-    public static final List<String> EFFECTS = List.of("aucun", "noir_blanc", "sepia", "pixel", "fisheye", "vignette", "masque_rond", "citrouille");
+    /** Effects of the screen effects system (fx.ScreenFx): "aucun", every id and the ready-made combinations. */
+    public static final List<String> EFFECTS = fr.lordfinn.craftmaster.fx.ScreenFx.suggestions();
 
     /** Numbers of the focus, keys of every camera, names and roles: what a camera reference understands. */
     private static final SuggestionProvider<CommandSourceStack> CAMERAS = list(c -> {
@@ -118,7 +118,7 @@ public final class CameraCommands {
     private static final SuggestionProvider<CommandSourceStack> MANCHES = list(c -> mancheIds());
     private static final SuggestionProvider<CommandSourceStack> MOTIONS = list(c -> CameraSpot.MOTIONS);
     private static final SuggestionProvider<CommandSourceStack> CURVES = list(c -> CameraPath.CURVES);
-    private static final SuggestionProvider<CommandSourceStack> TRANSITIONS = list(c -> List.of("coupe", "fondu", "enchaine"));
+    private static final SuggestionProvider<CommandSourceStack> TRANSITIONS = list(c -> fr.lordfinn.craftmaster.broadcast.BroadcastActions.TRANSITION_IDS);
     private static final SuggestionProvider<CommandSourceStack> EFFECT_IDS = list(c -> EFFECTS);
     private static final SuggestionProvider<CommandSourceStack> CARDS = list(c -> List.of("titre", "synthe", "aucune"));
     private static final SuggestionProvider<CommandSourceStack> MUSIC = list(c -> List.of("theme", "aucune", "minecraft:music_disc.otherside"));

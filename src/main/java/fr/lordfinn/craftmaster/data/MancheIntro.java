@@ -36,7 +36,7 @@ public final class MancheIntro {
      *
      * @param ref        camera reference ("2", "large", "ensuri:1", "studio:3"), path name or player
      * @param seconds    length, 0 = default (a travelling's own length)
-     * @param transition coupe | fondu | enchaine, "" = enchaine
+     * @param transition coupe | fondu | enchaine | miroir | flash | surimpression, "" = enchaine
      * @param effect     screen effect id ("noir_blanc", "sepia"…), "" = none
      * @param card       {@link #TITLE}, {@link #LOWER_THIRD} or ""
      * @param text       card text ("" = the round's name; "Titre | sous-titre" for both lines)

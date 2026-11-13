@@ -1334,12 +1334,8 @@ public final class Actions {
             String transition = base == null ? "" : base.transition();
             if (a.get("transition") != null) {
                 String t = String.valueOf(a.get("transition")).trim();
-                int code = fr.lordfinn.craftmaster.broadcast.BroadcastActions.parseTransition(t);
-                transition = switch (code) {
-                    case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.FADE -> "fondu";
-                    case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.CROSSFADE -> "enchaine";
-                    default -> "coupe";
-                };
+                transition = fr.lordfinn.craftmaster.broadcast.BroadcastActions.transitionId(
+                        fr.lordfinn.craftmaster.broadcast.BroadcastActions.parseTransition(t));
             }
             String effect = base == null ? "" : base.effect();
             if (a.containsKey("effect")) effect = fr.lordfinn.craftmaster.broadcast.BroadcastActions.effectId(a.get("effect") == null ? "" : String.valueOf(a.get("effect")));
