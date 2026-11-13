@@ -53,13 +53,46 @@ public final class ReplayViewing {
     private ReplayViewing() {}
 
     /** One file of a recording: "zone" or a player, its folder (relative to the recordings), its time 0 (tick, -1). */
-    public record View(String name, String folder, ReplayClock clock) {}
+    /**
+     * @param name   what it is called in the bar, commands, voice: a zone's name, a player's ("Ensuri"), or for a
+     *               player's outing "Ensuri 12:30" (when they left the zones)
+     * @param file   its file's name without extension, when the index knows it (else found by date)
+     * @param zone   a zone's file (chunks), else a player's
+     * @param player the player of a player's file
+     * @param lastTick the server tick of its last clock sample, -1 if unknown
+     */
+    public record View(String name, String folder, ReplayClock clock, String file, boolean zone, String player, double lastTick) {
+        public View(String name, String folder, ReplayClock clock) {
+            this(name, folder, clock, null, folder.startsWith("chunks/"), folder.startsWith("chunks/") ? null : name, -1);
+        }
+
+        /** Its file covers this server tick (an outing covers a part of the recording only). */
+        boolean covers(double tick) {
+            if (Double.isNaN(tick) || !clock.known()) return false;
+            return clock.tickAt(0) <= tick + 20 && (lastTick < 0 || tick <= lastTick + 200);
+        }
+    }
 
     /** One recording of the index. */
     public record Entry(String label, Instant started, int seconds, List<View> views, Map<String, Integer> colors) {
         View view(String name) {
+            return view(name, Double.NaN);
+        }
+
+        /**
+         * By its name; "zone" = the first zone; a player's name = their file, the one covering server tick
+         * {@code tick} when they have several (outings), else their first.
+         */
+        View view(String name, double tick) {
             for (View v : views) if (v.name().equalsIgnoreCase(name)) return v;
-            return null;
+            if (name.equalsIgnoreCase("zone")) for (View v : views) if (v.zone()) return v;
+            View first = null;
+            for (View v : views) {
+                if (v.player() == null || !v.player().equalsIgnoreCase(name)) continue;
+                if (v.covers(tick)) return v;
+                if (first == null) first = v;
+            }
+            return first;
         }
     }
 
@@ -133,7 +166,10 @@ public final class ReplayViewing {
     /** One recording of the index. */
     static Entry parse(JsonObject o) {
                 List<View> views = new ArrayList<>();
-                if (o.has("zone")) {
+                if (o.has("zones")) {
+                    for (JsonElement z : o.getAsJsonArray("zones")) views.add(view(z.getAsJsonObject(), true));
+                } else if (o.has("zone")) {
+                    // Index written before the épreuves had several zones
                     JsonObject z = o.getAsJsonObject("zone");
                     views.add(new View("zone", z.get("folder").getAsString(), clock(z)));
                 }
@@ -142,10 +178,7 @@ public final class ReplayViewing {
                         // Index written before the files' ticks were noted: "players/cm-s1-p1-m1-le-pont-ensuri"
                         String f = p.getAsString();
                         views.add(new View(f.substring(f.lastIndexOf('-') + 1), f, ReplayClock.UNKNOWN));
-                    } else {
-                        JsonObject po = p.getAsJsonObject();
-                        views.add(new View(po.get("name").getAsString(), po.get("folder").getAsString(), clock(po)));
-                    }
+                    } else views.add(view(p.getAsJsonObject(), false));
                 }
                 // The markers' colours (the ReplayMod format keeps only their names)
                 Map<String, Integer> colors = new HashMap<>();
@@ -160,6 +193,23 @@ public final class ReplayViewing {
                 String label = o.get("label").getAsString() + (o.has("interrupted") ? " (interrompu)" : "");
                 return new Entry(label, Instant.parse(o.get("started").getAsString()),
                         o.get("seconds").getAsInt(), views, colors);
+    }
+
+    /** One file of the index ("zones" or "players" entry). */
+    private static View view(JsonObject o, boolean zone) {
+        String name = o.get("name").getAsString();
+        String player = zone ? null : name;
+        // A player's outing: "Ensuri 12:30", when they left the zones
+        if (!zone && o.has("outing") && o.has("at")) {
+            long at = o.get("at").getAsLong();
+            name = name + " " + at / 60 + ":" + String.format(java.util.Locale.ROOT, "%02d", at % 60);
+        }
+        double last = -1;
+        if (o.has("clock") && !o.getAsJsonArray("clock").isEmpty()) {
+            JsonArray c = o.getAsJsonArray("clock");
+            last = c.get(c.size() - 1).getAsJsonArray().get(1).getAsDouble();
+        }
+        return new View(name, o.get("folder").getAsString(), clock(o), o.has("file") ? o.get("file").getAsString() : null, zone, player, last);
     }
 
     /** A file's clock from the index: its {ms, tick} samples, else its first tick. */
@@ -187,6 +237,17 @@ public final class ReplayViewing {
         int slash = f.indexOf('/');
         Path dir = (f.startsWith("chunks/") ? ServerReplayBridge.chunkFolder() : ServerReplayBridge.playerFolder()).resolve(slash >= 0 ? f.substring(slash + 1) : f);
         if (!Files.isDirectory(dir)) return null;
+        if (view.file() != null) {
+            try (Stream<Path> s = Files.list(dir)) {
+                for (Path p : (Iterable<Path>) s::iterator) {
+                    String n = p.getFileName().toString();
+                    if (!Files.isDirectory(p) && n.startsWith(view.file() + ".") && !n.endsWith(".json")) return p;
+                }
+            } catch (IOException e) {
+                return null;
+            }
+            if (strict) return null;
+        }
         long start = entry.started().toEpochMilli();
         long end = start + entry.seconds() * 1000L;
         Path named = null, closest = null;
@@ -292,7 +353,8 @@ public final class ReplayViewing {
     }
 
     private static String label(View v) {
-        return v.name().equals("zone") ? "la zone de l'épreuve" : "la vue de " + v.name();
+        if (v.zone()) return v.name().equals("zone") ? "la zone de l'épreuve" : "la zone « " + v.name() + " »";
+        return "la vue de " + v.name();
     }
 
     /** Five times a second, on the server's thread: pending file switches, then the bar's status to every viewer. */
@@ -547,7 +609,7 @@ public final class ReplayViewing {
         ServerPlayer p = ServerReplayBridge.player(v);
         Watch w = p == null ? null : WATCHING.get(p.getUUID());
         if (w == null) return;
-        View to = w.entry().view(name);
+        View to = w.entry().view(name, w.view().clock().tickAt(ServerReplayBridge.progressMs(v)));
         if (to == null || to.equals(w.view())) return;
         reopen(p, v, w, to, alignedMs(ServerReplayBridge.progressMs(v), w.view().clock(), to.clock()));
     }

@@ -219,16 +219,16 @@ public final class ReplayClient {
         speed(SPEEDS[Math.max(0, Math.min(SPEEDS.length - 1, i + dir))]);
     }
 
-    /** Another file of the recording ("zone" or a player), same instant. False if there is no such file. */
+    /**
+     * Another file of the recording, same instant: "zone" (the first zone), a zone's name, or a player's name (their
+     * file covering this instant). The server resolves it; false only without a replay.
+     */
     public static boolean view(String name) {
-        if (status == null) return false;
-        String found = null;
-        for (String v : status.views()) if (v.equalsIgnoreCase(name)) found = v;
-        if (found == null) return false;
-        if (found.equalsIgnoreCase(status.view())) return true;
-        send("vue " + found);
+        if (status == null || name == null || name.isBlank()) return false;
+        if (name.equalsIgnoreCase(status.view())) return true;
+        send("vue " + name);
         switchingUntil = System.currentTimeMillis() + 8_000;
-        ReplayBar.caption(found.equals("zone") ? "Zone de l'épreuve" : "Écran de " + found);
+        ReplayBar.caption(name.equalsIgnoreCase("zone") ? "Zone de l'épreuve" : "Fichier : " + name);
         return true;
     }
 

@@ -15,12 +15,21 @@ Les joueurs n'ont rien à installer. Au démarrage, le journal du serveur dit
   suivante). `mode partie` : de la première manche d'une partie jusqu'à ce qu'une autre partie devienne active ou
   qu'elle soit terminée (`/craftMasterPartie status 1 terminee`), entre les manches compris. `mode off` : rien
   d'automatique, `/cmreplay start` et `/cmreplay stop` à la main.
-- **Qui** : les candidats de la saison (joueurs non archivés) connectés. Un candidat qui arrive en cours de route est
-  ajouté ; s'il se déconnecte, Server Replay ferme son fichier, et un nouveau commence (même dossier) à son retour.
-  Un joueur déjà enregistré par `/replay start players` est laissé tel quel.
-- **La zone** : les caméras de la manche (et les zones d'épreuve qu'elles regardent), ses points de TP ; sans rien de
-  tout ça, autour des candidats au lancement. Plus une marge de 2 chunks (`/cmreplay marge <n>`) ; 40 chunks de côté
-  au plus. La caméra du replay démarre sur le plan large de la manche.
+- **Les zones de l'épreuve, une vidéo chacune** : les zones d'épreuve existent déjà (`/craftMasterZone create <nom>`
+  avec les deux points du mètre ruban, `show <nom>` pour voir leur contour, voir [Épreuves](Epreuves.md)). On les donne
+  à l'épreuve : `/cfma zones <manche> <zone> [<zone>…]` (`/cfma zones <manche>` seul pour les retirer). Plusieurs zones
+  éloignées (ateliers, terrains, une salle par candidat) : chacune a son enregistrement, et en lecture on passe de
+  l'une à l'autre au même instant (« la zone d'Ensuri » à la voix, `view?name=…` au Stream Deck). Sans zone donnée :
+  celles que filment les caméras de la manche (`/cam lieu … <zone>`) ; sans aucune : une zone déduite de ses caméras
+  et points de TP (ou autour des candidats au lancement). Marge de 2 chunks autour (`/cmreplay marge <n>`), 40 chunks
+  de côté au plus. La caméra du replay démarre sur le plan large de la zone.
+- **Filet de sécurité** : un candidat qui n'est dans **aucune** zone est enregistré à part (sa vue, son interface)
+  tant qu'il est dehors, jusqu'à 10 s après son retour. Sur la timeline : « Ensuri hors zone », « Ensuri revient dans la
+  zone ». En lecture, ce fichier s'appelle « Ensuri 12:30 » (le moment de sa sortie) ; « Ensuri » tout court prend celui
+  qui couvre l'instant regardé.
+- **Fichiers par joueur** (option, `/cmreplay joueurs true`) : une vidéo complète par candidat connecté (un nouveau
+  fichier s'il se reconnecte) ; le filet de sécurité n'est alors plus nécessaire. Par défaut non : le poids ne dépend
+  plus du nombre de joueurs. Un joueur déjà enregistré par `/replay start players` est laissé tel quel.
 - **En plus de Minecraft** : l'état de l'émission (plan à l'antenne, caméras, chrono, scores publiés, réalisation
   automatique…) au début de chaque fichier puis à chaque changement, les habillages (synthés, points en direct…) et
   la caméra libre. Et des **repères** sur la timeline : début et fin de manche, points donnés (« Ensuri +3 »),
@@ -43,7 +52,7 @@ pour regarder : le lecteur est sur le serveur, rien à installer chez les joueur
 
 **Épreuves longues (une heure et plus)** :
 - **Morceaux** : un fichier Flashback est écrit sur le disque par morceaux, chacun avec le monde au départ. CraftMaster
-  ferme un morceau **toutes les 10 s pour la zone** et **toutes les 60 s pour les fichiers des joueurs**
+  ferme un morceau **toutes les 10 s**, pour les zones comme pour les fichiers des joueurs
   (`/cmreplay morceaux <zone s> <joueurs s>`, de 10 à 300). Un saut va directement au bon morceau, dans les deux sens.
 - **Crash ou arrêt brutal** : au redémarrage, Server Replay récupère seul les fichiers jusqu'au dernier morceau écrit
   (testé : serveur tué à 1:36, fichier de zone récupéré jusqu'à 1:28). L'index est réécrit toutes les 10 s : le replay
@@ -51,9 +60,10 @@ pour regarder : le lecteur est sur le serveur, rien à installer chez les joueur
 - **Chrono et synchro** : toutes les 10 s, chaque fichier note où en sont les ticks du serveur. Le chrono rejoué et le
   passage d'un fichier à l'autre suivent ces relevés : pas de dérive même si le serveur rame (sans eux : environ 1 s
   par heure à 20 TPS, plus si ça rame).
-- **Poids** (morceaux de 10 s pour la zone, 60 s pour les joueurs) : la zone environ 15 Mo/h sur le disque ; un
-  fichier joueur environ 1 à 2 Mo/h avec des morceaux de 5 min, nettement plus avec des morceaux courts (mesuré :
-  environ 50 Mo/h à 10 s, et son cache de chunks grossit vite pendant l'enregistrement).
+- **Poids** (morceaux de 10 s) : une zone environ 15 Mo/h sur le disque ; un fichier joueur environ 50 Mo/h, et son
+  cache de chunks grossit vite pendant l'enregistrement (jusqu'à ~1,5 Go/h non compressé, compressé à la fin) : d'où
+  les zones par défaut. Coût serveur : rien de mesurable (`/tick query` : 3 à 5 ms par tick pendant un enregistrement
+  de deux zones, 7 ms avant).
 - **Disque** : `/cmreplay disque` (place prise, place libre), alerte aux organisateurs sous 5 Go libres
   (`/cmreplay alerte <Go>`), purge automatique des vieux replays (`/cmreplay garder <jours>`, `/cmreplay max <Go>` :
   les plus anciens partent d'abord ; rien n'est supprimé tant que ce n'est pas réglé), ou tout de suite
@@ -136,10 +146,11 @@ casse WaterMedia (écrans vidéo du studio) : pas les deux dans le même jeu.
 | `/cmreplay` | Server Replay trouvé ?, mode, ce qui s'enregistre en ce moment |
 | `/cmreplay mode manche\|partie\|off` | Enregistrement automatique de chaque manche, chaque partie, ou jamais |
 | `/cmreplay start` · `stop` | À la main : la manche en cours, sinon la partie active ; `stop` sauvegarde et n'est pas relancé avant la manche suivante |
-| `/cmreplay joueurs on\|off` · `zone on\|off` | Un fichier par candidat / pour la zone (défaut : les deux) |
+| `/cmreplay joueurs true\|false` · `zone true\|false` | Un fichier complet par candidat (défaut non) / un par zone (défaut oui) |
+| `/cfma zones <manche> [<zone>…]` | Les zones de l'épreuve (rien = les retirer) |
 | `/cmreplay marge <0..8>` | Chunks ajoutés autour de la zone |
 | `/cmreplay format flashback\|replaymod\|serveur` | Format des prochains enregistrements (Flashback par défaut) |
-| `/cmreplay morceaux <zone s> <joueurs s>` | Longueur des morceaux : au plus ça de perdu après un crash (défaut 10 et 60) |
+| `/cmreplay morceaux <zone s> <joueurs s>` | Longueur des morceaux : au plus ça de perdu après un crash (défaut 10 et 10) |
 | `/cmreplay disque` | Place prise par les replays, place libre, réglages de purge |
 | `/cmreplay garder <jours>` · `max <Go>` · `alerte <Go>` | Purge automatique par l'âge, plafond, alerte de place libre (0 = aucun) |
 | `/cmreplay purge <jours>` | Supprime maintenant les replays de plus de tant de jours |

@@ -66,9 +66,12 @@ public final class Replays {
     /** Settings, {@code config/craftmaster/replays.json}. */
     public static final class Settings {
         public String mode = MANCHE;
-        /** One file per contestant. */
-        public boolean players = true;
-        /** One file for the round's area. */
+        /**
+         * A whole file per contestant. Off by default: the épreuve's zones are recorded, and a contestant who leaves
+         * every zone gets a file of their own until they are back (the safety net).
+         */
+        public boolean players = false;
+        /** One file per zone of the épreuve. */
         public boolean zone = true;
         /** Chunks added around the area, and the widest area (chunks). */
         public int margin = 2, maxSpan = 40;
@@ -82,7 +85,7 @@ public final class Replays {
          * starts with a snapshot of the world: measured, the zone costs ~15 MB/h at 10 s; a player file ~50 MB/h
          * at 10 s (and its chunk cache grows fast while recording), hence 60 s by default for them.
          */
-        public int zonePieceSeconds = 10, playerPieceSeconds = 60;
+        public int zonePieceSeconds = 10, playerPieceSeconds = 10;
         /** Replays older than this many days are deleted (0 = kept). */
         public int keepDays = 0;
         /** CraftMaster's replays never take more than this (GB, 0 = no limit): the oldest go first. */
@@ -91,16 +94,56 @@ public final class Replays {
         public double minFreeGb = 5;
     }
 
-    /** One recorded player. */
-    private static final class PlayerRec {
-        final String name, folder;
+    /**
+     * One file of the recording: a zone of the épreuve (fixed chunks, everyone in them) or a player (what their game
+     * receives: their view, their HUD). A player file is either for the whole recording ({@code players} setting) or
+     * an "outing": started when the player left every recorded zone, stopped 10 s after they came back.
+     */
+    private static final class Rec {
+        final boolean zone, outing;
+        /** The zone's name ("zone" when deduced), or the player's name. */
+        final String name;
+        /** Its folder, under Server Replay's chunks/ or players/ folder. */
+        final String folder;
+        final ReplayArea.Chunks area;
+        final UUID player;
+        /** Seconds into the recording when it started (outings start later). */
+        final long fromSeconds;
+        /** Its file's name without extension (Server Replay names it after its start), once known. */
+        String file;
         ServerReplayBridge.Recorder rec;
         boolean needsState = true;
+        /** An outing: back inside a zone since (ms), -1 while outside. */
+        long insideSince = -1;
+        Double tick0;
+        final List<long[]> clock = new ArrayList<>();
 
-        PlayerRec(String name, String folder, ServerReplayBridge.Recorder rec) {
+        Rec(boolean zone, boolean outing, String name, String folder, ReplayArea.Chunks area, UUID player, long fromSeconds,
+            ServerReplayBridge.Recorder rec) {
+            this.zone = zone;
+            this.outing = outing;
             this.name = name;
             this.folder = folder;
+            this.area = area;
+            this.player = player;
+            this.fromSeconds = fromSeconds;
             this.rec = rec;
+            Path loc = ServerReplayBridge.location(rec);
+            if (loc != null) {
+                String n = loc.getFileName().toString();
+                this.file = n.contains(".") ? n.substring(0, n.indexOf('.')) : n;
+            }
+        }
+
+        boolean active() {
+            return rec != null;
+        }
+
+        /** In its chunks (zones). */
+        boolean contains(String world, double x, double z) {
+            if (area == null || !area.world().equals(world)) return false;
+            int cx = (int) Math.floor(x) >> 4, cz = (int) Math.floor(z) >> 4;
+            return cx >= area.fromX() && cx <= area.toX() && cz >= area.fromZ() && cz <= area.toZ();
         }
     }
 
@@ -110,19 +153,10 @@ public final class Replays {
         final int season, partie, number;
         final String mancheId;
         final long startedAt = System.currentTimeMillis();
-        ServerReplayBridge.Recorder zone;
-        String zoneFolder;
-        ReplayArea.Chunks area;
-        boolean zoneNeedsState = true;
+        /** Every file of this recording, the stopped ones too (the index lists them all). */
+        final List<Rec> recs = new ArrayList<>();
         /** Round running at the last tick (to mark its end in a game's file). */
         String lastManche;
-        final Map<UUID, PlayerRec> players = new LinkedHashMap<>();
-        final List<String> playerFolders = new ArrayList<>();
-        /** Server tick at each file's time 0 (folder → tick; the zone under ""), measured when its state goes in. */
-        final Map<String, Double> tick0 = new LinkedHashMap<>();
-        /** Every 10 s, per file: {ms in the file, server tick} (the file's clock against the server's ticks). */
-        final Map<String, List<long[]>> clock = new LinkedHashMap<>();
-        final Map<String, String> folderPlayer = new LinkedHashMap<>();
         final JsonArray markers = new JsonArray();
 
         Session(String key, String label, int season, int partie, int number, String mancheId) {
@@ -136,6 +170,20 @@ public final class Replays {
 
         double seconds() {
             return (System.currentTimeMillis() - startedAt) / 1000.0;
+        }
+
+        List<Rec> active() {
+            return recs.stream().filter(Rec::active).toList();
+        }
+
+        List<Rec> zones() {
+            return recs.stream().filter(r -> r.zone).toList();
+        }
+
+        /** The player's file being recorded now (whole or outing), or null. */
+        Rec playerRec(UUID id) {
+            for (Rec r : recs) if (!r.zone && r.active() && id.equals(r.player)) return r;
+            return null;
         }
     }
 
@@ -215,22 +263,20 @@ public final class Replays {
         if (session.number == 0 && session.lastManche != null && !session.lastManche.equals(current)) marker("Fin de la manche", 0xF2C14E);
         session.lastManche = current;
 
-        // Players joining (or coming back) are recorded in the same folder; the show's state goes into new files
-        if (server.getTickCount() % 20 == 0) addPlayers(server, data);
-        ShowState state = null;
-        if (session.zone != null && session.zoneNeedsState && ServerReplayBridge.ready(session.zone)) {
-            state = Director.build(server);
-            ServerReplayBridge.record(session.zone, new net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket(state));
-            session.zoneNeedsState = false;
-            noteTick0(server, session, "", session.zone);
+        // Once a second: players joining (whole files), players leaving every zone (outings)
+        if (server.getTickCount() % 20 == 0) {
+            addPlayers(server, data);
+            safetyNet(server, data);
         }
-        for (PlayerRec r : session.players.values()) {
-            if (r.rec == null || !r.needsState || !ServerReplayBridge.ready(r.rec)) continue;
+        // The show's state (and the boss bars already shown) go first into every new file
+        ShowState state = null;
+        for (Rec r : session.active()) {
+            if (!r.needsState || !ServerReplayBridge.ready(r.rec)) continue;
             if (state == null) state = Director.build(server);
             ServerReplayBridge.record(r.rec, new net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket(state));
-            addBossBars(server, r);
+            if (!r.zone) addBossBars(server, r);
             r.needsState = false;
-            noteTick0(server, session, r.folder, r.rec);
+            noteTick0(server, r);
         }
         if (server.getTickCount() % PIECE_TICKS == 0) everyTenSeconds(server, session);
     }
@@ -245,14 +291,10 @@ public final class Replays {
     private static void everyTenSeconds(MinecraftServer server, Session ses) {
         long tick = server.getTickCount();
         boolean zonePiece = due(tick, settings.zonePieceSeconds), playerPiece = due(tick, settings.playerPieceSeconds);
-        if (ses.zone != null && !ses.zoneNeedsState) {
-            if (zonePiece) ServerReplayBridge.cutPiece(ses.zone);
-            sample(ses, "", ses.zone, tick);
-        }
-        for (PlayerRec r : ses.players.values()) {
-            if (r.rec == null || r.needsState) continue;
-            if (playerPiece) ServerReplayBridge.cutPiece(r.rec);
-            sample(ses, r.folder, r.rec, tick);
+        for (Rec r : ses.active()) {
+            if (r.needsState) continue;
+            if (r.zone ? zonePiece : playerPiece) ServerReplayBridge.cutPiece(r.rec);
+            sample(r, tick);
         }
         writeIndex(ses, true);
         // The disk, every 5 min of recording
@@ -269,17 +311,17 @@ public final class Replays {
         return tick % every == 0;
     }
 
-    private static void sample(Session ses, String folder, ServerReplayBridge.Recorder rec, long tick) {
-        long ms = ServerReplayBridge.recordingMs(rec);
-        if (ms >= 0) ses.clock.computeIfAbsent(folder, k -> new ArrayList<>()).add(new long[]{ms, tick});
+    private static void sample(Rec r, long tick) {
+        long ms = ServerReplayBridge.recordingMs(r.rec);
+        if (ms >= 0) r.clock.add(new long[]{ms, tick});
     }
 
     /**
      * The boss bars this player sees already (round timer, stopwatches) go into their new file: it has their later
      * updates but not their creation, which makes a game watching the file stop with an error.
      */
-    private static void addBossBars(MinecraftServer server, PlayerRec r) {
-        ServerPlayer p = server.getPlayerList().getPlayerByName(r.name);
+    private static void addBossBars(MinecraftServer server, Rec r) {
+        ServerPlayer p = server.getPlayerList().getPlayer(r.player);
         if (p == null) return;
         List<net.minecraft.server.level.ServerBossEvent> bars = new ArrayList<>(fr.lordfinn.craftmaster.trial.Judging.bossBars());
         if (fr.lordfinn.craftmaster.show.Show.timerBar() != null) bars.add(fr.lordfinn.craftmaster.show.Show.timerBar());
@@ -292,11 +334,11 @@ public final class Replays {
      * Notes which server tick the file's time 0 is: the files of one recording start a few tenths of a second
      * apart, and the replay's timer and the switch from one file to another line up on the server's ticks.
      */
-    private static void noteTick0(MinecraftServer server, Session ses, String folder, ServerReplayBridge.Recorder rec) {
-        long ms = ServerReplayBridge.recordingMs(rec);
+    private static void noteTick0(MinecraftServer server, Rec r) {
+        long ms = ServerReplayBridge.recordingMs(r.rec);
         if (ms >= 0) {
-            ses.tick0.put(folder, server.getTickCount() - ms / 50.0);
-            ses.clock.computeIfAbsent(folder, k -> new ArrayList<>()).add(new long[]{ms, server.getTickCount()});
+            r.tick0 = server.getTickCount() - ms / 50.0;
+            r.clock.add(new long[]{ms, server.getTickCount()});
         }
     }
 
@@ -360,65 +402,95 @@ public final class Replays {
         Session ses = new Session(key, label, seasonId, partieId, number, m == null ? "" : m.id);
         session = ses;
         try {
-            if (settings.zone) startZone(server, ses, s, p, m);
+            if (settings.zone) startZones(server, ses, s, p, m);
             if (settings.players) addPlayers(server, data);
         } catch (RuntimeException e) {
             CraftMaster.LOG.error("[Replay] Démarrage de l'enregistrement « {} »", label, e);
         }
-        if (ses.zone == null && ses.players.isEmpty()) {
-            CraftMaster.LOG.warn("[Replay] Rien à enregistrer pour {}", label);
-        }
+        if (ses.recs.isEmpty()) CraftMaster.LOG.warn("[Replay] Rien à enregistrer pour {}", label);
         marker(m == null ? "Partie : " + p.name : "Manche " + number + " — " + m.name, 0xF2C14E);
         // A game recording started during one of its rounds: that round's marker too
         Live.Current cur = data.live().current;
         Manche now = m == null && cur != null && cur.partie() == partieId ? p.manche(cur.manche()) : null;
         if (now != null) marker("Manche " + p.number(now) + " — " + now.name, 0xF2C14E);
-        CraftMaster.LOG.info("[Replay] Enregistrement de {} : zone {}, {} joueur(s)", label,
-                ses.area == null ? "aucune" : ses.area.describe(), ses.players.size());
+        List<String> zoneNames = ses.zones().stream().map(r -> r.name + " " + r.area.describe()).toList();
+        long players = ses.recs.stream().filter(r -> !r.zone).count();
+        CraftMaster.LOG.info("[Replay] Enregistrement de {} : zone(s) {}, {} joueur(s)", label, zoneNames.isEmpty() ? "aucune" : zoneNames, players);
         writeIndex(ses, true);
         String low = ReplayDisk.lowSpaceWarning();
         if (low != null) notifyAdmins(server, low);
-        notifyAdmins(server, "● Replay : enregistrement de " + label + " (" + ses.players.size() + " joueur(s)"
-                + (ses.zone != null ? " + la zone" : "") + ").");
+        notifyAdmins(server, "● Replay : enregistrement de " + label + " (" + (ses.zones().isEmpty() ? "pas de zone"
+                : ses.zones().size() + " zone(s)") + (players > 0 ? ", " + players + " joueur(s)" : "") + ").");
     }
 
-    private static void startZone(MinecraftServer server, Session ses, Season s, Partie p, Manche m) {
+    /**
+     * The épreuve's zones: those given to the round ({@code /cfma zones}), else the trial zones its cameras film
+     * ({@code /cam lieu … <zone>}); one recording each. Without any: one area deduced from its cameras and teleport
+     * points (or around its players), named "zone".
+     */
+    static List<Zone> zonesOf(Manche m) {
+        List<Zone> out = new ArrayList<>();
+        for (String n : m.zones) {
+            Zone z = TrialZones.zones().get(n);
+            if (z != null && !out.contains(z)) out.add(z);
+        }
+        if (!out.isEmpty()) return out;
+        for (CameraSpot c : Cameras.list().lieu(m.id).all()) {
+            Zone z = c.zone().isEmpty() ? null : TrialZones.zones().get(c.zone());
+            if (z != null && !out.contains(z)) out.add(z);
+        }
+        return out;
+    }
+
+    private static void startZones(MinecraftServer server, Session ses, Season s, Partie p, Manche m) {
+        List<Manche> manches = m != null ? List.of(m) : p.activeManches();
+        List<Zone> zones = new ArrayList<>();
+        for (Manche r : manches) for (Zone z : zonesOf(r)) if (!zones.contains(z)) zones.add(z);
+        for (Zone z : zones) {
+            List<ReplayArea.Box> boxes = new ArrayList<>();
+            boxes.add(new ReplayArea.Box(z.world(), z.x0(), z.z0(), z.x1(), z.z1()));
+            Vec3 camera = null;
+            for (Manche r : manches)
+                for (CameraSpot c : Cameras.list().lieu(r.id).all()) {
+                    if (!c.zone().equals(z.name()) || !c.world().equals(z.world())) continue;
+                    boxes.add(ReplayArea.Box.point(c.world(), c.x(), c.z()));
+                    if (camera == null && (CameraSpot.WIDE.equals(c.role()) || c.number() == 1)) camera = new Vec3(c.x(), c.y(), c.z());
+                }
+            if (camera == null) camera = new Vec3((z.x0() + z.x1()) / 2.0, z.y1() + 2, (z.z0() + z.z1()) / 2.0);
+            startZone(server, ses, z.name(), ReplayArea.of(boxes, settings.margin, settings.maxSpan), camera);
+        }
+        if (!zones.isEmpty()) return;
+        // No zone given: one area around the round's cameras and teleport points (else its players)
         List<ReplayArea.Box> boxes = new ArrayList<>();
         Vec3 camera = null;
-        List<Manche> manches = m != null ? List.of(m) : p.activeManches();
         for (Manche r : manches) {
             for (CameraSpot c : Cameras.list().lieu(r.id).all()) {
                 boxes.add(ReplayArea.Box.point(c.world(), c.x(), c.z()));
                 if (camera == null && (CameraSpot.WIDE.equals(c.role()) || c.number() == 1)) camera = new Vec3(c.x(), c.y(), c.z());
-                if (!c.zone().isEmpty()) {
-                    Zone z = TrialZones.zones().get(c.zone());
-                    if (z != null) boxes.add(new ReplayArea.Box(z.world(), z.x0(), z.z0(), z.x1(), z.z1()));
-                }
             }
             for (Spot t : r.tp) boxes.add(ReplayArea.Box.point(t.world(), t.x(), t.z()));
         }
-        // A round with nothing placed yet: around its players, where they stand now
         if (boxes.isEmpty())
             for (ServerPlayer pl : cast(server, s))
                 boxes.add(ReplayArea.Box.point(pl.level().dimension().identifier().toString(), pl.getX(), pl.getZ()));
-        ReplayArea.Chunks area = ReplayArea.of(boxes, settings.margin, settings.maxSpan);
+        startZone(server, ses, "zone", ReplayArea.of(boxes, settings.margin, settings.maxSpan), camera);
+    }
+
+    private static void startZone(MinecraftServer server, Session ses, String name, ReplayArea.Chunks area, Vec3 camera) {
         if (area == null) return;
         ServerLevel level = Busts.level(server, area.world());
         if (level == null) {
-            CraftMaster.LOG.warn("[Replay] Monde « {} » introuvable : pas d'enregistrement de zone", area.world());
+            CraftMaster.LOG.warn("[Replay] Monde « {} » introuvable : pas d'enregistrement de la zone {}", area.world(), name);
             return;
         }
-        String folder = ReplayArea.folder(ses.season, ses.partie, ses.number, ses.mancheId, null);
+        String folder = ReplayArea.folder(ses.season, ses.partie, ses.number, ses.mancheId, name.equals("zone") ? null : "zone-" + name);
         if (ServerReplayBridge.hasChunkRecorder(folder)) {
             CraftMaster.LOG.warn("[Replay] Une zone « {} » s'enregistre déjà", folder);
             return;
         }
-        ses.zone = ServerReplayBridge.startChunks(level, new ChunkPos(area.fromX(), area.fromZ()), new ChunkPos(area.toX(), area.toZ()),
-                ServerReplayBridge.chunkFolder().resolve(folder), folder, camera);
-        if (ses.zone != null) {
-            ses.zoneFolder = folder;
-            ses.area = area;
-        }
+        ServerReplayBridge.Recorder rec = ServerReplayBridge.startChunks(level, new ChunkPos(area.fromX(), area.fromZ()),
+                new ChunkPos(area.toX(), area.toZ()), ServerReplayBridge.chunkFolder().resolve(folder), folder, camera);
+        if (rec != null) ses.recs.add(new Rec(true, false, name, folder, area, null, Math.round(ses.seconds()), rec));
     }
 
     private static List<ServerPlayer> cast(MinecraftServer server, Season s) {
@@ -432,38 +504,84 @@ public final class Replays {
         return out;
     }
 
+    /** Recorders Server Replay closed itself (the player left): stopped here too. */
+    private static void forgetClosed(MinecraftServer server, Session ses) {
+        for (Rec r : ses.recs) {
+            if (r.zone || !r.active()) continue;
+            ServerPlayer pl = server.getPlayerList().getPlayer(r.player);
+            if (pl == null || !ServerReplayBridge.isRecording(pl)) r.rec = null;
+        }
+    }
+
+    /** {@code players} setting: a whole file per contestant (a new one when they come back). */
     private static void addPlayers(MinecraftServer server, CraftMasterData data) {
         Session ses = session;
-        if (ses == null || !settings.players) return;
-        // Recorders Server Replay closed itself (the player left): forget them, a new file starts if they return
-        ses.players.values().removeIf(r -> {
-            ServerPlayer pl = server.getPlayerList().getPlayerByName(r.name);
-            return pl == null || !ServerReplayBridge.isRecording(pl);
-        });
+        if (ses == null) return;
+        forgetClosed(server, ses);
+        if (!settings.players) return;
         for (ServerPlayer pl : cast(server, data.season(ses.season))) {
-            if (ses.players.containsKey(pl.getUUID())) continue;
+            if (ses.playerRec(pl.getUUID()) != null) continue;
             // Already recorded by someone else (/replay start players): left alone
             if (ServerReplayBridge.isRecording(pl)) continue;
+            startPlayer(ses, pl, false);
+        }
+    }
+
+    private static Rec startPlayer(Session ses, ServerPlayer pl, boolean outing) {
+        String name = pl.getGameProfile().name();
+        String folder = ReplayArea.folder(ses.season, ses.partie, ses.number, ses.mancheId, name);
+        try {
+            ServerReplayBridge.Recorder rec = ServerReplayBridge.startPlayer(pl, ServerReplayBridge.playerFolder().resolve(folder));
+            if (rec == null) return null;
+            Rec r = new Rec(false, outing, name, folder, null, pl.getUUID(), Math.round(ses.seconds()), rec);
+            ses.recs.add(r);
+            return r;
+        } catch (RuntimeException e) {
+            CraftMaster.LOG.error("[Replay] Enregistrement de {} impossible", name, e);
+            return null;
+        }
+    }
+
+    /** Back inside a zone this long before an outing's file stops. */
+    private static final long BACK_MS = 10_000;
+
+    /**
+     * The safety net: a contestant in none of the recorded zones is recorded on their own (their view) until they
+     * have been back inside for 10 s; leaving and coming back are markers on the timeline. Not needed when every
+     * contestant has a whole file anyway.
+     */
+    private static void safetyNet(MinecraftServer server, CraftMasterData data) {
+        Session ses = session;
+        if (ses == null || settings.players) return;
+        List<Rec> zones = ses.zones().stream().filter(Rec::active).toList();
+        if (zones.isEmpty()) return;
+        long now = System.currentTimeMillis();
+        for (ServerPlayer pl : cast(server, data.season(ses.season))) {
+            if (pl.isSpectator()) continue;
+            String world = pl.level().dimension().identifier().toString();
+            boolean inside = zones.stream().anyMatch(z -> z.contains(world, pl.getX(), pl.getZ()));
+            Rec out = ses.playerRec(pl.getUUID());
             String name = pl.getGameProfile().name();
-            String folder = ReplayArea.folder(ses.season, ses.partie, ses.number, ses.mancheId, name);
-            try {
-                ServerReplayBridge.Recorder rec = ServerReplayBridge.startPlayer(pl, ServerReplayBridge.playerFolder().resolve(folder));
-                if (rec == null) continue;
-                ses.players.put(pl.getUUID(), new PlayerRec(name, folder, rec));
-                if (!ses.playerFolders.contains(folder)) ses.playerFolders.add(folder);
-                ses.folderPlayer.put(folder, name);
-            } catch (RuntimeException e) {
-                CraftMaster.LOG.error("[Replay] Enregistrement de {} impossible", name, e);
+            if (!inside) {
+                if (out == null && !ServerReplayBridge.isRecording(pl)) {
+                    if (startPlayer(ses, pl, true) != null) marker(name + " hors zone", 0xFF9800);
+                } else if (out != null) out.insideSince = -1;
+            } else if (out != null && out.outing) {
+                if (out.insideSince < 0) out.insideSince = now;
+                else if (now - out.insideSince >= BACK_MS) {
+                    marker(name + " revient dans la zone", 0xFFCC80);
+                    ServerReplayBridge.stop(out.rec);
+                    out.rec = null;
+                }
             }
         }
     }
 
-    private static void logDrift(MinecraftServer server, Session ses, String folder, ServerReplayBridge.Recorder rec) {
-        Double t0 = ses.tick0.get(folder);
-        long ms = ServerReplayBridge.recordingMs(rec);
-        if (t0 == null || ms < 0) return;
-        double ticksMs = (server.getTickCount() - t0) * 50;
-        CraftMaster.LOG.info("[Replay] {} : {} s de fichier, {} s de ticks, écart {} ms", folder.isEmpty() ? "zone" : folder,
+    private static void logDrift(MinecraftServer server, Rec r) {
+        long ms = ServerReplayBridge.recordingMs(r.rec);
+        if (r.tick0 == null || ms < 0) return;
+        double ticksMs = (server.getTickCount() - r.tick0) * 50;
+        CraftMaster.LOG.info("[Replay] {} : {} s de fichier, {} s de ticks, écart {} ms", r.folder,
                 ms / 1000, Math.round(ticksMs / 1000), Math.round(ticksMs - ms));
     }
 
@@ -472,13 +590,12 @@ public final class Replays {
         if (ses == null) return;
         marker(ses.number > 0 ? "Fin de la manche" : "Fin de la partie", 0xF2C14E);
         session = null;
-        // How far each file's clock went from the server's ticks since its start (lag makes ticks slower than time)
-        if (server != null) {
-            if (ses.zone != null) logDrift(server, ses, "", ses.zone);
-            for (PlayerRec r : ses.players.values()) if (r.rec != null) logDrift(server, ses, r.folder, r.rec);
+        for (Rec r : ses.active()) {
+            // How far each file's clock went from the server's ticks since its start (lag makes ticks slower than time)
+            if (server != null) logDrift(server, r);
+            ServerReplayBridge.stop(r.rec);
+            r.rec = null;
         }
-        if (ses.zone != null) ServerReplayBridge.stop(ses.zone);
-        for (PlayerRec r : ses.players.values()) if (r.rec != null) ServerReplayBridge.stop(r.rec);
         writeIndex(ses, false);
         if (server != null) ReplayDisk.autoPurge();
         CraftMaster.LOG.info("[Replay] Fin de l'enregistrement de {} ({}, {} s)", ses.label, why, Math.round(ses.seconds()));
@@ -495,17 +612,15 @@ public final class Replays {
         Session ses = session;
         if (ses == null) return;
         var packet = new net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket(payload);
-        if (ses.zone != null && !ses.zoneNeedsState) ServerReplayBridge.record(ses.zone, packet);
-        for (Map.Entry<UUID, PlayerRec> e : ses.players.entrySet()) {
-            PlayerRec r = e.getValue();
-            if (r.rec == null || r.needsState) continue;
-            if (toAll && canReceive(server, r, payload)) continue;
+        for (Rec r : ses.active()) {
+            if (r.needsState) continue;
+            if (!r.zone && toAll && canReceive(server, r, payload)) continue;
             ServerReplayBridge.record(r.rec, packet);
         }
     }
 
-    private static boolean canReceive(MinecraftServer server, PlayerRec r, CustomPacketPayload payload) {
-        ServerPlayer p = server.getPlayerList().getPlayerByName(r.name);
+    private static boolean canReceive(MinecraftServer server, Rec r, CustomPacketPayload payload) {
+        ServerPlayer p = server.getPlayerList().getPlayer(r.player);
         return p != null && ServerPlayNetworking.canSend(p, payload.type());
     }
 
@@ -513,8 +628,7 @@ public final class Replays {
     public static void marker(String name, int rgb) {
         Session ses = session;
         if (ses == null) return;
-        if (ses.zone != null) ServerReplayBridge.marker(ses.zone, name, rgb);
-        for (PlayerRec r : ses.players.values()) if (r.rec != null) ServerReplayBridge.marker(r.rec, name, rgb);
+        for (Rec r : ses.active()) ServerReplayBridge.marker(r.rec, name, rgb);
         JsonObject m = new JsonObject();
         m.addProperty("t", Math.round(ses.seconds() * 10) / 10.0);
         m.addProperty("name", name);
@@ -568,7 +682,6 @@ public final class Replays {
 
     // ---------------------------------------------------------------- index and status
 
-    /** Appends this recording to {@code <recordings>/craftmaster.json} (folders, area, markers). */
     /**
      * Writes this recording's entry of {@code <recordings>/craftmaster.json} (folders, area, markers, clock samples),
      * replacing the previous version of it: written when the recording starts and every 10 s, so that after a crash
@@ -589,27 +702,34 @@ public final class Replays {
             o.addProperty("started", java.time.Instant.ofEpochMilli(ses.startedAt).toString());
             o.addProperty("seconds", Math.round(ses.seconds()));
             if (inProgress) o.addProperty("inProgress", true);
-            if (ses.zoneFolder != null) {
-                JsonObject z = new JsonObject();
-                z.addProperty("folder", "chunks/" + ses.zoneFolder);
-                z.addProperty("world", ses.area.world());
-                z.addProperty("from", ses.area.fromX() + "," + ses.area.fromZ());
-                z.addProperty("to", ses.area.toX() + "," + ses.area.toZ());
-                Double t0 = ses.tick0.get("");
-                if (t0 != null) z.addProperty("tick0", Math.round(t0 * 100) / 100.0);
-                z.add("clock", clock(ses, ""));
-                o.add("zone", z);
+            JsonArray zones = new JsonArray(), players = new JsonArray();
+            for (Rec r : ses.recs) {
+                JsonObject e = new JsonObject();
+                e.addProperty("name", r.name);
+                e.addProperty("folder", (r.zone ? "chunks/" : "players/") + r.folder);
+                if (r.file != null) e.addProperty("file", r.file);
+                if (r.zone) {
+                    e.addProperty("world", r.area.world());
+                    e.addProperty("from", r.area.fromX() + "," + r.area.fromZ());
+                    e.addProperty("to", r.area.toX() + "," + r.area.toZ());
+                } else {
+                    if (r.outing) e.addProperty("outing", true);
+                    e.addProperty("at", r.fromSeconds);
+                }
+                if (r.tick0 != null) e.addProperty("tick0", Math.round(r.tick0 * 100) / 100.0);
+                JsonArray clock = new JsonArray();
+                for (long[] c : r.clock) {
+                    JsonArray pair = new JsonArray();
+                    pair.add(c[0]);
+                    pair.add(c[1]);
+                    clock.add(pair);
+                }
+                e.add("clock", clock);
+                (r.zone ? zones : players).add(e);
             }
-            JsonArray players = new JsonArray();
-            for (String f : ses.playerFolders) {
-                JsonObject pl = new JsonObject();
-                pl.addProperty("name", ses.folderPlayer.getOrDefault(f, f));
-                pl.addProperty("folder", "players/" + f);
-                Double t0 = ses.tick0.get(f);
-                if (t0 != null) pl.addProperty("tick0", Math.round(t0 * 100) / 100.0);
-                pl.add("clock", clock(ses, f));
-                players.add(pl);
-            }
+            o.add("zones", zones);
+            // The first zone also as "zone": indexes read by older versions
+            if (!zones.isEmpty()) o.add("zone", zones.get(0));
             o.add("players", players);
             o.add("markers", ses.markers);
             boolean replaced = false;
@@ -625,17 +745,6 @@ public final class Replays {
         } catch (IOException | RuntimeException e) {
             CraftMaster.LOG.warn("[Replay] Index des replays non écrit : {}", e.toString());
         }
-    }
-
-    private static JsonArray clock(Session ses, String folder) {
-        JsonArray out = new JsonArray();
-        for (long[] c : ses.clock.getOrDefault(folder, List.of())) {
-            JsonArray pair = new JsonArray();
-            pair.add(c[0]);
-            pair.add(c[1]);
-            out.add(pair);
-        }
-        return out;
     }
 
     static JsonArray readIndex(Path file) throws IOException {
@@ -698,8 +807,8 @@ public final class Replays {
         if (ses == null) out.add("Aucun enregistrement en cours.");
         else {
             out.add("En cours depuis " + Math.round(ses.seconds()) + " s : " + ses.label);
-            if (ses.zone != null) out.add("  zone " + ses.zoneFolder + " — " + ses.area.describe());
-            for (PlayerRec r : ses.players.values()) out.add("  " + r.name + " → " + r.folder);
+            for (Rec r : ses.active())
+                out.add("  " + (r.zone ? "zone " + r.name + " — " + r.area.describe() : r.name + (r.outing ? " (hors zone)" : "")) + " → " + r.folder);
         }
         return out;
     }

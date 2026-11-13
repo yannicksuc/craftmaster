@@ -215,7 +215,18 @@ public final class ServerReplayBridge {
         }
     }
 
-    private static Method recordingLength;
+    private static Method recordingLength, recorderLocation;
+
+    /** Where this recording is written (Server Replay names it after its start time), or null. */
+    public static Path location(Recorder r) {
+        if (r == null) return null;
+        try {
+            if (recorderLocation == null) recorderLocation = r.handle().getClass().getMethod("getLocation");
+            return (Path) recorderLocation.invoke(r.handle());
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return null;
+        }
+    }
     private static java.lang.reflect.Field recorderWriter, fbTicks, fbSinceSnapshot;
     private static boolean pieceLinkFailed;
 
