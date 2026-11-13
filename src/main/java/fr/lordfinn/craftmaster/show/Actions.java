@@ -45,6 +45,9 @@ public final class Actions {
 
     public record TimerStopped() implements Effect {}
 
+    /** Timer tablets of a group ("" = all): start, pause, toggle, reset, restart. */
+    public record TabletOrder(String order, String group) implements Effect {}
+
     public record Published(int season) implements Effect {}
 
     public record RevealStarted(int season) implements Effect {}
@@ -338,6 +341,11 @@ public final class Actions {
                 case "manche.start" -> mancheStart(a);
                 case "manche.end" -> mancheEnd();
                 case "timer.stop" -> effects.add(new TimerStopped());
+                case "tablet.start", "tablet.pause", "tablet.toggle", "tablet.reset", "tablet.restart" -> {
+                    String g = str(a, "group");
+                    // The tablets compare their group in lower case
+                    effects.add(new TabletOrder(type.substring("tablet.".length()), g == null ? "" : g.toLowerCase(Locale.ROOT)));
+                }
                 case "curtain.open" -> curtain(a, true);
                 case "curtain.close" -> curtain(a, false);
                 case "scene.set" -> sceneSet(a);

@@ -69,6 +69,7 @@ public final class CraftMaster implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> CraftMasterCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> PortraitCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> CameraCommands.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.ModoCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.FxCommands.register(dispatcher));
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
@@ -78,6 +79,7 @@ public final class CraftMaster implements ModInitializer {
             data.load(fl.getGameDir().resolve("plugins/CraftMaster/config.yml"));
             Cameras.load(fl.getConfigDir().resolve("craftmaster/cameras.json"));
             fr.lordfinn.craftmaster.camera.CameraPaths.load(fl.getConfigDir().resolve("craftmaster/trajets.json"));
+            fr.lordfinn.craftmaster.show.Moderators.load(fl.getConfigDir().resolve("craftmaster/moderateurs.json"));
         });
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             Busts.updateAll(server);

@@ -31,7 +31,37 @@ public final class ActionExecutor {
     /** Entry point of the voice control: checks that {@code admin} is an organiser, then runs the actions. */
     public static Result execute(ServerPlayer admin, List<Map<String, Object>> actions) {
         if (!Permissions.isAdmin(admin)) return new Result(List.of("Réservé aux organisateurs."), false);
-        return execute(admin.level().getServer(), actions);
+        return execute(admin.level().getServer(), Actor.of(admin, "jeu"), actions);
+    }
+
+    /** Lists a moderator may send per second (the organiser has no limit). */
+    private static final int MODO_PER_SECOND = 5;
+    private static final Map<String, java.util.ArrayDeque<Long>> RECENT = new java.util.HashMap<>();
+
+    /**
+     * Entry point of every director (voice, Stream Deck, moderators in game and on the site): checks the actor's right
+     * for each action ({@link Rights}), then runs the list; done or refused, it goes to the {@link ActionJournal}.
+     */
+    public static Result execute(MinecraftServer server, Actor actor, List<Map<String, Object>> actions) {
+        String refused = Rights.refusal(actor.rights(), actions);
+        if (refused == null && !actor.isAdmin() && tooFast(actor.name())) refused = "✗ Trop d'ordres à la suite, attends une seconde.";
+        if (refused != null) {
+            Result r = new Result(List.of(refused), false);
+            ActionJournal.add(actor, false, r.lines());
+            return r;
+        }
+        Result r = execute(server, actions);
+        ActionJournal.add(actor, r.ok(), r.lines());
+        return r;
+    }
+
+    private static synchronized boolean tooFast(String who) {
+        long now = System.currentTimeMillis();
+        java.util.ArrayDeque<Long> q = RECENT.computeIfAbsent(who.toLowerCase(java.util.Locale.ROOT), k -> new java.util.ArrayDeque<>());
+        while (!q.isEmpty() && now - q.peekFirst() > 1000) q.removeFirst();
+        if (q.size() >= MODO_PER_SECOND) return true;
+        q.addLast(now);
+        return false;
     }
 
     /** Runs the actions (the caller has checked the permission). */
@@ -90,6 +120,11 @@ public final class ActionExecutor {
             case Actions.MancheEnded m -> {
                 Show.endManche(server, m.name());
                 fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundEnd(server);
+            }
+            case Actions.TabletOrder t -> {
+                int n = fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.controlAll(t.group(), t.order());
+                lines.add(n == 0 ? "Aucune tablette chargée" + (t.group().isEmpty() ? "." : " dans le groupe « " + t.group() + " ».")
+                        : "Tablettes : " + t.order() + " (" + n + ")");
             }
             case Actions.TimerStopped t -> {
                 lines.add(Show.stopTimer(server) ? "Chrono arrêté." : "Aucun chrono ne tournait.");
