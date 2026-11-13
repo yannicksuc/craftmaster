@@ -2,10 +2,12 @@ package fr.lordfinn.craftmaster.client.fx;
 
 import fr.lordfinn.craftmaster.CraftMaster;
 import fr.lordfinn.craftmaster.client.broadcast.Broadcast;
+import fr.lordfinn.craftmaster.client.broadcast.Transition;
 import fr.lordfinn.craftmaster.fx.FxContent;
 import fr.lordfinn.craftmaster.fx.FxMixer;
 import fr.lordfinn.craftmaster.fx.FxNetwork;
 import fr.lordfinn.craftmaster.fx.ScreenFx;
+import fr.lordfinn.craftmaster.fx.StopMotionClock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.core.component.DataComponents;
@@ -22,7 +24,8 @@ import java.util.Set;
  * Screen effects of this game: post-processing of the world view only (the HUD, the broadcast overlay and the
  * screens are drawn afterwards, so they stay sharp). Each effect is the post effect {@code craftmaster:fx/<id>}
  * (assets/craftmaster/post_effect/fx/), with an intensity uniform faded smoothly by {@link FxMixer} — except
- * "citrouille", which is vanilla's own carved pumpkin overlay ({@link FxOverlay}).
+ * "citrouille", which is vanilla's own carved pumpkin overlay ({@link FxOverlay}), and "timelapse", which draws
+ * nothing and speeds up the sky instead ({@link #timelapseTicks}, used by FxTimelapseMixin).
  *
  * <p>What is shown:
  * <ul>
@@ -52,6 +55,18 @@ public final class ScreenEffects {
     private static long lastFrame = -1;
     private static final long START = System.nanoTime();
     private static List<String> visible = List.of();
+
+    /** Effect that is not a post effect: the world's time runs faster (sky, sun, clouds). */
+    public static final String TIMELAPSE = "timelapse";
+    /** Post effect of the "miroir" transition (not a screen effect, never requested by name). */
+    public static final String MIRROR_TRANSITION = "miroir_transition";
+    /** Timelapse speed at full intensity, in game ticks per real second: a whole day (24000 ticks) in 20 s. */
+    public static final double TIMELAPSE_TICKS_PER_SECOND = 24000 / 20.0;
+
+    private static final StopMotionClock STOP_MOTION = new StopMotionClock();
+    private static boolean stopMotionRefresh;
+    private static int lastWidth = -1, lastHeight = -1;
+    private static double timelapse;
 
     // ---------------------------------------------------------------- API
 
@@ -97,6 +112,18 @@ public final class ScreenEffects {
         broadcast = shot = forced = tryout = Slot.NONE;
         MIXER.clear();
         visible = List.of();
+        timelapse = 0;
+        STOP_MOTION.reset();
+    }
+
+    /** A new shot is on air: the effects it asks for that move from their start (focus pull) play again. */
+    public static void restartShotEffects(String spec) {
+        MIXER.restart(ScreenFx.parseLenient(spec));
+    }
+
+    /** Game ticks to add to the world's clocks now (timelapse), 0 when the effect is off. */
+    public static long timelapseTicks() {
+        return (long) timelapse;
     }
 
     /** Effects drawn this frame, in drawing order. */
@@ -106,7 +133,26 @@ public final class ScreenEffects {
 
     /** Current (eased) intensity of an effect, 0 when off. */
     public static float intensity(String id) {
+        if (id.equals(MIRROR_TRANSITION)) return Transition.mirrorAmount();
         return FxMixer.eased(MIXER.intensity(id));
+    }
+
+    /**
+     * The uniform {@code Fx} of a post effect this frame: x = intensity, y = time in seconds, z = seconds since the
+     * effect was switched on (focus pull; "stop_motion": number of the held picture; "miroir" transition: progress
+     * 0..1), w = "stop_motion" only: 1 when this frame takes a new picture.
+     */
+    public static float[] uniform(String id) {
+        float z, w = 0f;
+        switch (id) {
+            case "stop_motion" -> {
+                z = STOP_MOTION.image() % 4096;
+                w = stopMotionRefresh ? 1f : 0f;
+            }
+            case MIRROR_TRANSITION -> z = Transition.mirrorProgress();
+            default -> z = MIXER.sinceOn(id);
+        }
+        return new float[] {intensity(id), time(), z, w};
     }
 
     /** Seconds since the game started (for the animated effects), wrapped to keep float precision. */
@@ -138,10 +184,33 @@ public final class ScreenEffects {
         MIXER.want(wanted, fade);
         MIXER.advance(dt);
         visible = MIXER.visible();
-        if (visible.isEmpty()) return List.of();
-        List<Identifier> out = new ArrayList<>(visible.size());
-        // "citrouille" is vanilla's pumpkin overlay, drawn on the HUD by FxOverlay, not a post effect
-        for (String id : visible) if (!id.equals(FxOverlay.PUMPKIN)) out.add(CraftMaster.id("fx/" + id));
+
+        // Timelapse: the clocks run ahead while it is wanted, and are back on time as soon as it is not
+        if (wanted.contains(TIMELAPSE)) timelapse += dt * TIMELAPSE_TICKS_PER_SECOND * intensity(TIMELAPSE);
+        else timelapse = 0;
+
+        // Stop motion: a new picture a few times per second; the first frame (and after a resize) always takes one
+        if (MIXER.intensity("stop_motion") > 0) {
+            var main = mc.gameRenderer.mainRenderTarget();
+            if (main.width != lastWidth || main.height != lastHeight) {
+                lastWidth = main.width;
+                lastHeight = main.height;
+                STOP_MOTION.reset();
+            }
+            stopMotionRefresh = STOP_MOTION.advance(dt, intensity("stop_motion"));
+        } else {
+            STOP_MOTION.reset();
+            stopMotionRefresh = false;
+        }
+
+        boolean mirror = Transition.mirrorAmount() > 0;
+        if (visible.isEmpty() && !mirror) return List.of();
+        List<Identifier> out = new ArrayList<>(visible.size() + 1);
+        // "citrouille" is vanilla's pumpkin overlay, drawn on the HUD by FxOverlay, and "timelapse" changes the
+        // world's time: neither is a post effect
+        for (String id : visible) if (!id.equals(FxOverlay.PUMPKIN) && !id.equals(TIMELAPSE)) out.add(CraftMaster.id("fx/" + id));
+        // The kaleidoscope transition folds the whole finished picture
+        if (mirror) out.add(CraftMaster.id("fx/" + MIRROR_TRANSITION));
         return out;
     }
 

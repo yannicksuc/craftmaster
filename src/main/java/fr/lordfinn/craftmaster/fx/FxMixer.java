@@ -11,6 +11,9 @@ import java.util.Map;
  * it is wanted and towards 0 otherwise, over the fade time given when it was (un)wanted. The shaders read this
  * intensity (a fisheye bends a little more each frame, a round mask closes like an iris). Pure logic (client side
  * uses it every frame); time in seconds.
+ *
+ * <p>It also keeps, for each wanted effect, the seconds since it was switched on ({@link #sinceOn}): the focus pull
+ * plays its move from there.
  */
 public final class FxMixer {
 
@@ -20,6 +23,7 @@ public final class FxMixer {
     private final Map<String, Float> intensity = new HashMap<>();
     private final Map<String, Float> rate = new HashMap<>();
     private final Map<String, Boolean> wanted = new HashMap<>();
+    private final Map<String, Float> since = new HashMap<>();
 
     /**
      * Wanted effects from now on. Effects that change state fade over {@code fadeSeconds} (0 = at once); the others
@@ -30,6 +34,8 @@ public final class FxMixer {
             boolean on = ids.contains(k.id());
             if (wanted.getOrDefault(k.id(), false) != on) {
                 wanted.put(k.id(), on);
+                if (on) since.put(k.id(), 0f);
+                else since.remove(k.id());
                 rate.put(k.id(), fadeSeconds <= 0.001f ? Float.POSITIVE_INFINITY : 1f / fadeSeconds);
             }
         }
@@ -38,6 +44,7 @@ public final class FxMixer {
     /** Moves every intensity towards its target by {@code dt} seconds. */
     public void advance(float dt) {
         if (dt <= 0) return;
+        since.replaceAll((id, s) -> s + dt);
         for (ScreenFx.Kind k : ScreenFx.ORDER) {
             String id = k.id();
             float target = wanted.getOrDefault(id, false) ? 1f : 0f;
@@ -53,6 +60,16 @@ public final class FxMixer {
     /** Current intensity of an effect, 0 when off. */
     public float intensity(String id) {
         return intensity.getOrDefault(id, 0f);
+    }
+
+    /** Seconds since the effect was switched on (0 when it is not wanted). */
+    public float sinceOn(String id) {
+        return since.getOrDefault(id, 0f);
+    }
+
+    /** Starts the "since on" clock again for these effects when they are wanted (a new shot replays its move). */
+    public void restart(Collection<String> ids) {
+        for (String id : ids) if (since.containsKey(id)) since.put(id, 0f);
     }
 
     /** Effects to draw this frame (intensity above 0), in drawing order. */
@@ -72,5 +89,6 @@ public final class FxMixer {
         intensity.clear();
         rate.clear();
         wanted.clear();
+        since.clear();
     }
 }

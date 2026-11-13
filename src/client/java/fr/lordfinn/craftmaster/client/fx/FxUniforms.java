@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * Live uniforms of our post effects. Every pass of a {@code craftmaster:fx/*} chain declares the uniform block
  * {@code FxConfig { vec4 Fx; }} (see shaders/include/fx_common.glsl): before the chain runs, it gets
- * {@code Fx = (intensity, time in seconds, 0, 0)}. Vanilla creates the post pass uniform buffers once from the JSON
+ * {@code Fx = (intensity, time in seconds, seconds since switched on, effect-specific)} ({@link ScreenEffects#uniform}). Vanilla creates the post pass uniform buffers once from the JSON
  * values, without the copy usage needed to update them: the first time, the buffer is replaced by an updatable one
  * of the same size.
  */
@@ -47,8 +47,7 @@ public final class FxUniforms {
         if (id == null) return;
         *///?}
         if (!CraftMaster.MOD_ID.equals(id.getNamespace()) || !id.getPath().startsWith(PREFIX)) return;
-        float intensity = ScreenEffects.intensity(id.getPath().substring(PREFIX.length()));
-        float time = ScreenEffects.time();
+        float[] fx = ScreenEffects.uniform(id.getPath().substring(PREFIX.length()));
         GpuDevice device = RenderSystem.getDevice();
         for (PostPass pass : ((PostChainAccessor) chain).craftmaster$passes()) {
             Map<String, GpuBuffer> uniforms = ((PostPassAccessor) pass).craftmaster$customUniforms();
@@ -61,7 +60,7 @@ public final class FxUniforms {
                 buffer = updatable;
             }
             try (MemoryStack stack = MemoryStack.stackPush()) {
-                ByteBuffer data = Std140Builder.onStack(stack, (int) buffer.size()).putVec4(intensity, time, 0f, 0f).get();
+                ByteBuffer data = Std140Builder.onStack(stack, (int) buffer.size()).putVec4(fx[0], fx[1], fx[2], fx[3]).get();
                 device.createCommandEncoder().writeToBuffer(buffer.slice(), data);
             }
         }

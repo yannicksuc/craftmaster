@@ -2,7 +2,9 @@
 #define CRAFTMASTER_FX_COMMON_GLSL
 
 // Shared by the CraftMaster screen effects (post_effect/fx/*.json). Fx is written every frame by the mod
-// (client.fx.FxUniforms): x = intensity 0..1 (fades in / out), y = time in seconds.
+// (client.fx.FxUniforms): x = intensity 0..1 (fades in / out), y = time in seconds, z = seconds since the effect was
+// switched on (stop_motion: number of the held picture; miroir transition: its progress 0..1), w = stop_motion: 1 on
+// the frames that take a new picture.
 
 uniform sampler2D InSampler;
 

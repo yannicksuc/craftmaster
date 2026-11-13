@@ -43,6 +43,63 @@ class ScreenFxTest {
     }
 
     @Test
+    void introEffectsAreUnderstoodAndOrdered() {
+        assertEquals(List.of("look_intro"), ScreenFx.parse("look intro"));
+        assertEquals(List.of("look_intro"), ScreenFx.parse("Taskmaster"));
+        assertEquals(List.of("look_intro"), ScreenFx.parse("vieux reportage"));
+        assertEquals(List.of("look_intro"), ScreenFx.parse("le look d'intro"));
+        assertEquals(List.of("mise_au_point"), ScreenFx.parse("la bascule de mise au point"));
+        assertEquals(List.of("mise_au_point"), ScreenFx.parse("mise au point"));
+        assertEquals(List.of("macro"), ScreenFx.parse("profondeur de champ"));
+        assertEquals(List.of("stop_motion"), ScreenFx.parse("stop-motion"));
+        assertEquals(List.of("timelapse"), ScreenFx.parse("temps accéléré"));
+        // Depth of field first (it reads the depth buffer), then the held picture, then the rest
+        assertEquals(List.of("timelapse", "macro", "stop_motion", "fisheye", "look_intro", "vignette"),
+                ScreenFx.parse("vignette+look_intro+fisheye+stop_motion+macro+timelapse"));
+        assertEquals("bascule de mise au point + look intro", ScreenFx.describe(ScreenFx.parse("look intro+bascule")));
+    }
+
+    @Test
+    void mixerCountsTheSecondsSinceAnEffectWasSwitchedOn() {
+        FxMixer m = new FxMixer();
+        m.want(List.of("mise_au_point"), 0.5f);
+        m.advance(0.3f);
+        m.advance(0.4f);
+        assertEquals(0.7f, m.sinceOn("mise_au_point"), 1e-4);
+        // Still wanted: the clock goes on; a new shot replays the move
+        m.want(List.of("mise_au_point"), 0.5f);
+        m.advance(0.1f);
+        assertEquals(0.8f, m.sinceOn("mise_au_point"), 1e-4);
+        m.restart(List.of("mise_au_point", "sepia"));
+        assertEquals(0f, m.sinceOn("mise_au_point"));
+        assertEquals(0f, m.sinceOn("sepia"));
+        // Switched off: no clock
+        m.want(List.of(), 0.5f);
+        m.advance(0.1f);
+        assertEquals(0f, m.sinceOn("mise_au_point"));
+    }
+
+    @Test
+    void stopMotionTakesAboutSevenPicturesPerSecond() {
+        StopMotionClock clock = new StopMotionClock();
+        // The first frame always takes a picture
+        assertTrue(clock.advance(1 / 60f, 1f));
+        int taken = 0;
+        for (int i = 0; i < 600; i++) if (clock.advance(1 / 60f, 1f)) taken++;
+        assertEquals(70, taken, 1);
+        assertEquals(taken + 1, clock.image());
+        // Fading in at half intensity: twice as often
+        StopMotionClock half = new StopMotionClock();
+        half.advance(0, 0.5f);
+        taken = 0;
+        for (int i = 0; i < 600; i++) if (half.advance(1 / 60f, 0.5f)) taken++;
+        assertEquals(140, taken, 1);
+        // Reset: the next frame takes a picture again
+        clock.reset();
+        assertTrue(clock.advance(0.001f, 1f));
+    }
+
+    @Test
     void noneWordsGiveNothing() {
         assertTrue(ScreenFx.parse("aucun").isEmpty());
         assertTrue(ScreenFx.parse(null).isEmpty());
@@ -61,7 +118,7 @@ class ScreenFxTest {
 
     @Test
     void everyEffectHasItsName() {
-        assertEquals(16, ScreenFx.ORDER.size());
+        assertEquals(21, ScreenFx.ORDER.size());
         assertEquals("fish-eye + masque rond", ScreenFx.describe(ScreenFx.parse("judas")));
         for (String id : ScreenFx.ids()) assertEquals(List.of(id), ScreenFx.parse(id));
         for (String w : FxContent.WEARABLES.values()) assertFalse(ScreenFx.parse(w).isEmpty(), w);
