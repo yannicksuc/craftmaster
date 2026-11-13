@@ -38,7 +38,12 @@ public class ImageScreenRenderer extends EntityRenderer<ImageScreenEntity, Image
         Identifier picture;
         int pictureW, pictureH;
         Component message;
+        /** A chat wall (address chat:...): what to draw instead of a picture, else null. */
+        fr.lordfinn.craftmaster.client.media.ChatWallClient.Layout chat;
     }
+
+    /** Plain white: the chat wall's panels take their colour from the vertices. */
+    public static final Identifier CHAT_PANEL = CraftMaster.id("textures/entity/studio_chat_panel.png");
 
     public ImageScreenRenderer(EntityRendererProvider.Context ctx) {
         super(ctx);
@@ -60,6 +65,14 @@ public class ImageScreenRenderer extends EntityRenderer<ImageScreenEntity, Image
         s.pictureW = 16;
         s.pictureH = 9;
         s.message = null;
+        s.chat = null;
+        fr.lordfinn.craftmaster.media.ChatWall.Mode chat = fr.lordfinn.craftmaster.media.ChatWall.mode(e.url());
+        if (chat != null) {
+            // Chat wall: the latest messages, laid out for this screen's size
+            s.chat = fr.lordfinn.craftmaster.client.media.ChatWallClient.layout(chat, e.width() - 2 * BORDER, e.height() - 2 * BORDER,
+                    e.height(), getFont(), System.currentTimeMillis());
+            return;
+        }
         if (!e.url().isEmpty() && fr.lordfinn.craftmaster.client.media.Media.isClipOrStream(e.url())) {
             // In-game clip, Twitch clip or live: the clips' WaterMedia player (test card until the first picture)
             if (!fr.lordfinn.craftmaster.client.media.Media.available()) {
@@ -121,8 +134,15 @@ public class ImageScreenRenderer extends EntityRenderer<ImageScreenEntity, Image
                     new float[][]{back, front, side, side, side, side}, 0xFFFFFFFF, light);
         });
 
-        // The picture: inside the bezel, whole with bars ("fit") or stretched
         float iw = s.width - 2 * BORDER, ih = s.height - 2 * BORDER;
+        if (s.chat != null) {
+            submitChat(s.chat, iw, ih, hd, poseStack, collector);
+            poseStack.popPose();
+            super.submit(s, poseStack, collector, camera);
+            return;
+        }
+
+        // The picture: inside the bezel, whole with bars ("fit") or stretched
         float pw = iw, ph = ih;
         if (s.fit && s.pictureW > 0 && s.pictureH > 0) {
             float ratio = s.pictureW / (float) s.pictureH;
@@ -153,5 +173,35 @@ public class ImageScreenRenderer extends EntityRenderer<ImageScreenEntity, Image
         }
         poseStack.popPose();
         super.submit(s, poseStack, collector, camera);
+    }
+
+    /**
+     * The chat wall on the screen's face: panels then text, in the layout's pixels (origin at the top left of the
+     * picture area, y down), lit by itself.
+     */
+    private void submitChat(fr.lordfinn.craftmaster.client.media.ChatWallClient.Layout l, float iw, float ih, float hd,
+                            PoseStack poseStack, SubmitNodeCollector collector) {
+        poseStack.pushPose();
+        poseStack.translate(-iw / 2, ih / 2, hd + 0.003f);
+        poseStack.scale(l.scale(), -l.scale(), l.scale());
+        // Layers 2 mm apart: panel, title band, its accent line, then everything else (never overlapping)
+        float layer = 0.002f / l.scale();
+        collector.submitCustomGeometry(poseStack, RenderTypes.text(CHAT_PANEL), (p, c) -> {
+            int full = LightCoordsUtil.FULL_BRIGHT;
+            for (int i = 0; i < l.rects().size(); i++) {
+                var r = l.rects().get(i);
+                float z = Math.min(i, 3) * layer;
+                c.addVertex(p, r.x0(), r.y0(), z).setColor(r.argb()).setUv(0, 0).setLight(full);
+                c.addVertex(p, r.x0(), r.y1(), z).setColor(r.argb()).setUv(0, 1).setLight(full);
+                c.addVertex(p, r.x1(), r.y1(), z).setColor(r.argb()).setUv(1, 1).setLight(full);
+                c.addVertex(p, r.x1(), r.y0(), z).setColor(r.argb()).setUv(1, 0).setLight(full);
+            }
+        });
+        poseStack.translate(0, 0, 5 * layer);
+        for (var t : l.texts()) {
+            collector.submitText(poseStack, t.x(), t.y(), t.text(), false, Font.DisplayMode.POLYGON_OFFSET,
+                    LightCoordsUtil.FULL_BRIGHT, (t.alpha() << 24) | 0xFFFFFF, 0, 0);
+        }
+        poseStack.popPose();
     }
 }
