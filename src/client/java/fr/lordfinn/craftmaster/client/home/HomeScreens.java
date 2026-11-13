@@ -100,7 +100,7 @@ public final class HomeScreens {
 
     /** A skin of accueil.json as PortraitSkins takes it: a link stays, a file becomes its absolute path. */
     /** Poses given in turn to the frames whose player has none. */
-    public static final java.util.List<String> VARIED_POSES = java.util.List.of("salut", "sort du cadre", "classique", "se penche dehors", "bras croisés");
+    public static final java.util.List<String> VARIED_POSES = fr.lordfinn.craftmaster.portrait.PoseLibrary.VARIED;
 
     /** LordFinn's CraftMaster skin, shipped with the mod. */
     public static final fr.lordfinn.craftmaster.client.portrait.PortraitSkins.Skin LORDFINN_SKIN = new fr.lordfinn.craftmaster.client.portrait.PortraitSkins.Skin(

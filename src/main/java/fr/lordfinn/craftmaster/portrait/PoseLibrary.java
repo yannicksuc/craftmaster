@@ -30,6 +30,19 @@ import java.util.Set;
 public final class PoseLibrary {
 
     public static final String DEFAULT = "classique";
+
+    /**
+     * Poses given at random to portraits (new ones, and those still in {@link #DEFAULT}, which LordFinn finds too
+     * plain): never the basic pose.
+     */
+    public static final java.util.List<String> VARIED = java.util.List.of("salut", "bras croisés", "se penche dehors", "assis dans le cadre", "trône");
+
+    /** One of {@link #VARIED}, stable for a given seed (a portrait's UUID). */
+    public static String varied(long seed) {
+        long h = seed * 0x9E3779B97F4A7C15L;
+        h ^= h >>> 31;
+        return VARIED.get((int) Math.floorMod(h, (long) VARIED.size()));
+    }
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     private final Map<String, Pose> poses = new LinkedHashMap<>();
@@ -65,7 +78,7 @@ public final class PoseLibrary {
      * The poses shipped with the mod, in the spirit of the CraftMaster poster, for the baby-proportioned figure
      * (18 px tall: hips 6 px above the feet, shoulders 11, arms 5 long) in the 18 × 24 px frame (opening ±7 × ±10,
      * bottom bar from y -12 to -10, canvas face at z -0.5). What is behind the canvas is inside the painting (cut).
-     * A part without rotation is hidden.
+     * A part without rotation is hidden. Feet standing on the bar sit 0.06 px above it (no z-fighting).
      */
     public static Map<String, Pose> presets() {
         Map<String, Pose> m = new LinkedHashMap<>();
@@ -89,15 +102,15 @@ public final class PoseLibrary {
                 Part.RIGHT_ARM, r(-180, 0, -15), Part.LEFT_ARM, r(-180, 0, 15),
                 Part.RIGHT_LEG, r(0, 0, 3), Part.LEFT_LEG, r(0, 0, -3)));
         // Leaning out of the painting: the upper body outside, the legs still in the picture, one arm reaching out
-        m.put("se penche dehors", pose(0, -10, -3, 1, 0, 0,
+        m.put("se penche dehors", pose(0, -9.94, -3, 1, 0, 0,
                 Part.FIGURE, r(0, 12, 0), Part.BODY, r(62, 0, 0), Part.HEAD, r(-50, 0, 0),
                 Part.RIGHT_ARM, r(-95, 0, 0), Part.LEFT_ARM, r(-40, 0, -30)));
         // Standing on the bottom bar, waving, the other hand holding the side of the frame
-        m.put("salut", pose(0, -10, 0, 1, 0, 0,
+        m.put("salut", pose(0, -9.94, 0, 1, 0, 0,
                 Part.HEAD, r(0, -10, 6), Part.RIGHT_ARM, r(0, 0, 140), Part.LEFT_ARM, r(-20, 0, -62),
                 Part.RIGHT_LEG, r(0, 0, 2), Part.LEFT_LEG, r(0, 0, -2)));
         // Standing on the bottom bar, leaning on the side of the frame, arms crossed
-        m.put("bras croisés", pose(-1.5, -10, 0.5, 1, 0, 0,
+        m.put("bras croisés", pose(-1.5, -9.94, 0.5, 1, 0, 0,
                 Part.FIGURE, r(0, 0, 8), Part.HEAD, r(-4, -10, 0),
                 Part.RIGHT_ARM, r(-72, -36, 0), Part.LEFT_ARM, r(-72, 36, 0),
                 Part.RIGHT_LEG, r(0, 0, -10), Part.LEFT_LEG, r(0, 0, -3)));
@@ -107,7 +120,7 @@ public final class PoseLibrary {
                 Part.RIGHT_LEG, r(-88, 12, 0), Part.LEFT_LEG, r(-88, -12, 0),
                 Part.RIGHT_ARM, r(-40, 0, 24), Part.LEFT_ARM, r(-40, 0, -24)));
         // Coming out of the flat back of the portrait (seen from behind), the legs still inside the painting
-        m.put("sort par derrière", pose(0, -10, -1, 1, 0, 0,
+        m.put("sort par derrière", pose(0, -9.94, -1, 1, 0, 0,
                 Part.FIGURE, r(0, 180, 0), Part.BODY, r(55, 0, 0), Part.HEAD, r(-40, 0, 0),
                 Part.RIGHT_ARM, r(-90, 0, 10), Part.LEFT_ARM, r(-40, 0, -30)));
         return m;
@@ -182,7 +195,9 @@ public final class PoseLibrary {
     public static PoseLibrary load(Path file, Logger log) {
         if (Files.exists(file)) {
             try {
-                return fromJson(Files.readString(file, StandardCharsets.UTF_8));
+                PoseLibrary lib = fromJson(Files.readString(file, StandardCharsets.UTF_8));
+                if (lib.liftFeet()) lib.save(file, log);
+                return lib;
             } catch (Exception e) {
                 log.error("[Portraits] {} illisible, mis de côté et remplacé par les poses fournies", file, e);
                 try {
@@ -193,6 +208,24 @@ public final class PoseLibrary {
         PoseLibrary lib = withPresets();
         lib.save(file, log);
         return lib;
+    }
+
+    /**
+     * Shipped poses saved before 13/11/2026 stand exactly on the bottom bar (feet at y -10): lifted to the
+     * presets' current height, so the soles no longer flicker against the bar. Returns true if one changed.
+     */
+    boolean liftFeet() {
+        boolean changed = false;
+        Map<String, Pose> shipped = presets();
+        for (Map.Entry<String, Pose> e : poses.entrySet()) {
+            Pose now = shipped.get(e.getKey());
+            Pose p = e.getValue();
+            if (now != null && p.offsetY() == -10 && now.offsetY() != -10) {
+                e.setValue(p.withOffset(p.offsetX(), now.offsetY(), p.offsetZ()));
+                changed = true;
+            }
+        }
+        return changed;
     }
 
     /** Atomic write (temporary file then move). */

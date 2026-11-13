@@ -93,6 +93,8 @@ public class PortraitEntity extends Entity {
         p.entityData.set(RANK, Math.max(0, rank));
         p.entityData.set(SHOWN_RANK, Math.max(0, rank));
         p.hangAt(ceiling);
+        // Never the basic pose: one of the lively ones, at random
+        p.entityData.set(POSE, PoseLibrary.varied(java.util.concurrent.ThreadLocalRandom.current().nextLong()));
         return p;
     }
 
@@ -430,7 +432,9 @@ public class PortraitEntity extends Entity {
         entityData.set(FIXED_PLAYER, in.getStringOr("FixedPlayer", ""));
         entityData.set(DISPLAY_NAME, in.getStringOr("DisplayName", ""));
         entityData.set(SKIN_URL, in.getStringOr("SkinUrl", ""));
-        entityData.set(POSE, in.getStringOr("Pose", PoseLibrary.DEFAULT));
+        String pose = in.getStringOr("Pose", PoseLibrary.DEFAULT);
+        // Portraits saved in the basic pose get a lively one (stable: from their UUID)
+        entityData.set(POSE, pose.equals(PoseLibrary.DEFAULT) ? PoseLibrary.varied(getUUID().getLeastSignificantBits()) : pose);
         entityData.set(HANG, in.getFloatOr("Hang", -1f));
         entityData.set(WINDOW, in.getBooleanOr("Window", false));
         setWindowDepth(in.getIntOr("WindowDepth", DEFAULT_WINDOW_DEPTH));

@@ -113,4 +113,27 @@ class PoseLibraryTest {
         assertTrue(Files.exists(dir.resolve("poses.json.broken")));
         assertEquals("{ not json", Files.readString(dir.resolve("poses.json.broken")));
     }
+
+    @Test
+    void oldShippedPosesGetTheirFeetLiftedOffTheBar() {
+        java.util.Map<String, Pose> old = new java.util.LinkedHashMap<>(PoseLibrary.presets());
+        Pose salut = old.get("salut");
+        old.put("salut", salut.withOffset(salut.offsetX(), -10, salut.offsetZ()));
+        Pose mine = old.get("salut").withOffset(0, -10, 0);
+        old.put("ma pose", mine);
+        PoseLibrary lib = new PoseLibrary(old);
+        org.junit.jupiter.api.Assertions.assertTrue(lib.liftFeet());
+        org.junit.jupiter.api.Assertions.assertEquals(PoseLibrary.presets().get("salut").offsetY(), lib.get("salut").offsetY());
+        org.junit.jupiter.api.Assertions.assertEquals(-10, lib.get("ma pose").offsetY(), "a pose of the organisers stays as made");
+        org.junit.jupiter.api.Assertions.assertFalse(lib.liftFeet(), "done once");
+    }
+
+    @Test
+    void variedPosesNeverUseTheBasicOne() {
+        for (long seed = 0; seed < 200; seed++) {
+            String p = PoseLibrary.varied(seed * 7919);
+            org.junit.jupiter.api.Assertions.assertNotEquals(PoseLibrary.DEFAULT, p);
+            org.junit.jupiter.api.Assertions.assertTrue(PoseLibrary.presets().containsKey(p), p);
+        }
+    }
 }
