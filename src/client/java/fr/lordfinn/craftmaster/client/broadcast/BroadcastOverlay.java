@@ -365,13 +365,14 @@ public final class BroadcastOverlay {
         // Kept discreet (a small watermark seal, a small live tag): the picture is the show, not the branding
         float y = top + 7;
         seal(g, 9, y - 2, 13, 0.7f);
-        // "● EN DIRECT", top right, small; the dot breathes
-        Component live = bold("EN DIRECT");
+        // "● EN DIRECT", top right, small; the dot breathes ("REPLAY" while a replay plays)
+        boolean replay = fr.lordfinn.craftmaster.client.replay.ReplayClient.active();
+        Component live = bold(replay ? "REPLAY" : "EN DIRECT");
         float tw = width(font, live, 0.5f);
         float x1 = w - 9, x0 = x1 - tw - 11;
         fill(g, x0, y - 1, x1, y + 6.5f, 0x90200408);
         float pulse = (float) (0.55 + 0.45 * Math.sin(now / 1000.0 * Math.PI * 1.2));
-        fill(g, x0 + 2.5f, y + 1.5f, x0 + 5.5f, y + 4.5f, alpha(LIVE_RED, 0.4f + 0.6f * pulse));
+        fill(g, x0 + 2.5f, y + 1.5f, x0 + 5.5f, y + 4.5f, alpha(replay ? 0xFFF2C14E : LIVE_RED, 0.4f + 0.6f * pulse));
         text(g, font, live, x0 + 8, y + 1, 0.5f, alpha(CREAM, 0.9f), false);
     }
 

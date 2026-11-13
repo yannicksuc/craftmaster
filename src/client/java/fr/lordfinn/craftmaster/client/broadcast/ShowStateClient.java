@@ -1,6 +1,9 @@
 package fr.lordfinn.craftmaster.client.broadcast;
 
+import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork;
 import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowState;
+import fr.lordfinn.craftmaster.client.replay.ReplayClient;
+import fr.lordfinn.craftmaster.client.replay.ReplayDirector;
 import fr.lordfinn.craftmaster.camera.CameraList;
 import fr.lordfinn.craftmaster.camera.CameraPath;
 import net.minecraft.client.Minecraft;
@@ -23,9 +26,28 @@ public final class ShowStateClient {
 
     private ShowStateClient() {}
 
+    /**
+     * The show's state; during a replay, with the shot the replay's direction chose on this game when it is not the
+     * recorded one ({@link ReplayDirector}).
+     */
     public static ShowState get() {
+        BroadcastNetwork.Shot o = ReplayDirector.override(state);
+        if (o == null) return state;
+        if (o != overriddenShot || state != overriddenFrom) {
+            overridden = state.withShot(o);
+            overriddenShot = o;
+            overriddenFrom = state;
+        }
+        return overridden;
+    }
+
+    /** The state as received (recorded), whatever a replay's direction shows. */
+    public static ShowState recorded() {
         return state;
     }
+
+    private static ShowState overridden, overriddenFrom;
+    private static BroadcastNetwork.Shot overriddenShot;
 
     /** Every camera, of every lieu. */
     public static CameraList cameras() {
@@ -49,7 +71,11 @@ public final class ShowStateClient {
         for (CameraPath c : s.paths()) p.put(c.name(), c);
         paths = p;
         receivedAt = System.currentTimeMillis();
+        receivedReplayMs = ReplayClient.active() ? ReplayClient.nowMs() : -1;
     }
+
+    /** During a replay: the replay's time when the state arrived (the timer counts on the replay's clock). */
+    private static long receivedReplayMs = -1;
 
     static void clear() {
         set(ShowState.EMPTY);
@@ -58,8 +84,16 @@ public final class ShowStateClient {
     /** Seconds left on the round timer (fractional, for smooth animations), or -1 when none runs. */
     public static double timerSeconds() {
         if (state.timerEnd() < 0) return -1;
-        double elapsedTicks = (System.currentTimeMillis() - receivedAt) / 50.0;
-        double left = state.timerEnd() - state.serverTick() - elapsedTicks;
+        double left;
+        double replayTick = ReplayClient.serverTick();
+        if (replayTick >= 0) {
+            // A replay whose file says its first tick: the timer is exactly the recorded one, at any speed or seek
+            left = state.timerEnd() - replayTick;
+        } else {
+            double elapsedTicks = ReplayClient.active() && receivedReplayMs >= 0
+                    ? (ReplayClient.nowMs() - receivedReplayMs) / 50.0 : (System.currentTimeMillis() - receivedAt) / 50.0;
+            left = state.timerEnd() - state.serverTick() - elapsedTicks;
+        }
         return Math.max(0, left / 20.0);
     }
 

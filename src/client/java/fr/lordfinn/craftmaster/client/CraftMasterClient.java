@@ -41,6 +41,8 @@ public final class CraftMasterClient implements ClientModInitializer {
         fr.lordfinn.craftmaster.client.trial.TrialClient.init();
         // TV direction (chantier E): broadcast mode, director's shots, overlay, camera tripods
         Broadcast.init();
+        // Replays (Server Replay's viewer): playback bar and direction
+        fr.lordfinn.craftmaster.client.replay.ReplayClient.init();
         EntityRendererRegistry.register(ModContent.CAMERA, CameraRenderer::new);
         // Tasks, envelopes, hidden notes (chantier D)
         fr.lordfinn.craftmaster.client.task.TaskClient.init();

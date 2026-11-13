@@ -300,6 +300,13 @@ public final class ShowCommands {
                         .then(literal("add").then(argument("manche", word()).suggests(MANCHES).executes(ShowCommands::addTp)))
                         .then(literal("clear").then(argument("manche", word()).suggests(MANCHES)
                                 .executes(c -> run(c, action("manche.tp.clear", "manche", str(c, "manche")))))))
+                .then(literal("zones").then(argument("manche", word()).suggests(MANCHES)
+                        .executes(c -> run(c, action("manche.zones", "manche", str(c, "manche"), "zones", "")))
+                        .then(argument("zones", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+                                .suggests((c, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+                                        fr.lordfinn.craftmaster.trial.TrialZones.zones().keySet(), b))
+                                .executes(c -> run(c, action("manche.zones", "manche", str(c, "manche"), "zones",
+                                        com.mojang.brigadier.arguments.StringArgumentType.getString(c, "zones")))))))
                 .then(literal("start").then(argument("manche", word()).suggests(MANCHES_OR_NEXT)
                         .executes(c -> run(c, action("manche.start", "manche", str(c, "manche"))))))
                 .then(literal("next").executes(c -> run(c, action("manche.start", "manche", "next"))))

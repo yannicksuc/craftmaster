@@ -156,6 +156,11 @@ public final class Show {
     private static long timerEnd, timerTotal;
     private static int lastShownSecond;
 
+    /** The round timer's boss bar, if one runs (a replay file starting now must be told it exists). */
+    public static ServerBossEvent timerBar() {
+        return bar;
+    }
+
     public static boolean timerRunning() {
         return bar != null;
     }

@@ -79,6 +79,9 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
     "manche.end": ("Termine la manche en cours.", []),
     "timer.stop": ("Arrête le chrono de la manche en cours.", []),
     "timer.go": ("Lance tout de suite le chrono d'une manche qui attend sa lettre ou son bouton, et libère les joueurs figés (« go », « lance le chrono »).", []),
+    "replay.flag": ("Pose un drapeau sur la timeline de l'enregistrement en cours (« marque ce moment », « drapeau »), "
+                    "pour le retrouver au replay. Pas pendant un replay.",
+                    [f("text", STR, doc="Note courte facultative (« belle chute »).")]),
     "curtain.open": ("Ouvre un rideau (« ouvrez les rideaux »).", [f("name", STR, doc="Nom du rideau ; absent = rideau de scène.")]),
     "curtain.close": ("Ferme un rideau.", [f("name", STR, doc="Nom du rideau ; absent = rideau de scène.")]),
     "scene.set": ("Pose un décor enregistré à l'ancre de scène.", [f("name", STR, True, "Nom du décor (du contexte).")]),
@@ -227,6 +230,21 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                 f("seconds", INT, doc="Durée en secondes ; absent = jusqu'à nouvel ordre.")]),
     "fx.clear": ("Enlève les effets d'écran (« enlève les effets »).",
                  [f("target", STR, doc="Absent = tout (diffusion et joueurs) ; sinon diffusion, tous, candidats ou un pseudo EXACT.")]),
+    # Replays (docs/wiki/Replays.md): only while a replay plays (context "Replay en cours"), run on LordFinn's game
+    "replay.control": ("Pilote le replay en cours (lecture d'un enregistrement) : lecture, pause, avancer, reculer, "
+                       "aller à un moment, vitesse, repère suivant / précédent, filtrer les repères (par type, candidat "
+                       "ou zone), autre fichier (la zone ou l'écran d'un candidat, au même instant), qui réalise, fermer.",
+                       [f("do", STR, True, "play | pause | toggle | back | forward | goto | start | speed | faster | slower | "
+                                           "next_marker | prev_marker | filter | clear_filter | view | mode | close."),
+                        f("kind", STR, doc="filter : morts | résultats | chronos | cloches | drapeaux | drapeaux des joueurs | "
+                                           "points | manches | sorties de zone | projecteurs | tout."),
+                        f("player", STR, doc="filter : les repères de ce candidat (pseudo EXACT), « tout » pour tous."),
+                        f("zone", STR, doc="filter : les repères de cette zone (nom de la vue), « toutes » pour toutes."),
+                        f("seconds", INT, doc="back / forward : combien de secondes (défaut 10) ; goto : le moment, en secondes depuis le début."),
+                        f("speed", STR, doc="speed : la vitesse, ex. « 2 », « 0.5 »."),
+                        f("view", STR, doc="view : « zone » ou le pseudo EXACT du candidat dont on veut l'écran."),
+                        f("mode", STR, doc="mode : direct (les plans du direct), auto, manuel ou libre."),
+                        f("camera", STR, doc="mode libre : la caméra (numéro ou nom) d'où part la caméra libre ; absent = l'image actuelle.")]),
     "say": ("Répond à LordFinn sans rien modifier : question, doute réel, ordre impossible ou incompris. "
             "Texte court en français.", [f("text", STR, True, "Réponse courte.")]),
 }
@@ -236,6 +254,7 @@ NO_SCOPE = {"say", "undo", "stopwatch.start", "stopwatch.stop", "stopwatch.reset
 NO_SCOPE |= {"spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off"}
 NO_SCOPE |= {"camera.path", "camera.focus", "camera.lieu", "camera.mosaic", "camera.pov"}
 NO_SCOPE |= {"fx.set", "fx.clear"}
+NO_SCOPE |= {"replay.control", "replay.flag"}
 SCOPE_FIELDS = [f("season", SCOPE, doc="Saison (id ou nom). Absent = saison active."),
                 f("partie", SCOPE, doc="Partie (id ou nom). Absent = partie active.")]
 

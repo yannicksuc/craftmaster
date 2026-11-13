@@ -127,6 +127,12 @@ public final class BroadcastNetwork {
         public static final ShowState EMPTY = new ShowState(0, 0, "", false, 0, "", "", 0, "", "", -1, 0, List.of(), List.of(),
                 Shot.NONE, false, false, SCORES_AUTO, "", "", CameraSpot.STUDIO, List.of());
 
+        /** Same state with another shot on air (a replay directed on the watching game). */
+        public ShowState withShot(Shot other) {
+            return new ShowState(serverTick, season, seasonName, seasonHidden, partie, partieName, mancheId, mancheNumber, mancheName,
+                    timerName, timerEnd, timerTotal, contestants, cameras, other, auto, letterbox, scores, master, sequence, focus, paths);
+        }
+
         /** Same state apart from the send time (to know whether to send it again). */
         public ShowState unclocked() {
             return new ShowState(0, season, seasonName, seasonHidden, partie, partieName, mancheId, mancheNumber, mancheName,

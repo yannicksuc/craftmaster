@@ -28,6 +28,8 @@ public final class Manche {
     public String timerStart = "lettre";
     /** Where the season's players are teleported when it starts (shared out in turn). */
     public final List<Spot> tp = new ArrayList<>();
+    /** Its trial zones (TrialZones names, /craftMasterZone): what its replays record, one file each. */
+    public final List<String> zones = new ArrayList<>();
     /** Put away: no longer listed nor "next", its points still count. */
     public boolean archived;
     // ---- chantier H: the judge's results sheet of this round (times, counts... → proposed points), undoable
@@ -54,6 +56,7 @@ public final class Manche {
         List<Object> spots = new ArrayList<>();
         for (Spot s : tp) spots.add(s.toYaml());
         Maps.putIf(m, "tp", spots);
+        Maps.putIf(m, "zones", new ArrayList<>(zones));
         Maps.putIf(m, "archived", archived);
         if (!results.isEmpty()) m.put("results", results.toYaml()); // chantier H
         if (task != null) m.put("task", task.toYaml());
@@ -74,6 +77,7 @@ public final class Manche {
             Spot s = Spot.fromYaml(Maps.map(o));
             if (s != null) r.tp.add(s);
         }
+        r.zones.addAll(Maps.strings(m.get("zones")));
         r.archived = Maps.bool(m.get("archived"));
         r.results = fr.lordfinn.craftmaster.trial.ResultSheet.fromYaml(m.get("results")); // chantier H
         r.intro = MancheIntro.fromYaml(m.get("intro")); // chantier E: absent = no intro

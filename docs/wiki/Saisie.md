@@ -64,6 +64,7 @@ Redémarrer le jeu après modification. `token` facultatif : s'il est rempli, aj
 | `/round/next` · `/round/start?manche=pont` · `/round/end` · `/timer/stop` | Épreuve suivante (titre, TP, chrono) · une épreuve précise · fin · arrêter le chrono |
 | `/publish` · `/reveal/start` | Publier les scores · lancer la révélation : **deux appuis en 3 s** (le premier répond `"armed": true`) |
 | `/camera/cut?camera=2` · `/camera/auto` | Couper sur une caméra (numéro ou nom) · réalisation automatique (`?enabled=false` pour l'arrêter) |
+| `/replay/toggle` · `back?s=10` · `forward?s=10` · `speed?x=2` · `marker/next` · `view?name=Ensuri` · `mode?m=auto` · … | Pendant un replay : le piloter (liste complète : [Replays](Replays.md#regarder-la-régie-de-replay)) ; `/camera/cut` et `/camera/auto` agissent alors sur le replay |
 | `/tablet/start` · `/pause` · `/toggle` · `/reset` · `/restart` | Tablettes chrono (`?group=nom` : seulement ce groupe ; [Plateau](Plateau.md#tablette-chrono)) |
 | `/status` | JSON : connecté, organisateur, écran ouvert, saison affichée, annulations / refaire possibles |
 

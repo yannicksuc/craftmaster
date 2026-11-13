@@ -48,6 +48,9 @@ public final class Actions {
     /** The organiser starts a round's held timer now (timer.go): everyone frozen is free. */
     public record TimerGo() implements Effect {}
 
+    /** A flag on the replay's timeline, now (coloured by who is on air); {@code text} may be empty. */
+    public record ReplayFlagged(String text) implements Effect {}
+
     public record Published(int season) implements Effect {}
 
     public record RevealStarted(int season) implements Effect {}
@@ -119,8 +122,8 @@ public final class Actions {
             "player.add", "player.update", "player.remove",
             "season.create", "season.update", "season.archive", "season.delete", "season.activate",
             "partie.create", "partie.update", "partie.archive", "partie.delete", "partie.activate",
-            "manche.create", "manche.update", "manche.archive", "manche.delete", "manche.tp.add", "manche.tp.clear",
-            "manche.start", "manche.end", "timer.stop", "timer.go", "curtain.open", "curtain.close", "scene.set", "say",
+            "manche.create", "manche.update", "manche.archive", "manche.delete", "manche.tp.add", "manche.tp.clear", "manche.zones",
+            "manche.start", "manche.end", "timer.stop", "timer.go", "replay.flag", "curtain.open", "curtain.close", "scene.set", "say",
             // chantier H
             "result.set", "result.dq", "result.remove", "results.clear", "results.config", "results.apply",
             "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset",
@@ -338,10 +341,12 @@ public final class Actions {
                 case "manche.delete" -> mancheDelete(a);
                 case "manche.tp.add" -> mancheTpAdd(a);
                 case "manche.tp.clear" -> mancheTpClear(a);
+                case "manche.zones" -> mancheZones(a);
                 case "manche.start" -> mancheStart(a);
                 case "manche.end" -> mancheEnd();
                 case "timer.stop" -> effects.add(new TimerStopped());
                 case "timer.go" -> effects.add(new TimerGo());
+                case "replay.flag" -> effects.add(new ReplayFlagged(str(a, "text") == null ? "" : str(a, "text")));
                 case "curtain.open" -> curtain(a, true);
                 case "curtain.close" -> curtain(a, false);
                 case "scene.set" -> sceneSet(a);
@@ -950,6 +955,28 @@ public final class Actions {
             int n = f.manche().tp.size();
             f.manche().tp.clear();
             line(n + " point(s) de TP retiré(s) de « " + f.manche().name + " ».");
+        }
+
+        /**
+         * The round's trial zones ({@code zones}: names, a list or "a b c"; empty or "aucune" = none): its replays
+         * record each of them, and a contestant out of all of them is recorded apart.
+         */
+        private void mancheZones(Map<String, Object> a) {
+            Season s = season(a, false);
+            writable(s);
+            Found f = manche(s, a, required(a, "manche"));
+            List<String> names = new ArrayList<>();
+            Object z = a.get("zones");
+            if (z instanceof List<?> l) for (Object o : l) names.add(String.valueOf(o).trim());
+            else if (z != null) for (String n : String.valueOf(z).split("[\\s,]+")) names.add(n.trim());
+            names.removeIf(n -> n.isEmpty() || n.equalsIgnoreCase("aucune") || n.equalsIgnoreCase("none"));
+            List<String> known = new ArrayList<>(fr.lordfinn.craftmaster.trial.TrialZones.zones().keySet());
+            for (String n : names)
+                if (!known.contains(n)) throw new Invalid("Pas de zone « " + n + " » (" + (known.isEmpty() ? "aucune zone : /craftMasterZone create" : String.join(", ", known)) + ").");
+            f.manche().zones.clear();
+            f.manche().zones.addAll(names);
+            line(names.isEmpty() ? "« " + f.manche().name + " » n'a plus de zone : ses replays prendront la zone déduite de ses caméras."
+                    : "Zones de « " + f.manche().name + " » : " + String.join(", ", names) + " (une vidéo chacune dans les replays).");
         }
 
         private void mancheStart(Map<String, Object> a) {

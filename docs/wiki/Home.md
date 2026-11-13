@@ -20,6 +20,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Plateau : trône, éclairage, projecteurs, chrono géant, écrans /image, pupitres, gong…](Plateau.md)
 - [Régie vocale (piloter à la voix)](RegieVocale.md)
 - [Réalisation TV : caméras, mode diffusion, habillage, générique](Realisation.md)
+- [Replays des manches (Server Replay) : un fichier par candidat et pour la zone de l'épreuve](Replays.md)
 - [Effets d'écran : noir et blanc, fish-eye, judas, VHS… et lunettes à porter](Effets.md)
 - [Fichier de données](Donnees.md)
 

@@ -93,6 +93,7 @@ public final class ActionExecutor {
             }
             case Actions.TimerGo g -> lines.add(fr.lordfinn.craftmaster.task.RoundStart.goNow(server)
                     ? "Chrono lancé, joueurs libérés." : "Aucune manche n'attend son départ.");
+            case Actions.ReplayFlagged f -> lines.add(fr.lordfinn.craftmaster.replay.ReplayMoments.flag(null, f.text()));
             case Actions.TimerStopped t -> {
                 boolean held = fr.lordfinn.craftmaster.task.RoundStart.waiting();
                 fr.lordfinn.craftmaster.task.RoundStart.clear(server);
@@ -125,7 +126,11 @@ public final class ActionExecutor {
             }
             // chantier H: judging (announces, stopwatches, buzzers)
             case Actions.ResultRecorded _, Actions.StopwatchStarted _, Actions.StopwatchStopped _, Actions.StopwatchReset _,
-                 Actions.BuzzersReset _ -> fr.lordfinn.craftmaster.trial.Judging.play(server, effect, lines);
+                 Actions.BuzzersReset _ -> {
+                fr.lordfinn.craftmaster.trial.Judging.play(server, effect, lines);
+                // The replay's key moments (results, disqualifications, times)
+                fr.lordfinn.craftmaster.replay.ReplayMoments.onEffect(server, effect);
+            }
             // TV direction (chantier E): cameras, overlay, credits
             case Actions.Broadcast b -> fr.lordfinn.craftmaster.broadcast.Director.play(server, b.action(), lines);
             // Screen effects (fx/): the broadcast view, forced on players

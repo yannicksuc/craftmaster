@@ -14,6 +14,8 @@ import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowCue;
 import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowState;
 import fr.lordfinn.craftmaster.camera.CameraSpot;
 import fr.lordfinn.craftmaster.client.CraftMasterClient;
+import fr.lordfinn.craftmaster.client.replay.ReplayClient;
+import fr.lordfinn.craftmaster.client.replay.ReplayDirector;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -162,6 +164,11 @@ public final class Broadcast {
         }
         while (ZONE_KEY.consumeClick()) zone(mc.hasShiftDown() ? "prev" : "next");
         while (MOSAIC_KEY.consumeClick()) {
+            if (ReplayClient.active()) {
+                // In a replay: the wide shot, here
+                ReplayDirector.wide();
+                continue;
+            }
             Map<String, Object> a = new LinkedHashMap<>();
             a.put("type", "camera.mosaic");
             if (DirectorCamera.shown().kind() == BroadcastNetwork.SHOT_MOSAIC) a.put("enabled", false);
@@ -171,6 +178,11 @@ public final class Broadcast {
 
     /** Next / previous zone of the round (the keys 1–9 then address its cameras). */
     private static void zone(String which) {
+        if (ReplayClient.active()) {
+            // In a replay: the next contestant (Shift: the previous one, through their eyes), here
+            ReplayDirector.player(null, "prev".equals(which) ? -1 : 1, "prev".equals(which));
+            return;
+        }
         Map<String, Object> a = new LinkedHashMap<>();
         a.put("type", "camera.focus");
         a.put("zone", which);
@@ -196,6 +208,11 @@ public final class Broadcast {
     /** Asks the server for a cut ("3" = camera 3 of the focus; a key or any reference the server understands). */
     private static void cutTo(String camera) {
         Minecraft mc = Minecraft.getInstance();
+        if (ReplayClient.active()) {
+            // In a replay the server's director is not there: the cut is made on this game
+            ReplayDirector.camera(camera);
+            return;
+        }
         if (camera.matches("\\d+") && ShowStateClient.focused().get(Integer.parseInt(camera)) == null) {
             if (mc.player != null) mc.player.sendOverlayMessage(Component.literal("Pas de caméra " + camera + " ici ("
                     + CameraSpot.placeName(ShowStateClient.get().focus()) + ")").withStyle(ChatFormatting.GRAY));

@@ -4,6 +4,6 @@
   "compatibilityLevel": "JAVA_21",
   "client": ["CameraMixin", "EntityRenderDispatcherMixin", "AvatarRendererNameTagMixin", "GameRendererMixin", "GuiGraphicsExtractorAccessor", "HandsRendererMixin",
     "MouseHandlerMixin", "ToastManagerMixin", "SectionOcclusionGraphMixin",
-    "FxGameRendererMixin", "FxPostChainMixin", "FxCameraMixin", "FxTimelapseClockMixin", "FxTimelapseCloudsMixin", "PostChainAccessor", "PostPassAccessor", "HudInvoker", "DevWindowMixin"],
+    "FxGameRendererMixin", "FxPostChainMixin", "FxCameraMixin", "FxTimelapseClockMixin", "FxTimelapseCloudsMixin", "PostChainAccessor", "PostPassAccessor", "HudInvoker", "DevWindowMixin", "BossHealthOverlayMixin"],
   "injectors": { "defaultRequire": 1 }
 }

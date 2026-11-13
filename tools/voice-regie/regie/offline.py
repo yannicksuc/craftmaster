@@ -12,6 +12,9 @@ Understood: "caméra <N>" · "plan large" · "plan sur le trône" · "le podium"
 "caméra <N> du studio | d'<joueur>" · "zone d'<joueur>" · "caméras de l'équipe bleue | du studio | du <manche>" ·
 "la caméra <N> est sur <lieu>" · "lance le travelling <nom>" · "lance l'intro [du <manche>]" · "écran partagé".
 "passe | mets la diffusion | <joueur> en <effet>" · "enlève | retire les effets [de <joueur> | de la diffusion]".
+During a replay: "pause" · "lecture" · "recule | avance [de <N> secondes]" · "au début" · "vitesse <x>" ·
+"au ralenti" · "vitesse normale" · "plus | moins vite" · "repère suivant | précédent" · "la zone" ·
+"l'écran de <joueur>" · "vue de <joueur>" · "les plans du direct" · "caméra libre" · "ferme le replay".
 """
 from __future__ import annotations
 
@@ -36,6 +39,81 @@ SCORE_PATTERNS = [
 ]
 
 
+def _replay(text: str, ctx: ShowContext) -> list[dict] | None:
+    """Orders while a replay plays (context "replay"): playback, files, who directs."""
+    def ctl(what, **kw):
+        return [{"type": "replay.control", "do": what, **kw}]
+
+    if re.fullmatch(r"(?:mets? (?:le replay )?en )?pause|stop", text):
+        return ctl("pause")
+    if re.fullmatch(r"(?:lecture|play|reprends?|relance|continue)(?: le replay| la lecture)?", text):
+        return ctl("play")
+    m = re.fullmatch(r"(?:recule|reviens|retour(?: en arrière)?|en arrière)(?: de)? " + NUM + r" secondes?", text)
+    if m:
+        n = m.group("n")
+        return ctl("back", seconds=int(FRENCH_NUMBERS.get(n, n)))
+    m = re.fullmatch(r"(?:avance|en avant)(?: de)? " + NUM + r" secondes?", text)
+    if m:
+        n = m.group("n")
+        return ctl("forward", seconds=int(FRENCH_NUMBERS.get(n, n)))
+    if re.fullmatch(r"(?:recule|reviens en arrière|en arrière)", text):
+        return ctl("back")
+    if re.fullmatch(r"(?:avance|en avant)", text):
+        return ctl("forward")
+    if re.fullmatch(r"(?:retour |reviens |va )?au début|recommence|depuis le début", text):
+        return ctl("start")
+    m = re.fullmatch(r"vitesse (?:x|fois )?(?P<x>\d+(?:[,.]\d+)?)", text)
+    if m:
+        return ctl("speed", speed=m.group("x").replace(",", "."))
+    if re.fullmatch(r"vitesse normale", text):
+        return ctl("speed", speed="1")
+    if re.fullmatch(r"(?:au |en )?ralenti", text):
+        return ctl("speed", speed="0.5")
+    if re.fullmatch(r"(?:en )?accéléré|plus vite|accélère", text):
+        return ctl("faster")
+    if re.fullmatch(r"moins vite|ralentis", text):
+        return ctl("slower")
+    if re.fullmatch(r"(?:le )?(?:repère|événement|moment) suivant|(?:le )?prochain (?:repère|événement|moment)", text):
+        return ctl("next_marker")
+    if re.fullmatch(r"(?:le )?(?:repère|événement|moment) précédent", text):
+        return ctl("prev_marker")
+    m = re.fullmatch(r"(?:montre |affiche )?(?:que |juste |seulement )?les (?P<k>morts|résultats|réussites|chronos|cloches"
+                     r"|drapeaux(?: des joueurs)?|points|manches|sorties de zone|projecteurs)", text)
+    if m:
+        return ctl("filter", kind=m.group("k"))
+    m = re.fullmatch(r"(?:les )?(?:moments|repères) (?:de |d')(?:la )?zone (?P<z>.+)", text)
+    if m:
+        return ctl("filter", zone=m.group("z"))
+    m = re.fullmatch(r"(?:les )?(?:moments|repères) (?:de |d')(?P<who>.+)", text)
+    if m:
+        p = ctx.player(m.group("who"))
+        return ctl("filter", player=p.pseudo if p else m.group("who"))
+    if re.fullmatch(r"(?:tous les (?:repères|moments)|enlève le filtre|plus de filtre|sans filtre)", text):
+        return ctl("clear_filter")
+    if re.fullmatch(r"(?:la |sur la |vue de la |fichier de la )?zone(?: de l'épreuve)?", text):
+        return ctl("view", view="zone")
+    m = re.fullmatch(r"(?:l'écran|le fichier|l'interface|le jeu) (?:de |d')(?P<who>.+)", text)
+    if m:
+        p = ctx.player(m.group("who"))
+        return ctl("view", view=p.pseudo if p else m.group("who"))
+    m = re.fullmatch(r"(?:la )?vue (?:de |d')(?P<who>.+)|par les yeux (?:de |d')(?P<who2>.+)", text)
+    if m:
+        return [{"type": "camera.pov", "player": m.group("who") or m.group("who2")}]
+    if re.fullmatch(r"(?:la réalisation du direct|les plans du direct|réalisation direct)", text):
+        return ctl("mode", mode="direct")
+    m = re.fullmatch(r"(?:caméra|réalisation) libre (?:depuis|à partir de|sur) (?:la )?(?:caméra )?(?P<cam>.+)", text)
+    if m:
+        n = m.group("cam")
+        return ctl("mode", mode="libre", camera=str(FRENCH_NUMBERS.get(n, n)))
+    if re.fullmatch(r"(?:caméra|réalisation) libre", text):
+        return ctl("mode", mode="libre")
+    if re.fullmatch(r"réalisation manuelle", text):
+        return ctl("mode", mode="manuel")
+    if re.fullmatch(r"(?:ferme|quitte|arrête|coupe) le replay", text):
+        return ctl("close")
+    return None
+
+
 def _clean(text: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"[.!?,;:«»\"]", " ", text.lower())).strip()
 
@@ -56,6 +134,14 @@ class OfflineUnderstander:
 
     @staticmethod
     def _parse(text: str, ctx: ShowContext) -> list[dict] | None:
+        if ctx.replay:
+            replay = _replay(text, ctx)
+            if replay is not None:
+                return replay
+        # Live: a flag on the recording's timeline
+        m = re.fullmatch(r"(?:marque ce moment|marque le moment|(?:pose |mets )?(?:un )?drapeau)(?: (?:pour |sur )?(?P<note>.+))?", text)
+        if m and not ctx.replay:
+            return [{"type": "replay.flag", **({"text": m.group("note")} if m.group("note") else {})}]
         if re.fullmatch(r"(annule|annuler|annule ça|annule ca)", text):
             return [{"type": "undo", "count": 1}]
         if re.search(r"\bouvr\w* (les |le )?rideaux?\b", text):

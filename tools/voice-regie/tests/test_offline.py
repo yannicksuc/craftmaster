@@ -6,6 +6,8 @@ from regie.service import Regie
 
 # Real Whisper transcripts of tests/audio (whisper_check.py, large-v3-turbo with the context prompt)
 CASES = [
+    ("Marque ce moment.", [{"type": "replay.flag"}]),
+    ("Drapeau pour belle chute.", [{"type": "replay.flag", "text": "belle chute"}]),
     ("Trois points pour Juste pour le Pont.", [{"type": "score.add", "player": "JustEdible", "points": 3, "manche": "pont"}]),
     ("Deux points pour JustEdible.", [{"type": "score.add", "player": "JustEdible", "points": 2, "manche": "current"}]),
     ("Ensuri prend 4 points sur la Tour.", [{"type": "score.add", "player": "Ensuri", "points": 4, "manche": "tour"}]),
@@ -91,3 +93,44 @@ def test_offline_mode_is_opt_in(monkeypatch):
     # No key: Claude Code and the Claude subscription
     assert type(Regie(Settings(), transcriber=object()).understander).__name__ == "SubscriptionUnderstander"
     assert type(Regie(Settings(understanding="offline"), transcriber=object()).understander).__name__ == "OfflineUnderstander"
+
+
+# Replays: while one plays on LordFinn's game (context "replay"), the orders drive it
+REPLAY_CASES = [
+    ("Pause.", [{"type": "replay.control", "do": "pause"}]),
+    ("Reprends la lecture.", [{"type": "replay.control", "do": "play"}]),
+    ("Recule de 10 secondes.", [{"type": "replay.control", "do": "back", "seconds": 10}]),
+    ("Avance de cinq secondes.", [{"type": "replay.control", "do": "forward", "seconds": 5}]),
+    ("Au début.", [{"type": "replay.control", "do": "start"}]),
+    ("Que les morts.", [{"type": "replay.control", "do": "filter", "kind": "morts"}]),
+    ("Montre les cloches.", [{"type": "replay.control", "do": "filter", "kind": "cloches"}]),
+    ("Les moments d'Ensuri.", [{"type": "replay.control", "do": "filter", "player": "Ensuri"}]),
+    ("Les repères de la zone B.", [{"type": "replay.control", "do": "filter", "zone": "b"}]),
+    ("Enlève le filtre.", [{"type": "replay.control", "do": "clear_filter"}]),
+    ("Caméra libre depuis la caméra 2.", [{"type": "replay.control", "do": "mode", "mode": "libre", "camera": "2"}]),
+    ("Vitesse 2.", [{"type": "replay.control", "do": "speed", "speed": "2"}]),
+    ("Au ralenti.", [{"type": "replay.control", "do": "speed", "speed": "0.5"}]),
+    ("Repère suivant.", [{"type": "replay.control", "do": "next_marker"}]),
+    ("La zone.", [{"type": "replay.control", "do": "view", "view": "zone"}]),
+    ("L'écran de Cycy.", [{"type": "replay.control", "do": "view", "view": "Cyllu"}]),
+    ("Vue d'Ensuri.", [{"type": "camera.pov", "player": "Ensuri"}]),
+    ("Les plans du direct.", [{"type": "replay.control", "do": "mode", "mode": "direct"}]),
+    ("Ferme le replay.", [{"type": "replay.control", "do": "close"}]),
+    ("Caméra 2.", [{"type": "camera.cut", "camera": "2"}]),
+]
+
+
+@pytest.mark.parametrize("transcript,expected", REPLAY_CASES)
+def test_offline_replay(transcript, expected):
+    from conftest import make_context
+    from regie.context import ShowContext
+    ctx = ShowContext(make_context(replay={"title": "Manche 1", "view": "zone", "views": ["zone", "Ensuri", "Cyllu"],
+                                           "time": "0:20", "duration": "4:00", "markers": ["0:12 Ensuri +3"]}))
+    r = OfflineUnderstander().understand(ctx, transcript)
+    assert r.actions == expected and r.error is None
+    assert "REPLAY EN COURS" in ctx.summary() and "Ensuri +3" in ctx.summary()
+
+
+def test_pause_is_not_a_replay_order_without_a_replay(ctx):
+    r = OfflineUnderstander().understand(ctx, "Pause.")
+    assert all(a["type"] == "say" for a in r.actions)

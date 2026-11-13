@@ -128,7 +128,8 @@ public final class VoiceRegie {
     }
 
     private static void press(Minecraft mc) {
-        if (!ClientPlayNetworking.canSend(RegiePayloads.ContextRequest.TYPE)) {
+        boolean replay = fr.lordfinn.craftmaster.client.replay.ReplayClient.active();
+        if (!replay && !ClientPlayNetworking.canSend(RegiePayloads.ContextRequest.TYPE)) {
             mc.player.sendOverlayMessage(Component.translatable("message.craftmaster.no_server_mod"));
             return;
         }
@@ -151,7 +152,10 @@ public final class VoiceRegie {
         }
         requestId++;
         pendingContext = new CompletableFuture<>();
-        ClientPlayNetworking.send(new RegiePayloads.ContextRequest(requestId));
+        // During a replay nothing reaches the server but commands: the context is this game's, the orders run here
+        if (replay) pendingContext.complete(new RegiePayloads.Context(requestId, true,
+                fr.lordfinn.craftmaster.client.replay.ReplayControl.contextJson()));
+        else ClientPlayNetworking.send(new RegiePayloads.ContextRequest(requestId));
         view = new View(Phase.LISTENING, "", "", List.of(), true, false, 0);
     }
 
@@ -216,6 +220,16 @@ public final class VoiceRegie {
         if (actions.equals("[]")) {
             show(r.warnings(), r.transcript(), true, r.reply().isBlank()
                     ? Component.translatable("hud.craftmaster.regie.nothing_done").getString() : r.reply(), false);
+            return;
+        }
+        if (fr.lordfinn.craftmaster.client.replay.ReplayClient.active()) {
+            List<String> lines = new ArrayList<>(r.warnings());
+            boolean ok = true;
+            for (var res : fr.lordfinn.craftmaster.client.replay.ReplayControl.runAll(actions)) {
+                lines.add(res.line());
+                ok &= res.ok();
+            }
+            show(lines, r.transcript(), ok, r.reply(), false);
             return;
         }
         executingSince = System.currentTimeMillis();

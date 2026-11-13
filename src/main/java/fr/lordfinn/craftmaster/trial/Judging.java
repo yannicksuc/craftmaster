@@ -46,6 +46,13 @@ public final class Judging {
 
     private static final Map<String, Bar> BARS = new LinkedHashMap<>();
 
+    /** The stopwatches' boss bars shown now (a replay file starting now must be told they exist). */
+    public static List<ServerBossEvent> bossBars() {
+        List<ServerBossEvent> out = new java.util.ArrayList<>();
+        for (Bar b : BARS.values()) out.add(b.event);
+        return out;
+    }
+
     // ---------------------------------------------------------------- effects of the actions
 
     public static void play(MinecraftServer server, Actions.Effect effect, List<String> lines) {

@@ -214,9 +214,15 @@ public final class DirectorCamera {
             CameraPath p = ShowStateClient.path(previewPath);
             return p == null ? null : path(mc, p, (now - previewStart) / 1000.0);
         }
+        // A replay's free camera: the spectator's own eyes, the broadcast look kept (no game interface)
+        if (fr.lordfinn.craftmaster.client.replay.ReplayClient.active()
+                && fr.lordfinn.craftmaster.client.replay.ReplayDirector.mode() == fr.lordfinn.craftmaster.client.replay.ReplayDirector.Mode.FREE) {
+            Mosaic.prepare(false);
+            return null;
+        }
         update();
         Mosaic.prepare(shown.kind() == BroadcastNetwork.SHOT_MOSAIC);
-        return switch (shown.kind()) {
+        Pose result = switch (shown.kind()) {
             case BroadcastNetwork.SHOT_CAMERA -> camera(mc, ShowStateClient.cameras().get(shown.camera()), shotSeconds());
             case BroadcastNetwork.SHOT_FOLLOW -> follow(mc, shown.player(), partialTick, dt);
             case BroadcastNetwork.SHOT_PATH -> {
@@ -228,6 +234,15 @@ public final class DirectorCamera {
             case BroadcastNetwork.SHOT_MOSAIC -> mosaic(mc);
             default -> null;
         };
+        if (result != null) lastPose = result;
+        return result;
+    }
+
+    private static Pose lastPose;
+
+    /** The last picture's camera (where a replay's free camera starts from), or null. */
+    public static Pose lastPose() {
+        return lastPose;
     }
 
     private static Pose camera(Minecraft mc, CameraSpot spot, double seconds) {
