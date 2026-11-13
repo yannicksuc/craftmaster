@@ -281,8 +281,8 @@ public final class MancheIntro {
      *       more when there are few inserts);</li>
      *   <li>up to 4 inserts (the round's other cameras), long and short in turn, macro / focus pull / stop motion;</li>
      *   <li>the master's look: the studio's throne camera, short and dark (4 beats), when there is one;</li>
-     *   <li>the task location shot ({@link #TASK}), the longest, on a white flash; the title card comes on it and the
-     *       task is typed at the bottom.</li>
+     *   <li>the task location shot ({@link #TASK}), the longest, on a white flash, the task typed at the bottom (no
+     *       title card: the round's name is typed on black at the launch that follows).</li>
      * </ol>
      * Plays chained (black, teleports, title) and by itself at the round's start. Pure: the caller gives the cameras.
      *
@@ -297,6 +297,8 @@ public final class MancheIntro {
         i.music = INTRO_MUSIC;
         i.bpm = INTRO_BPM;
         i.look = AUTO_LOOK;
+        // No card over the last shot (it would hide the task): the round's name is typed on black right after
+        i.titleCard = false;
         double beat = 60 / INTRO_BPM;
         List<String> ins = inserts == null ? List.of() : inserts.subList(0, Math.min(4, inserts.size()));
         int[] pattern = switch (ins.size()) {

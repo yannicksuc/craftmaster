@@ -124,7 +124,7 @@ class MancheIntroTest {
         for (MancheIntro.Timed t : tl) assertTrue(t.length() <= tl.getLast().length() + 1e-9);
         assertTrue(full.shots.stream().anyMatch(s -> s.effect().equals("mise_au_point")));
         assertEquals("macro+look_intro", full.effectOf(full.shots.get(1)));
-        assertEquals(6, full.autoCardShot());
+        assertEquals(-1, full.autoCardShot(), "no title card over the task location");
 
         // Nothing in the lieu, no throne: only the task location, for the whole music
         MancheIntro bare = MancheIntro.autoBuild(null, List.of(), null);
@@ -133,6 +133,17 @@ class MancheIntroTest {
         assertEquals(20, bare.duration(n -> 0), 1e-9);
         // Two cameras: still 40 beats
         assertEquals(20, MancheIntro.autoBuild("a", List.of("b"), null).duration(n -> 0), 1e-9);
+    }
+
+    @Test
+    void typedTaskComesFromTheRoundsTask() {
+        assertEquals("", MancheIntros.typedTask(pont()));
+        fr.lordfinn.craftmaster.data.Task t = new fr.lordfinn.craftmaster.data.Task();
+        t.title = "Le château de sable";
+        t.text = "Construisez le plus haut château possible avec uniquement du sable.\nLe plus haut château gagne.";
+        pont().task = t;
+        assertEquals("Construisez le plus haut château possible avec uniquement du sable.",
+                MancheIntros.typedTask(pont()));
     }
 
     @Test
@@ -205,6 +216,8 @@ class MancheIntroTest {
         assertEquals("noir_blanc", BroadcastActions.effectId("Noir et blanc"));
         assertEquals("masque_rond", BroadcastActions.effectId("masque rond"));
         assertEquals("", BroadcastActions.effectId("aucun"));
+        assertEquals("macro+look_intro", BroadcastActions.effectId("macro + Look intro"));
+        assertEquals("noir_blanc+vignette", BroadcastActions.effectId("noir et blanc+vignette+aucun"));
     }
 
     @Test

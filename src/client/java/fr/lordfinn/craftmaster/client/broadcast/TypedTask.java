@@ -84,7 +84,7 @@ public final class TypedTask {
         Minecraft mc = Minecraft.getInstance();
         Font font = mc.font;
         int w = g.guiWidth(), h = g.guiHeight();
-        float scale = Math.max(1, Math.min(3, h / 160f));
+        float scale = Math.max(1, Math.min(3, h / 210f));
         int maxWidth = (int) ((w * 0.8f) / scale);
         List<String> lines = wrap(font, text, maxWidth);
         if (lines.size() > 3) lines = lines.subList(0, 3);

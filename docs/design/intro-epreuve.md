@@ -217,21 +217,25 @@ docs/wiki/Taches.md, « Police et dessins ».
 L'organisateur peut ensuite tout retoucher dans l'éditeur : remplacer un plan, changer un effet, fixer une caméra
 générée.
 
-## Ce qui existe déjà / ce qui manque
+## Ce qui existe / ce qui reste
 
-Existe :
-- intro de manche (plans, durées, transitions, effets) ;
-- coupe sur les temps de la musique ;
+Fait (13/11/2026) :
+- intro de manche (plans, durées, transitions, effets) et coupe sur les temps de la musique ;
 - lancement enchaîné (noir, TP, titre tapé, révélation) ;
-- effets `sepia`, `noir_blanc`, `vignette`, `fisheye`, `masque_rond`, `pixel` ;
-- zoom par caméra, rôles de caméra (`trone`, `large`) ;
+- look intro (`look_intro` : deux teintes, grain, vignette, bords flous), sur toute l'intro (`/tv intro <m> look`) ;
+- profondeur de champ par le tampon de profondeur : `macro` et bascule de mise au point (`mise_au_point`) ;
+- `stop_motion`, `timelapse` (temps du monde accéléré sur la diffusion seulement) ;
+- transitions `miroir` (kaléidoscope), `flash`, `surimpression` ;
+- plan « lieu de la tâche » (point de TP + enveloppe posée la plus proche, caméra sans trépied) ;
+- consigne tapée en bas de l'image (première phrase de la tâche, si elle est révélée au lancement) ;
+- mode automatique (`/tv intro <m> construire`) sur une musique d'intro courte (120 BPM, 20 s, finit sur un accord) ;
+- éditeur dans le chat (`/tv intro <m> voir` : frise sur la musique, essayer à partir d'un plan, déplacer, changer
+  la caméra, l'effet, la transition, la durée) ;
 - enveloppe posée, lisible sur place, récupérée en la cassant.
 
-Manque, dans l'ordre proposé :
-1. le « look intro » (deux teintes, grain, vignette, bords flous) et la bascule de mise au point ;
-2. la consigne tapée en bas de l'image (la police machine à écrire est en place) ;
-3. le plan « lieu de la tâche » et la recherche de l'enveloppe posée ;
-4. le mode automatique (sujets, caméras générées, structure) ;
-5. le stop motion, le timelapse, et les transitions miroir, flash et surimpression ;
-6. l'éditeur (frise sur la musique, aperçu, remplacer un plan) ;
-7. une musique d'intro d'épreuve courte.
+Reste, si besoin :
+- caméras générées autour des sujets quand le lieu n'en a pas assez (le mode automatique n'utilise que les
+  caméras posées, le trône et le lieu de la tâche) ;
+- sujets tirés des mots de la tâche (moutons…) ;
+- transition « surimpression » d'un plan du trône par-dessus le ciel (la surimpression existe, pas ce montage) ;
+- une vraie musique d'intro (celle-ci est provisoire, remplaçable dans un pack de ressources).

@@ -1435,8 +1435,6 @@ public final class Actions {
                     .withRole(fr.lordfinn.craftmaster.camera.CameraSpot.THRONE);
             fr.lordfinn.craftmaster.data.MancheIntro built = fr.lordfinn.craftmaster.data.MancheIntro.autoBuild(
                     wide == null ? null : wide.key(), inserts, throne == null ? null : throne.key());
-            // What the organiser chose stays: the card setting
-            built.titleCard = r.intro.titleCard;
             r.intro = built;
             line("Intro de « " + r.name + " » construite : " + built.shots.size() + " plans sur la musique d'intro ("
                     + (wide == null ? "pas de caméra dans le lieu" : "large " + wide.key()) + ", " + Math.min(4, inserts.size()) + " insert(s), "

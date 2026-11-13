@@ -146,6 +146,7 @@ public final class MancheIntros {
             typeAt = Math.max(shift, Math.min(typeAt + 0.5, Math.max(0, end - 3)));
             int ticks = (int) Math.round((end - typeAt) * 20);
             at(server, typeAt - shift, () -> Director.cue(server, new ShowCue(Cues.TASK_TYPE, typed, "", "", ticks)));
+            CraftMaster.LOG.info("[Réalisation] Consigne tapée à {} s : {}", Math.round((typeAt - shift) * 10) / 10.0, typed);
         }
         at(server, end - shift, () -> finish(server, true));
         Director.sync(server);

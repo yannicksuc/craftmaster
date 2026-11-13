@@ -163,7 +163,7 @@ prend le relais.
   d'épreuve (120 BPM, 20 s, finit sur un accord), 40 temps en tout. Le plan large de la manche en timelapse, sorti du
   plateau par la transition miroir ; jusqu'à 4 autres caméras du lieu en inserts, longs et courts en alternance
   (macro, bascule de mise au point, stop motion) ; la caméra trône du studio, courte et sombre ; puis le **lieu de
-  la tâche** sur un flash blanc, le plan le plus long, avec le titre de la manche. Look « vieux reportage »
+  la tâche** sur un flash blanc, le plan le plus long, la consigne tapée en bas (pas de titre par-dessus : le nom de la manche est tapé sur le noir juste après). Look « vieux reportage »
   (`look_intro`) sur tout, jouée au lancement et enchaînée. Tout se retouche ensuite plan par plan (`voir`, `plan …`).
 - **Lieu de la tâche** (`ajouter tache`) : le plan qui montre où les joueurs vont arriver et l'enveloppe qui les y
   attend. Sa caméra est faite la première fois : le premier point de TP de la manche, l'enveloppe posée la plus
