@@ -5,6 +5,11 @@ import com.mojang.math.Axis;
 import fr.lordfinn.craftmaster.CraftMaster;
 import fr.lordfinn.craftmaster.broadcast.BroadcastNetwork;
 import fr.lordfinn.craftmaster.camera.CameraEntity;
+import fr.lordfinn.craftmaster.camera.CameraMount;
+import fr.lordfinn.craftmaster.studio.RigLinks;
+import fr.lordfinn.craftmaster.studio.RigRodBlock;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.model.geom.ModelPart;
@@ -33,6 +38,12 @@ import net.minecraft.world.item.ItemDisplayContext;
  * with a brass lens, a hood and a pan bar, and the red "on air" tally light that lights up when the camera is live.
  * Its number is painted on both sides. The detail is in camera.png (scripts/gen_assets.py); the tripod and its rod
  * are LordFinn's own models from his server (scripts/ia_sandbox, drawn as item models).
+ *
+ * <p>Mounted ({@link CameraMount}, decided by the server) it has no legs: a short stem of the rod under the body on a
+ * tripod stand or a rod, the body upside-down under a ceiling (a drop pole, the rod's arm with its plate on the
+ * ceiling) or a rod, standing on a wall arm (like the studio light's bracket) or on a rod's side arm. Where the rod
+ * itself does not reach the camera (a beam under a camera on top, a rod's side) its arm and clamp are drawn here.
+ * The lens is always at the entity's {@link CameraEntity#lens()}, where the broadcast shot is taken from.
  * Not drawn at all in broadcast mode (see EntityRenderDispatcherMixin).
  */
 public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.State> {
@@ -47,10 +58,16 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         boolean onAir;
         // LordFinn's tripod and rod (the server's ItemsAdder models) under the camera body
         final ItemStackRenderState tripod = new ItemStackRenderState(), rod = new ItemStackRenderState();
+        CameraMount mount = CameraMount.FLOOR;
+        /** The rod's arm (or the wall bracket / ceiling drop pole) and its clamp, drawn by the camera. */
+        final ItemStackRenderState arm = new ItemStackRenderState(), knuckle = new ItemStackRenderState();
+        /** On a rod: its own arm does not reach the camera, draw one (with a clamp). */
+        boolean rodArm;
     }
 
     /** Top of the server's tripod model and bottom of the camera body, above the feet (blocks). */
     private static final float TRIPOD_TOP = 1f, BODY_BOTTOM = 1.3f;
+    private static final Identifier ARM = CraftMaster.id("furniture/rig_arm"), KNUCKLE = CraftMaster.id("furniture/rig_knuckle");
 
     private final ModelPart root, head, tally;
     private final ItemModelResolver items;
@@ -110,21 +127,50 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         s.place = fr.lordfinn.craftmaster.camera.CameraSpot.STUDIO.equals(group) ? "" : group.replace(':', ' ').toUpperCase(java.util.Locale.ROOT);
         items.updateForNonLiving(s.tripod, FurnitureRenderer.stack(CraftMaster.id("furniture/tripod")), ItemDisplayContext.NONE, e);
         items.updateForNonLiving(s.rod, FurnitureRenderer.stack(CraftMaster.id("furniture/tripod_rod")), ItemDisplayContext.NONE, e);
+        CameraMount mount = e.mount();
+        s.mount = mount;
+        s.rodArm = false;
+        if (mount.onRod()) {
+            int[] b = mount.supportBlock(e.getX(), e.getY(), e.getZ());
+            BlockState rod = e.level().getBlockState(new BlockPos(b[0], b[1], b[2]));
+            // A rod draws its arm toward a linked side, or right through it when it is a straight line
+            s.rodArm = !(rod.getBlock() instanceof RigRodBlock) || !RigLinks.has(RigLinks.arms(RigRodBlock.links(rod)), armSide(mount));
+        }
+        if (!mount.legs() && mount.kind() != CameraMount.Kind.TRIPOD)
+            items.updateForNonLiving(s.arm, FurnitureRenderer.stack(ARM), ItemDisplayContext.NONE, e);
+        if (s.rodArm) items.updateForNonLiving(s.knuckle, FurnitureRenderer.stack(KNUCKLE), ItemDisplayContext.NONE, e);
+    }
+
+    /** The side of the rod's block toward the camera. */
+    private static int armSide(CameraMount mount) {
+        return switch (mount.kind()) {
+            case ROD_TOP -> CameraMount.UP;
+            case ROD_UNDER -> CameraMount.DOWN;
+            default -> mount.side() ^ 1;
+        };
     }
 
     @Override
     public void submit(State s, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         int light = s.lightCoords;
-        submitTripod(s, poseStack, collector);
+        CameraMount mount = s.mount;
+        if (mount.legs()) submitTripod(s, poseStack, collector);
+        else submitMount(s, poseStack, collector);
         poseStack.pushPose();
         poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(180 - s.yaw));
         poseStack.scale(-1, -1, 1);
-        poseStack.translate(0, -1.501, 0);
-        head.xRot = (float) Math.toRadians(s.pitch);
+        // Model space: y down, the lens axis at y = 0
+        poseStack.translate(0, -(float) mount.lensDy() - 0.001f, 0);
+        // Hung: upside-down around the lens axis (the pan head on top); seen that way, the tilt turns the other way
+        if (mount.hung()) poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.ZP.rotationDegrees(180));
+        float pitch = mount.hung() ? -s.pitch : s.pitch;
+        float xRot = (float) Math.toRadians(pitch);
         boolean onAir = s.onAir;
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (p, c) -> {
             PoseStack ps = new PoseStack();
             ps.last().set(p);
+            // Set here: the geometry is drawn later, after every camera's submit
+            head.xRot = xRot;
             tally.visible = false;
             root.render(ps, c, light, OverlayTexture.NO_OVERLAY);
             tally.visible = true;
@@ -134,12 +180,75 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
             PoseStack ps = new PoseStack();
             ps.last().set(p);
             ps.translate(0, 2 / 16f, 0);
-            ps./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotation(head.xRot));
+            ps./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotation(xRot));
             tally.render(ps, c, onAir ? LightCoordsUtil.FULL_BRIGHT : light, OverlayTexture.NO_OVERLAY, onAir ? 0xFFFFFFFF : 0xFF603030);
         });
-        submitNumber(s, poseStack, collector);
+        submitNumber(s, pitch, mount.hung(), poseStack, collector);
         poseStack.popPose();
         super.submit(s, poseStack, collector, camera);
+    }
+
+    /**
+     * Mounted: the stem from the support to the body (the tripod's rod, short), and what holds it: the drop pole
+     * under a ceiling, the wall arm, the rod's arm and clamp where the rod does not reach the camera. All around the
+     * anchor (the entity's position), turning with nothing but the camera's stem.
+     */
+    private static void submitMount(State s, PoseStack pose, SubmitNodeCollector collector) {
+        CameraMount m = s.mount;
+        int light = s.lightCoords;
+        float stem = (float) CameraMount.STEM;
+        pose.pushPose();
+        pose./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(180 - s.yaw));
+        pose.translate(0, m.hung() ? -stem / 2 : stem / 2, 0);
+        pose.scale(1, stem, 1);
+        s.rod.submit(pose, collector, light, OverlayTexture.NO_OVERLAY, 0);
+        pose.popPose();
+        float sx = m.stepX(), sz = m.stepZ();
+        switch (m.kind()) {
+            // The drop pole: the rod's arm, from its plate on the ceiling down to the camera
+            case CEILING -> arm(s.arm, pose, collector, light, 0, 0, 0, CameraMount.UP);
+            // The bracket, like the studio light's: from the middle of the block (tube top at 9 px) to the wall
+            case WALL -> arm(s.arm, pose, collector, light, 0, -1 / 16f, 0, m.side());
+            case ROD_TOP, ROD_UNDER, ROD_SIDE -> {
+                // On a rod's side: the same bracket, its plate against the end of the rod's arm
+                if (m.kind() == CameraMount.Kind.ROD_SIDE) arm(s.arm, pose, collector, light, 0, -1 / 16f, 0, m.side());
+                if (!s.rodArm) break;
+                // The rod's own arm toward the camera, from the rod's centre, and the clamp holding it
+                float cx = 0, cy = m.kind() == CameraMount.Kind.ROD_TOP ? -0.5f : 0.5f, cz = 0;
+                if (m.kind() == CameraMount.Kind.ROD_SIDE) {
+                    cx = sx;
+                    cy = -1 / 16f;
+                    cz = sz;
+                }
+                arm(s.arm, pose, collector, light, cx, cy, cz, armSide(m));
+                pose.pushPose();
+                pose.translate(cx, cy, cz);
+                s.knuckle.submit(pose, collector, light, OverlayTexture.NO_OVERLAY, 0);
+                pose.popPose();
+            }
+            default -> {}
+        }
+    }
+
+    /** The rod's arm model (centre to a face, plate on that face) drawn around {@code (x, y, z)}, toward {@code side}. */
+    private static void arm(ItemStackRenderState arm, PoseStack pose, SubmitNodeCollector collector, int light,
+                            float x, float y, float z, int side) {
+        pose.pushPose();
+        pose.translate(x, y, z);
+        if (side == CameraMount.DOWN) pose./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(180));
+        else if (side != CameraMount.UP) {
+            // As FurnitureRenderer's bracket: up turned toward the side (south 0°, west 90°, north 180°, east 270°)
+            float yRot = switch (side) {
+                case 2 -> 180;
+                case 4 -> 90;
+                case 5 -> 270;
+                default -> 0;
+            };
+            pose./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-yRot));
+            pose./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(90));
+        }
+        arm.submit(pose, collector, light, OverlayTexture.NO_OVERLAY, 0);
+        pose.popPose();
     }
 
     /** The tripod (1 block, its model) and its rod up to the camera body, turning with the camera. */
@@ -159,19 +268,21 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
     }
 
     /** The camera's number on both sides of the body, like the painted numbers of studio cameras. */
-    private void submitNumber(State s, PoseStack poseStack, SubmitNodeCollector collector) {
+    private void submitNumber(State s, float pitch, boolean hung, PoseStack poseStack, SubmitNodeCollector collector) {
         Font font = getFont();
         Component text = Component.literal(String.valueOf(s.number)).withStyle(ChatFormatting.BOLD);
         float w = font.width(text);
         for (int side = -1; side <= 1; side += 2) {
             poseStack.pushPose();
             poseStack.translate(0, 2 / 16f, 0);
-            poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(s.pitch));
+            poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.XP.rotationDegrees(pitch));
             // On the side face (x = ±3 px), turned to face outward, centred on the body
             poseStack.translate(side * 3.02f / 16f, -2 / 16f, 0.5f / 16f);
             poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(-side * 90));
             float scale = 0.45f / 16f;
             poseStack.scale(scale, scale, scale);
+            // Upside-down camera: the number still reads the right way up
+            if (hung) poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.ZP.rotationDegrees(180));
             collector.submitText(poseStack, -w / 2, -4, text.getVisualOrderText(), false, Font.DisplayMode.POLYGON_OFFSET,
                     LightCoordsUtil.FULL_BRIGHT, 0xFFFFE39A, 0, 0);
             if (!s.place.isEmpty()) {
