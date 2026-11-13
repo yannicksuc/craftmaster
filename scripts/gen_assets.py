@@ -121,6 +121,8 @@ chair_template = {
         tall_cube([4, 18, 12], [12, 21, 14], "#planks"),               # crest rail
     ],
 }
+from gen_toys import gui_fit  # noqa: E402  (inventory icons centred in the slot at a set size)
+chair_template["display"] = {"gui": gui_fit(chair_template["elements"], 15)}   # the back (y 22) was cut by the slot
 write_json(os.path.join(A, "models/block/chair_template.json"), chair_template)
 # 16 directions (ChairBlock: FACING + TILT): the same model turned by 0, 22.5 or 45 degrees clockwise (seen from
 # above); the 4th step is the next quarter turned back by 22.5 (a model may only turn by -45..45)
