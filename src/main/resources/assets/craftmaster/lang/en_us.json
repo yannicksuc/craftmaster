@@ -1089,5 +1089,11 @@
   "screen.craftmaster.travelling.entity_none": "none found right now",
   "overlay.craftmaster.travelling.hover_step": "Step %s · left click: move it · right click: its settings",
   "overlay.craftmaster.travelling.hover_camera": "Step %s (at the camera) · left click: move it · right click: the camera's menu",
-  "screen.craftmaster.travelling.back": "◀ Camera"
+  "screen.craftmaster.travelling.back": "◀ Camera",
+  "screen.craftmaster.kit.title": "Camera %s · its travellings",
+  "screen.craftmaster.kit.question": "%s travelling(s) came with this camera. Where do they go?",
+  "screen.craftmaster.kit.relative": "Follow the camera",
+  "screen.craftmaster.kit.relative_tip": "Moved and turned with it, as they were around it",
+  "screen.craftmaster.kit.absolute": "Stay where they were",
+  "screen.craftmaster.kit.absolute_tip": "At their old places in the world"
 }

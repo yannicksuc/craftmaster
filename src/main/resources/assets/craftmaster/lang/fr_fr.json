@@ -1089,5 +1089,11 @@
   "screen.craftmaster.travelling.entity_none": "aucune trouvée pour l'instant",
   "overlay.craftmaster.travelling.hover_step": "Étape %s · clic gauche : la déplacer · clic droit : ses réglages",
   "overlay.craftmaster.travelling.hover_camera": "Étape %s (sur la caméra) · clic gauche : la déplacer · clic droit : menu de la caméra",
-  "screen.craftmaster.travelling.back": "◀ Caméra"
+  "screen.craftmaster.travelling.back": "◀ Caméra",
+  "screen.craftmaster.kit.title": "Caméra %s · ses travellings",
+  "screen.craftmaster.kit.question": "%s travelling(s) reviennent avec cette caméra. Où les mettre ?",
+  "screen.craftmaster.kit.relative": "Suivre la caméra",
+  "screen.craftmaster.kit.relative_tip": "Déplacés et tournés avec elle, comme autour d'elle avant",
+  "screen.craftmaster.kit.absolute": "Rester à leur place",
+  "screen.craftmaster.kit.absolute_tip": "À leurs anciennes places dans le monde"
 }

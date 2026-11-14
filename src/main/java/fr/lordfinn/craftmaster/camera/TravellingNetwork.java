@@ -150,6 +150,11 @@ public final class TravellingNetwork {
         if (cam == null) return;
         int index = o.has("index") ? o.get("index").getAsInt() : -1;
         switch (action) {
+            // How a picked-up camera's travellings come back (CameraKit's question)
+            case "kit" -> {
+                CameraKit.answer(player, !"absolute".equals(o.get("value").getAsString()));
+                return;
+            }
             case "open" -> {
                 if (o.has("select")) {
                     open(player, key, name, o.get("select").getAsInt());

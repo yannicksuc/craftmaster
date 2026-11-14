@@ -56,7 +56,11 @@ public class CameraItem extends Item {
         int number = Cameras.list().nextFree(group);
         CameraSpot spot = new CameraSpot(number, null, "", Busts.worldId(level), anchor[0], anchor[1] + mount.lensDy(), anchor[2],
                 player.getYRot(), player.getXRot(), 0, CameraSpot.BREATHING, CameraSpot.lieuOf(group), CameraSpot.zoneOf(group), mount);
+        // A camera picked up (Shift + hit) comes back with its settings, and its travellings once the player says how
+        com.google.gson.JsonObject kit = CameraKit.kit(ctx.getItemInHand());
+        spot = CameraKit.withSettings(spot, kit);
         Cameras.place(level.getServer(), spot);
+        CameraKit.placed(player, spot, kit);
         level.playSound(null, anchor[0], anchor[1], anchor[2], SoundEvents.ARMOR_STAND_PLACE, SoundSource.BLOCKS, 1f, 1.2f);
         player.sendSystemMessage(Component.literal("Caméra " + number + " posée " + mount.label() + " (" + spot.placeName() + "). ")
                 .withStyle(ChatFormatting.GOLD)

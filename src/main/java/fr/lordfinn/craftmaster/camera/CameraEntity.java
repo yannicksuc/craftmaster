@@ -173,15 +173,41 @@ public class CameraEntity extends Entity {
                 .withClickEvent(new ClickEvent.SuggestCommand(command)).withHoverEvent(new HoverEvent.ShowText(Component.literal(hover))));
     }
 
+    /** The first hit of a removal (game time, who): a second one within a second removes it. */
+    private long armedAt = -100;
+    private java.util.UUID armedBy;
+
     /** A hit from someone allowed to drive the cameras removes the camera (prop and shot). */
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (isRemoved() || !(source.getEntity() instanceof ServerPlayer player) || !Permissions.canDriveCameras(player)) return false;
+        // Sneaking: picked up, with its settings and travellings (placed again, they follow it or stay)
+        if (player.isShiftKeyDown()) {
+            ItemStack kit = CameraKit.pickUp(level.getServer(), this);
+            playSound(SoundEvents.ITEM_PICKUP, 1f, 1f);
+            if (!player.getInventory().add(kit)) spawnAtLocation(level, kit, 0.5f);
+            Cameras.removedByHand(level.getServer(), this);
+            discard();
+            player.sendSystemMessage(Component.literal("Caméra " + cameraKey() + " ramassée, avec ses réglages et ses travellings.").withStyle(ChatFormatting.YELLOW));
+            return true;
+        }
+        // Removed for good: a second hit within a second (a stray hit only warns)
+        long now = level.getGameTime();
+        if (now - armedAt > 20 || !player.getUUID().equals(armedBy)) {
+            armedAt = now;
+            armedBy = player.getUUID();
+            int count = TravellingNetwork.of(cameraKey()).size();
+            player.sendOverlayMessage(Component.literal("Frappe encore pour retirer la caméra"
+                    + (count == 0 ? "" : count == 1 ? " et son travelling" : " et ses " + count + " travellings")
+                    + " · Maj + coup : la ramasser").withStyle(ChatFormatting.GOLD));
+            return false;
+        }
         playSound(SoundEvents.ARMOR_STAND_BREAK, 1f, 1f);
         if (!player.isCreative()) spawnAtLocation(level, new ItemStack(ModContent.CAMERA_ITEM), 0.5f);
-        Cameras.removedByHand(level.getServer(), this);
+        int travellings = Cameras.removedByHand(level.getServer(), this);
         discard();
-        player.sendSystemMessage(Component.literal("Caméra " + cameraKey() + " retirée.").withStyle(ChatFormatting.YELLOW));
+        player.sendSystemMessage(Component.literal("Caméra " + cameraKey() + " retirée"
+                + (travellings == 0 ? "." : travellings == 1 ? ", avec son travelling." : ", avec ses " + travellings + " travellings.")).withStyle(ChatFormatting.YELLOW));
         return true;
     }
 

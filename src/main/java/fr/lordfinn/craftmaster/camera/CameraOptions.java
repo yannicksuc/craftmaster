@@ -78,6 +78,11 @@ public final class CameraOptions {
         save();
     }
 
+    /** A camera removed: its options go. */
+    public static void forget(String key) {
+        if (options.remove(key) != null) save();
+    }
+
     /** A camera changed its key (moved to another lieu): its options follow. */
     public static void moved(String from, String to) {
         Options o = options.remove(from);

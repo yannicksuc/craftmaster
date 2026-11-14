@@ -206,18 +206,32 @@ public final class Cameras {
         if (prop != null) prop.discard();
         list.remove(key);
         props.remove(key);
+        forget(server, key);
         changed(server);
         return true;
     }
 
-    /** The tripod was knocked down by an organiser: its camera goes with it. */
-    static void removedByHand(MinecraftServer server, CameraEntity e) {
+    /** The tripod was knocked down by an organiser: its camera goes with it. How many travellings went too. */
+    static int removedByHand(MinecraftServer server, CameraEntity e) {
         String key = e.cameraKey();
-        if (e.getUUID().equals(props.get(key))) {
-            list.remove(key);
-            props.remove(key);
-            changed(server);
-        }
+        if (!e.getUUID().equals(props.get(key))) return 0;
+        list.remove(key);
+        props.remove(key);
+        int gone = forget(server, key);
+        changed(server);
+        return gone;
+    }
+
+    /**
+     * A camera removed: its travellings and options go with it (a new camera given the same number later must not
+     * pick them up). How many travellings were removed.
+     */
+    private static int forget(MinecraftServer server, String key) {
+        int gone = 0;
+        for (CameraPath p : CameraPaths.all())
+            if (key.equals(p.camera()) && CameraPaths.remove(server, p.name())) gone++;
+        CameraOptions.forget(key);
+        return gone;
     }
 
     private static void changed(MinecraftServer server) {
