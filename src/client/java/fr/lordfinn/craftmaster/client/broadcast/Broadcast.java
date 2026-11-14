@@ -77,7 +77,8 @@ public final class Broadcast {
         KeyMappingHelper.registerKeyMapping(TOGGLE_KEY);
         KeyMappingHelper.registerKeyMapping(ZONE_KEY);
         KeyMappingHelper.registerKeyMapping(MOSAIC_KEY);
-        for (Identifier id : HIDDEN) HudElementRegistry.replaceElement(id, vanilla -> hiddenInBroadcast(vanilla, false));
+        for (Identifier id : HIDDEN)
+            HudElementRegistry.replaceElement(id, vanilla -> id.equals(VanillaHudElements.CROSSHAIR) ? hiddenWithFeed(vanilla) : hiddenInBroadcast(vanilla, false));
         HudElementRegistry.replaceElement(VanillaHudElements.CHAT, vanilla -> hiddenInBroadcast(vanilla, true));
         HudElementRegistry.addLast(CraftMaster.id("broadcast"), BroadcastOverlay::extract);
         // Launch of a round after its intro: above everything, players and broadcast alike
@@ -95,6 +96,8 @@ public final class Broadcast {
                 set("on".equals(payload.title()));
             } else if (Cues.BLACKOUT.equals(payload.kind())) {
                 Blackout.start(payload);
+            } else if (Cues.FEED.equals(payload.kind())) {
+                ShowFeedClient.force(payload.title());
             } else if (Cues.TASK_TYPE.equals(payload.kind())) {
                 TypedTask.start(payload);
             } else if (Cues.PATH_PREVIEW.equals(payload.kind())) {
@@ -119,11 +122,19 @@ public final class Broadcast {
         // Before the game handles its keys: in broadcast mode the hotbar keys pick a camera
         ClientTickEvents.START_CLIENT_TICK.register(Broadcast::tick);
         ClientCommandRegistrationCallback.EVENT.register((d, ctx) -> registerCommands(d));
+        ShowFeedClient.init();
     }
 
     private static HudElement hiddenInBroadcast(HudElement vanilla, boolean chat) {
         return (g, delta) -> {
             if (!active() || (chat && showChat)) vanilla.extractRenderState(g, delta);
+        };
+    }
+
+    /** The crosshair: hidden in broadcast mode and with the show's feed on screen (it would aim at nothing seen). */
+    private static HudElement hiddenWithFeed(HudElement vanilla) {
+        return (g, delta) -> {
+            if (!active() && !ShowFeedClient.active()) vanilla.extractRenderState(g, delta);
         };
     }
 

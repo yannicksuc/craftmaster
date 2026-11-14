@@ -26,8 +26,10 @@ public abstract class EntityRenderDispatcherMixin {
     /*private <E extends Entity> void craftmaster$hideOffAir(E entity, Frustum frustum, double x, double y, double z,
     *///?}
                                                           CallbackInfoReturnable<Boolean> cir) {
-        if (!Broadcast.active()) return;
-        if (entity instanceof CameraEntity || entity == Minecraft.getInstance().player
+        boolean feed = fr.lordfinn.craftmaster.client.broadcast.ShowFeedClient.active();
+        if (!Broadcast.active() && !feed) return;
+        // The show's feed on a player's screen: like the broadcast, but the player is in the picture
+        if (entity instanceof CameraEntity || (!feed && entity == Minecraft.getInstance().player)
                 || (entity instanceof Player p && p.isSpectator())) cir.setReturnValue(false);
     }
 }

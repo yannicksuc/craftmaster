@@ -118,7 +118,7 @@ public final class BroadcastOverlay {
 
     /** HUD element: the whole overlay, only in broadcast mode. */
     public static void extract(GuiGraphicsExtractor g, DeltaTracker delta) {
-        if (!Broadcast.active()) {
+        if (!Broadcast.active() && !ShowFeedClient.active()) {
             drawPreviewCaption(g, Minecraft.getInstance().font);
             return;
         }

@@ -1119,5 +1119,11 @@
   "screen.craftmaster.pose.delete_confirm.title": "Supprimer la pose ?",
   "screen.craftmaster.pose.delete_confirm.confirm": "Supprimer",
   "screen.craftmaster.pose.delete_confirm.line": "« %s » sera supprimée.",
-  "screen.craftmaster.pose.delete_confirm.line_worn": "« %s » sera supprimée : %s tableau(x) autour la portent, ils reprendront la pose de base."
+  "screen.craftmaster.pose.delete_confirm.line_worn": "« %s » sera supprimée : %s tableau(x) autour la portent, ils reprendront la pose de base.",
+  "key.craftmaster.show_feed": "Flux de l'émission",
+  "message.craftmaster.feed_on": "Flux de l'émission à l'écran (%s pour revenir à ta vue)",
+  "message.craftmaster.feed_off": "Retour à ta vue",
+  "message.craftmaster.feed_forced": "Tout le monde suit l'émission",
+  "message.craftmaster.feed_released": "Retour à ta vue",
+  "message.craftmaster.feed_forced_key": "Tout le monde suit l'émission en ce moment : ton choix reprend après"
 }

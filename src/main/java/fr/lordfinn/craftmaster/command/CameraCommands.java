@@ -602,6 +602,11 @@ public final class CameraCommands {
 
     // ---------------------------------------------------------------- /craftMasterTv
 
+    private static int feed(CommandContext<CommandSourceStack> c) {
+        ok(c, fr.lordfinn.craftmaster.broadcast.ShowFeed.describe());
+        return 1;
+    }
+
     private static LiteralArgumentBuilder<CommandSourceStack> tv(String name) {
         return literal(name).requires(Permissions.CAMERA)
                 .then(literal("lowerthird")
@@ -615,6 +620,20 @@ public final class CameraCommands {
                                             ? action("broadcast.lowerthird", "text", parts[0].trim(), "subtitle", parts[1].trim())
                                             : action("broadcast.lowerthird", "text", parts[0].trim()));
                                 }))))
+                // The show's feed on the players' screens: forced on everyone or not, moving allowed while forced
+                .then(literal("flux").executes(c -> feed(c))
+                        .then(literal("forcer").executes(c -> {
+                            fr.lordfinn.craftmaster.broadcast.ShowFeed.setManual(true);
+                            return feed(c);
+                        }))
+                        .then(literal("libre").executes(c -> {
+                            fr.lordfinn.craftmaster.broadcast.ShowFeed.setManual(false);
+                            return feed(c);
+                        }))
+                        .then(literal("bouger").then(argument("enabled", word()).suggests(ON_OFF).executes(c -> {
+                            fr.lordfinn.craftmaster.broadcast.ShowFeed.setAllowMove(onOff(c, "enabled"));
+                            return feed(c);
+                        }))))
                 .then(literal("task").executes(c -> run(c, action("broadcast.task")))
                         .then(argument("seconds", integer(1, 600)).executes(c -> run(c, action("broadcast.task", "seconds", getInteger(c, "seconds"))))))
                 .then(literal("scores").executes(c -> run(c, action("broadcast.scores", "mode", "show")))

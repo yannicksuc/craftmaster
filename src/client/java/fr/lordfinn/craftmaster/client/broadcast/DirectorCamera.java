@@ -201,7 +201,7 @@ public final class DirectorCamera {
     /** Tells the screen effects (another chantier) which effect the shot on screen asks for. */
     static void applyEffect() {
         try {
-            ScreenEffects.setBroadcastEffect(Broadcast.active() && !shown.effect().isEmpty() ? shown.effect() : null);
+            ScreenEffects.setBroadcastEffect((Broadcast.active() || ShowFeedClient.active()) && !shown.effect().isEmpty() ? shown.effect() : null);
         } catch (RuntimeException | LinkageError e) {
             // The effects are optional: a broken one never stops the broadcast
         }
@@ -213,7 +213,7 @@ public final class DirectorCamera {
         long now = System.currentTimeMillis();
         double dt = lastFrame == 0 ? 0 : (now - lastFrame) / 1000.0;
         lastFrame = now;
-        if (!Broadcast.active()) {
+        if (!Broadcast.active() && !ShowFeedClient.active()) {
             // Only a travelling preview on an organiser's screen
             if (!previewing()) return null;
             CameraPath p = ShowStateClient.path(previewPath);

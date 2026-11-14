@@ -1119,5 +1119,11 @@
   "screen.craftmaster.pose.delete_confirm.title": "Delete the pose?",
   "screen.craftmaster.pose.delete_confirm.confirm": "Delete",
   "screen.craftmaster.pose.delete_confirm.line": "« %s » will be deleted.",
-  "screen.craftmaster.pose.delete_confirm.line_worn": "« %s » will be deleted: %s portrait(s) around wear it, they go back to the basic pose."
+  "screen.craftmaster.pose.delete_confirm.line_worn": "« %s » will be deleted: %s portrait(s) around wear it, they go back to the basic pose.",
+  "key.craftmaster.show_feed": "Show's feed",
+  "message.craftmaster.feed_on": "Show's feed on screen (%s to leave)",
+  "message.craftmaster.feed_off": "Back to your view",
+  "message.craftmaster.feed_forced": "Everyone follows the show",
+  "message.craftmaster.feed_released": "Back to your view",
+  "message.craftmaster.feed_forced_key": "Everyone follows the show now: back to your choice afterwards"
 }

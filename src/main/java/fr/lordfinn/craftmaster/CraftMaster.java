@@ -65,6 +65,7 @@ public final class CraftMaster implements ModInitializer {
         fr.lordfinn.craftmaster.toy.Toys.register();
         // TV direction (chantier E): cameras, show state, overlay cues, credits
         Director.register();
+        fr.lordfinn.craftmaster.broadcast.ShowFeed.register();
         // Replays of the rounds with Server Replay, if installed (optional)
         fr.lordfinn.craftmaster.replay.Replays.register();
         fr.lordfinn.craftmaster.replay.ReplayViewing.register();

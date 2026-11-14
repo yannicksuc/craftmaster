@@ -243,6 +243,19 @@ prend le relais.
 - Tout réglage d'intro est **annulable** (« annule », `/craftMasterUndo`) : il est rangé avec la manche.
 - `/tv intro` seul lance toujours le générique d'ouverture de l'émission.
 
+## Le flux de l'émission chez les joueurs
+- Chaque joueur peut afficher **le flux commun** (le plan de la réalisation, automatique ou mené par la régie, avec
+  l'habillage) à la place de sa vue : touche **F7** (réglable, catégorie CraftMaster), la même pour revenir. Il
+  continue de jouer : marcher, cliquer, chat, inventaire, comme en première personne ; son personnage est dans
+  l'image comme les autres. Pas de viseur (il viserait ce qu'on ne voit pas).
+- **Imposé à tous** pendant les grands moments : le générique d'ouverture et de fin, l'intro d'une manche (et son
+  lancement), la révélation des scores ; ou à la main : `/tv flux forcer`, puis `/tv flux libre`. La touche ne le
+  quitte pas pendant ce temps ; ensuite chacun retrouve son choix.
+- Pendant un moment imposé, les joueurs **restent immobiles** (ni déplacement ni clic ; chat et menus restent) ;
+  `/tv flux bouger on` les laisse bouger et interagir, `off` les fige de nouveau. `/tv flux` : où on en est.
+- Limite : un plan pris loin des joueurs (la caméra d'une autre manche) peut montrer un décor pas encore chargé
+  chez eux.
+
 ## Le mode diffusion (client)
 - **F8** (touche réglable, catégorie CraftMaster) ou `/craftMasterBroadcast` (`/diffusion`) `[on|off]` ;
   `/diffusion chat on|off` montre ou cache le chat ; `/diffusion status`.

@@ -236,7 +236,9 @@ public final class BroadcastNetwork {
                 /** Everyone's picture to black and back (title = round name, subtitle = "Manche 2", player = "in,hold,out" ticks). */
                 BLACKOUT = "blackout",
                 /** The task typed at the bottom of the broadcast picture (title = text, ticks = how long it stays). */
-                TASK_TYPE = "task_type";
+                TASK_TYPE = "task_type",
+                /** The show's feed forced on the players (title = off, freeze or move): see {@link ShowFeed}. */
+                FEED = "feed";
 
         private Cues() {}
     }

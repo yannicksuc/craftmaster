@@ -25,6 +25,6 @@ public abstract class HandsRendererMixin {
     /*private void craftmaster$noHands(float partialTick, PoseStack poseStack, SubmitNodeCollector collector,
                                      net.minecraft.client.player.LocalPlayer player, int light, CallbackInfo ci) {
     *///?}
-        if (Broadcast.active() || fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.previewing() || fr.lordfinn.craftmaster.client.studio.ControlView.active()) ci.cancel();
+        if (Broadcast.active() || fr.lordfinn.craftmaster.client.broadcast.ShowFeedClient.active() || fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.previewing() || fr.lordfinn.craftmaster.client.studio.ControlView.active()) ci.cancel();
     }
 }

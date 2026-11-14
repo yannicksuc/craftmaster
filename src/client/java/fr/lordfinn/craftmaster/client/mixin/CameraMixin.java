@@ -43,12 +43,14 @@ public abstract class CameraMixin {
             setRotation(control.yaw(), control.pitch());
             return;
         }
-        // Broadcast mode, or a travelling preview on an organiser's own screen
-        if (!Broadcast.active() && !DirectorCamera.previewing()) return;
+        // Broadcast mode, the show's feed on a player's screen, or a travelling preview on an organiser's own screen
+        boolean feed = fr.lordfinn.craftmaster.client.broadcast.ShowFeedClient.active();
+        if (!Broadcast.active() && !feed && !DirectorCamera.previewing()) return;
         DirectorCamera.Pose pose = DirectorCamera.pose(delta.getGameTimeDeltaPartialTick(true));
         if (pose == null) return;
         craftmaster$pose = pose;
-        detached = false;
+        // With the feed, the player is in the picture: their body is drawn (the broadcast game's never is)
+        detached = feed;
         setPosition(pose.position());
         setRotation(pose.yaw(), pose.pitch());
     }

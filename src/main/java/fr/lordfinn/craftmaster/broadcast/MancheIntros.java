@@ -288,6 +288,11 @@ public final class MancheIntros {
         });
     }
 
+    /** Is a round's intro playing? */
+    public static boolean playing() {
+        return running != null;
+    }
+
     /** Is a round's launch (black, teleports, title) under way? */
     public static boolean launching() {
         return launching;
