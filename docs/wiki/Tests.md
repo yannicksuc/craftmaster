@@ -582,3 +582,26 @@ Voice Chat (`ClientManager.getCameraState()`, qui sert au volume, à la directio
 Non mesuré en jeu : une vraie voix (les clients de test n'ont pas de micro : Voice Chat « désactivé », la position
 mesurée est celle qu'il utilise pour toutes les voix), le son lui-même (jeux de test muets), et l'image d'après une
 prise de vignette (l'écoute y garde sa place ; ça ne dure qu'une image).
+
+## 16. Projecteurs sous shaders, sur une copie du vrai plateau (vérifiés en jeu sur 26.2 le 14/11/2026)
+Installation réutilisable :
+- **Serveur** `:26.2:runServer` : jeu 26401, RCON 26402 (mot de passe `cmtest`), `online-mode=false`.
+- **Monde** `level-name=plateau` : copie du monde `craftmaster` du vrai serveur (`save-all flush`, puis tar de
+  `craftmaster/` et `config/craftmaster/`).
+- **Configuration** : celle du vrai serveur, **sans `site.json`**, sinon le serveur de test se brancherait sur la vraie
+  régie du site. La configuration de dev d'avant est gardée dans `config/craftmaster.dev-sauvegarde`.
+- **Client** `scripts\dev-client.ps1 -Version 26.2 -Server localhost:26401` (pont MCP 26341), avec dans
+  `run-26.2/mods` les mêmes Sodium et Iris que l'instance, et Complementary Reimagined r5.9.3 activé
+  (`run-26.2/config/iris.properties`).
+
+| Cas (ambiance de la salle, nuit, vues prises avec `tp`) | Avant | Après | |
+|---|---|---|---|
+| Plan large depuis la caméra 1 | faisceaux qui se masquent entre eux | faisceaux nets | ✔ |
+| Plongée sur la table, 55° | halos découpés en croissants, dents de scie | halos doux en dégradé | ✔ |
+| Au ras du tapis entre les chaises | éclats qui clignotent | rien | ✔ |
+| Poursuite qui suit LordFinn | lumière derrière lui | flaque centrée sous ses pieds | ✔ |
+
+Cause : sous un pack de shaders, la lumière était dessinée avec le type des éclairs de vanilla, qui écrit la
+profondeur. Elle passe désormais par le type « yeux », émissif et sans écriture de profondeur. Le type du faisceau de
+balise a aussi été essayé : Complementary en faisait des disques plats à bords nets. Les facettes du faisceau
+s'arrêtent au plus tard là où le bord du cône touche le sol.
