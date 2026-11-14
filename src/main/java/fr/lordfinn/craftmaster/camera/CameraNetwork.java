@@ -86,6 +86,15 @@ public final class CameraNetwork {
         o.add("lens", lens);
         o.addProperty("yaw", s.yaw());
         o.addProperty("pitch", s.pitch());
+        JsonArray paths = new JsonArray();
+        for (CameraPath path : TravellingNetwork.of(key)) {
+            JsonObject po = new JsonObject();
+            po.addProperty("name", path.name());
+            po.addProperty("steps", path.steps().size());
+            po.addProperty("duration", path.duration());
+            paths.add(po);
+        }
+        o.add("paths", paths);
         ServerPlayNetworking.send(player, new Open(o.toString()));
         return true;
     }

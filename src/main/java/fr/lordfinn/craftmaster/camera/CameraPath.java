@@ -21,11 +21,11 @@ import java.util.Locale;
  * @param lieu  the lieu the move belongs to ({@link CameraSpot#STUDIO} or a round id), for the lists and the intros
  * @param world dimension id
  */
-public record CameraPath(String name, String lieu, String world, List<Step> steps) {
+public record CameraPath(String name, String lieu, String world, List<Step> steps, String camera) {
 
-    /** Curves: eased (default), constant speed, slow start only, slow end only. */
-    public static final String SMOOTH = "lisse", LINEAR = "lineaire", EASE_IN = "entree", EASE_OUT = "sortie";
-    public static final List<String> CURVES = List.of(SMOOTH, LINEAR, EASE_IN, EASE_OUT);
+    /** Curves (transitions into a step): eased (default), constant speed, slow start only, slow end only, a cut. */
+    public static final String SMOOTH = "lisse", LINEAR = "lineaire", EASE_IN = "entree", EASE_OUT = "sortie", CUT = "coupe";
+    public static final List<String> CURVES = List.of(SMOOTH, LINEAR, EASE_IN, EASE_OUT, CUT);
     /** Default time to reach a new step, the longest travel or hold of a step (seconds). */
     public static final double DEFAULT_TRAVEL = 3, MAX_SECONDS = 600;
     /** Minecraft's default field of view, used for the steps without a zoom when others have one. */
@@ -38,28 +38,48 @@ public record CameraPath(String name, String lieu, String world, List<Step> step
      * @param hold   seconds the camera stays here once arrived
      * @param fov    field of view, 0 = the viewer's own
      * @param curve  curve of the move that arrives here, one of {@link #CURVES}
+     * @param target what the camera aims at on this step: "" its own angle (yaw / pitch), a player's name (it
+     *               tracks them), or "x y z" (it keeps looking at that place)
      */
-    public record Step(double x, double y, double z, float yaw, float pitch, float fov, double travel, double hold, String curve) {
+    public record Step(double x, double y, double z, float yaw, float pitch, float fov, double travel, double hold, String curve, String target) {
         public Step {
             pitch = Math.max(-90, Math.min(90, pitch));
             fov = fov <= 0 ? 0 : Math.max(CameraSpot.MIN_FOV, Math.min(CameraSpot.MAX_FOV, fov));
             travel = clampSeconds(travel);
             hold = clampSeconds(hold);
             curve = normalizeCurve(curve);
+            target = target == null ? "" : target.strip();
         }
 
-        public Step withTravel(double t) { return new Step(x, y, z, yaw, pitch, fov, t, hold, curve); }
-        public Step withHold(double h) { return new Step(x, y, z, yaw, pitch, fov, travel, h, curve); }
-        public Step withFov(float f) { return new Step(x, y, z, yaw, pitch, f, travel, hold, curve); }
-        public Step withCurve(String c) { return new Step(x, y, z, yaw, pitch, fov, travel, hold, c); }
+        public Step(double x, double y, double z, float yaw, float pitch, float fov, double travel, double hold, String curve) {
+            this(x, y, z, yaw, pitch, fov, travel, hold, curve, "");
+        }
+
+        public Step withTravel(double t) { return new Step(x, y, z, yaw, pitch, fov, t, hold, curve, target); }
+        public Step withHold(double h) { return new Step(x, y, z, yaw, pitch, fov, travel, h, curve, target); }
+        public Step withFov(float f) { return new Step(x, y, z, yaw, pitch, f, travel, hold, curve, target); }
+        public Step withCurve(String c) { return new Step(x, y, z, yaw, pitch, fov, travel, hold, c, target); }
+        public Step withTarget(String t) { return new Step(x, y, z, yaw, pitch, fov, travel, hold, curve, t); }
         public Step withPlace(double nx, double ny, double nz, float nyaw, float npitch) {
-            return new Step(nx, ny, nz, nyaw, npitch, fov, travel, hold, curve);
+            return new Step(nx, ny, nz, nyaw, npitch, fov, travel, hold, curve, target);
+        }
+
+        /** The target is a place ("x y z"), parsed; null when it is a player or nothing. */
+        public double[] targetPlace() {
+            String[] c = target.replace(',', ' ').trim().split("\\s+");
+            if (c.length != 3) return null;
+            try {
+                return new double[]{Double.parseDouble(c[0]), Double.parseDouble(c[1]), Double.parseDouble(c[2])};
+            } catch (NumberFormatException e) {
+                return null;
+            }
         }
 
         public String describe(int index) {
             return String.format(Locale.ROOT, "%d · %.1f %.1f %.1f, regard %.0f° / %.0f°%s%s%s%s", index + 1, x, y, z, yaw, pitch,
                     index == 0 ? "" : ", en " + seconds(travel), hold > 0 ? ", pause " + seconds(hold) : "",
-                    fov > 0 ? ", zoom " + Math.round(fov) + "°" : "", curve.equals(SMOOTH) ? "" : ", " + curve);
+                    fov > 0 ? ", zoom " + Math.round(fov) + "°" : "", curve.equals(SMOOTH) ? "" : ", " + curve)
+                    + (target.isEmpty() ? "" : targetPlace() != null ? ", vise " + target : ", suit " + target);
         }
     }
 
@@ -70,6 +90,16 @@ public record CameraPath(String name, String lieu, String world, List<Step> step
         name = normalizeName(name);
         lieu = CameraSpot.normalizeLieu(lieu);
         steps = List.copyOf(steps);
+        camera = camera == null ? "" : camera.strip();
+    }
+
+    /** A path that belongs to no camera (as every path was before the travellings of a camera). */
+    public CameraPath(String name, String lieu, String world, List<Step> steps) {
+        this(name, lieu, world, steps, "");
+    }
+
+    public CameraPath withCamera(String key) {
+        return new CameraPath(name, lieu, world, steps, key);
     }
 
     static double clampSeconds(double s) {
@@ -82,6 +112,7 @@ public record CameraPath(String name, String lieu, String world, List<Step> step
             case "lineaire", "linear", "constant", "constante", "droit" -> LINEAR;
             case "entree", "ease-in", "in", "demarrage", "depart" -> EASE_IN;
             case "sortie", "ease-out", "out", "arrivee", "atterrissage" -> EASE_OUT;
+            case "coupe", "cut", "direct", "saut", "sec" -> CUT;
             default -> SMOOTH;
         };
     }
@@ -97,11 +128,11 @@ public record CameraPath(String name, String lieu, String world, List<Step> step
     }
 
     public CameraPath withSteps(List<Step> s) {
-        return new CameraPath(name, lieu, world, s);
+        return new CameraPath(name, lieu, world, s, camera);
     }
 
     public CameraPath withLieu(String l) {
-        return new CameraPath(name, l, world, steps);
+        return new CameraPath(name, l, world, steps, camera);
     }
 
     public CameraPath plus(Step s) {
@@ -165,12 +196,60 @@ public record CameraPath(String name, String lieu, String world, List<Step> step
                 }
                 double seg = steps.get(k + 1).travel();
                 double u = seg <= 1e-9 ? 1 : Math.max(0, Math.min(1, local / seg));
+                if (CUT.equals(steps.get(k + 1).curve())) return at(u >= 1 ? k + 1 : k, yaws, fovs);
                 return segment(k, u, i, j, yaws, fovs);
             }
             clock += length;
             i = j;
         }
         return at(n - 1, yaws, fovs);
+    }
+
+    /**
+     * The view at {@code t} with the steps' targets: a step that tracks a player or looks at a place aims there
+     * from wherever the camera is; between two steps the aim blends from one to the other. {@code resolve} gives a
+     * player's position (null: not found, the step's own angle then).
+     */
+    public Pose sample(double t, java.util.function.Function<String, double[]> resolve) {
+        Pose p = sample(t);
+        double[] seg = locate(t);
+        int b = (int) seg[0], c = (int) seg[1];
+        double u = seg[2];
+        float[] lb = aim(b, p, resolve), lc = aim(c, p, resolve);
+        if (lb == null && lc == null) return p;
+        if (lb == null) lb = new float[]{p.yaw(), p.pitch()};
+        if (lc == null) lc = new float[]{p.yaw(), p.pitch()};
+        double w = (1 - Math.cos(Math.PI * Math.max(0, Math.min(1, u)))) / 2;
+        float dy = ((lc[0] - lb[0]) % 360 + 540) % 360 - 180;
+        return new Pose(p.x(), p.y(), p.z(), (float) (lb[0] + dy * w), (float) (lb[1] + (lc[1] - lb[1]) * w), p.fov());
+    }
+
+    /** Yaw / pitch toward step {@code i}'s target from the camera's place, or null if it has none. */
+    private float[] aim(int i, Pose from, java.util.function.Function<String, double[]> resolve) {
+        if (i < 0 || i >= steps.size()) return null;
+        Step s = steps.get(i);
+        if (s.target().isEmpty()) return null;
+        double[] at = s.targetPlace();
+        if (at == null && resolve != null) at = resolve.apply(s.target());
+        if (at == null) return null;
+        double dx = at[0] - from.x(), dy = at[1] - from.y(), dz = at[2] - from.z();
+        double flat = Math.sqrt(dx * dx + dz * dz);
+        return new float[]{(float) Math.toDegrees(Math.atan2(-dx, dz)), (float) -Math.toDegrees(Math.atan2(dy, flat))};
+    }
+
+    /** Which steps {@code t} is between: {from, to, 0..1} ({i, i, 0} while holding on step i). */
+    double[] locate(double t) {
+        int n = steps.size();
+        if (n <= 1 || t <= 0) return new double[]{0, 0, 0};
+        double clock = 0;
+        for (int k = 0; k < n; k++) {
+            double travel = k == 0 ? 0 : steps.get(k).travel();
+            if (k > 0 && t < clock + travel) return new double[]{k - 1, k, travel <= 1e-9 ? 1 : (t - clock) / travel};
+            clock += travel;
+            if (t < clock + steps.get(k).hold()) return new double[]{k, k, 0};
+            clock += steps.get(k).hold();
+        }
+        return new double[]{n - 1, n - 1, 0};
     }
 
     private Pose at(int i, float[] yaws, float[] fovs) {
@@ -291,7 +370,9 @@ public record CameraPath(String name, String lieu, String world, List<Step> step
             buf.writeDouble(s.travel());
             buf.writeDouble(s.hold());
             buf.writeUtf(s.curve());
+            buf.writeUtf(s.target());
         }
+        buf.writeUtf(camera);
     }
 
     public static CameraPath read(FriendlyByteBuf buf) {
@@ -299,7 +380,7 @@ public record CameraPath(String name, String lieu, String world, List<Step> step
         List<Step> steps = new ArrayList<>();
         for (int i = buf.readVarInt(); i > 0; i--)
             steps.add(new Step(buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readFloat(), buf.readFloat(), buf.readFloat(),
-                    buf.readDouble(), buf.readDouble(), buf.readUtf()));
-        return new CameraPath(name, lieu, world, steps);
+                    buf.readDouble(), buf.readDouble(), buf.readUtf(), buf.readUtf()));
+        return new CameraPath(name, lieu, world, steps, buf.readUtf());
     }
 }

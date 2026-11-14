@@ -236,6 +236,16 @@ public final class TimelineNetwork {
         JsonArray fx = new JsonArray();
         Sequence.EFFECTS.forEach(fx::add);
         c.add("effets", fx);
+        // Camera shots: "value|label" (the cameras, then their travellings)
+        JsonArray shots = new JsonArray();
+        for (fr.lordfinn.craftmaster.camera.CameraSpot cam : fr.lordfinn.craftmaster.camera.Cameras.list().all())
+            shots.add("camera:" + cam.key() + "|" + cam.label());
+        for (fr.lordfinn.craftmaster.camera.CameraPath p : fr.lordfinn.craftmaster.camera.CameraPaths.all())
+            shots.add("travelling:" + p.name() + "|travelling " + p.name());
+        c.add("plans", shots);
+        JsonArray transitions = new JsonArray();
+        fr.lordfinn.craftmaster.broadcast.BroadcastActions.TRANSITION_IDS.forEach(transitions::add);
+        c.add("transitions", transitions);
         return c;
     }
 

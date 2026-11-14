@@ -20,8 +20,8 @@ import java.util.Locale;
  */
 public final class Sequence {
 
-    public static final String LIGHT = "lumiere", CURTAIN = "rideau", PORTRAITS = "tableaux", SCREEN = "ecran", COMMAND = "commande";
-    public static final List<String> TYPES = List.of(LIGHT, CURTAIN, PORTRAITS, SCREEN, COMMAND);
+    public static final String LIGHT = "lumiere", CURTAIN = "rideau", PORTRAITS = "tableaux", SCREEN = "ecran", COMMAND = "commande", CAMERA = "camera";
+    public static final List<String> TYPES = List.of(LIGHT, CURTAIN, PORTRAITS, SCREEN, CAMERA, COMMAND);
 
     /** Light effects, drawn by the clients on top of the intensity. */
     public static final String NO_EFFECT = "aucun";
@@ -106,6 +106,11 @@ public final class Sequence {
         // ---- commande: a cue list line (a server command without "/", or "ambiance x", "noir 2"…)
         public String commande;
 
+        // ---- camera: what the broadcast shows from then on: "camera:studio:3" (a camera) or "travelling:cam3-1"
+        public String plan;
+        /** The broadcast's transition to it: coupe, fondu, enchaine, miroir, flash, surimpression. */
+        public String transition;
+
         public Key() {}
 
         public Key(double t) {
@@ -131,6 +136,8 @@ public final class Sequence {
             k.cascade = cascade;
             k.montre = montre;
             k.commande = commande;
+            k.plan = plan;
+            k.transition = transition;
             return k;
         }
 
@@ -150,6 +157,10 @@ public final class Sequence {
                 }
                 case COMMAND -> {
                     if (commande != null) p.add(commande);
+                }
+                case CAMERA -> {
+                    if (plan != null) p.add(plan.replaceFirst("^camera:", "caméra ").replaceFirst("^travelling:", "travelling "));
+                    if (transition != null) p.add(transition);
                 }
                 default -> {
                     if (allume != null) p.add(allume ? "allume" : "éteint");

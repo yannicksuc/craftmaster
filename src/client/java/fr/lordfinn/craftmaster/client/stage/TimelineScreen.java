@@ -48,7 +48,7 @@ public class TimelineScreen extends Screen {
             DIM = Theme.TEXT_DIM, GOLD = Theme.GOLD, RED = Theme.ERROR, GREEN = Theme.OK, BTN = Theme.BUTTON, BTN_HOVER = Theme.BUTTON_HOVER,
             BTN_ON = Theme.BUTTON_ON, GRID = 0x22FFFFFF, GRID_STRONG = 0x44FFFFFF;
     private static final Map<String, Integer> TYPE_COLOR = Map.of(Sequence.LIGHT, 0xFFFFD86B, Sequence.CURTAIN, 0xFFE05A6A,
-            Sequence.PORTRAITS, 0xFFD4A53A, Sequence.SCREEN, 0xFF6BC4FF, Sequence.COMMAND, 0xFFB08CFF);
+            Sequence.PORTRAITS, 0xFFD4A53A, Sequence.SCREEN, 0xFF6BC4FF, Sequence.COMMAND, 0xFFB08CFF, Sequence.CAMERA, 0xFF7FD67F);
     private static final String[] COLORS = {"blanc", "chaud", "froid", "ambre", "or", "rouge", "orange", "jaune", "vert", "cyan", "bleu", "violet", "rose", "magenta"};
     private static final int LANE = 16, RULER = 12, HEADER = 18, FOOTER = 11;
 
@@ -268,6 +268,7 @@ public class TimelineScreen extends Screen {
                 case Sequence.PORTRAITS -> k.hauteur = 4f;
                 case Sequence.SCREEN -> k.montre = "clip dernier";
                 case Sequence.COMMAND -> k.commande = "";
+                case Sequence.CAMERA -> k.transition = "fondu";
                 default -> {
                     k.allume = true;
                     k.intensite = 100;
@@ -344,7 +345,7 @@ public class TimelineScreen extends Screen {
     private void addTrack(String type) {
         snapshot();
         JsonArray options = catalog.has(type) ? catalog.getAsJsonArray(type) : new JsonArray();
-        String target = type.equals(Sequence.COMMAND) ? "" : options.isEmpty() ? "" : options.get(0).getAsString();
+        String target = type.equals(Sequence.COMMAND) || type.equals(Sequence.CAMERA) ? "" : options.isEmpty() ? "" : options.get(0).getAsString();
         seq.pistes.add(new Sequence.Track(type, target));
         track = seq.pistes.size() - 1;
         int visible = Math.max(1, (lanesY1 - lanesY0) / LANE);
@@ -484,7 +485,7 @@ public class TimelineScreen extends Screen {
         Field time = number("temps", 0, seq.duree, SequenceTools.SNAP, "s", () -> k.t, v -> k.t = v);
         time.nullable = false;
         out.add(time);
-        if (!tr.type.equals(Sequence.COMMAND) && !tr.type.equals(Sequence.SCREEN)) {
+        if (!tr.type.equals(Sequence.COMMAND) && !tr.type.equals(Sequence.SCREEN) && !tr.type.equals(Sequence.CAMERA)) {
             Field fade = number("fondu", 0, 30, SequenceTools.SNAP, "s", () -> k.fondu, v -> k.fondu = v);
             fade.nullable = false;
             out.add(fade);
@@ -502,6 +503,25 @@ public class TimelineScreen extends Screen {
                 out.add(text("montre_texte", () -> k.montre, s -> k.montre = s));
             }
             case Sequence.COMMAND -> out.add(text("commande", () -> k.commande, s -> k.commande = s));
+            case Sequence.CAMERA -> {
+                // Shots as "value|label": the cycle shows the label, stores the value
+                List<String> values = new ArrayList<>(), labels = new ArrayList<>();
+                if (catalog.has("plans")) for (JsonElement e : catalog.getAsJsonArray("plans")) {
+                    String[] vl = e.getAsString().split("\\|", 2);
+                    values.add(vl[0]);
+                    labels.add(vl.length > 1 ? vl[1] : vl[0]);
+                }
+                Field plan = cycle("plan", labels, () -> {
+                    int i = values.indexOf(k.plan == null ? "" : k.plan);
+                    return i < 0 ? (k.plan == null ? "—" : k.plan) : labels.get(i);
+                }, s -> {
+                    int i = labels.indexOf(s);
+                    k.plan = i < 0 ? null : values.get(i);
+                });
+                out.add(plan);
+                out.add(cycle("transition", options("transitions", "—"), () -> k.transition == null ? "—" : k.transition,
+                        s -> k.transition = s.equals("—") ? null : s));
+            }
             default -> {
                 out.add(cycle("allume", List.of("—", "allumé", "éteint"), () -> k.allume == null ? "—" : k.allume ? "allumé" : "éteint",
                         s -> k.allume = s.equals("—") ? null : s.equals("allumé")));
@@ -736,13 +756,13 @@ public class TimelineScreen extends Screen {
             g.text(font, type, left + 6, y + 4, tr.muette ? DIM : color, false);
             int tx = left + 8 + font.width(type);
             // Its target: click (or wheel) goes through what exists
-            String target = tr.type.equals(Sequence.COMMAND) ? "" : tr.cible.isEmpty() ? "?" : tr.cible;
+            String target = tr.type.equals(Sequence.COMMAND) || tr.type.equals(Sequence.CAMERA) ? "" : tr.cible.isEmpty() ? "?" : tr.cible;
             int maxW = tracksX1 - tx - 22;
             String shown = font.plainSubstrByWidth(target, Math.max(10, maxW));
             boolean th = mx >= tx && mx < tx + font.width(shown) + 2 && my >= y && my < y + LANE;
             g.text(font, shown, tx, y + 4, tr.muette ? DIM : th ? GOLD : TEXT, false);
             int index = i;
-            if (!tr.type.equals(Sequence.COMMAND))
+            if (!tr.type.equals(Sequence.COMMAND) && !tr.type.equals(Sequence.CAMERA))
                 hits.add(new Hit(tx, y, tx + Math.max(8, font.width(shown) + 2), y + LANE, () -> cycleTarget(index, 1), () -> {
                     Sequence.Track t2 = seq.pistes.get(index);
                     startText(t2.cible, s -> {

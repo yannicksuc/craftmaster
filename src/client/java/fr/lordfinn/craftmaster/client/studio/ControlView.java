@@ -25,10 +25,11 @@ public final class ControlView {
 
     private ControlView() {}
 
-    private enum Kind { CAMERA, SPOT }
+    private enum Kind { CAMERA, SPOT, STEP }
 
     private static Kind kind;
-    private static String cameraKey;
+    private static String cameraKey, stepPath;
+    private static int stepIndex;
     private static BlockPos spot;
     private static Vec3 eye;
     private static float fov;
@@ -48,10 +49,28 @@ public final class ControlView {
         return kind != null;
     }
 
+    /** The spotlight looked through right now (its head and beam are not drawn). */
+    public static boolean controllingSpot(BlockPos pos) {
+        return kind == Kind.SPOT && pos.equals(spot);
+    }
+
+    /** The camera looked through right now (its own prop is not drawn: the view is inside it). */
+    public static boolean controlling(String key) {
+        return kind == Kind.CAMERA && key.equals(cameraKey);
+    }
+
     /** Looks through camera {@code key} (lens, aim, zoom) until validated. */
     public static void startCamera(String key, String name, Vec3 lens, float yaw, float pitch, float zoom) {
         begin(Kind.CAMERA, Component.translatable("hud.craftmaster.control.camera", name).getString(), lens, yaw, pitch, zoom);
         cameraKey = key;
+    }
+
+    /** Looks from a travelling's step (its place, aim and zoom) until validated: the step's new angle. */
+    public static void startStep(String camera, String path, int index, Vec3 at, float yaw, float pitch, float zoom) {
+        begin(Kind.STEP, Component.translatable("hud.craftmaster.control.step", index + 1, path).getString(), at, yaw, pitch, zoom);
+        cameraKey = camera;
+        stepPath = path;
+        stepIndex = index;
     }
 
     /** Looks along the spotlight at {@code pos} (from just in front of its lens) until validated. */
@@ -140,6 +159,17 @@ public final class ControlView {
         if (was == Kind.CAMERA) {
             o.addProperty("key", cameraKey);
             if (ClientPlayNetworking.canSend(CameraNetwork.Edit.TYPE)) ClientPlayNetworking.send(new CameraNetwork.Edit(o.toString()));
+        } else if (was == Kind.STEP) {
+            JsonObject e = new JsonObject();
+            e.addProperty("camera", cameraKey);
+            e.addProperty("path", stepPath);
+            e.addProperty("action", "set");
+            e.addProperty("index", stepIndex);
+            e.addProperty("field", "angle");
+            e.add("value", angle);
+            e.addProperty("select", stepIndex);
+            if (ClientPlayNetworking.canSend(fr.lordfinn.craftmaster.camera.TravellingNetwork.Edit.TYPE))
+                ClientPlayNetworking.send(new fr.lordfinn.craftmaster.camera.TravellingNetwork.Edit(e.toString()));
         } else {
             o.addProperty("x", spot.getX());
             o.addProperty("y", spot.getY());

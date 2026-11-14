@@ -49,7 +49,9 @@ public class CameraScreen extends Screen {
 
     /** The server sent the camera again (after a change): values refresh, a name being typed is kept. */
     void update(JsonObject o) {
+        int before = cam.has("paths") ? cam.getAsJsonArray("paths").size() : 0, after = o.has("paths") ? o.getAsJsonArray("paths").size() : 0;
         cam = o;
+        if (before != after) rebuildWidgets();
         if (nameBox != null && !nameBox.isFocused()) nameBox.setValue(o.get("name").getAsString());
     }
 
@@ -75,7 +77,7 @@ public class CameraScreen extends Screen {
     @Override
     protected void init() {
         w = Math.min(220, Math.max(184, width / 3));
-        h = Math.min(height - 16, 196);
+        h = Math.min(height - 12, 196 + 26 + 15 * Math.min(5, cam.has("paths") ? cam.getAsJsonArray("paths").size() : 0) + 18);
         x0 = width - w - 8;
         y0 = Math.max(8, (height - h) / 2);
         labelW = 0;
@@ -157,6 +159,23 @@ public class CameraScreen extends Screen {
         int half = (w - 16) / 2;
         bigButton(g, x0 + 6, y, half, t("control"), mx, my, this::control, t("control_tip"));
         bigButton(g, x0 + 10 + half, y, half, t("cut"), mx, my, () -> send("cut", true), t("cut_tip"));
+        y += 24;
+        // Its travellings: click one to edit it, + for a new one
+        g.text(font, t("travellings"), lx, y, GOLD, false);
+        y += 11;
+        com.google.gson.JsonArray paths = cam.has("paths") ? cam.getAsJsonArray("paths") : new com.google.gson.JsonArray();
+        for (int i = 0; i < paths.size() && i < 5; i++) {
+            JsonObject p = paths.get(i).getAsJsonObject();
+            String name = p.get("name").getAsString();
+            int n = p.get("steps").getAsInt();
+            String line = name + "  ·  " + (n <= 1 ? t("fixed_shot").getString() : t("path_line", n, fr.lordfinn.craftmaster.camera.CameraPath.seconds(Math.round(p.get("duration").getAsDouble() * 10) / 10.0)).getString());
+            boolean rh = mx >= lx && mx < vr && my >= y && my < y + 13;
+            Ui.button(g, font, lx, y, vr - lx, 13, Component.empty(), false, rh, true);
+            g.text(font, font.plainSubstrByWidth(line, vr - lx - 8), lx + 4, y + 3, TEXT, false);
+            hits.add(new Hit(lx, y, vr, y + 13, () -> travelling("open", name), null, null, t("edit_path")));
+            y += 15;
+        }
+        button(g, lx, y, t("new_path"), false, mx, my, () -> travelling("create", null), t("new_path_tip"));
         g.text(font, font.plainSubstrByWidth(t("hint").getString(), w - 12), x0 + 6, y0 + h - 11, DIM, false);
 
         super.extractRenderState(g, mx, my, partial);
@@ -165,6 +184,16 @@ public class CameraScreen extends Screen {
                 g.setTooltipForNextFrame(hh.tip, mx, my);
                 break;
             }
+    }
+
+    /** Opens the travelling editor (an existing travelling, or a new one starting where the camera stands). */
+    private void travelling(String action, String path) {
+        JsonObject o = new JsonObject();
+        o.addProperty("camera", key());
+        if (path != null) o.addProperty("path", path);
+        o.addProperty("action", action);
+        if (ClientPlayNetworking.canSend(fr.lordfinn.craftmaster.camera.TravellingNetwork.Edit.TYPE))
+            ClientPlayNetworking.send(new fr.lordfinn.craftmaster.camera.TravellingNetwork.Edit(o.toString()));
     }
 
     private void control() {

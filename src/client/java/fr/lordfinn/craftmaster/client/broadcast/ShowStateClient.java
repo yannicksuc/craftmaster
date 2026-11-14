@@ -63,6 +63,11 @@ public final class ShowStateClient {
         return paths.get(name);
     }
 
+    /** Every path (travellings of the cameras included), for their ghosts. */
+    public static java.util.Collection<CameraPath> allPaths() {
+        return paths.values();
+    }
+
     static void set(ShowState s) {
         state = s;
         cameras = new CameraList(s.cameras());

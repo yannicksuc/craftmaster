@@ -173,7 +173,8 @@ public final class Sequencer {
      */
     public static void seek(MinecraftServer server, Sequence seq, double at) {
         for (Sequence.Track tr : seq.pistes) {
-            if (tr.muette || tr.type.equals(Sequence.COMMAND)) continue;
+            // Commands and camera cuts are not replayed by a seek (no fireworks twice, no surprise cut on air)
+            if (tr.muette || tr.type.equals(Sequence.COMMAND) || tr.type.equals(Sequence.CAMERA)) continue;
             Sequence.Key merged = null;
             for (Sequence.Key k : tr.cles) {
                 if (k.t > at) break;
@@ -250,6 +251,19 @@ public final class Sequencer {
             }
             case Sequence.COMMAND -> {
                 if (k.commande != null && !k.commande.isBlank()) Cues.run(server, k.commande.strip());
+            }
+            case Sequence.CAMERA -> {
+                if (k.plan == null || k.plan.isBlank()) return;
+                java.util.Map<String, Object> act = new java.util.HashMap<>();
+                if (k.plan.startsWith("camera:")) {
+                    act.put("type", "camera.cut");
+                    act.put("camera", k.plan.substring(7));
+                } else if (k.plan.startsWith("travelling:")) {
+                    act.put("type", "camera.path");
+                    act.put("path", k.plan.substring(11));
+                } else return;
+                if (k.transition != null && !k.transition.isBlank()) act.put("transition", k.transition.strip());
+                fr.lordfinn.craftmaster.show.ActionExecutor.execute(server, java.util.List.of(act));
             }
             default -> applyLight(server, tr, k, fade);
         }

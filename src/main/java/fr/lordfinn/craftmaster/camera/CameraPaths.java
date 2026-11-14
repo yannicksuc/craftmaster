@@ -75,10 +75,12 @@ public final class CameraPaths {
                         JsonObject s = se.getAsJsonObject();
                         steps.add(new CameraPath.Step(num(s, "x", 0), num(s, "y", 0), num(s, "z", 0), (float) num(s, "yaw", 0),
                                 (float) num(s, "pitch", 0), (float) num(s, "fov", 0), num(s, "travel", CameraPath.DEFAULT_TRAVEL),
-                                num(s, "hold", 0), s.has("curve") ? s.get("curve").getAsString() : null));
+                                num(s, "hold", 0), s.has("curve") ? s.get("curve").getAsString() : null,
+                                s.has("cible") ? s.get("cible").getAsString() : ""));
                     }
                     CameraPath p = new CameraPath(o.get("name").getAsString(), o.has("lieu") ? o.get("lieu").getAsString() : null,
-                            o.has("world") ? o.get("world").getAsString() : "minecraft:overworld", steps);
+                            o.has("world") ? o.get("world").getAsString() : "minecraft:overworld", steps,
+                            o.has("camera") ? o.get("camera").getAsString() : "");
                     PATHS.put(p.name(), p);
                 } catch (RuntimeException e) {
                     CraftMaster.LOG.warn("[Trajets] Trajet illisible ignoré dans {} : {}", path, el);
@@ -101,6 +103,7 @@ public final class CameraPaths {
             o.addProperty("name", p.name());
             o.addProperty("lieu", p.lieu());
             o.addProperty("world", p.world());
+            if (!p.camera().isEmpty()) o.addProperty("camera", p.camera());
             JsonArray steps = new JsonArray();
             for (CameraPath.Step s : p.steps()) {
                 JsonObject so = new JsonObject();
@@ -113,6 +116,7 @@ public final class CameraPaths {
                 so.addProperty("travel", s.travel());
                 if (s.hold() > 0) so.addProperty("hold", s.hold());
                 if (!CameraPath.SMOOTH.equals(s.curve())) so.addProperty("curve", s.curve());
+                if (!s.target().isEmpty()) so.addProperty("cible", s.target());
                 steps.add(so);
             }
             o.add("steps", steps);

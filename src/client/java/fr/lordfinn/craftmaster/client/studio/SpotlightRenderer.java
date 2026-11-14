@@ -39,6 +39,8 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
     private static final int SIDES = 20;
 
     public static class State extends BlockEntityRenderState {
+        /** Being looked through by its organiser (ControlView). */
+        boolean controlled;
         float yaw, pitch;
         boolean hanging, lit;
         int color;
@@ -121,6 +123,7 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         s.cone = be.renderCone;
         s.color = ((int) (be.renderColor[0] * 255) << 16) | ((int) (be.renderColor[1] * 255) << 8) | (int) (be.renderColor[2] * 255);
         s.lit = s.intensity > 0.005f;
+        s.controlled = ControlView.controllingSpot(be.getBlockPos());
 
         s.hit = null;
         s.face = null;
@@ -137,6 +140,11 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
 
     @Override
     public void submit(State s, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+        // Looked through (ControlView): neither its head nor its beam (the view is inside them), only where it lands
+        if (s.controlled) {
+            submitPool(s, poseStack, collector);
+            return;
+        }
         int light = s.lightCoords;
         poseStack.pushPose();
         poseStack.translate(s.pivot.x, s.pivot.y, s.pivot.z);
@@ -190,7 +198,10 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
             collector.submitCustomGeometry(poseStack, SpotLightRenderType.LIGHT, (p, c) -> beam(c, p, length, color, intensity, cone));
         }
         poseStack.popPose();
+        submitPool(s, poseStack, collector);
+    }
 
+    private static void submitPool(State s, PoseStack poseStack, SubmitNodeCollector collector) {
         if (s.lit && s.hit != null) {
             Vec3 hit = s.hit;
             Direction face = s.face;

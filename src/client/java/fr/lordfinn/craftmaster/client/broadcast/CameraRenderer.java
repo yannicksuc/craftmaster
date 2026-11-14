@@ -51,6 +51,12 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
     public static final Identifier TEXTURE = CraftMaster.id("textures/entity/camera.png");
 
     public static class State extends EntityRenderState {
+        /** A hidden camera: only its travellings are drawn. */
+        boolean bodyHidden;
+        /** Travelling ghosts: x, y, z from the anchor, yaw, pitch. */
+        final java.util.List<float[]> ghosts = new java.util.ArrayList<>();
+        /** Travelling steps: x, y, z from the anchor, yaw, pitch, selected (1/0); a point, or a ghost camera. */
+        final java.util.List<float[]> dots = new java.util.ArrayList<>(), stepGhosts = new java.util.ArrayList<>();
         int number;
         /** Lieu / zone written under the number outside the studio ("PONT ENSURI"), "" in the studio. */
         String place = "";
@@ -117,6 +123,7 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
     public void extractRenderState(CameraEntity e, State s, float partialTick) {
         super.extractRenderState(e, s, partialTick);
         s.number = e.number();
+        s.bodyHidden = e.hiddenProp() && !revealHidden();
         s.yaw = e.lensYaw();
         s.pitch = e.lensPitch();
         BroadcastNetwork.Shot shot = ShowStateClient.get().shot();
@@ -139,6 +146,35 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         if (!mount.legs() && mount.kind() != CameraMount.Kind.TRIPOD)
             items.updateForNonLiving(s.arm, FurnitureRenderer.stack(ARM), ItemDisplayContext.NONE, e);
         if (s.rodArm) items.updateForNonLiving(s.knuckle, FurnitureRenderer.stack(KNUCKLE), ItemDisplayContext.NONE, e);
+        // Its travellings' ghosts: a see-through copy moving along each one, in a loop (organisers, ghost option on)
+        s.ghosts.clear();
+        if (e.showsGhost() && !Broadcast.active() && fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin()) {
+            double now = (e.level().getGameTime() + partialTick) / 20.0;
+            for (fr.lordfinn.craftmaster.camera.CameraPath p : ShowStateClient.allPaths()) {
+                if (!p.camera().equals(key) || p.isEmpty()) continue;
+                double total = p.duration();
+                double t = total <= 0 ? 0 : now % (total + 1.0);
+                fr.lordfinn.craftmaster.camera.CameraPath.Pose v = p.sample(Math.min(t, total), DirectorCamera::playerPosition);
+                double dx = v.x() - e.getX(), dy = v.y() - e.getY(), dz = v.z() - e.getZ();
+                // A fixed shot from where the camera already stands needs no ghost
+                if (p.steps().size() == 1 && dx * dx + (dy - e.mount().lensDy()) * (dy - e.mount().lensDy()) + dz * dz < 0.04) continue;
+                s.ghosts.add(new float[]{(float) dx, (float) dy, (float) dz, v.yaw(), v.pitch()});
+            }
+        }
+        // The steps of its travellings shown in the world: a point, or a ghost camera when hovered / selected / new
+        s.dots.clear();
+        s.stepGhosts.clear();
+        java.util.Set<String> shown = fr.lordfinn.craftmaster.client.studio.TravellingMarkers.shownPaths(net.minecraft.client.Minecraft.getInstance());
+        if (!shown.isEmpty()) for (fr.lordfinn.craftmaster.camera.CameraPath p : ShowStateClient.allPaths()) {
+            if (!p.camera().equals(key) || !shown.contains(p.name())) continue;
+            for (int i = 0; i < p.steps().size(); i++) {
+                fr.lordfinn.craftmaster.camera.CameraPath.Step st = p.steps().get(i);
+                float[] at = {(float) (st.x() - e.getX()), (float) (st.y() - e.getY()), (float) (st.z() - e.getZ()), st.yaw(), st.pitch(),
+                        fr.lordfinn.craftmaster.client.studio.TravellingScreen.editing(p.name(), i) ? 1 : 0};
+                if (fr.lordfinn.craftmaster.client.studio.TravellingMarkers.showsGhost(p.name(), i)) s.stepGhosts.add(at);
+                else s.dots.add(at);
+            }
+        }
     }
 
     /** The side of the rod's block toward the camera. */
@@ -157,15 +193,25 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
     @Override
     //? if >=26.3 {
     public boolean shouldRender(CameraEntity e, net.minecraft.client.renderer.culling.Frustum frustum, double x, double y, double z, float partialTick) {
-        if (e.hiddenProp() && !revealHidden()) return false;
+        if (fr.lordfinn.craftmaster.client.studio.ControlView.controlling(e.cameraKey())) return false;
+        // Hidden: its body is not drawn, but its ghost and travelling points still are (organisers)
+        if (e.hiddenProp() && !revealHidden() && !(e.showsGhost() && fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin())) return false;
         return super.shouldRender(e, frustum, x, y, z, partialTick);
     }
     //?} else {
     /*public boolean shouldRender(CameraEntity e, net.minecraft.client.renderer.culling.Frustum frustum, double x, double y, double z) {
-        if (e.hiddenProp() && !revealHidden()) return false;
+        if (fr.lordfinn.craftmaster.client.studio.ControlView.controlling(e.cameraKey())) return false;
+        // Hidden: its body is not drawn, but its ghost and travelling points still are (organisers)
+        if (e.hiddenProp() && !revealHidden() && !(e.showsGhost() && fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin())) return false;
         return super.shouldRender(e, frustum, x, y, z);
     }
     *///?}
+
+    /** With its ghost shown, drawn even off screen (the ghost may be in view while the camera is not). */
+    @Override
+    protected boolean affectedByCulling(CameraEntity e) {
+        return !(e.showsGhost() && fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin()) && super.affectedByCulling(e);
+    }
 
     static boolean revealHidden() {
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
@@ -178,6 +224,10 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
     public void submit(State s, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         int light = s.lightCoords;
         CameraMount mount = s.mount;
+        if (s.bodyHidden) {
+            submitTravelling(s, poseStack, collector);
+            return;
+        }
         if (mount.legs()) submitTripod(s, poseStack, collector);
         else submitMount(s, poseStack, collector);
         poseStack.pushPose();
@@ -209,7 +259,48 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         });
         submitNumber(s, pitch, mount.hung(), poseStack, collector);
         poseStack.popPose();
+        submitTravelling(s, poseStack, collector);
         super.submit(s, poseStack, collector, camera);
+    }
+
+    /** Its travellings in the world: the moving ghosts, the steps (points, or ghost cameras). */
+    private void submitTravelling(State s, PoseStack poseStack, SubmitNodeCollector collector) {
+        for (float[] gh : s.ghosts) submitGhost(gh, 0x88A8D8FF, poseStack, collector);
+        for (float[] gh : s.stepGhosts) submitGhost(gh, gh[5] > 0 ? 0xC0FFC23D : 0xB0FFFFFF, poseStack, collector);
+        for (float[] d : s.dots) submitDot(d, poseStack, collector);
+    }
+
+    /** A travelling's ghost: the camera's head, see-through, at the lens place {gh[0..2]} (from the anchor), turned to its aim. */
+    private void submitGhost(float[] gh, int tint, PoseStack poseStack, SubmitNodeCollector collector) {
+        poseStack.pushPose();
+        poseStack.translate(gh[0], gh[1], gh[2]);
+        poseStack./*$ pose_rotate {*/rotate/*$}*/(Axis.YP.rotationDegrees(180 - gh[3]));
+        poseStack.scale(-1, -1, 1);
+        float xRot = (float) Math.toRadians(gh[4]);
+        collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(TEXTURE), (p, c) -> {
+            PoseStack ps = new PoseStack();
+            ps.last().set(p);
+            head.xRot = xRot;
+            tally.visible = false;
+            head.render(ps, c, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, tint);
+            tally.visible = true;
+        });
+        poseStack.popPose();
+    }
+
+    /** A travelling step as a small glowing point (the tally light's cube, smaller), gold when selected. */
+    private void submitDot(float[] d, PoseStack poseStack, SubmitNodeCollector collector) {
+        poseStack.pushPose();
+        poseStack.translate(d[0], d[1], d[2]);
+        poseStack.scale(2.2f, 2.2f, 2.2f);
+        int tint = d[5] > 0 ? 0xFFFFC23D : 0xE0FFFFFF;
+        collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(TEXTURE), (p, c) -> {
+            PoseStack ps = new PoseStack();
+            ps.last().set(p);
+            ps.translate(0, -1 / 16f, 0);
+            tally.render(ps, c, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, tint);
+        });
+        poseStack.popPose();
     }
 
     /**
