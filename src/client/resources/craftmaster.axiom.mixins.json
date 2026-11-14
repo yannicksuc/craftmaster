@@ -1,0 +1,8 @@
+{
+  "required": true,
+  "package": "fr.lordfinn.craftmaster.client.axiom.mixin",
+  "plugin": "fr.lordfinn.craftmaster.client.axiom.AxiomMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["AxiomWorldRenderMixin", "AxiomUserActionMixin"],
+  "injectors": { "defaultRequire": 1 }
+}

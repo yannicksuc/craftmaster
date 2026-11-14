@@ -77,7 +77,7 @@ public class CameraScreen extends Screen {
     @Override
     protected void init() {
         w = Math.min(220, Math.max(184, width / 3));
-        h = Math.min(height - 12, 196 + 26 + 15 * Math.min(5, cam.has("paths") ? cam.getAsJsonArray("paths").size() : 0) + 18);
+        h = Math.min(height - 12, 196 + 26 + 15 * Math.min(5, cam.has("paths") ? cam.getAsJsonArray("paths").size() : 0) + 26);
         x0 = width - w - 8;
         y0 = Math.max(8, (height - h) / 2);
         labelW = 0;
@@ -160,19 +160,30 @@ public class CameraScreen extends Screen {
         bigButton(g, x0 + 6, y, half, t("control"), mx, my, this::control, t("control_tip"));
         bigButton(g, x0 + 10 + half, y, half, t("cut"), mx, my, () -> send("cut", true), t("cut_tip"));
         y += 24;
-        // Its travellings: click one to edit it, + for a new one
+        // Its travellings, each in its colour (the colour of its ghost and points in the world): click one to edit
+        // it in the world (Axiom's gizmos), its pencil for the editor; + for a new one
         g.text(font, t("travellings"), lx, y, GOLD, false);
         y += 11;
         com.google.gson.JsonArray paths = cam.has("paths") ? cam.getAsJsonArray("paths") : new com.google.gson.JsonArray();
+        String edited = TravellingEdit.edited(key());
         for (int i = 0; i < paths.size() && i < 5; i++) {
             JsonObject p = paths.get(i).getAsJsonObject();
             String name = p.get("name").getAsString();
             int n = p.get("steps").getAsInt();
             String line = name + "  ·  " + (n <= 1 ? t("fixed_shot").getString() : t("path_line", n, fr.lordfinn.craftmaster.camera.CameraPath.seconds(Math.round(p.get("duration").getAsDouble() * 10) / 10.0)).getString());
-            boolean rh = mx >= lx && mx < vr && my >= y && my < y + 13;
-            Ui.button(g, font, lx, y, vr - lx, 13, Component.empty(), false, rh, true);
-            g.text(font, font.plainSubstrByWidth(line, vr - lx - 8), lx + 4, y + 3, TEXT, false);
-            hits.add(new Hit(lx, y, vr, y + 13, () -> travelling("open", name), null, null, t("edit_path")));
+            boolean on = name.equals(edited);
+            int pen = vr - 16;
+            boolean rh = mx >= lx && mx < pen - 2 && my >= y && my < y + 13;
+            Ui.button(g, font, lx, y, pen - 2 - lx, 13, Component.empty(), on, rh, true);
+            g.fill(lx + 3, y + 3, lx + 10, y + 10, TravellingEdit.colour(i));
+            g.text(font, font.plainSubstrByWidth(line, pen - 2 - lx - 18), lx + 14, y + 3, TEXT, false);
+            hits.add(new Hit(lx, y, pen - 2, y + 13, () -> TravellingEdit.setEdited(key(), name), null, null, t(on ? "edited_path" : "pick_path")));
+            boolean ph = mx >= pen && mx < vr && my >= y && my < y + 13;
+            Ui.button(g, font, pen, y, vr - pen, 13, Component.literal("✎"), false, ph, true);
+            hits.add(new Hit(pen, y, vr, y + 13, () -> {
+                TravellingEdit.setEdited(key(), name);
+                travelling("open", name);
+            }, null, null, t("edit_path")));
             y += 15;
         }
         button(g, lx, y, t("new_path"), false, mx, my, () -> travelling("create", null), t("new_path_tip"));

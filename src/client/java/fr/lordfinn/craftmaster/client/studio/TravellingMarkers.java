@@ -48,6 +48,8 @@ public final class TravellingMarkers {
     /** Is a step's ghost camera shown (hovered, selected in the editor, or just added)? */
     public static boolean showsGhost(String path, int index) {
         if (hover != null && hover.path.equals(path) && hover.index == index) return true;
+        TravellingEdit.StepRef h = TravellingEdit.hovered();
+        if (h != null && h.is(path, index)) return true;
         if (TravellingScreen.editing(path, index)) return true;
         Long until = FRESH.get(path + "#" + index);
         return until != null && until > System.currentTimeMillis();
@@ -67,6 +69,20 @@ public final class TravellingMarkers {
         return out;
     }
 
+    /** The travellings edited in the world: of each camera showing its ghost, the one picked (TravellingEdit), and the marker held. */
+    public static Set<String> editedPaths(Minecraft mc) {
+        Set<String> out = new HashSet<>();
+        if (mc.player == null || mc.level == null || Broadcast.active() || !fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin()) return out;
+        for (var e : mc.level.entitiesForRendering())
+            if (e instanceof CameraEntity c && c.showsGhost()) {
+                String p = TravellingEdit.edited(c.cameraKey());
+                if (p != null) out.add(p);
+            }
+        String held = PathMarkerItem.path(mc.player.getMainHandItem());
+        if (held != null && !held.isEmpty() && ShowStateClient.path(CameraPath.normalizeName(held)) != null) out.add(CameraPath.normalizeName(held));
+        return out;
+    }
+
     private static void tick(Minecraft mc) {
         hover = null;
         if (mc.player == null || mc.level == null) return;
@@ -78,7 +94,8 @@ public final class TravellingMarkers {
             Integer before = COUNTS.put(name, p.steps().size());
             if (before != null && p.steps().size() > before) FRESH.put(name + "#" + (p.steps().size() - 1), System.currentTimeMillis() + 3000);
         }
-        if (mc.gui.screen() != null || shown.isEmpty()) {
+        // With Axiom on, its gizmos take the clicks (client/axiom/TravellingGizmos)
+        if (mc.gui.screen() != null || shown.isEmpty() || TravellingEdit.gizmosActive()) {
             useWas = mc.options.keyUse.isDown();
             return;
         }

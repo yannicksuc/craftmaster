@@ -146,6 +146,21 @@ l'écran, garde la scène en vue :
 - **Dans le monde** : avec le fantôme activé (ou le clap en main), chaque étape est un **point** ; en le visant il
   devient une caméra fantôme (sa place et sa direction), un **clic droit** ouvre l'éditeur sur cette étape. Une
   caméra fantôme parcourt le travelling en boucle. « Fantôme : oui / non » dans l'éditeur.
+- **Couleurs** : chaque travelling d'une caméra a sa couleur, toujours dans le même ordre (orange, turquoise, violet,
+  rose, bleu, vert, jaune, rouge) : son fantôme, ses points et son trajet en pointillés. Dans le menu de la caméra, la
+  pastille de chaque ligne rappelle sa couleur ; **clic sur la ligne** = c'est lui qu'on édite dans le monde (par
+  défaut le premier), **✎** = l'ouvrir dans l'éditeur. Les autres travellings restent visibles, plus pâles.
+- **Édition au gizmo d'Axiom** (Axiom installé et activé) : le même outil que pour une entité d'affichage.
+  - **clic gauche sur une étape** : elle prend le gizmo d'Axiom ; les **flèches et plans** la déplacent, l'**anneau
+    horizontal** la tourne à gauche / à droite, l'**anneau de côté** vers le haut / le bas ;
+  - le **« + » blanc** au-dessus de chaque étape : **tire-le** vers l'étape suivante pour une nouvelle étape après
+    elle, vers la précédente pour une étape avant ; le « + » au-dessus de la caméra (quand le travelling part
+    d'ailleurs) en ajoute une à la fin. Si le travelling part de la caméra, le « + » de la première étape fait les
+    deux ;
+  - **clic sur le trajet en pointillés** : une étape à cet endroit (place et visée du trajet, la durée du tronçon
+    partagée, le reste du minutage ne bouge pas) ;
+  - **clic droit sur une étape** : l'éditeur sur cette étape ; **Suppr** : la retirer (l'étape suivante reprend sa
+    durée) ; **Échap** : désélectionner. Fermer l'éditeur laisse son étape sélectionnée dans le monde.
 - **Aperçu** (sur ton écran seulement), **À l'antenne**, et dans la **timeline** une piste *Caméra* (plan : une caméra
   ou un travelling, et la transition de la diffusion).
 

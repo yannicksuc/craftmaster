@@ -97,6 +97,20 @@ public final class DevInput {
                     hover = a.length > 2 ? new double[]{Double.parseDouble(a[1]), Double.parseDouble(a[2])} : null;
                     continue;
                 }
+                // Axiom (travelling gizmos): "axiom LEFT_MOUSE" runs one of its actions, "axiomhold 1/0" holds the
+                // left button for its tools; "look <yaw> <pitch>" turns the player
+                if (line.strip().startsWith("axiom") && net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("axiom")) {
+                    String[] a = line.strip().split("\s+");
+                    if (a[0].equals("axiomhold")) fr.lordfinn.craftmaster.client.axiom.TravellingGizmos.devLeft = a.length > 1 && a[1].equals("1");
+                    else if (a.length > 1) fr.lordfinn.craftmaster.client.axiom.TravellingGizmos.devAction(a[1]);
+                    continue;
+                }
+                if (line.strip().startsWith("look ") && mc.player != null) {
+                    String[] a = line.strip().split("\s+");
+                    mc.player.setYRot(Float.parseFloat(a[1]));
+                    mc.player.setXRot(Float.parseFloat(a[2]));
+                    continue;
+                }
                 if (line.strip().toLowerCase(Locale.ROOT).startsWith("use")) {
                     String[] a = line.strip().split("\\s+");
                     useUntil = System.nanoTime() + (long) (Double.parseDouble(a.length > 1 ? a[1] : "0.2") * 1e9);

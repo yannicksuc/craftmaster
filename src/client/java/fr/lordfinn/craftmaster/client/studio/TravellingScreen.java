@@ -512,10 +512,19 @@ public class TravellingScreen extends Screen {
         return false;
     }
 
+    /** Closed: the step selected here stays selected in the world (Axiom's gizmo on it). */
+    @Override
+    public void removed() {
+        super.removed();
+        if (path() != null && !steps().isEmpty()) TravellingEdit.select(path(), selected);
+    }
+
     /** Opens the editor when the server sends a travelling, or refreshes it. */
     public static void registerClient() {
         ClientPlayNetworking.registerGlobalReceiver(TravellingNetwork.Open.TYPE, (p, ctx) -> {
             JsonObject o = com.google.gson.JsonParser.parseString(p.json()).getAsJsonObject();
+            // The travelling open in the editor is the one edited in the world
+            if (o.has("path")) TravellingEdit.setEdited(o.get("camera").getAsString(), o.get("path").getAsString());
             if (ctx.client().gui.screen() instanceof TravellingScreen s && s.camera().equals(o.get("camera").getAsString())) s.update(o);
             else ctx.client().gui.setScreen(new TravellingScreen(o));
         });

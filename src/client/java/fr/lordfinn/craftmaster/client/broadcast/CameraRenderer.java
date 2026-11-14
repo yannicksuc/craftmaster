@@ -49,14 +49,18 @@ import net.minecraft.world.item.ItemDisplayContext;
 public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.State> {
 
     public static final Identifier TEXTURE = CraftMaster.id("textures/entity/camera.png");
+    /** All white: the travelling points take their colour from the tint. */
+    private static final Identifier WHITE = CraftMaster.id("textures/entity/white.png");
 
     public static class State extends EntityRenderState {
         /** A hidden camera: only its travellings are drawn. */
         boolean bodyHidden;
-        /** Travelling ghosts: x, y, z from the anchor, yaw, pitch. */
+        /** Travelling ghosts: x, y, z from the anchor, yaw, pitch, tint (ARGB bits). */
         final java.util.List<float[]> ghosts = new java.util.ArrayList<>();
-        /** Travelling steps: x, y, z from the anchor, yaw, pitch, selected (1/0); a point, or a ghost camera. */
+        /** Travelling steps: x, y, z from the anchor, yaw, pitch, tint (ARGB bits), size; a point, or a ghost camera. */
         final java.util.List<float[]> dots = new java.util.ArrayList<>(), stepGhosts = new java.util.ArrayList<>();
+        /** The paths themselves, dotted: x, y, z from the anchor, tint (ARGB bits), size. */
+        final java.util.List<float[]> trail = new java.util.ArrayList<>();
         int number;
         /** Lieu / zone written under the number outside the studio ("PONT ENSURI"), "" in the studio. */
         String place = "";
@@ -75,7 +79,7 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
     private static final float TRIPOD_TOP = 1f, BODY_BOTTOM = 1.3f;
     private static final Identifier ARM = CraftMaster.id("furniture/rig_arm"), KNUCKLE = CraftMaster.id("furniture/rig_knuckle");
 
-    private final ModelPart root, head, tally;
+    private final ModelPart root, head, tally, dot;
     private final ItemModelResolver items;
 
     public CameraRenderer(EntityRendererProvider.Context ctx) {
@@ -83,6 +87,8 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         root = createLayer().bakeRoot();
         head = root.getChild("head");
         tally = head.getChild("tally");
+        dot = root.getChild("dot");
+        dot.visible = false;
         // The legs drawn here are replaced by LordFinn's tripod model: only the head (body, lens, tally) stays
         root.getChild("hub").visible = false;
         for (int i = 0; i < 3; i++) root.getChild("leg" + i).visible = false;
@@ -110,6 +116,8 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
                         .texOffs(48, 0).addBox(-1.5f, -7.5f, 1, 3, 2, 4)        // hood / viewfinder
                         .texOffs(34, 15).addBox(-0.5f, 0, 6, 1, 1, 5),          // pan bar
                 PartPose.offset(0, 2, 0));
+        // A centred 1 px cube: the travelling points (drawn on their own, white texture, tinted)
+        root.addOrReplaceChild("dot", CubeListBuilder.create().texOffs(0, 0).addBox(-0.5f, -0.5f, -0.5f, 1, 1, 1), PartPose.ZERO);
         head.addOrReplaceChild("tally", CubeListBuilder.create().texOffs(50, 8).addBox(-0.5f, -6.5f, -4, 1, 1, 1), PartPose.ZERO);
         return LayerDefinition.create(mesh, 64, 32);
     }
@@ -158,23 +166,65 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
                 double dx = v.x() - e.getX(), dy = v.y() - e.getY(), dz = v.z() - e.getZ();
                 // A fixed shot from where the camera already stands needs no ghost
                 if (p.steps().size() == 1 && dx * dx + (dy - e.mount().lensDy()) * (dy - e.mount().lensDy()) + dz * dz < 0.04) continue;
-                s.ghosts.add(new float[]{(float) dx, (float) dy, (float) dz, v.yaw(), v.pitch()});
+                int colour = fr.lordfinn.craftmaster.client.studio.TravellingEdit.colourOf(p);
+                s.ghosts.add(new float[]{(float) dx, (float) dy, (float) dz, v.yaw(), v.pitch(), tint(colour, 0x90)});
             }
         }
         // The steps of its travellings shown in the world: a point, or a ghost camera when hovered / selected / new
+        // The edited travelling (TravellingEdit) in its colour, bright; the camera's others paler and smaller
         s.dots.clear();
         s.stepGhosts.clear();
+        s.trail.clear();
         java.util.Set<String> shown = fr.lordfinn.craftmaster.client.studio.TravellingMarkers.shownPaths(net.minecraft.client.Minecraft.getInstance());
+        String edited = fr.lordfinn.craftmaster.client.studio.TravellingEdit.edited(key);
+        boolean gizmos = fr.lordfinn.craftmaster.client.studio.TravellingEdit.gizmosActive();
         if (!shown.isEmpty()) for (fr.lordfinn.craftmaster.camera.CameraPath p : ShowStateClient.allPaths()) {
             if (!p.camera().equals(key) || !shown.contains(p.name())) continue;
+            boolean main = p.name().equals(edited);
+            int colour = fr.lordfinn.craftmaster.client.studio.TravellingEdit.colourOf(p);
             for (int i = 0; i < p.steps().size(); i++) {
-                fr.lordfinn.craftmaster.camera.CameraPath.Step st = p.steps().get(i);
+                fr.lordfinn.craftmaster.camera.CameraPath.Pose st = fr.lordfinn.craftmaster.client.studio.TravellingEdit.pose(p, i);
+                boolean selected = fr.lordfinn.craftmaster.client.studio.TravellingEdit.isSelected(p.name(), i);
                 float[] at = {(float) (st.x() - e.getX()), (float) (st.y() - e.getY()), (float) (st.z() - e.getZ()), st.yaw(), st.pitch(),
-                        fr.lordfinn.craftmaster.client.studio.TravellingScreen.editing(p.name(), i) ? 1 : 0};
-                if (fr.lordfinn.craftmaster.client.studio.TravellingMarkers.showsGhost(p.name(), i)) s.stepGhosts.add(at);
+                        tint(selected ? brighter(colour) : colour, selected ? 0xD0 : main ? 0xB0 : 0x70), main ? 3.6f : 2.4f};
+                if (selected || fr.lordfinn.craftmaster.client.studio.TravellingMarkers.showsGhost(p.name(), i)) s.stepGhosts.add(at);
                 else s.dots.add(at);
             }
+            trail(e, p, colour, main, s.trail);
         }
+        // The "+" above the steps and the camera (Axiom on): white, bigger when hovered or held
+        if (gizmos) for (var h : fr.lordfinn.craftmaster.client.studio.TravellingEdit.handles()) {
+            fr.lordfinn.craftmaster.camera.CameraPath hp = ShowStateClient.path(h.path());
+            if (hp == null || !hp.camera().equals(key)) continue;
+            s.dots.add(new float[]{(float) (h.x() - e.getX()), (float) (h.y() - e.getY()), (float) (h.z() - e.getZ()), 0, 0,
+                    tint(0xFFFFFFFF, h.lit() ? 0xF0 : 0xB0), h.lit() ? 5.5f : 3.6f});
+        }
+        // The ghost of a step about to be added, white
+        var preview = fr.lordfinn.craftmaster.client.studio.TravellingEdit.preview();
+        if (preview != null) {
+            fr.lordfinn.craftmaster.camera.CameraPath pp = ShowStateClient.path(preview.path());
+            if (pp != null && pp.camera().equals(key)) {
+                var v = preview.pose();
+                s.stepGhosts.add(new float[]{(float) (v.x() - e.getX()), (float) (v.y() - e.getY()), (float) (v.z() - e.getZ()), v.yaw(), v.pitch(),
+                        tint(0xFFFFFFFF, 0xC0), 2.2f});
+            }
+        }
+    }
+
+    /** The path between the steps, dotted (the poses being dragged included). */
+    private static void trail(CameraEntity e, fr.lordfinn.craftmaster.camera.CameraPath p, int colour, boolean main, java.util.List<float[]> out) {
+        if (p.steps().size() < 2) return;
+        for (float[] pt : fr.lordfinn.craftmaster.client.studio.TravellingEdit.trail(fr.lordfinn.craftmaster.client.studio.TravellingEdit.asDrawn(p)))
+            out.add(new float[]{(float) (pt[0] - e.getX()), (float) (pt[1] - e.getY()), (float) (pt[2] - e.getZ()), tint(colour, main ? 0xC0 : 0x60), main ? 1.8f : 1.2f});
+    }
+
+    private static float tint(int rgb, int alpha) {
+        return Float.intBitsToFloat((alpha << 24) | (rgb & 0xFFFFFF));
+    }
+
+    private static int brighter(int argb) {
+        int r = (argb >> 16) & 255, g = (argb >> 8) & 255, b = argb & 255;
+        return 0xFF000000 | ((r + (255 - r) / 2) << 16) | ((g + (255 - g) / 2) << 8) | (b + (255 - b) / 2);
     }
 
     /** The side of the rod's block toward the camera. */
@@ -265,9 +315,10 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
 
     /** Its travellings in the world: the moving ghosts, the steps (points, or ghost cameras). */
     private void submitTravelling(State s, PoseStack poseStack, SubmitNodeCollector collector) {
-        for (float[] gh : s.ghosts) submitGhost(gh, 0x88A8D8FF, poseStack, collector);
-        for (float[] gh : s.stepGhosts) submitGhost(gh, gh[5] > 0 ? 0xC0FFC23D : 0xB0FFFFFF, poseStack, collector);
-        for (float[] d : s.dots) submitDot(d, poseStack, collector);
+        for (float[] gh : s.ghosts) submitGhost(gh, Float.floatToRawIntBits(gh[5]), poseStack, collector);
+        for (float[] gh : s.stepGhosts) submitGhost(gh, Float.floatToRawIntBits(gh[5]), poseStack, collector);
+        for (float[] d : s.dots) submitDot(d[0], d[1], d[2], Float.floatToRawIntBits(d[5]), d[6], poseStack, collector);
+        for (float[] d : s.trail) submitDot(d[0], d[1], d[2], Float.floatToRawIntBits(d[3]), d[4], poseStack, collector);
     }
 
     /** A travelling's ghost: the camera's head, see-through, at the lens place {gh[0..2]} (from the anchor), turned to its aim. */
@@ -288,17 +339,17 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         poseStack.popPose();
     }
 
-    /** A travelling step as a small glowing point (the tally light's cube, smaller), gold when selected. */
-    private void submitDot(float[] d, PoseStack poseStack, SubmitNodeCollector collector) {
+    /** A small glowing point (the tally light's cube, {@code size} times): a travelling's step, or its path. */
+    private void submitDot(float x, float y, float z, int tint, float size, PoseStack poseStack, SubmitNodeCollector collector) {
         poseStack.pushPose();
-        poseStack.translate(d[0], d[1], d[2]);
-        poseStack.scale(2.2f, 2.2f, 2.2f);
-        int tint = d[5] > 0 ? 0xFFFFC23D : 0xE0FFFFFF;
-        collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(TEXTURE), (p, c) -> {
+        poseStack.translate(x, y, z);
+        poseStack.scale(size, size, size);
+        collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(WHITE), (p, c) -> {
             PoseStack ps = new PoseStack();
             ps.last().set(p);
-            ps.translate(0, -1 / 16f, 0);
-            tally.render(ps, c, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, tint);
+            dot.visible = true;
+            dot.render(ps, c, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, tint);
+            dot.visible = false;
         });
         poseStack.popPose();
     }

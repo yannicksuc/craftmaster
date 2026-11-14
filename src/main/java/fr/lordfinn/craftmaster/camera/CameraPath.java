@@ -167,13 +167,27 @@ public record CameraPath(String name, String lieu, String world, List<Step> step
         if (n == 0) return new Pose(0, 0, 0, 0, 0, 0);
         float[] yaws = unwrappedYaws();
         float[] fovs = fovs();
-        if (n == 1 || t <= 0) return at(0, yaws, fovs);
+        double[] w = where(t);
+        int k = (int) w[0];
+        if (w[1] < 0) return at(k, yaws, fovs);
+        double u = w[1];
+        if (CUT.equals(steps.get(k + 1).curve())) return at(u >= 1 ? k + 1 : k, yaws, fovs);
+        return segment(k, u, (int) w[2], (int) w[3], yaws, fovs);
+    }
+
+    /**
+     * Where the camera is {@code t} seconds after the start, as {@link #sample(double)} moves it: {k, u, runStart,
+     * runEnd} between step k and k + 1 at u (0..1, eased), or {i, -1, i, i} standing on step i.
+     */
+    public double[] where(double t) {
+        int n = steps.size();
+        if (n <= 1 || t <= 0) return new double[]{0, -1, 0, 0};
         // Walk the runs: a run goes from a stop (start or step with a hold) to the next stop
         double clock = 0;
         int i = 0;
         while (i < n - 1) {
             double hold = steps.get(i).hold();
-            if (t < clock + hold) return at(i, yaws, fovs);
+            if (t < clock + hold) return new double[]{i, -1, i, i};
             clock += hold;
             int j = i + 1;
             while (j < n - 1 && steps.get(j).hold() <= 0) j++;
@@ -196,13 +210,20 @@ public record CameraPath(String name, String lieu, String world, List<Step> step
                 }
                 double seg = steps.get(k + 1).travel();
                 double u = seg <= 1e-9 ? 1 : Math.max(0, Math.min(1, local / seg));
-                if (CUT.equals(steps.get(k + 1).curve())) return at(u >= 1 ? k + 1 : k, yaws, fovs);
-                return segment(k, u, i, j, yaws, fovs);
+                return new double[]{k, u, i, j};
             }
             clock += length;
             i = j;
         }
-        return at(n - 1, yaws, fovs);
+        return new double[]{n - 1, -1, n - 1, n - 1};
+    }
+
+    /** The travellings of camera {@code key} among {@code all}, in name order (the order of their colours). */
+    public static List<CameraPath> ofCamera(java.util.Collection<CameraPath> all, String key) {
+        List<CameraPath> out = new java.util.ArrayList<>();
+        for (CameraPath p : all) if (key != null && key.equals(p.camera())) out.add(p);
+        out.sort(java.util.Comparator.comparing(CameraPath::name));
+        return out;
     }
 
     /**

@@ -77,9 +77,7 @@ public final class TravellingNetwork {
 
     /** The travellings of camera {@code key}, in name order. */
     public static List<CameraPath> of(String key) {
-        List<CameraPath> out = new ArrayList<>();
-        for (CameraPath p : CameraPaths.all()) if (p.camera().equals(key)) out.add(p);
-        return out;
+        return CameraPath.ofCamera(CameraPaths.all(), key);
     }
 
     /** Opens the editor on travelling {@code path} of camera {@code key} (null: its first, or none yet). */
@@ -198,6 +196,40 @@ public final class TravellingNetwork {
                 else steps.add(here);
                 CameraPaths.put(server, p.withSteps(steps));
             }
+            // A step placed in the world (Axiom's gizmos): moved / turned, or inserted at index with its pose
+            case "pose", "insertAt" -> {
+                CameraPath p = CameraPaths.get(name);
+                if (p == null || index < 0) return;
+                List<CameraPath.Step> steps = new ArrayList<>(p.steps());
+                double x = o.get("x").getAsDouble(), y = o.get("y").getAsDouble(), z = o.get("z").getAsDouble();
+                float yaw = o.get("yaw").getAsFloat(), pitch = Math.max(-90, Math.min(90, o.get("pitch").getAsFloat()));
+                if (action.equals("pose")) {
+                    if (index >= steps.size()) return;
+                    CameraPath.Step s = steps.get(index);
+                    // Turned by hand: it stops tracking (its own angle again)
+                    boolean turned = Math.abs(s.yaw() - yaw) > 0.01 || Math.abs(s.pitch() - pitch) > 0.01;
+                    CameraPath.Step moved = s.withPlace(x, y, z, yaw, pitch);
+                    steps.set(index, turned ? moved.withTarget("") : moved);
+                } else {
+                    index = Math.min(index, steps.size());
+                    // Inside the path (split = how far along the next step's travel): the travel time is shared, the
+                    // timing of the rest stays the same; at an end, the neighbour's travel
+                    double split = o.has("split") ? o.get("split").getAsDouble() : -1;
+                    double travel = steps.isEmpty() ? 0 : steps.size() >= 2 ? steps.get(Math.max(1, Math.min(steps.size() - 1, index))).travel() : CameraPath.DEFAULT_TRAVEL;
+                    float fov = o.has("fov") ? o.get("fov").getAsFloat() : index > 0 ? steps.get(index - 1).fov() : steps.isEmpty() ? 0 : steps.getFirst().fov();
+                    if (split > 0 && split < 1 && index > 0 && index < steps.size()) {
+                        CameraPath.Step next = steps.get(index);
+                        travel = next.travel() * split;
+                        steps.set(index, next.withTravel(next.travel() - travel));
+                    }
+                    steps.add(index, new CameraPath.Step(x, y, z, yaw, pitch, fov, index == 0 ? 0 : travel, 0, null));
+                    // A new first step: the old first one now needs a travel
+                    if (index == 0 && steps.size() > 1 && steps.get(1).travel() <= 0) steps.set(1, steps.get(1).withTravel(CameraPath.DEFAULT_TRAVEL));
+                }
+                CameraPaths.put(server, p.withSteps(steps));
+                // From the world: no menu opens
+                if (o.has("quiet") && o.get("quiet").getAsBoolean()) return;
+            }
             case "fromCamera" -> {
                 // The camera's own place as a step (the move then starts or ends where it stands)
                 CameraPath p = CameraPaths.get(name);
@@ -245,8 +277,12 @@ public final class TravellingNetwork {
                 CameraPath p = CameraPaths.get(name);
                 if (p == null || index < 0 || index >= p.steps().size() || p.steps().size() <= 1) return;
                 List<CameraPath.Step> steps = new ArrayList<>(p.steps());
-                steps.remove(index);
+                CameraPath.Step gone = steps.remove(index);
+                // From the world: the next step takes its travel time (the inverse of a step added on the path)
+                boolean quiet = o.has("quiet") && o.get("quiet").getAsBoolean();
+                if (quiet && index > 0 && index < steps.size()) steps.set(index, steps.get(index).withTravel(steps.get(index).travel() + gone.travel()));
                 CameraPaths.put(server, p.withSteps(steps));
+                if (quiet) return;
             }
             case "goTo" -> {
                 CameraPath p = CameraPaths.get(name);

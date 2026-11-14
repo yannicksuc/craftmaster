@@ -30,11 +30,28 @@ repositories {
     }
 }
 
+// Axiom's client API (axiomclientapi) is nested in Axiom's jar: extracted once to build/axiom-api
+val axiomJar: Configuration by configurations.creating
+dependencies { axiomJar("maven.modrinth:axiom:${property("axiom_version")}") }
+val axiomApi = layout.buildDirectory.file("axiom-api/axiomclientapi.jar").get().asFile
+if (!axiomApi.exists()) {
+    copy {
+        from(zipTree(axiomJar.singleFile).matching { include("META-INF/jars/axiomclientapi*.jar") })
+        eachFile { path = "axiomclientapi.jar" }
+        includeEmptyDirs = false
+        into(axiomApi.parentFile)
+    }
+}
+
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
     // Optional at runtime (the modpack ships it with its Binaries, 26.2 only): every use goes through
     // client/media/Media.available(); the dev client loads it from run-26.2/mods
     compileOnly("maven.modrinth:watermedia:${property("watermedia_version")}")
+    // Optional at runtime: with Axiom, the travelling steps are moved / turned with its gizmos (client/axiom, mixins
+    // applied only when Axiom is loaded); its client API, nested in its jar, is needed to compile against it
+    compileOnly("maven.modrinth:axiom:${property("axiom_version")}")
+    compileOnly(files(axiomApi))
     implementation("net.fabricmc:fabric-loader:${property("fabric_loader_version")}")
     implementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
 

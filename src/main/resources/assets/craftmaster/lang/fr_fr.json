@@ -1038,7 +1038,7 @@
   "screen.craftmaster.camera.travellings": "Travellings",
   "screen.craftmaster.camera.fixed_shot": "plan fixe",
   "screen.craftmaster.camera.path_line": "%s étapes, %s",
-  "screen.craftmaster.camera.edit_path": "Modifier ce travelling",
+  "screen.craftmaster.camera.edit_path": "L'ouvrir dans l'éditeur de travelling",
   "screen.craftmaster.camera.new_path": "+ Nouveau travelling",
   "screen.craftmaster.camera.new_path_tip": "Un nouveau mouvement de cette caméra, qui part d'où elle est (modifiable à volonté)",
   "screen.craftmaster.travelling": "Travelling",
@@ -1111,5 +1111,8 @@
   "screen.craftmaster.travelling.control_tip": "Voir depuis cette étape et cadrer à la souris ; clic pour garder, Échap pour annuler",
   "screen.craftmaster.travelling.look_here": "Là où je regarde",
   "screen.craftmaster.travelling.look_here_tip": "L'étape regarde là où tu regardes (elle reste en place)",
-  "hud.craftmaster.control.step": "Étape %s de « %s »"
+  "hud.craftmaster.control.step": "Étape %s de « %s »",
+  "screen.craftmaster.camera.pick_path": "Éditer celui-ci dans le monde (ses étapes, avec les gizmos d'Axiom)",
+  "screen.craftmaster.camera.edited_path": "Édité dans le monde : Axiom activé, clic sur une étape pour la déplacer / tourner, tirer un + pour une nouvelle étape, clic sur le trajet pour en ajouter une là",
+  "overlay.craftmaster.travelling.step": "Étape %s/%s · %s · %s° / %s°"
 }
