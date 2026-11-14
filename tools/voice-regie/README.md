@@ -32,6 +32,8 @@ Le premier lancement charge Whisper (~10 à 20 s). `GET /health` dit si le modè
 | `REGIE_CLAUDE_FALLBACKS` | 1 | repli serveur automatique si Claude refuse une demande |
 | `REGIE_CLAUDE_TIMEOUT` | 12 | délai max d'un appel Claude (s) |
 | `REGIE_WHISPER_MODEL` / `_DEVICE` / `_COMPUTE` | auto | auto = `large-v3-turbo` float16 sur GPU, sinon `small` int8 sur CPU |
+| `REGIE_AGENT_MODEL` | = `REGIE_CLAUDE_MODEL` | modèle de l'agent de régie |
+| `REGIE_AGENT_EFFORT` | `medium` | effort de l'agent de régie |
 | `REGIE_IDLE_MINUTES` | 4 | seuil « pas de note depuis longtemps → manche suivante » (le contexte du serveur prime) |
 
 ## API
@@ -39,6 +41,11 @@ Le premier lancement charge Whisper (~10 à 20 s). `GET /health` dit si le modè
 - `POST /command` ← `{"audio": "<WAV base64>", "context": {...}}` (ou `"text"` au lieu de `"audio"`)
   → `{transcript, actions[], reply, warnings[], error, timings{stt, claude, total}}`.
   `error` : `null`, `no_api_key`, `claude_error`, `refused`, `stt_error`, `empty_transcript`, `bad_request`.
+  `agentJob` : id d'une demande confiée à l'agent de régie (action `agent.request`, retirée de `actions`).
+- Agent de régie ([docs/wiki/RegieIA.md](../../docs/wiki/RegieIA.md), `regie/agent.py`), piloté par le jeu :
+  `POST /agent/start` ← `{text, context?, player?}` → `{job}` ; `GET /agent/poll?job=` → `{calls[{cid, tool, args}], done,
+  reply, error}` ; `POST /agent/result` ← `{job, cid, ok, output}` ; `GET /agent/tools` et `POST /agent/tool` (bloquant)
+  pour `regie/agent_mcp.py`, le serveur MCP que Claude Code lance en mode abonnement.
 
 ## Fonctionnement
 1. **Whisper** (`regie/stt.py`) : français, avec en *prompt* les pseudos, surnoms et manches du contexte

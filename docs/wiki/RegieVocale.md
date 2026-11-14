@@ -43,6 +43,10 @@ besoin de rien).
 | « lance un clip » / « coupe le clip » | clip de la vue de ce jeu, enregistré puis envoyé au serveur ([Clips](Clips.md)) |
 | « mets le clip sur la télé de gauche » / « le direct d'Ensuri sur la télé plateau » / « éteins la télé de gauche » | télés du studio ([Clips](Clips.md)) |
 
+Changer ce qui est **enregistré** (une ambiance, une timeline, une caméra, une conduite, un travelling) : « rends
+l'ambiance tension plus rouge », « ajoute un plan serré sur la galerie dans la révélation »… part à l'agent de
+régie, qui répond dans le chat : [Régie IA](RegieIA.md).
+
 ## Ce qu'elle comprend
 - **Pseudos approximatifs** : surnoms (définis par joueur), fautes de transcription (« l'or fine » → LordFinn,
   « arrobaz » → Arreaubaz, « silu » → Cyllu). Deux joueurs aussi proches l'un que l'autre : elle ne devine pas.

@@ -40,6 +40,7 @@ public final class CraftMasterClient implements ClientModInitializer {
         DevInput.init();
         KeyMappingHelper.registerKeyMapping(RANKING_KEY);
         VoiceRegie.init();
+        fr.lordfinn.craftmaster.client.regie.RegieAgent.init();
         // Moderators' director (key ;): orders checked by the server, never shown on the broadcast
         fr.lordfinn.craftmaster.client.regie.ModoDeskClient.init();
         fr.lordfinn.craftmaster.client.stage.TimelineClient.init();

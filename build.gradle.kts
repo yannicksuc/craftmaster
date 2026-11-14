@@ -102,7 +102,7 @@ loom {
             }
             // -PregieTrigger: the voice control plays the .wav files dropped in run/regie-trigger as if the key
             // were held while they are spoken (tests without keyboard or microphone, docs/wiki/RegieVocale.md)
-            if (hasProperty("regieTrigger")) vmArg("-Dcraftmaster.regie.triggerDir=" + rootProject.file(property("run_dir") as String + "/regie-trigger").absolutePath)
+            if (hasProperty("regieTrigger")) vmArg("-Dcraftmaster.regie.triggerDir=" + rootProject.file(project.property("run_dir") as String + "/regie-trigger").absolutePath)
             runDir = rootRunDir("run_dir")
         }
         // Second player without admin rights, to see what participants see: .\gradlew.bat runClient2

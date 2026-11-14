@@ -24,6 +24,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Chaises](Chaises.md)
 - [Plateau : trône, éclairage, projecteurs, chrono géant, écrans /image, pupitres, gong…](Plateau.md)
 - [Régie vocale (piloter à la voix)](RegieVocale.md)
+- [Régie IA (changer la préparation de l'émission à la voix, pendant le direct)](RegieIA.md)
 - [Régie des modos : dans le jeu (touche ;) et sur lordfinn.fr](RegieModos.md)
 - [Réalisation TV : caméras, mode diffusion, habillage, générique](Realisation.md)
 - [Replays des manches (Server Replay) : un fichier par candidat et pour la zone de l'épreuve](Replays.md)

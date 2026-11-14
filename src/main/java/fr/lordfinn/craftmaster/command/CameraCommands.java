@@ -180,6 +180,10 @@ public final class CameraCommands {
                         .executes(c -> add(c, null))
                         .then(argument("name", StringArgumentType.greedyString()).executes(c -> add(c, str(c, "name")))))
                 .then(literal("aim").then(cam().executes(CameraCommands::aim)))
+                // Without moving: a camera at coordinates, aimed at a point (console, the régie agent)
+                .then(literal("placer").then(cam().then(argument("pos", net.minecraft.commands.arguments.coordinates.Vec3Argument.vec3(false))
+                        .then(literal("vers").then(argument("target", net.minecraft.commands.arguments.coordinates.Vec3Argument.vec3(false))
+                                .executes(CameraCommands::placeAt))))))
                 .then(literal("goto").then(cam().executes(CameraCommands::gotoCamera)))
                 .then(literal("name").then(cam().then(argument("name", StringArgumentType.greedyString()).executes(c -> {
                     String newName = str(c, "name");
@@ -329,25 +333,10 @@ public final class CameraCommands {
         if (p == null) return 0;
         String ref = str(c, "camera");
         CameraSpot old = Director.resolve(c.getSource().getServer(), ref);
-        CameraSpot spot;
-        if (old != null) {
-            spot = old.withPlace(Busts.worldId(p.level()), p.getX(), p.getEyeY(), p.getZ(), p.getYRot(), p.getXRot());
-        } else {
-            String group = Director.focus();
-            String num = ref;
-            int colon = ref.lastIndexOf(':');
-            if (colon > 0) {
-                group = Cameras.list().place(ref.substring(0, colon), group, Lieux.places(c.getSource().getServer(), group), true);
-                num = ref.substring(colon + 1);
-                if (group != null && !CameraSpot.STUDIO.equals(CameraSpot.lieuOf(group)) && Lieux.lieu(CameraSpot.lieuOf(group)) == null) group = null;
-            }
-            if (group == null || !num.matches("\\d{1,2}") || Integer.parseInt(num) < 1) {
-                fail(c, "« " + ref + " » : donne un numéro (/cam here 3) ou lieu:numéro (/cam here pont:2, /cam here pont:ensuri:1).");
-                return 0;
-            }
-            spot = new CameraSpot(Integer.parseInt(num), null, "", Busts.worldId(p.level()), p.getX(), p.getEyeY(), p.getZ(), p.getYRot(),
-                    p.getXRot(), 0, CameraSpot.BREATHING, CameraSpot.lieuOf(group), CameraSpot.zoneOf(group));
-        }
+        CameraSpot spot = old != null
+                ? old.withPlace(Busts.worldId(p.level()), p.getX(), p.getEyeY(), p.getZ(), p.getYRot(), p.getXRot())
+                : newSpot(c, ref, Busts.worldId(p.level()), p.getX(), p.getEyeY(), p.getZ(), p.getYRot(), p.getXRot());
+        if (spot == null) return 0;
         if (name != null) spot = spot.withName(name);
         Cameras.place(c.getSource().getServer(), spot);
         ok(c, "Caméra " + spot.label() + (old == null ? " posée" : " déplacée") + " à ta place (" + spot.placeName() + "), elle regarde là où tu regardes.");
@@ -380,6 +369,49 @@ public final class CameraCommands {
         // Eyes at the lens: what the player sees is the shot (to check or adjust it)
         p.teleportTo(level, s.x(), s.y() - p.getEyeHeight(), s.z(), Set.of(), s.yaw(), s.pitch(), false);
         ok(c, "Tu vois ce que voit la caméra " + s.label() + ". /cam here " + s.key() + " pour la recadrer d'ici.");
+        return 1;
+    }
+
+    /** A new camera for the ref {@code 3}, {@code pont:2}, {@code pont:ensuri:1}; null (said so) when the ref is not one. */
+    private static CameraSpot newSpot(CommandContext<CommandSourceStack> c, String ref, String world, double x, double y, double z, float yaw, float pitch) {
+        String group = Director.focus();
+        String num = ref;
+        int colon = ref.lastIndexOf(':');
+        if (colon > 0) {
+            group = Cameras.list().place(ref.substring(0, colon), group, Lieux.places(c.getSource().getServer(), group), true);
+            num = ref.substring(colon + 1);
+            if (group != null && !CameraSpot.STUDIO.equals(CameraSpot.lieuOf(group)) && Lieux.lieu(CameraSpot.lieuOf(group)) == null) group = null;
+        }
+        if (group == null || !num.matches("\\d{1,2}") || Integer.parseInt(num) < 1) {
+            fail(c, "« " + ref + " » : donne un numéro (/cam here 3) ou lieu:numéro (/cam here pont:2, /cam here pont:ensuri:1).");
+            return null;
+        }
+        return new CameraSpot(Integer.parseInt(num), null, "", world, x, y, z, yaw, pitch, 0, CameraSpot.BREATHING,
+                CameraSpot.lieuOf(group), CameraSpot.zoneOf(group));
+    }
+
+    /** {@code /cam placer <n> <x y z> vers <x y z>}: the lens there, looking at the target; a new camera is a bare viewpoint. */
+    private static int placeAt(CommandContext<CommandSourceStack> c) {
+        var pos = net.minecraft.commands.arguments.coordinates.Vec3Argument.getVec3(c, "pos");
+        var target = net.minecraft.commands.arguments.coordinates.Vec3Argument.getVec3(c, "target");
+        double dx = target.x - pos.x, dy = target.y - pos.y, dz = target.z - pos.z;
+        if (dx * dx + dy * dy + dz * dz < 1e-4) {
+            fail(c, "La cible est à la place de la caméra.");
+            return 0;
+        }
+        float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+        float pitch = (float) -Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz)));
+        var server = c.getSource().getServer();
+        String ref = str(c, "camera");
+        CameraSpot old = Director.resolve(server, ref);
+        String world = old != null ? old.world() : Busts.worldId(c.getSource().getLevel());
+        CameraSpot spot = old != null ? old.withPlace(world, pos.x, pos.y, pos.z, yaw, pitch) : newSpot(c, ref, world, pos.x, pos.y, pos.z, yaw, pitch);
+        if (spot == null) return 0;
+        // A camera with a tripod keeps it (moved); otherwise nothing stands in the players' way
+        if (old != null && Cameras.prop(server, old.key()) != null) Cameras.place(server, spot);
+        else Cameras.placeViewpoint(server, spot);
+        ok(c, "Caméra " + spot.label() + (old == null ? " posée" : " déplacée") + String.format(java.util.Locale.ROOT,
+                " en %.1f %.1f %.1f, vers %.1f %.1f %.1f.", pos.x, pos.y, pos.z, target.x, target.y, target.z));
         return 1;
     }
 

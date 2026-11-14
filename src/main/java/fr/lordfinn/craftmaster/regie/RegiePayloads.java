@@ -88,6 +88,43 @@ public final class RegiePayloads {
         public Type<Actions> type() { return TYPE; }
     }
 
+    /** Largest tool output sent back to the agent (a sequence, the whole scenography summary). */
+    public static final int MAX_AGENT_JSON = 512 * 1024;
+
+    /**
+     * Client → server: one tool call of the régie agent ({@link AgentBridge}), relayed from the voice control service.
+     * {@code job}: the agent request it belongs to (its undo snapshot, its journal); {@code json}: the arguments.
+     */
+    public record AgentCall(int id, String job, String tool, String json) implements CustomPacketPayload {
+        public static final Type<AgentCall> TYPE = new Type<>(CraftMaster.id("regie_agent_call"));
+        public static final StreamCodec<FriendlyByteBuf, AgentCall> CODEC = CustomPacketPayload.codec(
+                (p, buf) -> {
+                    buf.writeVarInt(p.id);
+                    buf.writeUtf(p.job, 64);
+                    buf.writeUtf(p.tool, 64);
+                    writeJson(buf, p.json);
+                },
+                buf -> new AgentCall(buf.readVarInt(), buf.readUtf(64), buf.readUtf(64), readJson(buf, MAX_ACTIONS_JSON)));
+
+        @Override
+        public Type<AgentCall> type() { return TYPE; }
+    }
+
+    /** Server → client: the tool's answer (text for the agent), relayed back to the service. */
+    public record AgentReply(int id, boolean ok, String output) implements CustomPacketPayload {
+        public static final Type<AgentReply> TYPE = new Type<>(CraftMaster.id("regie_agent_reply"));
+        public static final StreamCodec<FriendlyByteBuf, AgentReply> CODEC = CustomPacketPayload.codec(
+                (p, buf) -> {
+                    buf.writeVarInt(p.id);
+                    buf.writeBoolean(p.ok);
+                    writeJson(buf, p.output);
+                },
+                buf -> new AgentReply(buf.readVarInt(), buf.readBoolean(), readJson(buf, MAX_AGENT_JSON)));
+
+        @Override
+        public Type<AgentReply> type() { return TYPE; }
+    }
+
     /** Server → client: what was done. {@code code}: "" normally, "not_admin" or "bad_actions" when refused. */
     public record Result(int id, boolean ok, List<String> lines, String code) implements CustomPacketPayload {
         public static final Type<Result> TYPE = new Type<>(CraftMaster.id("regie_result"));

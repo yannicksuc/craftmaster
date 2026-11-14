@@ -293,11 +293,18 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                    f("off", BOOL, doc="true = remettre la mire.")]),
     "clip.start": ("Démarre l'enregistrement d'un clip de la vue actuelle du jeu de LordFinn (« lance un clip », « clip ! »).", []),
     "clip.stop": ("Arrête le clip en cours ; il est envoyé au serveur et devient le « dernier » clip (« coupe le clip »).", []),
+    "agent.request": ("Confie à l'agent de régie une demande qui CHANGE la préparation de l'émission (pas ce qui passe "
+                      "à l'antenne maintenant) : modifier / créer une ambiance (couleurs, intensité des projecteurs "
+                      "enregistrés), une timeline (séquence : ajouter un plan, un effet, décaler un moment), une conduite, "
+                      "une caméra (la placer, la renommer, son cadrage), un travelling, un lancement automatique ; ou "
+                      "toute demande de la régie en plusieurs étapes que les autres outils ne couvrent pas. L'agent agit "
+                      "et répond dans le chat.",
+                      [f("demande", STR, True, "La demande, reformulée clairement en français (tout ce que LordFinn a demandé).")]),
     "say": ("Répond à LordFinn sans rien modifier : question, doute réel, ordre impossible ou incompris. "
             "Texte court en français.", [f("text", STR, True, "Réponse courte.")]),
 }
 
-NO_SCOPE = {"say", "undo", "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset", "camera.cut", "camera.follow", "camera.auto", "broadcast.lowerthird", "broadcast.task",
+NO_SCOPE = {"say", "agent.request", "undo", "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset", "camera.cut", "camera.follow", "camera.auto", "broadcast.lowerthird", "broadcast.task",
             "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop"}
 NO_SCOPE |= {"spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off", "spotlight.set",
              "look.play", "look.save", "cue.play", "cue.stop", "stage.blackout"}

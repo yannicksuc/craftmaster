@@ -65,6 +65,7 @@ class Player:
 class ShowContext:
     def __init__(self, raw: dict | None, idle_minutes: float = 4.0, now_ms: int | None = None):
         self.raw = raw if isinstance(raw, dict) else {}
+        self.agent_note = ""   # set by the service: the régie agent's last words, if it spoke a moment ago
         r = self.raw
         self.now_ms = int(r.get("now") or now_ms or time.time() * 1000)
         self.idle_minutes = float(r.get("idleMinutes") or idle_minutes)
@@ -318,6 +319,8 @@ class ShowContext:
         if self.recent:
             out.append("Dernières actions :")
             out.extend("  " + a for a in self.recent)
+        if self.agent_note:
+            out.append(self.agent_note)
         return "\n".join(out)
 
 

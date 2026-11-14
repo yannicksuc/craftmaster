@@ -48,6 +48,13 @@ public final class StageCommands {
     private static final SuggestionProvider<CommandSourceStack> LINE_STARTS = (c, b) -> SharedSuggestionProvider.suggest(
             List.of("attendre 2", "ambiance ", "noir 2", "conduite ", "cfsp tout couleur rouge 2", "cfsp tout suivre @scene",
                     "cfsp groupe face* intensite 60 3", "cfpt hoist 1 6 4", "cmtele tout clip dernier", "cfma next", "tv intro"), b);
+    private static final SuggestionProvider<CommandSourceStack> SPOT_TARGETS = (c, b) -> {
+        List<String> l = new ArrayList<>(List.of("tout"));
+        l.addAll(fr.lordfinn.craftmaster.studio.Spotlights.names());
+        return SharedSuggestionProvider.suggest(l, b);
+    };
+    private static final SuggestionProvider<CommandSourceStack> LOOK_ORDERS = (c, b) -> SharedSuggestionProvider.suggest(
+            List.of("allume", "eteint", "couleur rouge", "intensite 60", "cone 8", "suivre @scene", "vise ", "fondu 2", "rideau ouvert"), b);
     private static final SuggestionProvider<CommandSourceStack> EVENTS = (c, b) -> SharedSuggestionProvider.suggest(Cues.EVENTS, b);
     private static final SuggestionProvider<CommandSourceStack> MANCHES = (c, b) -> {
         var data = fr.lordfinn.craftmaster.CraftMaster.data();
@@ -86,6 +93,11 @@ public final class StageCommands {
                 .then(literal("charger").then(play))
                 .then(literal("play").then(play))
                 .then(literal("liste").executes(StageCommands::listLooks))
+                // Changes a saved look without playing it: /ambiance modifier tension contre couleur rouge
+                .then(literal("modifier").then(argument("name", StringArgumentType.string()).suggests(LOOKS)
+                        .then(argument("target", StringArgumentType.string()).suggests(SPOT_TARGETS)
+                                .then(argument("order", StringArgumentType.greedyString()).suggests(LOOK_ORDERS)
+                                        .executes(c -> say(c, Scenography.editLook(str(c, "name"), str(c, "target"), str(c, "order"))))))))
                 .then(literal("supprimer").then(argument("name", StringArgumentType.string()).suggests(LOOKS)
                         .executes(c -> say(c, Scenography.deleteLook(str(c, "name"))))))
                 .then(literal("noir").executes(c -> say(c, Scenography.blackout(c.getSource().getServer(), 1)))

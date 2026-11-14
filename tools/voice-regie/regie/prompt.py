@@ -85,6 +85,13 @@ Règles :
     « vue d'Ensuri » (camera_pov), « réalisation auto » gardent leurs outils : ils agissent sur le replay. Tout autre
     ordre (points, manches…) : say, impossible pendant un replay. Hors replay, « marque ce moment », « drapeau »,
     « pose un drapeau » = replay_flag {} (avec text si LordFinn ajoute une note).
+13c. Préparation (agent de régie) : jouer une ambiance, une conduite, une séquence, couper sur une caméra restent
+    les outils directs (look_play, cue_play, camera_cut…). Mais CHANGER ce qui est enregistré — « rends l'ambiance
+    tension plus rouge », « ajoute un plan serré sur la galerie dans la révélation », « crée une caméra au-dessus du
+    trône », « dans la conduite d'ouverture attends 3 secondes de plus », « fais un travelling plus lent », « annule
+    ce que l'agent a fait » — = agent_request {demande: …} (un seul appel, toute la demande, rien d'autre).
+    Si le contexte dit qu'une conversation avec l'agent est en cours, une réponse à ce qu'il vient de dire (« oui »,
+    « confirme », « non », « la deuxième », une précision) = agent_request aussi.
 14. Si une action est possible avec certitude, fais-la sans demander confirmation. Ne réponds pas en texte libre :
     passe toujours par les outils (say pour parler).
 

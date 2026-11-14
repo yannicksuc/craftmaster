@@ -8,13 +8,14 @@
   - joins localhost:25691 (start the server first: .\gradlew.bat runServer);
   - -Second starts the second player (Joueur2, run2/) instead of LordFinn (run/);
   - -Version 26.2 starts the Minecraft 26.2 client (run-26.2/, run2-26.2/) on the 26.2 dev server (localhost:25901);
+  - -RegieTrigger: a .wav dropped in <run dir>/regie-trigger/ is "spoken" to the voice control (tests);
   - -Size 1920x1080 opens the second player's window at that size (the broadcast picture at Twitch's size).
   The game is then seen and driven through MCP Fabric (docs/wiki/Tests.md).
 
 .EXAMPLE
   powershell -File scripts\dev-client.ps1
 #>
-param([string]$Server = '', [switch]$Second, [switch]$Foreground, [string]$Size = '', [string]$Version = '26.3')
+param([string]$Server = '', [switch]$Second, [switch]$Foreground, [string]$Size = '', [string]$Version = '26.3', [switch]$RegieTrigger)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -47,6 +48,7 @@ $log = Join-Path $runDir 'client-launch.log'
 $gradleArgs = @(":${Version}:$(if ($Second) { 'runClient2' } else { 'runClient' })", '--console=plain', "-PquickPlayMultiplayer=$Server")
 if (-not $Foreground) { $gradleArgs += '-PbackgroundClient' }
 if ($Size) { $gradleArgs += "-PwindowSize=$Size" }
+if ($RegieTrigger) { $gradleArgs += '-PregieTrigger' }
 Start-Process -FilePath (Join-Path $root 'gradlew.bat') -ArgumentList $gradleArgs -WorkingDirectory $root `
     -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError "$log.err"
 Write-Host "Client starting (log: $log)"

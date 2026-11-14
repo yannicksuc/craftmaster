@@ -58,6 +58,7 @@ montrent). Règle la scène comme tu la veux, puis :
 | `/ambiance enregistrer <nom> [parties] [fondu]` | enregistre la scène actuelle ; parties : `tout` (défaut), ou `lumieres`, `rideaux`, `tableaux`, `ecrans` reliées par des + (`lumieres+rideaux`) |
 | `/ambiance lancer <nom> [fondu]` | rejoue l'ambiance : les projecteurs tournent et changent en fondu, les tableaux montent ou descendent, les rideaux s'ouvrent ou se ferment, les télés changent |
 | `/ambiance` | la liste, cliquable (clic : la lancer ; « mettre à jour » : la remplacer par la scène actuelle) |
+| `/ambiance modifier <nom> <cible> <ordre>` | change l'ambiance enregistrée **sans la jouer** : cible `tout`, un projecteur ou un groupe (`face`) ; ordre `allume`, `eteint`, `couleur <c>`, `intensite <0-100>`, `cone <1-30>`, `suivre <qui\|personne>`, `vise <x y z>` ; ou `tout fondu <s>`, `<rideau> rideau ouvert\|ferme` |
 | `/ambiance noir [fondu]` | tous les projecteurs s'éteignent |
 | `/ambiance supprimer <nom>` | |
 

@@ -44,6 +44,7 @@
   "hud.craftmaster.regie.heard": "« %s »",
   "hud.craftmaster.regie.undo_hint": "Say « annule » to undo",
   "hud.craftmaster.regie.nothing_done": "Nothing was done",
+  "hud.craftmaster.regie.agent": "Sent to the régie agent: its answer will appear in the chat",
   "message.craftmaster.regie.not_admin": "Voice control is for organisers only",
   "message.craftmaster.regie.busy": "Voice control is still handling the previous order",
   "message.craftmaster.regie.too_short": "Too short: hold the key while you speak",

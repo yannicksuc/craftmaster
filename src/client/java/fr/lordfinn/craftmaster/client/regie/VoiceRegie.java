@@ -215,6 +215,14 @@ public final class VoiceRegie {
             show(List.of(), r.transcript(), false, msg, false);
             return;
         }
+        // A change of the show's setup: the agent works on it now and answers in the chat (RegieAgent)
+        if (r.agentJob() != null) {
+            RegieAgent.track(r.agentJob(), r.transcript());
+            if (r.actionCount() == 0) {
+                show(List.of(), r.transcript(), true, Component.translatable("hud.craftmaster.regie.agent").getString(), false);
+                return;
+            }
+        }
         // "say" only talks: it is shown from the reply, the server has nothing to run for it
         String actions = RegieJson.withoutSay(r.actionsJson());
         // The in-game clip records this game's view: run here, not on the server
@@ -245,7 +253,7 @@ public final class VoiceRegie {
         if (!local.isEmpty()) {
             List<String> w = new ArrayList<>(r.warnings());
             w.addAll(local);
-            r = new RegieService.Reply(r.transcript(), r.actionsJson(), r.actionCount(), r.reply(), w, r.error());
+            r = r.withWarnings(w);
         }
         executingSince = System.currentTimeMillis();
         view = new View(Phase.EXECUTING, r.transcript(), r.reply(), r.warnings(), true, false, 0);

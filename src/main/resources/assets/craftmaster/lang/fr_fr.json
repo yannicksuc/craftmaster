@@ -44,6 +44,7 @@
   "hud.craftmaster.regie.heard": "« %s »",
   "hud.craftmaster.regie.undo_hint": "Dis « annule » pour annuler",
   "hud.craftmaster.regie.nothing_done": "Rien n'a été fait",
+  "hud.craftmaster.regie.agent": "Transmis à l’agent de régie : réponse dans le chat",
   "message.craftmaster.regie.not_admin": "La régie vocale est réservée aux organisateurs",
   "message.craftmaster.regie.busy": "La régie traite encore l'ordre précédent",
   "message.craftmaster.regie.too_short": "Trop court : maintiens la touche pendant que tu parles",

@@ -32,9 +32,14 @@ public final class RegieService {
      * (no_api_key, claude_error, stt_error, empty_transcript, refused, bad_request) or ours (unreachable, timeout,
      * bad_response).
      */
-    public record Reply(String transcript, String actionsJson, int actionCount, String reply, List<String> warnings, String error) {
+    public record Reply(String transcript, String actionsJson, int actionCount, String reply, List<String> warnings, String error,
+                        String agentJob) {
         public static Reply failure(String error, String detail) {
-            return new Reply("", "[]", 0, detail, List.of(), error);
+            return new Reply("", "[]", 0, detail, List.of(), error, null);
+        }
+
+        public Reply withWarnings(List<String> w) {
+            return new Reply(transcript, actionsJson, actionCount, reply, w, error, agentJob);
         }
     }
 
@@ -83,9 +88,81 @@ public final class RegieService {
             if (o.has("warnings") && o.get("warnings").isJsonArray())
                 for (JsonElement w : o.getAsJsonArray("warnings")) warnings.add(w.getAsString());
             return new Reply(str(o, "transcript"), actions.toString(), actions.size(), str(o, "reply"), warnings,
-                    o.has("error") && !o.get("error").isJsonNull() ? o.get("error").getAsString() : null);
+                    o.has("error") && !o.get("error").isJsonNull() ? o.get("error").getAsString() : null,
+                    o.has("agentJob") && !o.get("agentJob").isJsonNull() ? o.get("agentJob").getAsString() : null);
         } catch (JsonParseException | IllegalStateException | ClassCastException | UnsupportedOperationException e) {
             return Reply.failure("bad_response", e.getMessage());
+        }
+    }
+
+    // ------------------------------------------------------------------ régie agent (regie/agent.py)
+
+    /** A tool call the agent waits for. */
+    public record AgentCall(int cid, String tool, String argsJson) {}
+
+    /** {@code GET /agent/poll}: calls to relay to the server, and whether the agent has finished (its reply). */
+    public record AgentPoll(List<AgentCall> calls, boolean done, String reply, String error, boolean gone) {}
+
+    /** Starts the agent on a typed request; the job id, or null (service unreachable). */
+    public String agentStart(String text, String contextJson, String player) {
+        JsonObject o = new JsonObject();
+        o.addProperty("text", text);
+        o.addProperty("player", player);
+        String body = o.toString();
+        if (contextJson != null && !contextJson.isBlank()) body = body.substring(0, body.length() - 1) + ",\"context\":" + contextJson + "}";
+        JsonObject r = post("/agent/start", body);
+        return r != null && r.has("job") ? r.get("job").getAsString() : null;
+    }
+
+    public AgentPoll agentPoll(String job) {
+        try {
+            HttpRequest req = HttpRequest.newBuilder(URI.create(url + "/agent/poll?job=" + java.net.URLEncoder.encode(job, StandardCharsets.UTF_8)))
+                    .timeout(Duration.ofSeconds(5)).GET().build();
+            HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (res.statusCode() == 404) return new AgentPoll(List.of(), true, "", "unknown_job", true);
+            return parsePoll(res.body());
+        } catch (IOException e) {
+            return new AgentPoll(List.of(), false, "", "unreachable", false);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return new AgentPoll(List.of(), true, "", "interrupted", true);
+        }
+    }
+
+    public static AgentPoll parsePoll(String json) {
+        JsonObject o = new Gson().fromJson(json, JsonObject.class);
+        List<AgentCall> calls = new ArrayList<>();
+        if (o.has("calls") && o.get("calls").isJsonArray())
+            for (JsonElement e : o.getAsJsonArray("calls")) {
+                JsonObject c = e.getAsJsonObject();
+                calls.add(new AgentCall(c.get("cid").getAsInt(), c.get("tool").getAsString(),
+                        c.has("args") && c.get("args").isJsonObject() ? c.get("args").toString() : "{}"));
+            }
+        return new AgentPoll(calls, o.has("done") && o.get("done").getAsBoolean(), str(o, "reply"),
+                o.has("error") && !o.get("error").isJsonNull() ? o.get("error").getAsString() : null, false);
+    }
+
+    public void agentResult(String job, int cid, boolean ok, String output) {
+        JsonObject o = new JsonObject();
+        o.addProperty("job", job);
+        o.addProperty("cid", cid);
+        o.addProperty("ok", ok);
+        o.addProperty("output", output);
+        post("/agent/result", o.toString());
+    }
+
+    private JsonObject post(String path, String body) {
+        try {
+            HttpRequest req = HttpRequest.newBuilder(URI.create(url + path)).timeout(Duration.ofSeconds(10))
+                    .header("Content-Type", "application/json; charset=utf-8")
+                    .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8)).build();
+            HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            return new Gson().fromJson(res.body(), JsonObject.class);
+        } catch (IOException | JsonParseException e) {
+            return null;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
         }
     }
 

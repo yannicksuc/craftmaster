@@ -162,6 +162,12 @@ replay), ou la liste du mod :
 | `/modo site [etat\|on\|off]` · `/modo site lier [adresse]` | | Lien avec lordfinn.fr : état, activer, couper · nouveau secret |
 | `/regie` (client) | | Ouvre la régie des modos (aussi touche `;`) |
 
+## Régie IA (organisateur) — [RegieIA](RegieIA.md)
+| Commande | Alias | Effet |
+|---|---|---|
+| `/ia <demande>` (client) | | Écrire une demande à l'agent de régie au lieu de la dire |
+| `/regieia confirmer <n>` · `refuser <n>` · `annuler <demande>` | | Les boutons du chat : confirmer / refuser une suppression, défaire une demande |
+
 ## Réalisation TV (organisateur ou permission `craftmaster:camera`)
 Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`large`, `trone`, `podium`) ;
 `[transition]` = `coupe`, `fondu`, `enchaine`, `miroir`, `flash` ou `surimpression`.
@@ -171,6 +177,7 @@ Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`
 | `/cam here <n> [nom]` | | Pose (ou déplace) la caméra n à la place de tes yeux, regardant là où tu regardes |
 | `/cam add [nom]` | | Idem avec le numéro libre suivant |
 | `/cam aim <n>` · `/cam goto <n>` | | Elle regarde là où tu regardes · tu vois ce qu'elle voit |
+| `/cam placer <n> <x y z> vers <x y z>` | | Pose (ou déplace) la caméra n à ces coordonnées, regardant la cible, sans bouger (console, [Régie IA](RegieIA.md)) ; une nouvelle n'a pas de trépied |
 | `/cam name <n> <nom>` · `/cam role <n> <rôle\|aucun>` | | Renomme · rôle (un seul par rôle) |
 | `/cam zoom <n> <15..110\|reset>` · `/cam motion <n> <fixe\|respiration\|travelling\|panoramique>` | | Champ de vision · mouvement à l'antenne |
 | `/cam remove <n>` | | Retire la caméra et son trépied |
@@ -276,5 +283,5 @@ Détail dans [Plateau](Plateau.md). Sans cible, une commande agit sur l'écran, 
 | `/craftMasterDesk name <nom\|->` | `cfdk` | Nom sur la plaque du pupitre regardé (admin) |
 | `/craftMasterGong` | `cfgo` | Coup du gong le plus proche (admin) |
 | `/craftMasterSpotlight` | `cfsp` | Projecteurs : `nom <nom>` (celui regardé) ; `[tout\|groupe <nom>] allume\|eteint\|couleur <c>\|intensite <0-100>\|cone <1-30>\|ici\|suivre <joueur\|@scene\|@moment\|@candidat\|@proche\|@zone:nom>\|stop [fondu s]` ; `liste` — voir [Scénographie](Scenographie.md) |
-| `/ambiance` | `cfam` | Ambiances : `enregistrer <nom> [parties] [fondu]`, `lancer <nom> [fondu]`, `noir [fondu]`, `supprimer`, liste cliquable |
+| `/ambiance` | `cfam` | Ambiances : `enregistrer <nom> [parties] [fondu]`, `lancer <nom> [fondu]`, `modifier <nom> <cible> <ordre>` (sans la jouer), `noir [fondu]`, `supprimer`, liste cliquable |
 | `/conduite` | `cfco` | Conduites : `ajouter <nom> <ligne>`, `voir`, `inserer`, `retirer`, `lancer`, `stop`, `statut`, `auto <moment> <conduite>`, `manche <manche> <conduite>` |

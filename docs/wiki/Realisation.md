@@ -41,6 +41,8 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   ![Suspendue au plafond](img/camera-plafond.png) ![Plan de diffusion depuis cette caméra](img/camera-diffusion.png)
 - **`/cam here <n> [nom]`** (le plus pratique pour cadrer) : la caméra n se met **à la place de tes yeux, regardant
   là où tu regardes**. On se place, on regarde le plan voulu, on tape la commande. Une caméra existante est déplacée.
+- `/cam placer <n> <x y z> vers <x y z>` : sans bouger (console, [Régie IA](RegieIA.md)) : l'objectif à ces coordonnées,
+  regardant la cible ; une caméra nouvelle est un simple point de vue (pas de trépied).
 - `/cam aim <n>` : la caméra garde sa place, elle regarde là où tu regardes. `/cam goto <n>` : tu vois exactement ce
   que voit la caméra (pour vérifier, puis `/cam here <n>` pour recadrer d'ici).
 - Clic droit sur une caméra (réalisation) : son numéro, son réglage, sa fixation et des liens cliquables (à

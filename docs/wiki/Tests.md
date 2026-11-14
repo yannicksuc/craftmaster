@@ -516,3 +516,21 @@ chrono de 5:00, un chrono candidat pour Joueur2, une vache.
 - Corrigé grâce à ces essais : le joueur qui se connecte se comptait parmi les absents ; une tablette dont le chunk
   se déchargeait disparaissait de la sauvegarde.
 Pas vérifié en jeu : le Stream Deck `/resume`, les buzzers (testés en unitaire, `RepriseTest`), les dégâts bloqués.
+
+## 13. Régie IA (vérifiée en jeu sur 26.2 le 14/11/2026)
+Serveur `:26.2:runServer` (jeu 26301, RCON 26302) avec la scénographie du plateau (`docs/design/plateau-emission/config`)
++ client LordFinn `scripts\dev-client.ps1 -Version 26.2 -Server localhost:26301 -RegieTrigger` (pont MCP 26341)
++ service `python -m regie.service` (Whisper GPU, abonnement Claude via Claude Code dans WSL). Phrases dites par la
+voix Windows (Paul), déposées dans `run-26.2/regie-trigger/`.
+
+| Dit | Résultat | |
+|---|---|---|
+| « Rends l'ambiance tension plus rouge et ajoute un plan serré sur la galerie dans la révélation » | 7 `/ambiance modifier tension …` (contre #FF3030, rampe, face, table) ; révélation non touchée car la caméra 13 y est déjà à 7 s : il le dit et propose ; réponse en 16 s | ✔ |
+| « Oui, ajoute le travelling galerie juste après, vers dix secondes » | clé caméra `travelling:galerie` à 10 s, en enchaîné, dans `revelation` (seules `tension` et `revelation` changées) | ✔ |
+| « Supprime l'ambiance pause » puis « Oui, je confirme » | 1re demande : rien de fait, [Confirmer] [Refuser] dans le chat ; 2e : supprimée | ✔ |
+| « Annule ce que l'agent vient de faire » | `pause` revenue à l'identique | ✔ |
+| Clic [Annuler] (`/regieia annuler <demande>`) | déjà annulée : « Rien à annuler » ; sinon état d'avant remis | ✔ |
+| « Ajoute une caméra 15 qui filme le trône de près, un peu en plongée, et appelle-la trône serré » | `/cam placer 15 …` (5 blocs, 2 plus haut, zoom 30), nommée | ✔ |
+
+Tests automatiques : `AgentBridgeTest` (noms entre guillemets, lignes de conduite refusées, adresses masquées) ;
+`tools/voice-regie/tests/test_agent.py` (relais aller-retour, outil inconnu, jeu parti, routage `agent.request`).
