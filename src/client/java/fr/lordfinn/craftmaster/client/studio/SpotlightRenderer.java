@@ -187,7 +187,7 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
             double length = s.length;
             int color = s.color;
             float intensity = s.intensity, cone = s.cone;
-            collector.submitCustomGeometry(poseStack, RenderTypes.lightning(), (p, c) -> beam(c, p, length, color, intensity, cone));
+            collector.submitCustomGeometry(poseStack, SpotLightRenderType.LIGHT, (p, c) -> beam(c, p, length, color, intensity, cone));
         }
         poseStack.popPose();
 
@@ -198,7 +198,7 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
             int color = s.color;
             // A wide wash spreads the same light over more ground: its pool is paler
             float strength = s.intensity * (float) Math.min(1, 1.6 / Math.max(1, radius));
-            collector.submitCustomGeometry(poseStack, RenderTypes.lightning(), (p, c) -> pool(c, p, hit, face, radius * 1.25, color, strength));
+            collector.submitCustomGeometry(poseStack, SpotLightRenderType.LIGHT, (p, c) -> pool(c, p, hit, face, radius * 1.25, color, strength));
         }
     }
 
