@@ -47,6 +47,12 @@ lui tant qu'il correspond (elle ne saute pas d'un joueur à l'autre) :
 | `@candidat` | le candidat le plus proche (saison active) |
 | `@proche` | le joueur le plus proche (pas les spectateurs) |
 | `@moment` | le joueur du moment : celui qui ouvre son enveloppe, buzze, est révélé… pendant une minute |
+| `@antenne` | le joueur que montre la réalisation (suivi, coupé sur lui parce qu'il parle, « on va voir ») |
+
+Un seul système de suivi pour les projecteurs et les caméras : les mêmes règles servent au plan qui suit
+(`/cam follow @moment`, voir [Réalisation](Realisation.md)), et le faisceau suit le joueur comme la caméra :
+lissé, sans traîner derrière quelqu'un qui marche (il vise un peu devant, là où il va), sans à-coup quand il saute,
+d'un coup quand il est téléporté. La poursuite vise ses pieds : la flaque reste sous lui.
 
 ## 2. Les ambiances
 Une ambiance est une **mémoire** de la scène : projecteurs (allumés, couleur, intensité, cône, direction ou

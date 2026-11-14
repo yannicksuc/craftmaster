@@ -132,7 +132,7 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                       "passent aussi aux caméras de sa zone. Ou une règle, comme les projecteurs (« suis le premier du "
                       "classement », « suis qui est sur scène », « suis le joueur du moment ») : le joueur est repris tout seul.",
                       [f("player", PLAYER, doc=PLAYER_DOC + " (ou rule)"),
-                       f("rule", STR, doc="Au lieu d'un joueur : moment, candidat, scene, maitre, premier (ou rang:2…), dernier, "
+                       f("rule", STR, doc="Au lieu d'un joueur : moment, candidat, scene, antenne, maitre, premier (ou rang:2…), dernier, "
                                           "hasard, public, proche, zone:<nom>."), f("transition", STR, doc="coupe, fondu, enchaine, miroir (kaléidoscope), flash (flash blanc) ou surimpression.")]),
     # TV direction, lieux / travellings / intros (chantier E): no data change except intro.*
     "camera.path": ("Lance un travelling enregistré à l'antenne (« lance le travelling du pont »).",
@@ -264,7 +264,7 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                        f("cone", STR, doc="Demi-angle du cône en degrés, 1 (serré) à 30 (large) ; défaut des projecteurs 3."),
                        f("follow", STR, doc="Pseudo EXACT d'un joueur, ou suivi auto : @scene (qui est sur scène), @candidat "
                                             "(candidat le plus proche), @proche (joueur le plus proche), @moment (le joueur du "
-                                            "moment : enveloppe ouverte, buzzer…), @zone:<nom> ; chaîne vide = arrêter de suivre."),
+                                            "moment : enveloppe ouverte, buzzer…), @antenne (le joueur que montre la réalisation), @zone:<nom> ; chaîne vide = arrêter de suivre."),
                        f("fade", STR, doc="Durée du changement en secondes (0 à 60), ex. « 3 ».")]),
     # Stage looks and cue lists (docs/wiki/Scenographie.md)
     "look.play": ("Lance une ambiance enregistrée (projecteurs, rideaux, tableaux, écrans tels qu'enregistrés), en fondu "

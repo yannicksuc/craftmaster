@@ -84,12 +84,21 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         Vec3 pivot = be.pivot();
         s.pivot = pivot.subtract(Vec3.atLowerCornerOf(be.getBlockPos()));
 
-        // Aim: the followed player as seen right now, else the set direction
+        long now = System.nanoTime();
+        double frame = be.renderReady ? Math.min(0.25, (now - be.renderNanos) / 1e9) : 0;
+        // Aim: the followed player, tracked like the follow camera does (smoothed, a little ahead of where they walk so
+        // the beam does not trail behind them), else the set direction
         float targetYaw = be.yaw(), targetPitch = be.pitch();
         if (!be.target().isEmpty() && be.getLevel() != null) {
             for (Player p : be.getLevel().players()) {
                 if (!p.getGameProfile().name().equalsIgnoreCase(be.target())) continue;
-                Vec3 at = SpotlightBlockEntity.followPoint(p.getPosition(partialTick), p.getBbHeight()).subtract(pivot);
+                Vec3 feet = p.getPosition(partialTick);
+                if (!be.renderTracked.equals(be.target())) {
+                    be.renderTracked = be.target();
+                    be.renderTracker.snap(feet.x, feet.y, feet.z);
+                } else be.renderTracker.update(feet.x, feet.y, feet.z, frame);
+                Vec3 tracked = new Vec3(be.renderTracker.x(), be.renderTracker.y(), be.renderTracker.z());
+                Vec3 at = SpotlightBlockEntity.followPoint(tracked, p.getBbHeight()).subtract(pivot);
                 if (at.length() < SpotlightBlockEntity.FOLLOW_RANGE) {
                     float[] a = SpotlightAim.angles(at.x, at.y, at.z);
                     targetYaw = a[0];
@@ -98,7 +107,6 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
                 break;
             }
         }
-        long now = System.nanoTime();
         // Switched off: the light fades to nothing (at the fade's pace), then the beam is gone
         float targetIntensity = be.lit() ? be.intensity() / (float) SpotlightBlockEntity.MAX_INTENSITY : 0;
         float[] targetColor = rgb(be.color());

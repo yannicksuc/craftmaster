@@ -645,5 +645,11 @@ Régie vocale : `test_offline.py` (« on va aller voir Ensuri pour voir comment 
 en « principal » : LordFinn suivi en grand avec ses cadrages, les caméras 1 et 3 en petit ✔ ; [follow:LordFinn, 2]
 « bord à bord » ✔. Pas vérifié en jeu : l'écran partagé automatique des zones d'une manche et « on va voir » en
 manche (il faut deux candidats dans deux zones : un seul joueur sur le serveur de dev).
+Suivi commun caméras / projecteurs : `/cam follow @maitre` suit LordFinn, cadré sans retard en courant (gros plan
+tenu en marchant) ✔ ; projecteur suspendu en poursuite, LordFinn marche 3 s dans un sens puis dans l'autre de nuit,
+vu par la caméra 2 : la flaque reste centrée sous ses pieds (avant, elle traînait derrière) ✔ ; poursuite
+`@antenne` : vide au départ, LordFinn dès « /cam voir LordFinn » ✔. `TargetTrackerTest` : pas de retard sur un
+joueur qui marche (le lissage seul traîne de v × tau), avance plafonnée, arrêt sans dépassement, téléportation,
+saut non anticipé. Régie vocale : « suis le premier du classement », « suis qui est sur scène ».
 Pas vérifié : la vraie souris (le `@Redirect` de `MouseHandler.turnPlayer` s'applique, le jeu démarre ; mêmes
 entrées que `camturn`), les replays et les intros (même code, `DirectorCamera.follow`).

@@ -23,8 +23,10 @@ import java.util.stream.Collectors;
  *   <li>{@code @proche}: the nearest player (not a spectator);</li>
  *   <li>{@code @candidat}: the nearest contestant of the active season;</li>
  *   <li>{@code @zone:<name>}: a player standing in that trial zone ({@code @scene} = the zone named "scene");</li>
- *   <li>{@code @moment}: whoever the show just put in the spotlight (envelope opened, buzzer, reveal…), for a minute.</li>
+ *   <li>{@code @moment}: whoever the show just put in the spotlight (envelope opened, buzzer, reveal…), for a minute;</li>
+ *   <li>{@code @antenne}: the player the TV direction shows (followed, cut to because they speak, « on va voir »).</li>
  * </ul>
+ * The same rules serve the follow camera ({@code /cam follow @moment}): one follow system for both.
  * The beam stays on its player while they still match (no jumping between two people standing side by side).
  */
 public final class SpotlightFollow {
@@ -34,8 +36,10 @@ public final class SpotlightFollow {
     public static final String NEAREST = "@proche", CONTESTANT = "@candidat", ZONE = "@zone:", STAGE = "@scene", MOMENT = "@moment";
     /** The show's master, a rank of the season's ranking, the last one, a contestant at random, someone of the audience. */
     public static final String MASTER = "@maitre", RANK = "@rang:", LAST = "@dernier", RANDOM = "@hasard", AUDIENCE = "@public";
+    /** The player the TV direction shows. */
+    public static final String ON_AIR = "@antenne";
     /** The rules offered to commands and the voice control. */
-    public static final List<String> RULES = List.of(NEAREST, CONTESTANT, STAGE, MOMENT, MASTER, RANK + "1", LAST, RANDOM, AUDIENCE, ZONE);
+    public static final List<String> RULES = List.of(NEAREST, CONTESTANT, STAGE, MOMENT, ON_AIR, MASTER, RANK + "1", LAST, RANDOM, AUDIENCE, ZONE);
     /** How long "the moment" lasts (ms). */
     private static final long MOMENT_MS = 60_000;
 
@@ -76,6 +80,7 @@ public final class SpotlightFollow {
             case "candidat", "candidats", "contestant" -> CONTESTANT;
             case "scene", "plateau", "stage", "sur scene" -> STAGE;
             case "moment", "action", "evenement" -> MOMENT;
+            case "antenne", "a l'antenne", "a l antenne", "camera", "celui qu'on voit", "qui passe a l'antenne", "direct" -> ON_AIR;
             default -> null;
         };
     }
@@ -101,6 +106,7 @@ public final class SpotlightFollow {
             case CONTESTANT -> "le candidat le plus proche";
             case STAGE -> "qui est sur scène (zone « scene »)";
             case MOMENT -> "le joueur du moment (enveloppe, buzzer, révélation…)";
+            case ON_AIR -> "le joueur à l'antenne";
             default -> follow;
         };
     }
@@ -116,9 +122,10 @@ public final class SpotlightFollow {
             ServerPlayer p = server.getPlayerList().getPlayerByName(momentPlayer);
             return p != null && p.level() == level ? p.getGameProfile().name() : "";
         }
-        // One named player: the master, a rank of the live ranking
+        // One named player: the master, a rank of the live ranking, the one on air
         String named = null;
         if (rule.equals(MASTER)) named = master();
+        else if (rule.equals(ON_AIR)) named = fr.lordfinn.craftmaster.broadcast.Director.shownPlayer();
         else if (rule.startsWith(RANK) || rule.equals(LAST)) named = ranked(rule);
         if (named != null) {
             ServerPlayer p = named.isEmpty() ? null : server.getPlayerList().getPlayerByName(named);

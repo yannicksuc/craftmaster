@@ -642,6 +642,13 @@ public final class Director {
      * while they still match, so it does not jump between two people), "" = none. Another cut ends it.
      */
     private static String followRule = "";
+    /** The last player a shot was about (followed, through their eyes, a camera chosen for them). */
+    private static String shownPlayer = "";
+
+    /** The player the broadcast shows now (the follow-spots' {@code @antenne}), "" if none. */
+    public static String shownPlayer() {
+        return shot.kind() == BroadcastNetwork.SHOT_FOLLOW || shot.kind() == BroadcastNetwork.SHOT_POV ? shot.player() : shownPlayer;
+    }
     private static int followRuleSerial = -1;
 
     /** Follows whoever {@code rule} picks now; false if nobody matches. */
@@ -1137,6 +1144,7 @@ public final class Director {
      * they are on), else the follow shot (its framings change by themselves, and cut to such cameras too).
      */
     static boolean showPlayer(MinecraftServer server, ServerPlayer p, Source source) {
+        shownPlayer = p.getGameProfile().name();
         CameraSpot cam = CameraChoice.showing(List.of(p));
         if (cam != null) return take(server, ShotRequest.camera(cam, BroadcastNetwork.CUT, "", source));
         return take(server, ShotRequest.follow(p.getGameProfile().name(), BroadcastNetwork.CUT, "", source));

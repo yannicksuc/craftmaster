@@ -71,7 +71,8 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
                           PoseLibrary (poses.json), PortraitNetwork, PortraitCommands (/cfpt), PortraitItem
   camera/                 réalisation TV (chantier E) : CameraSpot (une caméra : numéro, nom, rôle, objectif, zoom,
                           mouvement), CameraList (recherche « caméra 2 » / « plan large » / « trône »…, pur),
-                          CameraMotion (respiration, travelling, panoramique : maths pures), FollowFraming
+                          CameraMotion (respiration, travelling, panoramique : maths pures), TargetTracker (suivi
+                          d'une cible commun au plan qui suit et aux poursuites : lissé sans retard, en avance), FollowFraming
                           (cadrages du plan qui suit, glissement, choix selon la place : pur), ShotCoverage (part de la
                           hauteur de l'image qu'occupe un joueur vu d'une caméra posée, visibilité, tirage pondéré,
                           caméra qui voit le plus de joueurs : pur),

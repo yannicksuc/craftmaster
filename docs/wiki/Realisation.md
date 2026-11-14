@@ -137,6 +137,12 @@ Jamais deux fois le même d'affilée.
   a de chances d'être prise ; mais s'il est collé à l'objectif, elle est écartée. Il doit être vraiment visible
   (tête, poitrine ou pieds : au moins deux vus depuis l'objectif, pas cachés par un bloc) et bien dans le cadre, pas
   au bord.
+- **Même suivi que les projecteurs** : la caméra suit le joueur sans traîner derrière lui quand il marche (elle
+  vise un peu devant, là où il va), lui laisse de la place devant quand il traverse l'image, et accepte les mêmes
+  règles que les poursuites : `/cam follow @moment` (le joueur du moment), `@candidat`, `@scene`, `@maitre`,
+  `@rang:1` (« suis le premier du classement »), `@dernier`, `@hasard`, `@public`, `@proche`, `@zone:<nom>` ;
+  le joueur est repris chaque seconde tant que le plan est à l'antenne (il reste sur lui tant qu'il correspond).
+  Dans l'autre sens, une poursuite `@antenne` éclaire le joueur que montre la réalisation.
 - Les mêmes cadrages servent aux replays, aux plans « suivi » des intros de manche et aux **tuiles qui suivent un
   joueur** dans un écran partagé (`follow:<joueur>` à la place d'une caméra : chaque tuile a ses propres cadrages,
   sans prise en main, sans coupe sur une caméra posée).
