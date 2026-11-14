@@ -245,19 +245,12 @@ public class PoseEditorScreen extends Screen {
         y += 22;
         delete = addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.pose.delete"), b -> delete())
                 .bounds(left + 2, y, 74, 20).build());
-        List<String> names = new ArrayList<>(PoseLibraries.client().names());
-        if (!names.isEmpty()) {
-            String current = names.contains(Pose.normalizeName(name)) ? Pose.normalizeName(name) : names.getFirst();
-            addRenderableWidget(CycleButton.<String>builder(Component::literal, current).withValues(names)
-                    .withTooltip(v -> Tooltip.create(Component.translatable("screen.craftmaster.pose.load_tip")))
-                    .create(left + 78, y, 152, 20, Component.translatable("screen.craftmaster.pose.load"), (b, v) -> {
-                        // Loading is a change like any other: undo brings the previous pose back
-                        changed(PoseLibraries.client().get(v), null);
-                        name = v;
-                        rebuildWidgets();
-                        nameBox.setValue(v);
-                    }));
-        }
+        // The library as a gallery of previews: a click starts from that pose
+        Button gallery = addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.pose.gallery_open"), b -> {
+            name = nameBox.getValue();
+            minecraft.gui.setScreen(new PoseGalleryScreen(this, name, skin(), windowLook(), this::startFrom));
+        }).bounds(left + 78, y, 152, 20).tooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.load_tip"))).build());
+        gallery.active = !PoseLibraries.client().names().isEmpty();
         y += 22;
         addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.pose.use"), b -> use())
                 .bounds(left + 2, y, 113, 20).tooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.use_tip"))).build());
@@ -445,10 +438,48 @@ public class PoseEditorScreen extends Screen {
 
     // ---------------------------------------------------------------- library
 
+    /** Loading from the gallery is a change like any other: undo brings the previous pose back. */
+    private void startFrom(String v) {
+        Pose p = PoseLibraries.client().get(v);
+        if (p == null) return;
+        changed(p, null);
+        name = v;
+        rebuildWidgets();
+        nameBox.setValue(v);
+    }
+
+    /** The window look as the portrait has it (or as its settings screen has it, not saved yet). */
+    private int[] windowLook() {
+        return parent != null ? parent.windowLook() : new int[]{portrait.window() ? 1 : 0, portrait.windowDepth(), portrait.windowSize()};
+    }
+
     private void save() {
+        saveThen(null);
+    }
+
+    /**
+     * Saves the pose, then runs {@code after}. Over an existing, different pose it asks first (the name can still
+     * be changed there, to keep the old one).
+     */
+    private void saveThen(Runnable after) {
         String n = Pose.normalizeName(nameBox.getValue());
         if (n.isEmpty()) return;
+        Pose existing = PoseLibraries.client().has(n) ? PoseLibraries.client().get(n) : null;
+        if (existing != null && !existing.equals(editing)) {
+            name = nameBox.getValue();
+            minecraft.gui.setScreen(new PoseSaveScreen(this, n, chosen -> {
+                send(chosen);
+                if (after != null) after.run();
+            }));
+            return;
+        }
+        send(n);
+        if (after != null) after.run();
+    }
+
+    private void send(String n) {
         name = n;
+        if (nameBox != null) nameBox.setValue(n);
         ClientPlayNetworking.send(new PortraitNetwork.SavePose(n, editing.toJson().toString()));
     }
 
@@ -459,7 +490,10 @@ public class PoseEditorScreen extends Screen {
 
     /** Saves the pose and gives it to the portrait (through its settings screen when opened from there). */
     private void use() {
-        save();
+        saveThen(this::give);
+    }
+
+    private void give() {
         if (name.isEmpty()) return;
         if (parent != null) {
             parent.selectPose(name);
@@ -512,7 +546,7 @@ public class PoseEditorScreen extends Screen {
 
         PortraitRenderer.State s = PortraitRenderer.previewState(editing, skin());
         // The window look as the portrait has it (or as its settings screen has it, not saved yet)
-        int[] look = parent != null ? parent.windowLook() : new int[]{portrait.window() ? 1 : 0, portrait.windowDepth(), portrait.windowSize()};
+        int[] look = windowLook();
         s.window = look[0] == 1;
         s.windowDepth = look[1];
         s.windowSize = look[2];

@@ -109,7 +109,6 @@
   "screen.craftmaster.pose.save_new": "Save as new",
   "screen.craftmaster.pose.overwrite": "Overwrite",
   "screen.craftmaster.pose.delete": "Delete",
-  "screen.craftmaster.pose.load": "Start from",
   "screen.craftmaster.pose.use": "Use this pose",
   "item.craftmaster.camera": "Studio Camera",
   "item.craftmaster.camera.hint": "Use it on the floor, a tripod, a rod, a wall or a ceiling to mount a camera (directors only)",
@@ -362,7 +361,7 @@
   "screen.craftmaster.pose.pick_tip": "Edit: %s (key %s)\nor click it on the preview",
   "screen.craftmaster.pose.hide_tip": "Show or hide this part (H)",
   "screen.craftmaster.pose.save_tip": "Saves the pose under this name in the server's library (every player gets it)",
-  "screen.craftmaster.pose.load_tip": "Starts from a saved pose (Ctrl+Z to come back)",
+  "screen.craftmaster.pose.load_tip": "Start from a saved pose (Ctrl+Z to come back)",
   "screen.craftmaster.pose.use_tip": "Saves the pose and gives it to this portrait",
   "screen.craftmaster.pose.tool.undo": "Undo (Ctrl+Z)",
   "screen.craftmaster.pose.tool.redo": "Redo (Ctrl+Y or Ctrl+Shift+Z)",
@@ -1095,5 +1094,14 @@
   "screen.craftmaster.kit.relative": "Follow the camera",
   "screen.craftmaster.kit.relative_tip": "Moved and turned with it, as they were around it",
   "screen.craftmaster.kit.absolute": "Stay where they were",
-  "screen.craftmaster.kit.absolute_tip": "At their old places in the world"
+  "screen.craftmaster.kit.absolute_tip": "At their old places in the world",
+  "screen.craftmaster.pose.gallery": "Poses",
+  "screen.craftmaster.pose.gallery_open": "Pose gallery…",
+  "screen.craftmaster.pose.confirm.title": "Overwrite the pose?",
+  "screen.craftmaster.pose.confirm.exists": "« %s » already exists: it will be replaced.",
+  "screen.craftmaster.pose.confirm.exists_worn": "« %s » already exists and %s portrait(s) around wear it: they will change too.",
+  "screen.craftmaster.pose.confirm.new_name": "New pose « %s »: « %s » stays as it is.",
+  "screen.craftmaster.pose.confirm.overwrite": "Overwrite",
+  "screen.craftmaster.pose.confirm.save_as": "Save",
+  "screen.craftmaster.pose.confirm.title_new": "Save the pose"
 }

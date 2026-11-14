@@ -109,7 +109,6 @@
   "screen.craftmaster.pose.save_new": "Nouvelle pose",
   "screen.craftmaster.pose.overwrite": "Écraser",
   "screen.craftmaster.pose.delete": "Supprimer",
-  "screen.craftmaster.pose.load": "Partir de",
   "screen.craftmaster.pose.use": "Utiliser la pose",
   "item.craftmaster.camera": "Caméra de studio",
   "item.craftmaster.camera.hint": "Pose une caméra au sol, sur un trépied, une barre, un mur ou au plafond (réservé à la réalisation)",
@@ -362,7 +361,7 @@
   "screen.craftmaster.pose.pick_tip": "Éditer : %s (touche %s)\nou clic dessus dans l'aperçu",
   "screen.craftmaster.pose.hide_tip": "Montrer ou cacher cette partie (H)",
   "screen.craftmaster.pose.save_tip": "Enregistre la pose sous ce nom dans la bibliothèque du serveur (tous les joueurs la reçoivent)",
-  "screen.craftmaster.pose.load_tip": "Part d'une pose enregistrée (Ctrl+Z pour revenir)",
+  "screen.craftmaster.pose.load_tip": "Partir d'une pose enregistrée (Ctrl+Z pour revenir)",
   "screen.craftmaster.pose.use_tip": "Enregistre la pose et la donne à ce tableau",
   "screen.craftmaster.pose.tool.undo": "Annuler (Ctrl+Z)",
   "screen.craftmaster.pose.tool.redo": "Refaire (Ctrl+Y ou Ctrl+Maj+Z)",
@@ -1095,5 +1094,14 @@
   "screen.craftmaster.kit.relative": "Suivre la caméra",
   "screen.craftmaster.kit.relative_tip": "Déplacés et tournés avec elle, comme autour d'elle avant",
   "screen.craftmaster.kit.absolute": "Rester à leur place",
-  "screen.craftmaster.kit.absolute_tip": "À leurs anciennes places dans le monde"
+  "screen.craftmaster.kit.absolute_tip": "À leurs anciennes places dans le monde",
+  "screen.craftmaster.pose.gallery": "Poses",
+  "screen.craftmaster.pose.gallery_open": "Galerie des poses…",
+  "screen.craftmaster.pose.confirm.title": "Écraser la pose ?",
+  "screen.craftmaster.pose.confirm.exists": "« %s » existe déjà : elle sera remplacée.",
+  "screen.craftmaster.pose.confirm.exists_worn": "« %s » existe déjà et %s tableau(x) autour la portent : ils changeront aussi.",
+  "screen.craftmaster.pose.confirm.new_name": "Nouvelle pose « %s » : « %s » reste telle quelle.",
+  "screen.craftmaster.pose.confirm.overwrite": "Écraser",
+  "screen.craftmaster.pose.confirm.save_as": "Enregistrer",
+  "screen.craftmaster.pose.confirm.title_new": "Enregistrer la pose"
 }
