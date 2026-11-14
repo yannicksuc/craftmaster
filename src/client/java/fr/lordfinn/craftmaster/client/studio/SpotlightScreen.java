@@ -17,6 +17,8 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import fr.lordfinn.craftmaster.client.ui.Theme;
+import fr.lordfinn.craftmaster.client.ui.Ui;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +32,9 @@ import java.util.function.Consumer;
  */
 public class SpotlightScreen extends Screen {
 
-    private static final int BG = 0xE6140E10, BORDER = 0xFFD4A53A, TEXT = 0xFFF1E6C8, DIM = 0xFF9A8A70, GOLD = 0xFFFFC23D,
-            BTN = 0xFF4A1018, BTN_HOVER = 0xFF7A1C28, BTN_ON = 0xFF9A6A10;
+    private static final int TEXT = Theme.TEXT, DIM = Theme.TEXT_DIM, GOLD = Theme.GOLD;
+    /** Below the panel's title bar. */
+    private static final int TOP = 22;
     private static final String[] COLORS = {"blanc", "chaud", "froid", "ambre", "or", "rouge", "orange", "jaune", "vert", "cyan", "bleu", "violet", "rose", "magenta"};
 
     private final BlockPos pos;
@@ -86,11 +89,11 @@ public class SpotlightScreen extends Screen {
         for (String k : new String[]{"name", "lit", "color", "intensity", "cone", "direction", "follow", "effect", "speed"})
             labelW = Math.max(labelW, font.width(t(k)));
         labelW += 10;
-        h = Math.min(height - 16, 230);
+        h = Math.min(height - 16, 246);
         x0 = width - w - 8;
         y0 = Math.max(8, (height - h) / 2);
         SpotlightBlockEntity s = spot();
-        nameBox = new EditBox(font, x0 + 6 + labelW, y0 + 20, w - 12 - labelW, 14, Component.empty());
+        nameBox = new EditBox(font, x0 + 6 + labelW, y0 + TOP, w - 12 - labelW, 14, Component.empty());
         nameBox.setMaxLength(32);
         nameBox.setValue(s == null ? "" : s.name());
         nameBox.setHint(t("name_hint"));
@@ -108,18 +111,12 @@ public class SpotlightScreen extends Screen {
             onClose();
             return;
         }
-        g.fill(x0, y0, x0 + w, y0 + h, BG);
-        g.fill(x0, y0, x0 + w, y0 + 1, BORDER);
-        g.fill(x0, y0 + h - 1, x0 + w, y0 + h, BORDER);
-        g.fill(x0, y0, x0 + 1, y0 + h, BORDER);
-        g.fill(x0 + w - 1, y0, x0 + w, y0 + h, BORDER);
-        g.text(font, t("title"), x0 + 6, y0 + 6, GOLD, false);
         String at = pos.getX() + " " + pos.getY() + " " + pos.getZ();
-        g.text(font, at, x0 + w - 6 - font.width(at), y0 + 6, DIM, false);
+        Ui.panel(g, font, x0, y0, w, h, Component.literal(t("title").getString() + (s.name().isEmpty() ? "" : " « " + s.name() + " »") + "  ·  " + at));
         int lx = x0 + 6, vx = x0 + 6 + labelW, vr = x0 + w - 6;
-        g.text(font, t("name"), lx, y0 + 23, DIM, false);
+        g.text(font, t("name"), lx, y0 + TOP + 3, DIM, false);
 
-        int y = y0 + 40;
+        int y = y0 + TOP + 20;
         // On / off
         g.text(font, t("lit"), lx, y + 3, DIM, false);
         button(g, vx, y, s.lit() ? t("on") : t("off"), s.lit(), mx, my, () -> send("lit", !s.lit()), null);
@@ -202,8 +199,7 @@ public class SpotlightScreen extends Screen {
     private int button(GuiGraphicsExtractor g, int x, int y, Component label, boolean on, int mx, int my, Runnable click, Component tip) {
         int bw = font.width(label) + 8;
         boolean hover = mx >= x && mx < x + bw && my >= y && my < y + 13;
-        g.fill(x, y, x + bw, y + 13, on ? BTN_ON : hover ? BTN_HOVER : BTN);
-        g.text(font, label, x + 4, y + 3, TEXT, false);
+        Ui.button(g, font, x, y, bw, 13, label, on, hover, true);
         hits.add(new Hit(x, y, x + bw, y + 13, click, null, tip));
         return x + bw + 2;
     }
@@ -232,7 +228,7 @@ public class SpotlightScreen extends Screen {
 
     private int cycle(GuiGraphicsExtractor g, int y, int vx, int vr, String value, int mx, int my, Consumer<Double> step) {
         boolean hover = mx >= vx && mx < vr && my >= y && my < y + 13;
-        g.fill(vx, y, vr, y + 13, hover ? BTN_HOVER : BTN);
+        Ui.button(g, font, vx, y, vr - vx, 13, Component.empty(), false, hover, true);
         g.text(font, "◀", vx + 3, y + 3, DIM, false);
         g.text(font, "▶", vr - 9, y + 3, DIM, false);
         String shown = font.plainSubstrByWidth(value, vr - vx - 26);

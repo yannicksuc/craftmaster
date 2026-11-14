@@ -31,6 +31,20 @@ public final class Ui {
         g.outline(x + 1, y + 1, w - 2, h - 2, Theme.BORDER_DARK);
     }
 
+    /**
+     * A button drawn like {@link UiButton} (velvet face, golden edge when hovered or on), for screens that lay out
+     * their own controls every frame (timelines, inspectors).
+     */
+    public static void button(GuiGraphicsExtractor g, Font font, int x, int y, int w, int h, Component label, boolean on, boolean hover, boolean active) {
+        int face = !active ? Theme.BUTTON_OFF : on ? Theme.BUTTON_ON : hover ? Theme.BUTTON_HOVER : Theme.BUTTON;
+        g.fill(x, y, x + w, y + h, Theme.shade(face, -0.5f));
+        g.fill(x + 1, y + 1, x + w - 1, y + h - 1, face);
+        g.horizontalLine(x + 1, x + w - 2, y + 1, Theme.shade(face, 0.25f));
+        g.horizontalLine(x + 1, x + w - 2, y + h - 2, Theme.shade(face, -0.3f));
+        if (active && (hover || on)) g.outline(x, y, w, h, Theme.BORDER);
+        g.centeredText(font, label, x + w / 2, y + (h - 8) / 2, active ? Theme.TEXT : Theme.TEXT_DIM);
+    }
+
     /** A sheet of cream paper (lists, tables). */
     public static void paper(GuiGraphicsExtractor g, int x, int y, int w, int h) {
         g.fill(x, y, x + w, y + h, Theme.PAPER);

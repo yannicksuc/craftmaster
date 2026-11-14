@@ -18,6 +18,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import fr.lordfinn.craftmaster.client.ui.Theme;
+import fr.lordfinn.craftmaster.client.ui.Ui;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -41,9 +43,10 @@ import java.util.function.Supplier;
 public class TimelineScreen extends Screen {
 
     // ---------------------------------------------------------------- look
-    private static final int BG = 0xE6140E10, BG_LANE = 0x40FFFFFF, BG_LANE_SEL = 0x30FFC23D, BORDER = 0xFFD4A53A, TEXT = 0xFFF1E6C8,
-            DIM = 0xFF9A8A70, GOLD = 0xFFFFC23D, RED = 0xFFE04040, GREEN = 0xFF7FD67F, BTN = 0xFF4A1018, BTN_HOVER = 0xFF7A1C28,
-            BTN_ON = 0xFF9A6A10, GRID = 0x22FFFFFF, GRID_STRONG = 0x44FFFFFF;
+    // The UI kit's colours (client/ui/Theme), plus the timeline's own grid
+    private static final int BG = Theme.PANEL, BG_LANE = 0x40FFFFFF, BG_LANE_SEL = Theme.SELECTED, BORDER = Theme.BORDER, TEXT = Theme.TEXT,
+            DIM = Theme.TEXT_DIM, GOLD = Theme.GOLD, RED = Theme.ERROR, GREEN = Theme.OK, BTN = Theme.BUTTON, BTN_HOVER = Theme.BUTTON_HOVER,
+            BTN_ON = Theme.BUTTON_ON, GRID = 0x22FFFFFF, GRID_STRONG = 0x44FFFFFF;
     private static final Map<String, Integer> TYPE_COLOR = Map.of(Sequence.LIGHT, 0xFFFFD86B, Sequence.CURTAIN, 0xFFE05A6A,
             Sequence.PORTRAITS, 0xFFD4A53A, Sequence.SCREEN, 0xFF6BC4FF, Sequence.COMMAND, 0xFFB08CFF);
     private static final String[] COLORS = {"blanc", "chaud", "froid", "ambre", "or", "rouge", "orange", "jaune", "vert", "cyan", "bleu", "violet", "rose", "magenta"};
@@ -595,8 +598,7 @@ public class TimelineScreen extends Screen {
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
         if (timeX1 - timeX0 < 40) init();
         hits.clear();
-        g.fill(left, top, right, bottom, BG);
-        g.fill(left, top, right, top + 1, BORDER);
+        Ui.panel(g, font, left, top, right - left, bottom - top, null);
         drawTracks(g, mouseX, mouseY);
         drawHeader(g, mouseX, mouseY);
         drawTimeline(g, mouseX, mouseY);
@@ -623,8 +625,7 @@ public class TimelineScreen extends Screen {
     private int button(GuiGraphicsExtractor g, int x, int y, Component label, boolean on, int mouseX, int mouseY, Runnable click, Component tip) {
         int w = font.width(label) + 8;
         boolean hover = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + 13;
-        g.fill(x, y, x + w, y + 13, on ? BTN_ON : hover ? BTN_HOVER : BTN);
-        g.text(font, label, x + 4, y + 3, TEXT, false);
+        Ui.button(g, font, x, y, w, 13, label, on, hover, true);
         hits.add(new Hit(x, y, x + w, y + 13, click, null, null, tip));
         return x + w + 2;
     }
@@ -781,7 +782,7 @@ public class TimelineScreen extends Screen {
             String label = t("type." + type).getString();
             int w = font.width(label) + 4;
             boolean h = mx >= x && mx < x + w && my >= y && my < y + 12;
-            g.fill(x, y, x + w, y + 12, h ? BTN_HOVER : BTN);
+            Ui.button(g, font, x, y, w, 12, Component.empty(), false, h, true);
             g.text(font, label, x + 2, y + 2, TYPE_COLOR.getOrDefault(type, TEXT), false);
             hits.add(new Hit(x, y, x + w, y + 12, () -> addTrack(type), null, null, t("add_track", label)));
             x += w + 2;

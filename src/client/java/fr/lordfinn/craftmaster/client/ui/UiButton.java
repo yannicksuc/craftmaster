@@ -53,16 +53,8 @@ public class UiButton extends AbstractButton {
 
     @Override
     protected void extractContents(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
-        int x = getX(), y = getY(), w = getWidth(), h = getHeight();
-        int face = !active ? Theme.BUTTON_OFF : on.getAsBoolean() ? Theme.BUTTON_ON : isHoveredOrFocused() ? Theme.BUTTON_HOVER : Theme.BUTTON;
-        g.fill(x, y, x + w, y + h, Theme.shade(face, -0.5f));
-        g.fill(x + 1, y + 1, x + w - 1, y + h - 1, face);
-        g.horizontalLine(x + 1, x + w - 2, y + 1, Theme.shade(face, 0.25f));
-        g.horizontalLine(x + 1, x + w - 2, y + h - 2, Theme.shade(face, -0.3f));
-        if (active && (isHoveredOrFocused() || on.getAsBoolean())) g.outline(x, y, w, h, Theme.BORDER);
-        var font = net.minecraft.client.Minecraft.getInstance().font;
-        int color = active ? Theme.TEXT : Theme.TEXT_DIM;
-        g.centeredText(font, getMessage(), x + w / 2, y + (h - 8) / 2, color);
+        Ui.button(g, net.minecraft.client.Minecraft.getInstance().font, getX(), getY(), getWidth(), getHeight(), getMessage(),
+                on.getAsBoolean(), isHoveredOrFocused(), active);
     }
 
     @Override
