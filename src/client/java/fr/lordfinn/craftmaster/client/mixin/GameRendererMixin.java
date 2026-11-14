@@ -15,7 +15,7 @@ public abstract class GameRendererMixin {
 
     @Inject(method = "bobView", at = @At("HEAD"), cancellable = true)
     private void craftmaster$noBob(CameraRenderState camera, PoseStack poseStack, CallbackInfo ci) {
-        if (Broadcast.active() || fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.previewing()) ci.cancel();
+        if (Broadcast.active() || fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.previewing() || fr.lordfinn.craftmaster.client.studio.ControlView.active()) ci.cancel();
     }
 
     /** Split screen: the world just drawn for one tile is kept for that tile (before the interface is drawn). */
@@ -34,6 +34,6 @@ public abstract class GameRendererMixin {
 
     @Inject(method = "bobHurt", at = @At("HEAD"), cancellable = true)
     private void craftmaster$noHurtShake(CameraRenderState camera, PoseStack poseStack, CallbackInfo ci) {
-        if (Broadcast.active() || fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.previewing()) ci.cancel();
+        if (Broadcast.active() || fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.previewing() || fr.lordfinn.craftmaster.client.studio.ControlView.active()) ci.cancel();
     }
 }

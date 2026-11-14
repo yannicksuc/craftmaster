@@ -94,6 +94,7 @@ public final class CraftMaster implements ModInitializer {
         fr.lordfinn.craftmaster.stage.Cues.register();
         fr.lordfinn.craftmaster.stage.Sequencer.register();
         fr.lordfinn.craftmaster.stage.TimelineNetwork.register();
+        fr.lordfinn.craftmaster.camera.CameraNetwork.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.stage.TimelineCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.stage.StageCommands.register(dispatcher));
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
@@ -101,6 +102,7 @@ public final class CraftMaster implements ModInitializer {
             data = new CraftMasterData(fl.getConfigDir().resolve("craftmaster/config.yml"), LOG);
             // A server coming from the Paper plugin keeps its seasons, scores and busts
             data.load(fl.getGameDir().resolve("plugins/CraftMaster/config.yml"));
+            fr.lordfinn.craftmaster.camera.CameraOptions.load();
             Cameras.load(fl.getConfigDir().resolve("craftmaster/cameras.json"));
             fr.lordfinn.craftmaster.camera.CameraPaths.load(fl.getConfigDir().resolve("craftmaster/trajets.json"));
             fr.lordfinn.craftmaster.show.Moderators.load(fl.getConfigDir().resolve("craftmaster/moderateurs.json"));

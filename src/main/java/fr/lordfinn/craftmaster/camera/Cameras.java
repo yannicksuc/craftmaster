@@ -157,6 +157,11 @@ public final class Cameras {
         changed(server);
     }
 
+    /** The prop of a camera, if loaded (for its menu and options). */
+    public static CameraEntity prop(MinecraftServer server, String key) {
+        return loadedProp(server, key);
+    }
+
     /** Changes a camera's settings (name, role, zoom, motion, aim); false if it does not exist. */
     public static boolean update(MinecraftServer server, String key, UnaryOperator<CameraSpot> change) {
         CameraSpot old = list.get(key);
@@ -189,6 +194,7 @@ public final class Cameras {
         if (propId != null) props.put(spot.key(), propId);
         if (prop != null) prop.apply(spot);
         Director.cameraMoved(key, spot.key());
+        CameraOptions.moved(key, spot.key());
         changed(server);
         return spot;
     }
@@ -243,7 +249,8 @@ public final class Cameras {
             c.discard();
             return;
         }
-        if (c.lens().distanceToSqr(spot.x(), spot.y(), spot.z()) > 1e-4 || c.lensYaw() != spot.yaw() || c.lensPitch() != spot.pitch()
+        if (c.hiddenProp() != CameraOptions.hidden(spot.key()) || c.showsGhost() != CameraOptions.ghost(spot.key())
+                || c.lens().distanceToSqr(spot.x(), spot.y(), spot.z()) > 1e-4 || c.lensYaw() != spot.yaw() || c.lensPitch() != spot.pitch()
                 || !c.cameraName().equals(spot.name()) || !c.cameraKey().equals(spot.key()) || !c.mount().equals(spot.mount())) c.apply(spot);
     }
 }

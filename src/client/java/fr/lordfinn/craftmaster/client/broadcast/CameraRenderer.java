@@ -150,6 +150,30 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         };
     }
 
+    /**
+     * A hidden camera is drawn for no one, except the organisers holding a camera or the travelling marker (to find
+     * it again and click it).
+     */
+    @Override
+    //? if >=26.3 {
+    public boolean shouldRender(CameraEntity e, net.minecraft.client.renderer.culling.Frustum frustum, double x, double y, double z, float partialTick) {
+        if (e.hiddenProp() && !revealHidden()) return false;
+        return super.shouldRender(e, frustum, x, y, z, partialTick);
+    }
+    //?} else {
+    /*public boolean shouldRender(CameraEntity e, net.minecraft.client.renderer.culling.Frustum frustum, double x, double y, double z) {
+        if (e.hiddenProp() && !revealHidden()) return false;
+        return super.shouldRender(e, frustum, x, y, z);
+    }
+    *///?}
+
+    static boolean revealHidden() {
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.player == null || !fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin()) return false;
+        var held = mc.player.getMainHandItem().getItem();
+        return held instanceof fr.lordfinn.craftmaster.camera.CameraItem || held instanceof fr.lordfinn.craftmaster.camera.PathMarkerItem;
+    }
+
     @Override
     public void submit(State s, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         int light = s.lightCoords;

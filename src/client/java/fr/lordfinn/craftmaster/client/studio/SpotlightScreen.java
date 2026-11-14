@@ -89,7 +89,7 @@ public class SpotlightScreen extends Screen {
         for (String k : new String[]{"name", "lit", "color", "intensity", "cone", "direction", "follow", "effect", "speed"})
             labelW = Math.max(labelW, font.width(t(k)));
         labelW += 10;
-        h = Math.min(height - 16, 246);
+        h = Math.min(height - 16, 262);
         x0 = width - w - 8;
         y0 = Math.max(8, (height - h) / 2);
         SpotlightBlockEntity s = spot();
@@ -169,7 +169,13 @@ public class SpotlightScreen extends Screen {
             bx = vx;
         }
         button(g, bx, y, t("me"), false, mx, my, () -> send("me", true), t("me_tip"));
-        y += 17;
+        y += 15;
+        // Look through it and aim it with the mouse
+        int cw = vr - vx;
+        boolean ch = mx >= vx && mx < vr && my >= y && my < y + 14;
+        Ui.button(g, font, vx, y, cw, 14, t("control"), false, ch, true);
+        hits.add(new Hit(vx, y, vr, y + 14, () -> ControlView.startSpot(pos, s.pivot(), s.yaw(), s.pitch()), null, t("control_tip")));
+        y += 18;
         // Follow
         g.text(font, t("follow"), lx, y + 3, DIM, false);
         String cur = s.follow();

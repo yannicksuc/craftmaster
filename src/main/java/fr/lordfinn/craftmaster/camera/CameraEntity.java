@@ -47,6 +47,10 @@ public class CameraEntity extends Entity {
     /** {@link CameraMount#id()}: how it is mounted, which the client draws (legs, stem, arm, upside-down). */
     private static final EntityDataAccessor<String> MOUNT = SynchedEntityData.defineId(CameraEntity.class, EntityDataSerializers.STRING);
 
+    /** Hidden prop (no one sees it but organisers holding a camera); its travellings' ghost shown. */
+    private static final EntityDataAccessor<Boolean> HIDDEN = SynchedEntityData.defineId(CameraEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> GHOST = SynchedEntityData.defineId(CameraEntity.class, EntityDataSerializers.BOOLEAN);
+
     /** Parsed {@link #MOUNT}, cached. */
     private CameraMount mount = CameraMount.FLOOR;
 
@@ -71,6 +75,8 @@ public class CameraEntity extends Entity {
         entityData.set(PITCH, spot.pitch());
         entityData.set(GROUP, spot.group());
         setMount(spot.mount());
+        entityData.set(HIDDEN, CameraOptions.hidden(spot.key()));
+        entityData.set(GHOST, CameraOptions.ghost(spot.key()));
         snapTo(spot.x(), spot.y() - mount.lensDy(), spot.z(), spot.yaw(), 0);
     }
 
@@ -88,6 +94,8 @@ public class CameraEntity extends Entity {
         b.define(PITCH, 0f);
         b.define(GROUP, CameraSpot.STUDIO);
         b.define(MOUNT, CameraMount.FLOOR.id());
+        b.define(HIDDEN, false);
+        b.define(GHOST, true);
     }
 
     @Override
@@ -117,6 +125,8 @@ public class CameraEntity extends Entity {
     public float lensPitch() { return entityData.get(PITCH); }
     public String group() { return entityData.get(GROUP); }
     public CameraMount mount() { return mount; }
+    public boolean hiddenProp() { return entityData.get(HIDDEN); }
+    public boolean showsGhost() { return entityData.get(GHOST); }
     /** "studio:2", "pont:ensuri:1" (see {@link CameraSpot#key()}). */
     public String cameraKey() { return group() + ":" + number(); }
 
@@ -133,6 +143,8 @@ public class CameraEntity extends Entity {
         if (player instanceof ServerPlayer sp) {
             if (!Permissions.canDriveCameras(sp)) return InteractionResult.PASS;
             String key = cameraKey();
+            // Its menu (name, role, zoom, motion, hidden, aim, take control); the chat lines without the mod
+            if (CameraNetwork.open(sp, key)) return InteractionResult.SUCCESS;
             CameraSpot spot = Cameras.get(key);
             sp.sendSystemMessage(Component.literal("" + (spot != null ? spot.label() : number() + " · " + cameraName()))
                     .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
