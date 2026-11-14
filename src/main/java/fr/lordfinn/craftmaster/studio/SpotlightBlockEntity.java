@@ -65,8 +65,8 @@ public class SpotlightBlockEntity extends BlockEntity {
     /** A light effect drawn by the clients on the intensity ("respiration", "strobe"…; "" none), its speed and phase. */
     private String effect = "";
     private float effectSpeed = 1, effectPhase;
-    /** The light block this spotlight placed (server), or null. */
-    private BlockPos light;
+    /** The light blocks this spotlight placed (server), with their level. */
+    private final java.util.Map<BlockPos, Integer> lights = new java.util.HashMap<>();
 
     // Client only: what is drawn this frame, easing toward the settings
     public float renderYaw, renderPitch, renderIntensity, renderCone;
@@ -236,34 +236,103 @@ public class SpotlightBlockEntity extends BlockEntity {
         return feet.add(0, 0.05, 0);
     }
 
-    /** Puts the light block where the beam lands (in the air in front of the block it hits), or removes it. */
+    /**
+     * How the light block is put and removed: sent to the players, but without updating the blocks around it. With the
+     * usual updates, a carpet or a decoration that only stands thanks to how it was built (placed with an editor, on
+     * nothing that would hold it) broke as the light moved over it: a following spotlight tore the plateau's carpet.
+     */
+    private static final int QUIET = net.minecraft.world.level.block.Block.UPDATE_CLIENTS
+            | net.minecraft.world.level.block.Block.UPDATE_KNOWN_SHAPE;
+
+    /** Space between the light blocks laid under the pool and along the beam (blocks). */
+    private static final int POOL_STEP = 3, BEAM_STEP = 4, MAX_LIGHTS = 24;
+
+    /**
+     * Real light (invisible {@code minecraft:light} blocks), so that what the spotlight shines on is lit by the game
+     * itself (textures brighter in their own colours, shaders included) instead of only drawn over: full where the beam
+     * lands, a little less over the rest of the pool, and dimmer along the beam (a player crossing it is lit).
+     */
     void updateLight() {
         if (!(level instanceof ServerLevel server)) return;
-        BlockPos target = null;
+        java.util.Map<BlockPos, Integer> want = new java.util.LinkedHashMap<>();
         if (lit() && intensity > 0) {
-            BlockHitResult hit = trace(server, pivot(), yaw, pitch);
+            Vec3 from = pivot();
+            BlockHitResult hit = trace(server, from, yaw, pitch);
+            int full = Math.max(1, Math.round(SPOT_LIGHT * intensity / (float) MAX_INTENSITY));
+            double[] d = SpotlightAim.direction(yaw, pitch);
+            double length = RANGE;
             if (hit.getType() == HitResult.Type.BLOCK) {
-                BlockPos p = hit.getBlockPos().relative(hit.getDirection());
-                BlockState there = server.getBlockState(p);
-                if (there.isAir() || there.is(Blocks.LIGHT)) target = p;
+                length = hit.getLocation().distanceTo(from);
+                BlockPos landing = hit.getBlockPos().relative(hit.getDirection());
+                put(server, want, landing, full);
+                // The pool: a grid on the landing plane, each point on the surface it lands on (a step up or down)
+                double radius = length * Math.tan(Math.toRadians(cone)) * 1.25;
+                net.minecraft.core.Direction face = hit.getDirection();
+                int n = (int) Math.floor(radius / POOL_STEP);
+                for (int u = -n; u <= n; u++) {
+                    for (int v = -n; v <= n; v++) {
+                        if ((u == 0 && v == 0) || Math.hypot(u, v) * POOL_STEP > radius) continue;
+                        BlockPos p = planeOffset(landing, face, u * POOL_STEP, v * POOL_STEP);
+                        for (int k : new int[]{0, 1, -1}) {
+                            BlockPos q = p.relative(face, k);
+                            if (free(server, q) && !free(server, q.relative(face.getOpposite()))) {
+                                put(server, want, q, Math.max(1, full - 2));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            // Along the beam, dimmer
+            for (double t = 2.5; t < length - 2; t += BEAM_STEP) {
+                BlockPos p = BlockPos.containing(from.add(d[0] * t, d[1] * t, d[2] * t));
+                if (free(server, p)) put(server, want, p, Math.max(1, full - 5));
             }
         }
-        int level = Math.max(1, Math.round(SPOT_LIGHT * intensity / (float) MAX_INTENSITY));
-        if (target != null && target.equals(light) && server.getBlockState(target).is(Blocks.LIGHT)
-                && server.getBlockState(target).getValue(LightBlock.LEVEL) == level) return;
-        clearLight();
-        if (target != null) {
-            server.setBlock(target, Blocks.LIGHT.defaultBlockState().setValue(LightBlock.LEVEL, level), 3);
-            light = target;
-            setChanged();
+        if (want.equals(lights) && lights.entrySet().stream().allMatch(e -> isOurs(server, e.getKey(), e.getValue()))) return;
+        for (BlockPos p : List.copyOf(lights.keySet())) {
+            if (!want.containsKey(p) && server.getBlockState(p).is(Blocks.LIGHT)) server.setBlock(p, Blocks.AIR.defaultBlockState(), QUIET);
         }
+        lights.clear();
+        for (var e : want.entrySet()) {
+            if (!isOurs(server, e.getKey(), e.getValue()))
+                server.setBlock(e.getKey(), Blocks.LIGHT.defaultBlockState().setValue(LightBlock.LEVEL, e.getValue()), QUIET);
+            lights.put(e.getKey(), e.getValue());
+        }
+        setChanged();
+    }
+
+    private static void put(ServerLevel server, java.util.Map<BlockPos, Integer> want, BlockPos p, int level) {
+        if (want.size() < MAX_LIGHTS) want.merge(p.immutable(), level, Math::max);
+    }
+
+    /** Air, or a light block (ours or another spotlight's). */
+    private static boolean free(ServerLevel server, BlockPos p) {
+        BlockState s = server.getBlockState(p);
+        return s.isAir() || s.is(Blocks.LIGHT);
+    }
+
+    private static boolean isOurs(ServerLevel server, BlockPos p, int level) {
+        BlockState s = server.getBlockState(p);
+        return s.is(Blocks.LIGHT) && s.getValue(LightBlock.LEVEL) == level;
+    }
+
+    /** {@code pos} moved by (a, b) along the two axes of the plane facing {@code face}. */
+    private static BlockPos planeOffset(BlockPos pos, net.minecraft.core.Direction face, int a, int b) {
+        return switch (face.getAxis()) {
+            case X -> pos.offset(0, a, b);
+            case Y -> pos.offset(a, 0, b);
+            case Z -> pos.offset(a, b, 0);
+        };
     }
 
     void clearLight() {
-        if (light == null || level == null || level.isClientSide()) return;
-        // Only our own light block (another spotlight may light the same place: it puts its own back next tick)
-        if (level.getBlockState(light).is(Blocks.LIGHT)) level.setBlock(light, Blocks.AIR.defaultBlockState(), 3);
-        light = null;
+        if (lights.isEmpty() || level == null || level.isClientSide()) return;
+        // Only light blocks (another spotlight may light the same place: it puts its own back next tick)
+        for (BlockPos p : lights.keySet()) {
+            if (level.getBlockState(p).is(Blocks.LIGHT)) level.setBlock(p, Blocks.AIR.defaultBlockState(), QUIET);
+        }
+        lights.clear();
         setChanged();
     }
 
@@ -290,7 +359,10 @@ public class SpotlightBlockEntity extends BlockEntity {
         intensity = Math.max(0, Math.min(MAX_INTENSITY, in.getIntOr("Intensity", MAX_INTENSITY)));
         cone = Math.max(MIN_CONE, Math.min(MAX_CONE, in.getFloatOr("Cone", DEFAULT_CONE)));
         fade = Math.max(0, Math.min(MAX_FADE, in.getIntOr("Fade", 0)));
-        light = in.read("Light", BlockPos.CODEC).orElse(null);
+        lights.clear();
+        // Before several light blocks: one, under "Light"
+        in.read("Light", BlockPos.CODEC).ifPresent(p -> lights.put(p, -1));
+        in.read("Lights", BlockPos.CODEC.listOf()).ifPresent(l -> l.forEach(p -> lights.put(p, -1)));
         effect = in.getStringOr("Effect", "");
         effectSpeed = in.getFloatOr("EffectSpeed", 1);
         effectPhase = in.getFloatOr("EffectPhase", 0);
@@ -308,7 +380,7 @@ public class SpotlightBlockEntity extends BlockEntity {
         out.putInt("Intensity", intensity);
         out.putFloat("Cone", cone);
         out.putInt("Fade", fade);
-        if (light != null) out.store("Light", BlockPos.CODEC, light);
+        if (!lights.isEmpty()) out.store("Lights", BlockPos.CODEC.listOf(), List.copyOf(lights.keySet()));
         if (!effect.isEmpty()) {
             out.putString("Effect", effect);
             out.putFloat("EffectSpeed", effectSpeed);

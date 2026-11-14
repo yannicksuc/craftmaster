@@ -111,6 +111,10 @@ final class PoolCells {
             set(pos, a, k, b, ib, c, ic);
             BlockState state = level.getBlockState(pos);
             if (state.isAir()) continue;
+            // Furniture (a chair, a table, a lamp: a block that does not hide what is behind it) does not cast a hard
+            // shadow: light passes between its legs, so the floor under it stays lit (the chair, drawn over the pool,
+            // still hides what it covers)
+            boolean see = !state.canOcclude();
             Double best = null;
             boolean blocked = false;
             for (AABB box : state.getShape(level, pos).toAabbs()) {
@@ -119,7 +123,9 @@ final class PoolCells {
                 double hi = sign > 0 ? k + max(box, a) - plane : plane - (k + min(box, a));
                 double lo = sign > 0 ? k + min(box, a) - plane : plane - (k + max(box, a));
                 if (lo >= MAX_RISE) continue;
-                if (hi > MAX_RISE + 1e-6) blocked = true;
+                if (hi > MAX_RISE + 1e-6) {
+                    if (!see) blocked = true;
+                }
                 else if (best == null || hi > best) best = hi;
             }
             if (blocked) return null;
