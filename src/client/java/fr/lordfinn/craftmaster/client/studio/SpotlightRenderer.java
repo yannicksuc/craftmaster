@@ -53,6 +53,12 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         /** Half-angle, degrees. */
         float cone;
         double length;
+        /**
+         * How far along the axis the beam's edge first touches the surface it lands on: a beam landing at a slant sinks
+         * into the floor on its near side, and its strips (flat between their edges) cut through the carpet in teeth and
+         * shards. Every strip now ends there at the latest, faded out, and the pool takes over. MAX_VALUE: not landed.
+         */
+        double contact;
         /** Where each side of the beam ends, just before the block it meets (see {@link BeamEdges}); null: the full length. */
         BeamEdges.Edges edges;
         /** Where the beam lands, relative to the block's corner, and the face it lands on (null: nothing hit). */
@@ -140,6 +146,7 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         s.cells = null;
         s.length = OPEN_LENGTH;
         s.edges = null;
+        s.contact = Double.MAX_VALUE;
         if (s.lit && be.getLevel() != null) {
             BlockHitResult hit = SpotlightBlockEntity.trace(be.getLevel(), pivot, s.yaw, s.pitch);
             if (hit.getType() == HitResult.Type.BLOCK) {
@@ -148,6 +155,7 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
                 s.face = hit.getDirection();
                 double[] dir = SpotlightAim.direction(s.yaw, s.pitch);
                 s.cells = PoolCells.of(be, be.getLevel(), hit.getLocation(), s.face, endRadius(s.length, s.cone) * 1.25, dir);
+                s.contact = contact(s.length, endRadius(s.length, s.cone), dir, s.face);
             }
             s.edges = BeamEdges.of(be, be.getLevel(), pivot, s.yaw, s.pitch, s.cone, BEAM_START, s.length, s.hit != null,
                     LENS_RADIUS, endRadius(s.length, s.cone), SIDES, OPEN_LENGTH);
@@ -213,7 +221,7 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
             double length = s.length;
             int color = s.color;
             float intensity = s.intensity, cone = s.cone;
-            BeamEdges.Edges edges = s.edges;
+            BeamEdges.Edges edges = capped(s.edges, s.contact);
             float[] eye = eye(s, camera);
             collector.submitCustomGeometry(poseStack, SpotLightRenderType.light(), (p, c) -> beam(c, p, length, edges, color, intensity, cone, eye));
         }
@@ -253,6 +261,30 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         float[] near = inside > 0 ? eye : null;
         cone(c, p, length, edges == null ? null : edges.outer(), LENS_RADIUS, r1, a, rgb, near, inside);
         cone(c, p, length, edges == null ? null : edges.inner(), LENS_RADIUS * 0.55, r1 * 0.45, b, rgb, near, inside);
+    }
+
+    /** The strips' ends, none past {@code contact}. */
+    private static BeamEdges.Edges capped(BeamEdges.Edges edges, double contact) {
+        if (edges == null || contact == Double.MAX_VALUE) return edges;
+        float[] outer = edges.outer().clone(), inner = edges.inner().clone();
+        for (int i = 0; i < outer.length; i++) outer[i] = (float) Math.min(outer[i], contact);
+        for (int i = 0; i < inner.length; i++) inner[i] = (float) Math.min(inner[i], contact);
+        return new BeamEdges.Edges(outer, inner);
+    }
+
+    /**
+     * Distance along the axis at which the cone's (outer) edge first reaches the plane it lands on, {@code length} away:
+     * the side nearest the surface touches it before the axis does when the beam comes in at a slant. Never less than
+     * 40 % of the way, so a beam grazing a wall still shows.
+     */
+    static double contact(double length, double r1, double[] dir, Direction face) {
+        double cos = -(dir[0] * face.getStepX() + dir[1] * face.getStepY() + dir[2] * face.getStepZ());
+        if (cos <= 1e-3) return length;
+        double sin = Math.sqrt(Math.max(0, 1 - cos * cos));
+        // Height of the nearest edge above the plane at z: (length - z)·cos − r(z)·sin, r straight from the lens to r1
+        double k = (r1 - LENS_RADIUS) / Math.max(1e-6, length - BEAM_START);
+        double z = (length * cos - LENS_RADIUS * sin + k * BEAM_START * sin) / (cos + k * sin) - 0.05;
+        return Math.max(Math.max(BEAM_START + 0.3, length * 0.4), Math.min(length, z));
     }
 
     /** Within this distance of the beam's edge the eye counts as inside it (blocks). */
@@ -337,14 +369,14 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
                 int bf = Math.round(pf * nearFade(eye, inside, q11[0], q11[1], q11[2]));
                 if (an + bn + af + bf == 0) continue;
                 int c00 = Geo.argb(an, rgb), c01 = Geo.argb(bn, rgb), c10 = Geo.argb(af, rgb), c11 = Geo.argb(bf, rgb);
-                Geo.glow(c, p, q00[0], q00[1], q00[2], c00);
-                Geo.glow(c, p, q10[0], q10[1], q10[2], c10);
-                Geo.glow(c, p, q11[0], q11[1], q11[2], c11);
-                Geo.glow(c, p, q01[0], q01[1], q01[2], c01);
-                Geo.glow(c, p, q01[0], q01[1], q01[2], c01);
-                Geo.glow(c, p, q11[0], q11[1], q11[2], c11);
-                Geo.glow(c, p, q10[0], q10[1], q10[2], c10);
-                Geo.glow(c, p, q00[0], q00[1], q00[2], c00);
+                Geo.light(c, p, q00[0], q00[1], q00[2], c00);
+                Geo.light(c, p, q10[0], q10[1], q10[2], c10);
+                Geo.light(c, p, q11[0], q11[1], q11[2], c11);
+                Geo.light(c, p, q01[0], q01[1], q01[2], c01);
+                Geo.light(c, p, q01[0], q01[1], q01[2], c01);
+                Geo.light(c, p, q11[0], q11[1], q11[2], c11);
+                Geo.light(c, p, q10[0], q10[1], q10[2], c10);
+                Geo.light(c, p, q00[0], q00[1], q00[2], c00);
             }
         }
     }

@@ -186,7 +186,7 @@ final class PoolCells {
         xyz[s.a()] = (float) (along - coord(s.origin(), s.a()));
         xyz[s.b()] = (float) (pb - coord(s.origin(), s.b()));
         xyz[s.c()] = (float) (pc - coord(s.origin(), s.c()));
-        Geo.glow(out, p, xyz[0], xyz[1], xyz[2], Geo.argb(alpha, rgb));
+        Geo.light(out, p, xyz[0], xyz[1], xyz[2], Geo.argb(alpha, rgb));
     }
 
     private static int coord(BlockPos pos, int axis) {
