@@ -42,9 +42,9 @@ import java.util.Set;
 public final class TravellingGizmos {
 
     private static final TravellingGizmos INSTANCE = new TravellingGizmos();
-    /** The dotted path past each end: this many dots, as far apart as the path's own (blocks). */
-    private static final int NEXT_DOTS = 8;
-    private static final double DOT_SPACING = 0.35;
+    /** Past each end of the path: one dot, as far as the path's own dots are apart (blocks). */
+    private static final int NEXT_DOTS = 1;
+    private static final double DOT_SPACING = 0.45;
 
     /** Dev client (DevInput): the left button held, in place of the real one (null: the real one). */
     public static Boolean devLeft;
@@ -193,7 +193,7 @@ public final class TravellingGizmos {
             }
             int n = p.steps().size();
             Vec3 first = stepVec(p, 0), last = stepVec(p, n - 1);
-            // The dotted path goes on past both ends (a fixed shot: to its left and right); a click on one of these dots
+            // One more dot of the path past each end (a fixed shot: to its left and right); a click on it
             // adds a step there, at the start or at the end
             Vec3 after, before;
             if (n == 1) {
