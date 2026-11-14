@@ -200,7 +200,7 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
             fr.lordfinn.craftmaster.camera.CameraPath hp = ShowStateClient.path(h.path());
             if (hp == null || !hp.camera().equals(key) || h.lit()) continue;
             s.dots.add(new float[]{(float) (h.x() - e.getX()), (float) (h.y() - e.getY()), (float) (h.z() - e.getZ()), 0, 0,
-                    tint(fr.lordfinn.craftmaster.client.studio.TravellingEdit.colourOf(hp), 0x50), 2.6f});
+                    tint(fr.lordfinn.craftmaster.client.studio.TravellingEdit.colourOf(hp), 0x50), 3.6f});
         }
         // The ghost of a step about to be added, white
         var preview = fr.lordfinn.craftmaster.client.studio.TravellingEdit.preview();

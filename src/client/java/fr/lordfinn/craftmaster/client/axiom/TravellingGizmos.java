@@ -42,8 +42,13 @@ import java.util.Set;
 public final class TravellingGizmos {
 
     private static final TravellingGizmos INSTANCE = new TravellingGizmos();
-    /** How far past an end the place for a next step is (blocks). */
-    private static final double NEXT_GAP = 2.0;
+    /** How far beside a fixed shot the places for a next step are (blocks). */
+    private static final double NEXT_GAP = 3.0;
+
+    /** The spacing of a next step: the travelling's own, within reason. */
+    private static double gap(double segment) {
+        return Math.max(1.0, Math.min(12.0, segment));
+    }
 
     /** Dev client (DevInput): the left button held, in place of the real one (null: the real one). */
     public static Boolean devLeft;
@@ -199,10 +204,10 @@ public final class TravellingGizmos {
                 nextHandles.put(name + "#before", new Handle(name, 0, first.subtract(right)));
                 nextHandles.put(name + "#after", new Handle(name, 1, first.add(right)));
             } else {
-                // Further along the way it goes, at both ends
+                // Further along the way it goes, at both ends, as far as the step before it (the same spacing)
                 Vec3 out = last.subtract(stepVec(p, n - 2)), in = first.subtract(stepVec(p, 1));
-                if (out.lengthSqr() > 1e-6) nextHandles.put(name + "#after", new Handle(name, n, last.add(out.normalize().scale(NEXT_GAP))));
-                if (in.lengthSqr() > 1e-6) nextHandles.put(name + "#before", new Handle(name, 0, first.add(in.normalize().scale(NEXT_GAP))));
+                if (out.lengthSqr() > 1e-6) nextHandles.put(name + "#after", new Handle(name, n, last.add(out.normalize().scale(gap(out.length())))));
+                if (in.lengthSqr() > 1e-6) nextHandles.put(name + "#before", new Handle(name, 0, first.add(in.normalize().scale(gap(in.length())))));
             }
         }
         handles = nextHandles;

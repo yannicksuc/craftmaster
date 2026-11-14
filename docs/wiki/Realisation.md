@@ -140,8 +140,8 @@ l'écran, garde la scène en vue :
   (voir plus bas) ; l'éditeur ne garde que ce que le monde ne montre pas. Un travelling peut partir de n'importe où ;
   une seule étape = un **plan fixe**.
 - **Réglages d'une étape** : durée pour y arriver, pause, **transition** (douce, vitesse constante, démarrage doux,
-  arrivée douce, **coupe**), zoom, **visée** (son propre angle, un **joueur suivi** où qu'il aille, ou un **point**
-  du plateau qu'elle fixe), angle tapé, **Prendre le contrôle** depuis l'étape.
+  arrivée douce, **coupe**), FOV, **visée** (son propre angle, une **entité suivie** (un nom ou un sélecteur comme
+  dans les commandes, `@n[type=sheep]`, `@p`, avec l'autocomplétion), le centre de la scène ou un point du plateau), angle tapé, **Prendre le contrôle** depuis l'étape.
 - **Dans le monde** : avec le fantôme activé (ou le clap en main), chaque étape est un **point** ; en le visant il
   devient une caméra fantôme (sa place et sa direction), un **clic droit** ouvre l'éditeur sur cette étape. Une
   caméra fantôme parcourt le travelling en boucle. « Fantôme : oui / non » dans l'éditeur.
@@ -152,15 +152,13 @@ l'écran, garde la scène en vue :
 - **Édition au gizmo d'Axiom** (Axiom installé et activé) : le même outil que pour une entité d'affichage.
   - **clic gauche sur une étape** : elle prend le gizmo d'Axiom ; les **flèches et plans** la déplacent, l'**anneau
     horizontal** la tourne à gauche / à droite, l'**anneau de côté** vers le haut / le bas ;
-  - le **« + » blanc** au-dessus de chaque étape : **tire-le** vers l'étape suivante pour une nouvelle étape après
-    elle, vers la précédente pour une étape avant ; le « + » au-dessus de la caméra (quand le travelling part
-    d'ailleurs) en ajoute une à la fin. Si le travelling part de la caméra, le « + » de la première étape fait les
-    deux ;
+  - aux **deux bouts** du travelling, un **carré pâle** de sa couleur, à la même distance que le tronçon d'à côté
+    (un plan fixe : un de chaque côté) : **clic** = une étape là, au début ou à la fin ;
   - **clic sur le trajet en pointillés** : une étape à cet endroit (place et visée du trajet, la durée du tronçon
     partagée, le reste du minutage ne bouge pas) ;
   - **clic droit sur une étape** : l'éditeur sur cette étape ; **Suppr** : la retirer (l'étape suivante reprend sa
     durée) ; **Échap** : désélectionner. Fermer l'éditeur laisse son étape sélectionnée dans le monde.
-- **Aperçu** (sur ton écran seulement), **À l'antenne**, et dans la **timeline** une piste *Caméra* (plan : une caméra
+- **Aperçu** (sur ton écran seulement), et dans la **timeline** une piste *Caméra* (plan : une caméra
   ou un travelling, et la transition de la diffusion).
 
 ## Les travellings enregistrés (trajets)
