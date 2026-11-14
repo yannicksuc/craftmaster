@@ -73,12 +73,21 @@ public final class Broadcast {
             VanillaHudElements.DEMO_TIMER, VanillaHudElements.SCOREBOARD, VanillaHudElements.OVERLAY_MESSAGE,
             VanillaHudElements.PLAYER_LIST, VanillaHudElements.SUBTITLES);
 
+    /**
+     * Also hidden with the show's feed on screen (F7): the crosshair, and the hotbar with what goes with it (hearts,
+     * food, armour, experience, held item's name): the picture stays the show's. Chat, titles and messages stay.
+     */
+    private static final List<Identifier> HIDDEN_WITH_FEED = List.of(VanillaHudElements.CROSSHAIR, VanillaHudElements.HOTBAR,
+            VanillaHudElements.ARMOR_BAR, VanillaHudElements.HEALTH_BAR, VanillaHudElements.FOOD_BAR, VanillaHudElements.AIR_BAR,
+            VanillaHudElements.MOUNT_HEALTH, VanillaHudElements.INFO_BAR, VanillaHudElements.EXPERIENCE_LEVEL,
+            /*? if >=26.3 {*/VanillaHudElements.INFO_BAR_FOREGROUND, /*?}*/VanillaHudElements.HELD_ITEM_TOOLTIP);
+
     public static void init() {
         KeyMappingHelper.registerKeyMapping(TOGGLE_KEY);
         KeyMappingHelper.registerKeyMapping(ZONE_KEY);
         KeyMappingHelper.registerKeyMapping(MOSAIC_KEY);
         for (Identifier id : HIDDEN)
-            HudElementRegistry.replaceElement(id, vanilla -> id.equals(VanillaHudElements.CROSSHAIR) ? hiddenWithFeed(vanilla) : hiddenInBroadcast(vanilla, false));
+            HudElementRegistry.replaceElement(id, vanilla -> HIDDEN_WITH_FEED.contains(id) ? hiddenWithFeed(vanilla) : hiddenInBroadcast(vanilla, false));
         HudElementRegistry.replaceElement(VanillaHudElements.CHAT, vanilla -> hiddenInBroadcast(vanilla, true));
         HudElementRegistry.addLast(CraftMaster.id("broadcast"), BroadcastOverlay::extract);
         // Launch of a round after its intro: above everything, players and broadcast alike
@@ -134,7 +143,7 @@ public final class Broadcast {
         };
     }
 
-    /** The crosshair: hidden in broadcast mode and with the show's feed on screen (it would aim at nothing seen). */
+    /** Hidden in broadcast mode and with the show's feed on screen (the crosshair would aim at nothing seen). */
     private static HudElement hiddenWithFeed(HudElement vanilla) {
         return (g, delta) -> {
             if (!active() && !ShowFeedClient.active()) vanilla.extractRenderState(g, delta);
