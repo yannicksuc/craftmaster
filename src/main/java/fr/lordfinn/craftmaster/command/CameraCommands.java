@@ -262,6 +262,17 @@ public final class CameraCommands {
                         .executes(c -> run(c, action("camera.auto", "enabled", onOff(c, "enabled"))))))
                 .then(literal("transition").then(argument("transition", word()).suggests(TRANSITIONS)
                         .executes(c -> run(c, action("camera.transition", "transition", str(c, "transition"))))))
+                // Automatic framing: go and see a player, stay on them, wider / tighter, cameras to avoid
+                .then(literal("voir").then(argument("player", word()).suggests(ONLINE)
+                        .executes(c -> run(c, action("camera.goto", "player", str(c, "player"))))))
+                .then(literal("rester").then(literal("off").executes(c -> run(c, action("camera.stay", "enabled", false))))
+                        .then(argument("player", word()).suggests(ONLINE)
+                                .executes(c -> run(c, action("camera.stay", "player", str(c, "player"))))))
+                .then(literal("cadrage").then(argument("size", word()).suggests(list(c -> List.of("large", "serre", "auto")))
+                        .executes(c -> run(c, action("camera.framing", "size", str(c, "size"))))))
+                .then(literal("eviter").then(argument("camera", word()).suggests(CAMERAS)
+                        .executes(c -> run(c, action("camera.avoid", "camera", str(c, "camera"))))
+                        .then(literal("off").executes(c -> run(c, action("camera.avoid", "camera", str(c, "camera"), "enabled", false))))))
                 // Travellings
                 .then(literal("jouer").then(argument("path", word()).suggests(PATHS)
                         .executes(c -> run(c, action("camera.path", "path", str(c, "path"))))

@@ -565,5 +565,15 @@ Corrigé grâce à ces essais : changements de cadrage en rafale dans les passag
 un toutes les 3 s, et seulement vers un cadrage qui a vraiment plus de place) ; gros plans de nuque à l'entrée d'un
 couloir (esquive autour du joueur, puis changement immédiat sous 0,9 bloc) ; coin de mur cachant le corps (rayon
 poitrine → objectif).
+Caméras posées (3 caméras `/cam placer` : salle, dehors, bout du couloir) : `/cam voir LordFinn` prend la caméra
+de la salle quand il y est, celle du couloir quand il y est, le suit quand aucune ne le voit (poteau devant, caméra
+évitée) ✔ ; `/cam eviter 1`, `cadrage large|serre`, `rester`, `auto on` répondent ✔ ; le suivi coupe de lui-même
+sur la caméra de la salle (2 fois en 75 s) puis revient aux cadrages ✔. Corrigé : la part de l'image comptée en
+aire sous-estimait un joueur en pied (rien n'était choisi) → hauteur occupée ; un joueur au bord du cadre ne compte
+plus. Pas vérifié : la coupe sur qui parle (pas de Simple Voice Chat sur le serveur de dev ; même code que `voir`,
+`SpeakerCuts` inchangé). `ShotCoverageTest` : plus près = plus grand, derrière ou hors cadre = rien, collé =
+tout ; poids qui monte puis retombe ; caché par un bloc ; tirage pondéré ; caméra qui voit le plus de joueurs.
+Régie vocale : `test_offline.py` (« on va aller voir Ensuri pour voir comment ça se passe », « reste sur Juste »,
+« plus large », « évite la caméra 3 », « repasse en auto »…), `test_validate.py`.
 Pas vérifié : la vraie souris (le `@Redirect` de `MouseHandler.turnPlayer` s'applique, le jeu démarre ; mêmes
 entrées que `camturn`), les replays et les intros (même code, `DirectorCamera.follow`).

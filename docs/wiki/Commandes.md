@@ -183,7 +183,11 @@ Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`
 | `/cam remove <n>` | | Retire la caméra et son trépied |
 | `/cam cut <caméra> [transition]` · `/cam wide` · `/cam next` · `/cam prev` | | Change de plan |
 | `/cam follow <joueur> [transition]` | | Plan qui suit un joueur |
-| `/cam auto <on\|off>` · `/cam transition <transition>` | | Réalisation automatique · transition par défaut |
+| `/cam auto <on\|off>` · `/cam transition <transition>` | | Réalisation automatique (on : plus de joueur retenu, cadrage normal) · transition par défaut |
+| `/cam voir <joueur>` | | On va le voir : caméra posée qui le voit bien, sinon le plan qui le suit |
+| `/cam rester <joueur\|off>` | | La réalisation auto reste sur ce joueur |
+| `/cam cadrage <large\|serre\|auto>` | | Cadrage automatique plus large / plus serré / normal |
+| `/cam eviter <caméra> [off]` | | La réalisation auto n'utilise plus cette caméra (off : de nouveau) |
 | `/cam lieu <caméra> <studio\|manche> [zone]` | | Range la caméra dans un lieu (et une zone : nom de zone d'épreuve ou candidat) |
 | `/cam focus [<studio\|manche\|auto> [zone]]` · `/cam zone <zone\|joueur\|suivante\|precedente\|tout>` | | Lieu / zone que visent les touches 1–9 et « caméra 2 » (sans argument : où on en est) |
 | `/cam list tout` | | Les caméras de tous les lieux, par lieu et zone |

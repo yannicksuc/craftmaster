@@ -6,6 +6,8 @@ import fr.lordfinn.craftmaster.camera.CameraMotion;
 import fr.lordfinn.craftmaster.camera.FollowFraming;
 import fr.lordfinn.craftmaster.camera.FollowFraming.Params;
 import fr.lordfinn.craftmaster.camera.FollowFraming.Plan;
+import fr.lordfinn.craftmaster.camera.CameraSpot;
+import fr.lordfinn.craftmaster.camera.ShotCoverage;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
@@ -29,6 +31,11 @@ import java.util.Random;
  *   <li>a framing squeezed too long (the player walked into a corridor, under a low ceiling) is changed early;</li>
  *   <li>a glide whose path would go through a wall becomes a cross-fade.</li>
  * </ul>
+ * Now and then (when a placed camera sees the player well: {@link ShotCoverage}) it cuts to that camera for a few
+ * seconds, the likelier the more of its picture the player fills, never one they are on, never one the director
+ * avoids; back to the framings when the player leaves its picture or after {@link #SPOT_HOLD} s.
+ * The director's wish (wider / tighter, {@code FollowPrefs} on the server) weighs on the framings and their distance.
+ * <p>
  * On the broadcast game, the mouse turns the camera round the player and the wheel moves it closer or further: the
  * operator keeps it as long as they touch it; {@link #RESUME} seconds after the last touch, the automatic framing
  * comes back with a slow glide.
@@ -72,6 +79,16 @@ public final class FollowCamera {
     /** Closer than this to the head (blocks) for {@link #TOO_CLOSE_FOR} s: another framing at once (a low door). */
     static final double TOO_CLOSE = 0.9, TOO_CLOSE_FOR = 0.25;
     private static double tooClose;
+    /** Chance, at a change of framing, to cut to a placed camera that sees the player; how long it is held (s). */
+    static final double SPOT_CHANCE = 0.35, SPOT_HOLD = 7;
+    /** The placed camera on screen (null = the framings), whether the last change came from one, how long lost. */
+    private static CameraSpot spot;
+    private static boolean afterSpot;
+    private static double spotLost;
+    /** The director's wish: +1 wider, -1 tighter, 0 as it comes; the cameras to avoid; distance factor (smoothed). */
+    private static int prefSize;
+    private static java.util.Set<String> prefAvoid = java.util.Set.of();
+    private static double sizeFactor = 1;
     /** Hand-held: world direction (yaw of the camera round the player), elevation, distance, last touch (ms). */
     private static boolean manual;
     private static double handYaw, handElevation, handDistance, handThirds, handFocus;
@@ -94,11 +111,26 @@ public final class FollowCamera {
         dodgeElevation = 0;
         lastSqueeze = -100;
         tooClose = 0;
+        spot = null;
+        afterSpot = false;
         speed = 0;
         lastFeet = null;
         manual = false;
         glideLength = 0;
         current = null;
+    }
+
+    /** The director's wish, sent by the server: {"size": -1|0|1, "avoid": [camera keys], "stay": player}. */
+    public static void prefs(String json) {
+        try {
+            var o = com.google.gson.JsonParser.parseString(json).getAsJsonObject();
+            prefSize = o.has("size") ? o.get("size").getAsInt() : 0;
+            java.util.Set<String> avoid = new java.util.HashSet<>();
+            if (o.has("avoid")) o.getAsJsonArray("avoid").forEach(e -> avoid.add(e.getAsString().toLowerCase(java.util.Locale.ROOT)));
+            prefAvoid = avoid;
+        } catch (RuntimeException e) {
+            // a malformed message changes nothing
+        }
     }
 
     /** The mouse and the wheel move the follow shot's camera now (broadcast game, follow shot on screen, no menu). */
@@ -133,6 +165,11 @@ public final class FollowCamera {
         lastTouch = System.currentTimeMillis();
         if (manual) return;
         manual = true;
+        if (spot != null) {
+            // From a placed camera: the hand-held camera starts from the framing
+            spot = null;
+            snap = true;
+        }
         handYaw = facing + current.azimuth() + dodgeYaw;
         handElevation = Math.max(FollowFraming.MIN_ELEVATION, Math.min(FollowFraming.MAX_ELEVATION, current.elevation() + dodgeElevation));
         dodgeYaw = 0;
@@ -175,7 +212,14 @@ public final class FollowCamera {
             manual = false;
             next(mc, target, eyeHeight, 3.2, "reprise auto : ");
         }
+        if (spot != null && !manual) {
+            DirectorCamera.Pose sp = spotPose(mc, target, realFeet, dt);
+            if (sp != null) return sp;
+        }
+        sizeFactor += ((prefSize > 0 ? 1.35 : prefSize < 0 ? 0.75 : 1) - sizeFactor) * CameraMotion.smoothing(dt, 1.2);
         Params base = manual ? new Params(handYaw - facing, handElevation, handDistance, handThirds, handFocus) : auto();
+        if (!manual && sizeFactor != 1) base = new Params(base.azimuth(), base.elevation(),
+                Math.max(FollowFraming.MIN_DISTANCE, base.distance() * sizeFactor), base.thirds(), base.focus());
         current = base;
         Vec3 pivot = feet.add(0, eyeHeight * base.focus(), 0);
         if (!manual) dodge(mc, target, pivot, base, dt);
@@ -268,8 +312,80 @@ public final class FollowCamera {
         return from.lerp(held, FollowFraming.ease(t));
     }
 
+    /** The placed camera on screen, or null when it no longer shows the player well (then back to the framings). */
+    private static DirectorCamera.Pose spotPose(Minecraft mc, Player target, Vec3 realFeet, double dt) {
+        CameraSpot s = ShowStateClient.cameras().get(spot.key());
+        double seconds = clock - planStart;
+        boolean ok = s != null && !prefAvoid.contains(s.key().toLowerCase(java.util.Locale.ROOT)) && sees(mc, target, realFeet, s, seconds);
+        spotLost = ok ? 0 : spotLost + dt;
+        if (s == null || spotLost > 0.6 || seconds > holdFor) {
+            log("caméra " + spot.label() + " → cadrages");
+            spot = null;
+            afterSpot = true;
+            Plan chosen = FollowFraming.choose(null, previous, p -> room(mc, target, target.getEyeHeight(), p, 0), FollowCamera::weight, random);
+            if (chosen != null) {
+                previous = plan;
+                plan = chosen;
+            }
+            planStart = clock;
+            holdFor = FollowFraming.hold(random);
+            glideLength = 0;
+            dodgeYaw = 0;
+            dodgeElevation = 0;
+            snap = true;
+            log(plan.name());
+            return null;
+        }
+        CameraMotion.View v = CameraMotion.view(s, seconds);
+        return new DirectorCamera.Pose(new Vec3(v.x(), v.y(), v.z()), v.yaw(), v.pitch(), s.fov());
+    }
+
+    /** Does placed camera {@code s} (at {@code seconds} of its motion) show the player well? */
+    private static boolean sees(Minecraft mc, Player target, Vec3 feet, CameraSpot s, double seconds) {
+        if (!s.world().equals(ShowStateClient.world(mc))) return false;
+        CameraMotion.View v = CameraMotion.view(s, seconds);
+        ShotCoverage.Lens lens = new ShotCoverage.Lens(v.x(), v.y(), v.z(), v.yaw(), v.pitch(), s.fov() > 0 ? s.fov() : mc.options.fov().get());
+        ShotCoverage.Body body = new ShotCoverage.Body(player, feet.x, feet.y, feet.z, target.getBbWidth(), target.getBbHeight());
+        return ShotCoverage.judge(s, lens, aspect(mc), java.util.List.of(body), sight(mc, target), prefSize).weight() > 0;
+    }
+
+    /** A placed camera that shows the player well, the likelier the more of its picture they fill; null if none. */
+    private static CameraSpot pickSpot(Minecraft mc, Player target) {
+        Vec3 feet = target.position();
+        ShotCoverage.Body body = new ShotCoverage.Body(player, feet.x, feet.y, feet.z, target.getBbWidth(), target.getBbHeight());
+        java.util.List<ShotCoverage.Seen> seen = new java.util.ArrayList<>();
+        for (CameraSpot s : ShowStateClient.cameras().all()) {
+            if (!s.world().equals(ShowStateClient.world(mc)) || prefAvoid.contains(s.key().toLowerCase(java.util.Locale.ROOT))) continue;
+            ShotCoverage.Lens lens = ShotCoverage.Lens.of(s, mc.options.fov().get());
+            seen.add(ShotCoverage.judge(s, lens, aspect(mc), java.util.List.of(body), sight(mc, target), prefSize));
+        }
+        return ShotCoverage.pickFor(seen, java.util.List.of(player), random);
+    }
+
+    private static double aspect(Minecraft mc) {
+        int w = mc.getWindow().getWidth(), h = mc.getWindow().getHeight();
+        return h <= 0 ? ShotCoverage.ASPECT : (double) w / h;
+    }
+
+    private static ShotCoverage.Sight sight(Minecraft mc, Player target) {
+        return (a, b) -> !blocked(mc, target, new Vec3(a[0], a[1], a[2]), new Vec3(b[0], b[1], b[2]));
+    }
+
     /** Goes to another framing: a glide round the player if the way is clear, else a cross-fade. */
     private static void next(Minecraft mc, Player target, float eyeHeight, double glide, String why) {
+        // Sometimes a placed camera that sees the player well (not twice in a row, not when squeezed or resuming)
+        if (why.isEmpty() && !afterSpot && random.nextDouble() < SPOT_CHANCE) {
+            CameraSpot s = pickSpot(mc, target);
+            if (s != null) {
+                spot = s;
+                spotLost = 0;
+                planStart = clock;
+                holdFor = SPOT_HOLD * (0.8 + 0.4 * random.nextDouble());
+                log("caméra " + s.label());
+                return;
+            }
+        }
+        afterSpot = false;
         Plan chosen = FollowFraming.choose(manual ? null : plan, previous, p -> room(mc, target, eyeHeight, p, holdFor), FollowCamera::weight, random);
         if (chosen == null) return;
         if (why.startsWith("trop") && FollowFraming.free(chosen, room(mc, target, eyeHeight, chosen, 0)) < shown * 1.25 + (why.startsWith("trop près") ? 0.3 : 0.4)) {
@@ -306,11 +422,19 @@ public final class FollowCamera {
         }
     }
 
-    /** How much a framing is wanted now: walking, the ones that see the player's face coming (less often from behind). */
+    /**
+     * How much a framing is wanted now: walking, the ones that see the player's face coming (less often from
+     * behind); the director's wish, the wider or the tighter ones.
+     */
     private static double weight(Plan p) {
-        if (speed < 1.5) return 1;
-        double a = Math.abs(((p.azimuth() % 360) + 540) % 360 - 180);
-        return a <= 60 ? 3 : a >= 120 ? 0.3 : 1;
+        double w = 1;
+        if (speed >= 1.5) {
+            double a = Math.abs(((p.azimuth() % 360) + 540) % 360 - 180);
+            w = a <= 60 ? 3 : a >= 120 ? 0.3 : 1;
+        }
+        if (prefSize > 0 && p.distance() >= 3.8) w *= 3;
+        if (prefSize < 0 && p.distance() <= 3.4) w *= 3;
+        return w;
     }
 
     /** Share of framing {@code p}'s distance left free by the blocks, the worst of its start, middle and end. */

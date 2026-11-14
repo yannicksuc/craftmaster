@@ -106,11 +106,22 @@ public final class BroadcastOverlay {
         }
     }
 
-    /** A follow shot on a contestant puts their name on screen (not during the credits, which have their cards). */
+    /** A name shown by a follow shot is not shown again before this (ms): a back-and-forth between two who talk. */
+    static final long NAME_AGAIN = 3 * 60_000;
+    private static final java.util.Map<String, Long> nameShown = new java.util.HashMap<>();
+
+    /**
+     * A follow shot on a contestant puts their name on screen (not during the credits, which have their cards): the
+     * first time, or when it has not been shown for {@link #NAME_AGAIN}.
+     */
     static void onShotChanged(Shot s) {
         if (s.kind() != BroadcastNetwork.SHOT_FOLLOW || !ShowStateClient.get().sequence().isEmpty()) return;
         if (lowerThird != null && !lowerThird.over() && lowerThird.player().equalsIgnoreCase(s.player())) return;
         long now = System.currentTimeMillis();
+        String key = s.player().toLowerCase(java.util.Locale.ROOT);
+        Long last = nameShown.get(key);
+        if (last != null && now - last < NAME_AGAIN) return;
+        nameShown.put(key, now);
         lowerThird = new Timed(s.player(), "", s.player(), now, now + 6500);
     }
 

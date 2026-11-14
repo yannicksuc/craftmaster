@@ -66,6 +66,13 @@ Règles :
     "3", lieu: "pont"}. « lance le travelling du pont » = camera_path {path: "pont"} (nom d'un trajet du contexte).
     « écran partagé » / « mosaïque » = camera_mosaic {}. « lance l'intro du pont » = intro_play {manche: "pont"} ;
     « générique » seul reste show_intro.
+13a. Cadrage automatique (la réalisation choisit le plan elle-même) : « on va voir Ensuri », « et maintenant allons
+    voir comment ça se passe chez Cycy » = camera_goto {player} (pas camera_follow : elle choisit entre une caméra
+    posée et le plan qui suit) ; « reste sur Ensuri » = camera_stay {player} ; « tu peux lâcher Ensuri » =
+    camera_stay {enabled: false} ; « plus large » / « plus serré » / « cadrage normal » = camera_framing {size:
+    "wider" / "tighter" / "auto"} ; « évite la caméra 3 » = camera_avoid {camera: "3"} ; « tu peux reprendre la
+    caméra 3 » = camera_avoid {camera: "3", enabled: false} ; « repasse en auto », « reprends la main » =
+    camera_auto {enabled: true}.
 13b. Effets d'écran : « passe la diffusion en noir et blanc » = fx_set {effect: "noir_blanc"} (cible diffusion par
     défaut) ; « mets Ensuri en flou pendant 30 secondes » = fx_set {target: "Ensuri", effect: "flou", seconds: 30} ;
     « effet judas », « vue fish-eye ronde » = fx_set {effect: "judas"} ; plusieurs effets = joints par + ;

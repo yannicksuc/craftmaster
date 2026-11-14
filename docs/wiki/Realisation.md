@@ -90,10 +90,12 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   « ouvre son enveloppe »), sur la caméra *podium* pendant toute la révélation, sur le plan large au lancement d'une
   manche et à la fin de chaque plan automatique. Une coupe à la main reprend la main.
 - **Sur qui parle** (avec Simple Voice Chat sur le serveur) : la réalisation automatique coupe aussi sur celui qui
-  parle, sur la caméra qui le cadre le mieux (son plan seul, le CraftMaster sur le sien), sans clignoter : une voix
+  parle, avec le même choix que « on va voir » : une caméra posée qui le voit bien (plus il prend de place dans
+  l'image, plus elle a de chances, jamais collé à l'objectif ni caché par un bloc), sinon le plan qui le suit ; son
+  nom ne s'affiche que la première fois (ou après 3 min sans l'avoir montré), pas à chaque aller-retour. Sans clignoter : une voix
   ne compte qu'après ~1 s (une toux, un « oui » ne coupent pas), un plan tient au moins 3,5 s, un échange à deux ou
-  plusieurs passe sur un plan qui les cadre tous (croisé, plongée, sinon le large) au lieu du ping-pong, et après
-  6 s de silence on revient au plan large. Une coupe à la main lui laisse l'antenne 20 s ; un point, une mise en
+  plusieurs passe sur une caméra qui les voit tous au lieu du ping-pong, et après 6 s de silence on passe sur la
+  caméra qui voit le plus de joueurs (sinon le plan large). Une coupe à la main lui laisse l'antenne 20 s ; un point, une mise en
   lumière, la révélation passent avant. Seuls ceux qu'une caméra cadre comptent (pas les modos ni les spectateurs).
   `/cam auto voix on|off` (oui par défaut), `/cam auto voix` : où on en est. Rien n'est enregistré : seulement qui
   émet, et quand.
@@ -126,7 +128,25 @@ Jamais deux fois le même d'affilée.
 - **À la main** (sur le jeu de diffusion) : la **souris** tourne la caméra autour du joueur, la **molette** la
   rapproche ou l'éloigne (Maj + molette change toujours de zone, les touches 1 à 9 coupent toujours). Tant qu'on y
   touche, elle reste où on l'a mise ; **8 s** sans y toucher, les cadrages automatiques reprennent en douceur.
+- **Caméras posées** : de temps en temps, si une caméra posée le voit bien, le suivi coupe sur elle quelques
+  secondes (puis revient aux cadrages dès qu'il sort de son image). Plus il prend de place dans son image, plus elle
+  a de chances d'être prise ; mais s'il est collé à l'objectif, elle est écartée. Il doit être vraiment visible
+  (tête, poitrine ou pieds : au moins deux vus depuis l'objectif, pas cachés par un bloc) et bien dans le cadre, pas
+  au bord.
 - Les mêmes cadrages servent aux replays et aux plans « suivi » des intros de manche.
+
+### Consignes à la réalisation automatique
+À la voix, aussi vite qu'un clic, ou en commande :
+
+| Dit | Commande | Effet |
+|---|---|---|
+| « on va voir Ensuri », « et maintenant allons voir comment ça se passe chez Ensuri » | `/cam voir Ensuri` | une caméra posée qui le voit bien (tirée au sort, selon sa place dans l'image), sinon le plan qui le suit ; l'auto continue ensuite |
+| « reste sur Ensuri » · « tu peux lâcher Ensuri » | `/cam rester Ensuri` · `off` | rien ne coupe ailleurs (qui parle, points, mise en lumière d'un autre) |
+| « plus large » · « plus serré » · « cadrage normal » | `/cam cadrage large\|serre\|auto` | cadrages plus loin / plus près, caméras qui le montrent plus petit / plus grand |
+| « évite la caméra 3 » · « tu peux reprendre la caméra 3 » | `/cam eviter 3` · `off` | l'auto ne la prend plus (si elle est à l'antenne, on passe ailleurs) |
+| « repasse en auto » | `/cam auto on` | plus de joueur retenu, cadrage normal (les caméras évitées le restent) |
+
+Ces consignes ne sont pas enregistrées : elles tiennent jusqu'au redémarrage du serveur.
 
 ## Les lieux : caméras du studio et caméras des épreuves
 Chaque caméra a un **lieu** : le **studio** (par défaut ; toutes les anciennes caméras y sont) ou une **manche**

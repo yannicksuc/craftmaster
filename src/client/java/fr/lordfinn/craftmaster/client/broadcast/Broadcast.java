@@ -88,6 +88,7 @@ public final class Broadcast {
 
         ClientPlayNetworking.registerGlobalReceiver(ShowState.TYPE, (payload, ctx) -> ShowStateClient.set(payload));
         ClientPlayNetworking.registerGlobalReceiver(BroadcastNetwork.FreeCamera.TYPE, (payload, ctx) -> DirectorCamera.freeCamera(payload));
+        ClientPlayNetworking.registerGlobalReceiver(fr.lordfinn.craftmaster.broadcast.FollowPrefs.Payload.TYPE, (payload, ctx) -> FollowCamera.prefs(payload.json()));
         ClientPlayNetworking.registerGlobalReceiver(ShowCue.TYPE, (payload, ctx) -> {
             if (Cues.THEME.equals(payload.kind())) {
                 if ("stop".equals(payload.title())) ThemeSound.stop();

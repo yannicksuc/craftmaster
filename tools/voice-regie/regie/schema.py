@@ -147,6 +147,20 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
     "camera.mosaic": ("Écran partagé : les zones de la manche côte à côte (« écran partagé », « mosaïque »).",
                       [f("enabled", BOOL, doc="false = retirer l'écran partagé."), f("lieu", STR, doc="studio ou id de manche.")]),
     "camera.pov": ("Montre la vue d'un joueur, à travers ses yeux (« vue d'Ensuri »).", [f("player", PLAYER, True, PLAYER_DOC)]),
+    # Automatic framing: the director picks the shot itself, under LordFinn's wishes
+    "camera.goto": ("On va voir un joueur : la réalisation choisit elle-même comment (une caméra posée qui le voit bien, "
+                    "sinon le plan qui le suit) — « on va voir Ensuri », « et maintenant allons voir comment ça se passe "
+                    "chez Cycy ». Ensuite la réalisation automatique continue.",
+                    [f("player", PLAYER, True, PLAYER_DOC)]),
+    "camera.stay": ("La réalisation automatique reste sur un joueur (« reste sur Ensuri », « on ne lâche plus Juste ») ; "
+                    "enabled false = ne plus rester sur lui (« tu peux lâcher Ensuri »).",
+                    [f("player", PLAYER, doc=PLAYER_DOC), f("enabled", BOOL, doc="false = arrêter.")]),
+    "camera.framing": ("Cadrage automatique plus large ou plus serré (« plus large », « plus serré », « cadrage normal »).",
+                       [f("size", STR, True, "wider (plus large), tighter (plus serré) ou auto (normal).")]),
+    "camera.avoid": ("La réalisation automatique n'utilise plus une caméra (« évite la caméra 3 ») ; enabled false = elle "
+                     "peut la reprendre (« tu peux reprendre la caméra 3 »).",
+                     [f("camera", STR, True, "La caméra (numéro dans le lieu actif, nom ou clé)."),
+                      f("enabled", BOOL, doc="false = elle peut de nouveau la prendre.")]),
     "intro.play": ("Lance l'intro animée d'une manche (« lance l'intro du pont »).",
                    [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
                     f("from", INT, doc="Jouer à partir de ce plan (1 = tout, avec la musique ; plus loin = essai sans musique).")]),
@@ -180,7 +194,8 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
     "intro.shot.remove": ("Retire un plan de l'intro d'une manche.",
                           [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
                            f("index", INT, True, "Numéro du plan (1 = premier).")]),
-    "camera.auto": ("Réalisation automatique (coupe sur qui marque, qui ouvre son enveloppe, le podium à la révélation).",
+    "camera.auto": ("Réalisation automatique (coupe sur qui marque, qui ouvre son enveloppe, le podium à la révélation). "
+                    "« Repasse en auto » = enabled true : reprend aussi après « reste sur » et remet le cadrage normal.",
                     [f("enabled", BOOL, True, "true = activer.")]),
     "broadcast.lowerthird": ("Affiche un synthé (nom en bas de l'écran) sur la diffusion : un joueur, ou un texte libre.",
                              [f("player", PLAYER, doc=PLAYER_DOC), f("text", STR, doc="Texte libre (si pas de joueur)."),
@@ -309,6 +324,7 @@ NO_SCOPE = {"say", "agent.request", "undo", "stopwatch.start", "stopwatch.stop",
 NO_SCOPE |= {"spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off", "spotlight.set",
              "look.play", "look.save", "cue.play", "cue.stop", "stage.blackout"}
 NO_SCOPE |= {"camera.path", "camera.focus", "camera.lieu", "camera.mosaic", "camera.pov"}
+NO_SCOPE |= {"camera.goto", "camera.stay", "camera.framing", "camera.avoid"}
 NO_SCOPE |= {"fx.set", "fx.clear"}
 NO_SCOPE |= {"replay.control", "replay.flag", "tele.show", "clip.start", "clip.stop"}
 SCOPE_FIELDS = [f("season", SCOPE, doc="Saison (id ou nom). Absent = saison active."),
