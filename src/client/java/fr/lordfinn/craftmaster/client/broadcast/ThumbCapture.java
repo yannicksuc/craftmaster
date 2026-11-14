@@ -33,6 +33,8 @@ public final class ThumbCapture {
     /** The last normal world picture, and whether it is from the frame just before. */
     private static TextureTarget kept, shot;
     private static boolean keptFresh;
+    /** The camera holds this frame's capture view until the next frame's view is set (PlayerEars). */
+    private static boolean cameraOnThumb;
 
     public static void register() {
         ClientPlayNetworking.registerGlobalReceiver(Thumbnails.Request.TYPE, (p, ctx) -> ctx.client().execute(() -> {
@@ -44,12 +46,19 @@ public final class ThumbCapture {
     public static DirectorCamera.Pose framePose() {
         Minecraft mc = Minecraft.getInstance();
         capturing = null;
+        cameraOnThumb = false;
         if (QUEUE.isEmpty() || mc.level == null || !keptFresh || Mosaic.rendering >= 0) return null;
         String key = QUEUE.poll();
         CameraSpot s = ShowStateClient.cameras().get(key);
         if (s == null || !s.world().equals(mc.level.dimension().identifier().toString())) return null;
         capturing = key;
+        cameraOnThumb = true;
         return DirectorCamera.still(s);
+    }
+
+    /** Between a capture frame and the next frame's view: the camera still shows the previewed shot. */
+    public static boolean cameraOnThumb() {
+        return cameraOnThumb;
     }
 
     public static boolean capturing() {

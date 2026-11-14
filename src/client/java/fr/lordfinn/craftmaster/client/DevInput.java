@@ -121,6 +121,26 @@ public final class DevInput {
                     }
                     continue;
                 }
+                // "ears": where the game and Simple Voice Chat listen from right now, and the camera (logged)
+                if (line.strip().equals("ears") && mc.player != null) {
+                    Object voice = null;
+                    try {
+                        voice = Class.forName("de.maxhenkel.voicechat.voice.client.ClientManager").getMethod("getCameraState").invoke(null);
+                    } catch (ReflectiveOperationException | RuntimeException ignored) {
+                    }
+                    CraftMaster.LOG.info("[DevInput] ears: sound={} voice={} camera={} eyes={} mode={}",
+                            mc.getSoundManager().getListenerTransform().position(), voice,
+                            mc.gameRenderer.mainCamera().position(), mc.player.getEyePosition(),
+                            fr.lordfinn.craftmaster.client.broadcast.PlayerEars.mode());
+                    continue;
+                }
+                // "control <x y z> <yaw> <pitch>": look through a camera standing there (as its menu's button; any screen ends it)
+                if (line.strip().startsWith("control ")) {
+                    String[] a = line.strip().split("\s+");
+                    if (a.length >= 6) fr.lordfinn.craftmaster.client.studio.ControlView.startCamera("dev", "dev", new net.minecraft.world.phys.Vec3(
+                            Double.parseDouble(a[1]), Double.parseDouble(a[2]), Double.parseDouble(a[3])), Float.parseFloat(a[4]), Float.parseFloat(a[5]), 70);
+                    continue;
+                }
                 // "attack": a hit on what the crosshair aims at (logged)
                 if (line.strip().equals("attack") && mc.player != null && mc.gameMode != null) {
                     CraftMaster.LOG.info("[DevInput] aim: {}", mc.hitResult instanceof net.minecraft.world.phys.EntityHitResult e ? e.getEntity() : mc.hitResult == null ? null : mc.hitResult.getType());

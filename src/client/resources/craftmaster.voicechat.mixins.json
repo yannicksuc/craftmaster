@@ -3,6 +3,6 @@
   "package": "fr.lordfinn.craftmaster.client.regie.mixin",
   "plugin": "fr.lordfinn.craftmaster.client.regie.VoiceChatMixinPlugin",
   "compatibilityLevel": "JAVA_21",
-  "client": ["VoiceChatScreenMixin"],
+  "client": ["VoiceChatScreenMixin", "VoiceChatCameraTrackerMixin"],
   "injectors": { "defaultRequire": 1 }
 }

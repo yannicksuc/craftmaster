@@ -110,6 +110,11 @@ public final class ControlView {
         mc.player.setYHeadRot(yaw);
     }
 
+    /** Where the player faced before looking through (meanwhile their rotation aims the camera), or null. */
+    public static float[] playerFacing() {
+        return kind == null ? null : new float[]{savedYaw, savedPitch};
+    }
+
     /** The view while in control, else null (see CameraMixin). */
     public static DirectorCamera.Pose pose(float partialTick) {
         Minecraft mc = Minecraft.getInstance();
