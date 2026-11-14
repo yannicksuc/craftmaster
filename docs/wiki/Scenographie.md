@@ -16,6 +16,11 @@ Un nom sans son numéro forme un **groupe** : `face` = face1, face2…
 | `/cfsp tout <ordre>` | tous les projecteurs chargés |
 | `/cfsp groupe <nom> <ordre>` | ceux qui portent ce nom, ou dont le nom commence par lui |
 
+**Le menu d'un projecteur** : Maj + clic droit dessus (organisateurs), ou `/cfsp menu` en le regardant. Il s'ouvre sur
+le côté de l'écran, le faisceau reste visible : nom, allumé, couleur, intensité, cône, direction (◀ ▶ tourner de 15°,
+▲ ▼ incliner de 10°, ⇄ dans l'autre sens, « Où je regarde » : pointe le bloc sous ton viseur, « Vers moi »), qui il
+suit, effet et vitesse. Molette sur une valeur pour l'ajuster ; chaque changement se voit tout de suite.
+
 Ordres (le dernier nombre, facultatif, est la **durée du fondu** en secondes) :
 
 | Ordre | Effet |

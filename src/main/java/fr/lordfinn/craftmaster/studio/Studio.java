@@ -99,6 +99,7 @@ public final class Studio {
         STANCHION = ModContent.block("stanchion", StanchionBlock::new, props(MapColor.GOLD, 2f).sound(SoundType.METAL).noOcclusion());
 
         SPOTLIGHT_BE = blockEntity("spotlight", SpotlightBlockEntity::new, SPOTLIGHT);
+        SpotlightNetwork.register();
         TIMER_DISPLAY_BE = blockEntity("timer_display", TimerDisplayBlockEntity::new, TIMER_DISPLAY);
         TIMER_TABLET_BE = blockEntity("timer_tablet", TimerTabletBlockEntity::new, TIMER_TABLET);
         DESK_BE = blockEntity("contestant_desk", DeskBlockEntity::new, CONTESTANT_DESK);

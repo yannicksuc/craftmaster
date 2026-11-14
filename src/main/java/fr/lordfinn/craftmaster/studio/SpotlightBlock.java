@@ -76,6 +76,12 @@ public class SpotlightBlock extends BaseEntityBlock {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!player.mayBuild() || !(level.getBlockEntity(pos) instanceof SpotlightBlockEntity be)) return InteractionResult.PASS;
         if (level.isClientSide()) return InteractionResult.SUCCESS;
+        // Organisers: the spotlight's menu (colour, intensity, cone, direction, follow, effect)
+        if (player.isShiftKeyDown() && player instanceof net.minecraft.server.level.ServerPlayer sp && fr.lordfinn.craftmaster.Permissions.isAdmin(sp)
+                && SpotlightNetwork.open(sp, pos)) {
+            level.playSound(null, pos, SoundEvents.SPYGLASS_USE, SoundSource.BLOCKS, 0.6f, 1.6f);
+            return InteractionResult.SUCCESS_SERVER;
+        }
         if (player.isShiftKeyDown()) {
             // Aims along the player's view, from the spotlight: stand beside it and look at the target
             be.aim(player.getYRot(), player.getXRot());

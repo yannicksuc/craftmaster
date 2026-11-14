@@ -377,6 +377,11 @@ public final class StudioCommands {
         node.then(literal("inverser").executes(c -> turnSpot(c, t, 0, 0, true, 0))
                 .then(argument("seconds", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(0, 60))
                         .executes(c -> turnSpot(c, t, 0, 0, true, com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(c, "seconds")))));
+        // Its menu (the one looked at): colour, intensity, cone, direction, follow, effect
+        node.then(literal("menu").executes(c -> onSpotlight(c, s -> {
+            ServerPlayer p = c.getSource().getPlayer();
+            return p != null && SpotlightNetwork.open(p, s.getBlockPos()) ? "" : "Il faut le mod CraftMaster côté client pour le menu.";
+        })));
         // The settings of the one looked at, with buttons
         node.then(literal("info").executes(c -> {
             String target = t.of(c);
