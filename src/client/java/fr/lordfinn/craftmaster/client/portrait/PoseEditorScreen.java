@@ -113,6 +113,12 @@ public class PoseEditorScreen extends Screen {
         super.rebuildWidgets();
     }
 
+    /** The pose being edited was renamed (from the gallery): its new name. */
+    private void followRename() {
+        String now = PoseLibraries.client().resolve(name);
+        if (!PoseLibraries.client().has(name) && PoseLibraries.client().has(now)) name = now;
+    }
+
     // ---------------------------------------------------------------- changes
 
     /** Every change goes through the history (undo / redo) and shows at once in the preview and the world. */
@@ -179,6 +185,7 @@ public class PoseEditorScreen extends Screen {
 
     @Override
     protected void init() {
+        followRename();
         left = 4;
         top = Math.max(2, (height - H) / 2);
         px0 = left + W + 6;

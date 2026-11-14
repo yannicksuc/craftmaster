@@ -1103,5 +1103,13 @@
   "screen.craftmaster.pose.confirm.new_name": "Nouvelle pose « %s » : « %s » reste telle quelle.",
   "screen.craftmaster.pose.confirm.overwrite": "Écraser",
   "screen.craftmaster.pose.confirm.save_as": "Enregistrer",
-  "screen.craftmaster.pose.confirm.title_new": "Enregistrer la pose"
+  "screen.craftmaster.pose.confirm.title_new": "Enregistrer la pose",
+  "screen.craftmaster.pose.rename.title": "Renommer la pose",
+  "screen.craftmaster.pose.rename.tip": "Renommer",
+  "screen.craftmaster.pose.rename.confirm": "Renommer",
+  "screen.craftmaster.pose.rename.line": "Nouveau nom pour « %s » :",
+  "screen.craftmaster.pose.rename.line_worn": "Nouveau nom pour « %s » (%s tableau(x) autour la portent, ils la gardent) :",
+  "screen.craftmaster.pose.rename.taken": "« %s » est déjà le nom d'une autre pose.",
+  "message.craftmaster.pose_renamed": "Pose « %s » renommée « %s »",
+  "message.craftmaster.pose_rename_taken": "Impossible de renommer : « %s » est pris ou vide"
 }

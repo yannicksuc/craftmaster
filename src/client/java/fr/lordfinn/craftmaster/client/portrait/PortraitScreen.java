@@ -139,6 +139,9 @@ public class PortraitScreen extends Screen {
         skinUrl = box(x, y, w, urlV, "skin", 1000);
         tip(skinUrl, "skin_tip");
         y += step;
+        // A pose renamed meanwhile (from the gallery): its new name
+        if (!PoseLibraries.client().has(poseV) && PoseLibraries.client().has(PoseLibraries.client().resolve(poseV)))
+            poseV = PoseLibraries.client().resolve(poseV);
         List<String> names = new ArrayList<>(PoseLibraries.client().names());
         if (!names.contains(poseV)) names.add(0, poseV);
         pose = addRenderableWidget(CycleButton.<String>builder(Component::literal, poseV).withValues(names).displayOnlyValue()

@@ -104,6 +104,19 @@ public final class PortraitNetwork {
         public Type<DeletePose> type() { return TYPE; }
     }
 
+    /** Client → server: rename a pose (the portraits wearing it follow). */
+    public record RenamePose(String from, String to) implements CustomPacketPayload {
+        public static final Type<RenamePose> TYPE = new Type<>(CraftMaster.id("portrait_rename_pose"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, RenamePose> CODEC = CustomPacketPayload.codec(
+                (p, buf) -> {
+                    buf.writeUtf(p.from, 128);
+                    buf.writeUtf(p.to, 128);
+                }, buf -> new RenamePose(buf.readUtf(128), buf.readUtf(128)));
+
+        @Override
+        public Type<RenamePose> type() { return TYPE; }
+    }
+
     /** Client → server: an organiser clicked a portrait out of the game's reach (they hang high above the stage). */
     public record OpenFar(int entityId) implements CustomPacketPayload {
         public static final Type<OpenFar> TYPE = new Type<>(CraftMaster.id("portrait_open_far"));
@@ -131,6 +144,8 @@ public final class PortraitNetwork {
         PayloadTypeRegistry.serverboundPlay().register(Update.TYPE, Update.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(SavePose.TYPE, SavePose.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(DeletePose.TYPE, DeletePose.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(RenamePose.TYPE, RenamePose.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(RenamePose.TYPE, (p, ctx) -> renamePose(ctx.player(), p));
         ServerPlayNetworking.registerGlobalReceiver(Update.TYPE, (p, ctx) -> update(ctx.player(), p));
         ServerPlayNetworking.registerGlobalReceiver(SavePose.TYPE, (p, ctx) -> savePose(ctx.player(), p));
         ServerPlayNetworking.registerGlobalReceiver(DeletePose.TYPE, (p, ctx) -> deletePose(ctx.player(), p));
@@ -198,6 +213,22 @@ public final class PortraitNetwork {
         if (name == null) return;
         Portraits.posesChanged(player.level().getServer());
         player.sendOverlayMessage(Component.translatable("message.craftmaster.pose_saved", name).withStyle(ChatFormatting.GREEN));
+    }
+
+    private static void renamePose(ServerPlayer player, RenamePose r) {
+        if (!Permissions.isAdmin(player)) return;
+        String from = Pose.normalizeName(r.from());
+        String to = PoseLibraries.server().rename(from, r.to());
+        if (to == null) {
+            player.sendOverlayMessage(Component.translatable("message.craftmaster.pose_rename_taken", Pose.normalizeName(r.to())).withStyle(ChatFormatting.RED));
+            return;
+        }
+        // The portraits loaded now wear the new name; the others take it when they load (see Portraits)
+        for (net.minecraft.server.level.ServerLevel level : player.level().getServer().getAllLevels())
+            for (net.minecraft.world.entity.Entity e : level.getAllEntities())
+                if (e instanceof PortraitEntity p && p.poseName().equals(from)) p.setPoseName(to);
+        Portraits.posesChanged(player.level().getServer());
+        player.sendOverlayMessage(Component.translatable("message.craftmaster.pose_renamed", from, to).withStyle(ChatFormatting.GREEN));
     }
 
     private static void deletePose(ServerPlayer player, DeletePose d) {

@@ -21,6 +21,31 @@ class PoseLibraryTest {
     private static final Logger LOG = LoggerFactory.getLogger("test");
 
     @Test
+    void renamedPoseIsFoundUnderItsOldNameToo() {
+        PoseLibrary lib = PoseLibrary.withPresets();
+        Pose salut = lib.get("salut");
+        assertEquals("coucou", lib.rename("Salut", "Coucou"));
+        assertFalse(lib.has("salut"));
+        assertEquals(salut, lib.get("coucou"));
+        // A portrait still wearing the old name (not loaded during the rename) follows
+        assertEquals("coucou", lib.resolve("salut"));
+        assertEquals(salut, lib.get("salut"));
+        // Same place in the list
+        assertEquals(List.copyOf(PoseLibrary.withPresets().names()).indexOf("salut"), lib.names().indexOf("coucou"));
+        // Renamed again: the oldest name still leads to it, and it survives the file
+        lib.rename("coucou", "bonjour");
+        PoseLibrary back = PoseLibrary.fromJson(lib.toJson());
+        assertEquals("bonjour", back.resolve("salut"));
+        assertEquals(salut, back.get("salut"));
+        // A taken name or an unknown pose: nothing changes
+        assertNull(back.rename("bonjour", "classique"));
+        assertNull(back.rename("nope", "x"));
+        // A new pose taking the old name is that pose, not the renamed one
+        back.put("salut", Pose.NEUTRAL);
+        assertEquals("salut", back.resolve("salut"));
+    }
+
+    @Test
     void presetsOfThePoster() {
         assertEquals(List.of("classique", "sort du cadre", "assis dans le cadre", "porte le cadre", "se penche dehors",
                 "salut", "bras croisés", "trône", "sort par derrière"), List.copyOf(PoseLibrary.presets().keySet()));

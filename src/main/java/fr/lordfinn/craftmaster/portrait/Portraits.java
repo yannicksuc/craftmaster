@@ -57,7 +57,11 @@ public final class Portraits {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> PortraitNetwork.sendPoses(handler.getPlayer()));
         // A portrait coming back with its chunk shows the current ranking (it does not move)
         ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
-            if (entity instanceof PortraitEntity p) refresh(p);
+            if (!(entity instanceof PortraitEntity p)) return;
+            // Its pose renamed while it was not loaded: it takes the new name
+            String now = PoseLibraries.server().resolve(p.poseName());
+            if (!now.equals(p.poseName()) && PoseLibraries.server().has(now)) p.setPoseName(now);
+            refresh(p);
         });
     }
 

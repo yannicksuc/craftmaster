@@ -46,6 +46,8 @@ public final class PoseLibrary {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     private final Map<String, Pose> poses = new LinkedHashMap<>();
+    /** Old name → new name of the poses renamed: a portrait still wearing the old name (not loaded then) follows. */
+    private final Map<String, String> renamed = new LinkedHashMap<>();
 
     public PoseLibrary() {}
 
@@ -132,9 +134,16 @@ public final class PoseLibrary {
 
     // ---------------------------------------------------------------- access
 
-    /** The pose of that name, else the default one, else the built-in default. */
+    /** The name a pose goes by now: {@code name} itself, or what it was renamed to. */
+    public String resolve(String name) {
+        String n = Pose.normalizeName(name);
+        for (int i = 0; i < 16 && !poses.containsKey(n) && renamed.containsKey(n); i++) n = renamed.get(n);
+        return n;
+    }
+
+    /** The pose of that name (or of its new name), else the default one, else the built-in default. */
     public Pose get(String name) {
-        Pose p = poses.get(Pose.normalizeName(name));
+        Pose p = poses.get(resolve(name));
         if (p == null) p = poses.get(DEFAULT);
         return p != null ? p : presets().get(DEFAULT);
     }
@@ -156,7 +165,26 @@ public final class PoseLibrary {
         String key = Pose.normalizeName(name);
         if (key.isEmpty() || pose == null) return null;
         poses.put(key, pose);
+        // A new pose taking an old name: that name is its own again
+        renamed.remove(key);
         return key;
+    }
+
+    /**
+     * Renames a pose (same place in the list). Returns the new name, or null if there is no such pose or the new
+     * name is empty or taken by another pose.
+     */
+    public String rename(String from, String to) {
+        String a = Pose.normalizeName(from), b = Pose.normalizeName(to);
+        if (!poses.containsKey(a) || b.isEmpty() || (poses.containsKey(b) && !a.equals(b))) return null;
+        if (a.equals(b)) return b;
+        Map<String, Pose> copy = new LinkedHashMap<>(poses);
+        poses.clear();
+        copy.forEach((k, v) -> poses.put(k.equals(a) ? b : k, v));
+        renamed.remove(b);
+        renamed.replaceAll((k, v) -> v.equals(a) ? b : v);
+        renamed.put(a, b);
+        return b;
     }
 
     public boolean remove(String name) {
@@ -172,6 +200,11 @@ public final class PoseLibrary {
         JsonObject list = new JsonObject();
         poses.forEach((name, pose) -> list.add(name, pose.toJson()));
         root.add("poses", list);
+        if (!renamed.isEmpty()) {
+            JsonObject r = new JsonObject();
+            renamed.forEach(r::addProperty);
+            root.add("renamed", r);
+        }
         return GSON.toJson(root);
     }
 
@@ -185,6 +218,10 @@ public final class PoseLibrary {
         for (Map.Entry<String, JsonElement> e : list.entrySet()) {
             if (e.getValue().isJsonObject()) lib.put(e.getKey(), Pose.fromJson(e.getValue().getAsJsonObject()));
         }
+        if (list != o && o.has("renamed") && o.get("renamed").isJsonObject())
+            for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("renamed").entrySet())
+                if (e.getValue().isJsonPrimitive() && !lib.poses.containsKey(Pose.normalizeName(e.getKey())))
+                    lib.renamed.put(Pose.normalizeName(e.getKey()), Pose.normalizeName(e.getValue().getAsString()));
         return lib;
     }
 

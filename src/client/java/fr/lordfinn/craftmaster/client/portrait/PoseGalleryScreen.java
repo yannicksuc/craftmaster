@@ -19,19 +19,21 @@ import java.util.function.Consumer;
 
 /**
  * The pose library as a gallery: every saved pose drawn in its frame (the portrait's skin and window look), its
- * name under it. A click starts the editor from that pose; the wheel scrolls.
+ * name under it. A click starts the editor from that pose, the pencil of a card renames it; the wheel scrolls.
  */
 public class PoseGalleryScreen extends Screen {
 
-    private static final int CARD_W = 76, CARD_H = 96, GAP = 6, NAME_H = 12;
+    private static final int CARD_W = 76, CARD_H = 96, GAP = 6, NAME_H = 12, PEN = 12;
 
     private final Screen back;
-    private final String current;
+    private String current;
     private final PortraitSkins.Skin skin;
     private final int[] look;
     private final Consumer<String> chosen;
     private final List<Map.Entry<String, Pose>> poses = new ArrayList<>();
     private int x0, y0, w, h, cols, scroll;
+    /** The library the cards show: a new one (a pose renamed, saved…) refreshes them. */
+    private fr.lordfinn.craftmaster.portrait.PoseLibrary shown;
 
     /**
      * @param look the window look {on (1/0), depth, size} to draw the poses with
@@ -44,8 +46,27 @@ public class PoseGalleryScreen extends Screen {
         this.skin = skin;
         this.look = look;
         this.chosen = chosen;
-        poses.addAll(PoseLibraries.client().all().entrySet());
+        refresh();
+    }
+
+    private void refresh() {
+        shown = PoseLibraries.client();
+        current = shown.resolve(current);
+        poses.clear();
+        poses.addAll(shown.all().entrySet());
         poses.sort(Map.Entry.comparingByKey());
+    }
+
+    /** Top-left corner of card {@code i}, or null when it is scrolled out. */
+    private int[] card(int i) {
+        int row = i / cols - scroll;
+        if (row < 0 || row >= visibleRows()) return null;
+        return new int[]{x0 + 8 + (i % cols) * (CARD_W + GAP), y0 + 22 + row * (CARD_H + GAP)};
+    }
+
+    private boolean onPen(int i, double mx, double my) {
+        int[] c = card(i);
+        return c != null && Ui.inside(mx, my, c[0] + CARD_W - PEN - 2, c[1] + 2, PEN, PEN);
     }
 
     @Override
@@ -72,10 +93,8 @@ public class PoseGalleryScreen extends Screen {
     /** The card under the mouse, or -1. */
     private int cardAt(double mx, double my) {
         for (int i = 0; i < poses.size(); i++) {
-            int row = i / cols - scroll;
-            if (row < 0 || row >= visibleRows()) continue;
-            int cx = x0 + 8 + (i % cols) * (CARD_W + GAP), cy = y0 + 22 + row * (CARD_H + GAP);
-            if (Ui.inside(mx, my, cx, cy, CARD_W, CARD_H)) return i;
+            int[] c = card(i);
+            if (c != null && Ui.inside(mx, my, c[0], c[1], CARD_W, CARD_H)) return i;
         }
         return -1;
     }
@@ -85,8 +104,13 @@ public class PoseGalleryScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float partial) {
+        if (shown != PoseLibraries.client()) {
+            refresh();
+            init();
+        }
         Ui.panel(g, font, x0, y0, w, h, getTitle());
         int hovered = cardAt(mx, my);
+        Component tip = null;
         String fullName = null;
         for (int i = 0; i < poses.size(); i++) {
             int row = i / cols - scroll;
@@ -104,6 +128,12 @@ public class PoseGalleryScreen extends Screen {
                 if (i == hovered) fullName = name;
             }
             g.centeredText(font, Component.literal(shown), cx + CARD_W / 2, cy + CARD_H - NAME_H + 1, isCurrent ? Theme.GOLD : Theme.TEXT);
+            if (i == hovered) {
+                // Rename: a pencil in the corner of the card under the mouse
+                boolean on = onPen(i, mx, my);
+                Ui.button(g, font, cx + CARD_W - PEN - 2, cy + 2, PEN, PEN, Component.literal("✎"), false, on, true);
+                if (on) tip = Component.translatable("screen.craftmaster.pose.rename.tip");
+            }
         }
         if (maxScroll() > 0) {
             // Where the list is: a thin bar on the right
@@ -113,7 +143,8 @@ public class PoseGalleryScreen extends Screen {
             g.fill(x0 + w - 5, barY, x0 + w - 3, barY + barH, Theme.BORDER);
         }
         super.extractRenderState(g, mx, my, partial);
-        if (fullName != null) Ui.tooltip(g, font, Component.literal(fullName), mx, my);
+        if (tip != null) Ui.tooltip(g, font, tip, mx, my);
+        else if (fullName != null) Ui.tooltip(g, font, Component.literal(fullName), mx, my);
     }
 
     /** One pose in its frame, turned a little like the editor's preview, fitted in the box. */
@@ -133,6 +164,10 @@ public class PoseGalleryScreen extends Screen {
         int i = cardAt(e.x(), e.y());
         if (i >= 0 && e.button() == com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT) {
             String name = poses.get(i).getKey();
+            if (onPen(i, e.x(), e.y())) {
+                minecraft.gui.setScreen(new PoseRenameScreen(this, name));
+                return true;
+            }
             minecraft.gui.setScreen(back);
             chosen.accept(name);
             return true;
