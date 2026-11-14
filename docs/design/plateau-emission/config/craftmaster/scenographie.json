@@ -1,0 +1,2657 @@
+{
+  "looks": {
+    "salle": {
+      "spots": [
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 3,
+          "name": "face2",
+          "lit": true,
+          "color": 16761963,
+          "intensity": 30,
+          "cone": 7.0,
+          "yaw": -104.03625,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -9,
+          "name": "face4",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 3.2,
+          "yaw": 91.399414,
+          "pitch": 35.0,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": -9,
+          "name": "contre2",
+          "lit": true,
+          "color": 16761963,
+          "intensity": 40,
+          "cone": 5.0,
+          "yaw": 37.874985,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": -13,
+          "name": "poursuite2",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 3.2,
+          "yaw": -30.69873,
+          "pitch": -10.0,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -3,
+          "name": "face3",
+          "lit": true,
+          "color": 16761963,
+          "intensity": 30,
+          "cone": 7.0,
+          "yaw": -75.96375,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": -6,
+          "name": "galerie2",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 3.2,
+          "yaw": -78.48405,
+          "pitch": 89.0,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": 13,
+          "name": "poursuite1",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 3.2,
+          "yaw": -145.44922,
+          "pitch": -10.0,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": 8,
+          "name": "rampe1",
+          "lit": true,
+          "color": 14128786,
+          "intensity": 55,
+          "cone": 14.0,
+          "yaw": 159.44395,
+          "pitch": -24.74259,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": -12,
+          "name": "table2",
+          "lit": true,
+          "color": 16761963,
+          "intensity": 25,
+          "cone": 12.0,
+          "yaw": 35.311214,
+          "pitch": 40.898323,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": -8,
+          "name": "rampe4",
+          "lit": true,
+          "color": 14128786,
+          "intensity": 55,
+          "cone": 14.0,
+          "yaw": 20.556046,
+          "pitch": -24.74259,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 9,
+          "name": "face1",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 3.2,
+          "yaw": 87.649414,
+          "pitch": 35.0,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": 2,
+          "name": "rampe2",
+          "lit": true,
+          "color": 14128786,
+          "intensity": 55,
+          "cone": 14.0,
+          "yaw": 111.80141,
+          "pitch": -28.611586,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 6,
+          "name": "galerie1",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 3.2,
+          "yaw": -78.48405,
+          "pitch": 89.0,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": -2,
+          "name": "rampe3",
+          "lit": true,
+          "color": 14128786,
+          "intensity": 55,
+          "cone": 14.0,
+          "yaw": 68.19859,
+          "pitch": -28.611586,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": 9,
+          "name": "contre1",
+          "lit": true,
+          "color": 16761963,
+          "intensity": 40,
+          "cone": 5.0,
+          "yaw": 142.12502,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": 12,
+          "name": "table1",
+          "lit": true,
+          "color": 16761963,
+          "intensity": 25,
+          "cone": 12.0,
+          "yaw": 144.68878,
+          "pitch": 40.898323,
+          "follow": ""
+        }
+      ],
+      "fade": 0.0
+    },
+    "discussion": {
+      "spots": [
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 3,
+          "name": "face2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 80,
+          "cone": 6.0,
+          "yaw": -104.03625,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -9,
+          "name": "face4",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 45,
+          "cone": 9.0,
+          "yaw": -35.837654,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": -9,
+          "name": "contre2",
+          "lit": true,
+          "color": 16761963,
+          "intensity": 45,
+          "cone": 5.0,
+          "yaw": 37.874985,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": -13,
+          "name": "poursuite2",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 3.2,
+          "yaw": -30.69873,
+          "pitch": -10.0,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -3,
+          "name": "face3",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 80,
+          "cone": 6.0,
+          "yaw": -75.96375,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": -6,
+          "name": "galerie2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 55,
+          "cone": 10.0,
+          "yaw": 4.763642,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": 13,
+          "name": "poursuite1",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 3.2,
+          "yaw": -145.44922,
+          "pitch": -10.0,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": 8,
+          "name": "rampe1",
+          "lit": true,
+          "color": 16761963,
+          "intensity": 45,
+          "cone": 13.0,
+          "yaw": 159.44395,
+          "pitch": -24.74259,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": -12,
+          "name": "table2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 85,
+          "cone": 10.0,
+          "yaw": 35.311214,
+          "pitch": 40.898323,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": -8,
+          "name": "rampe4",
+          "lit": true,
+          "color": 16761963,
+          "intensity": 45,
+          "cone": 13.0,
+          "yaw": 20.556046,
+          "pitch": -24.74259,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 9,
+          "name": "face1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 45,
+          "cone": 9.0,
+          "yaw": -144.16235,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": 2,
+          "name": "rampe2",
+          "lit": true,
+          "color": 16761963,
+          "intensity": 45,
+          "cone": 13.0,
+          "yaw": 111.80141,
+          "pitch": -28.611586,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 6,
+          "name": "galerie1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 55,
+          "cone": 10.0,
+          "yaw": 175.23636,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": -2,
+          "name": "rampe3",
+          "lit": true,
+          "color": 16761963,
+          "intensity": 45,
+          "cone": 13.0,
+          "yaw": 68.19859,
+          "pitch": -28.611586,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": 9,
+          "name": "contre1",
+          "lit": true,
+          "color": 16761963,
+          "intensity": 45,
+          "cone": 5.0,
+          "yaw": 142.12502,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": 12,
+          "name": "table1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 85,
+          "cone": 10.0,
+          "yaw": 144.68878,
+          "pitch": 40.898323,
+          "follow": ""
+        }
+      ],
+      "fade": 0.0
+    },
+    "tension": {
+      "spots": [
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 3,
+          "name": "face2",
+          "lit": true,
+          "color": 10279404,
+          "intensity": 40,
+          "cone": 5.0,
+          "yaw": -104.03625,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -9,
+          "name": "face4",
+          "lit": true,
+          "color": 10330580,
+          "intensity": 60,
+          "cone": 5.0,
+          "yaw": -35.837654,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": -9,
+          "name": "contre2",
+          "lit": true,
+          "color": 10330580,
+          "intensity": 70,
+          "cone": 4.0,
+          "yaw": 37.874985,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": -13,
+          "name": "poursuite2",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 3.2,
+          "yaw": -30.69873,
+          "pitch": -10.0,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -3,
+          "name": "face3",
+          "lit": true,
+          "color": 10279404,
+          "intensity": 40,
+          "cone": 5.0,
+          "yaw": -75.96375,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": -6,
+          "name": "galerie2",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 55,
+          "cone": 10.0,
+          "yaw": 4.763642,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": 13,
+          "name": "poursuite1",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 3.2,
+          "yaw": -145.44922,
+          "pitch": -10.0,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": 8,
+          "name": "rampe1",
+          "lit": true,
+          "color": 12884187,
+          "intensity": 25,
+          "cone": 12.0,
+          "yaw": 159.44395,
+          "pitch": -24.74259,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": -12,
+          "name": "table2",
+          "lit": true,
+          "color": 10279404,
+          "intensity": 45,
+          "cone": 7.0,
+          "yaw": 35.311214,
+          "pitch": 40.898323,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": -8,
+          "name": "rampe4",
+          "lit": true,
+          "color": 12884187,
+          "intensity": 25,
+          "cone": 12.0,
+          "yaw": 20.556046,
+          "pitch": -24.74259,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 9,
+          "name": "face1",
+          "lit": true,
+          "color": 10330580,
+          "intensity": 60,
+          "cone": 5.0,
+          "yaw": -144.16235,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": 2,
+          "name": "rampe2",
+          "lit": true,
+          "color": 12884187,
+          "intensity": 25,
+          "cone": 12.0,
+          "yaw": 111.80141,
+          "pitch": -28.611586,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 6,
+          "name": "galerie1",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 55,
+          "cone": 10.0,
+          "yaw": 175.23636,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": -2,
+          "name": "rampe3",
+          "lit": true,
+          "color": 12884187,
+          "intensity": 25,
+          "cone": 12.0,
+          "yaw": 68.19859,
+          "pitch": -28.611586,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": 9,
+          "name": "contre1",
+          "lit": true,
+          "color": 10330580,
+          "intensity": 70,
+          "cone": 4.0,
+          "yaw": 142.12502,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": 12,
+          "name": "table1",
+          "lit": true,
+          "color": 10279404,
+          "intensity": 45,
+          "cone": 7.0,
+          "yaw": 144.68878,
+          "pitch": 40.898323,
+          "follow": ""
+        }
+      ],
+      "fade": 0.0
+    },
+    "revelation": {
+      "spots": [
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 3,
+          "name": "face2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 30,
+          "cone": 6.0,
+          "yaw": -104.03625,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -9,
+          "name": "face4",
+          "lit": false,
+          "color": 10330580,
+          "intensity": 60,
+          "cone": 5.0,
+          "yaw": -35.837654,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": -9,
+          "name": "contre2",
+          "lit": true,
+          "color": 10330580,
+          "intensity": 35,
+          "cone": 4.0,
+          "yaw": 37.874985,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": -13,
+          "name": "poursuite2",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 3.2,
+          "yaw": -30.69873,
+          "pitch": -10.0,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -3,
+          "name": "face3",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 30,
+          "cone": 6.0,
+          "yaw": -75.96375,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": -6,
+          "name": "galerie2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 12.0,
+          "yaw": 4.763642,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": 13,
+          "name": "poursuite1",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 3.2,
+          "yaw": -145.44922,
+          "pitch": -10.0,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": 8,
+          "name": "rampe1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 70,
+          "cone": 14.0,
+          "yaw": 136.84761,
+          "pitch": -28.027899,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": -12,
+          "name": "table2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 25,
+          "cone": 10.0,
+          "yaw": 35.311214,
+          "pitch": 40.898323,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": -8,
+          "name": "rampe4",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 70,
+          "cone": 14.0,
+          "yaw": 43.15239,
+          "pitch": -28.027899,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 9,
+          "name": "face1",
+          "lit": false,
+          "color": 10330580,
+          "intensity": 60,
+          "cone": 5.0,
+          "yaw": -144.16235,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": 2,
+          "name": "rampe2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 70,
+          "cone": 14.0,
+          "yaw": 101.88866,
+          "pitch": -26.486519,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 6,
+          "name": "galerie1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 12.0,
+          "yaw": 175.23636,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": -2,
+          "name": "rampe3",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 70,
+          "cone": 14.0,
+          "yaw": 78.11134,
+          "pitch": -26.486519,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": 9,
+          "name": "contre1",
+          "lit": true,
+          "color": 10330580,
+          "intensity": 35,
+          "cone": 4.0,
+          "yaw": 142.12502,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": 12,
+          "name": "table1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 25,
+          "cone": 10.0,
+          "yaw": 144.68878,
+          "pitch": 40.898323,
+          "follow": ""
+        }
+      ],
+      "fade": 0.0
+    },
+    "vainqueur": {
+      "spots": [
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 3,
+          "name": "face2",
+          "lit": true,
+          "color": 16767334,
+          "intensity": 70,
+          "cone": 7.0,
+          "yaw": -104.03625,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -9,
+          "name": "face4",
+          "lit": false,
+          "color": 10330580,
+          "intensity": 60,
+          "cone": 5.0,
+          "yaw": -35.837654,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": -9,
+          "name": "contre2",
+          "lit": true,
+          "color": 16767334,
+          "intensity": 70,
+          "cone": 5.0,
+          "yaw": 37.874985,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": -13,
+          "name": "poursuite2",
+          "lit": true,
+          "color": 16767334,
+          "intensity": 100,
+          "cone": 4.0,
+          "yaw": -26.565052,
+          "pitch": 21.966795,
+          "follow": "@rang:1"
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -3,
+          "name": "face3",
+          "lit": true,
+          "color": 16767334,
+          "intensity": 70,
+          "cone": 7.0,
+          "yaw": -75.96375,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": -6,
+          "name": "galerie2",
+          "lit": true,
+          "color": 16767334,
+          "intensity": 100,
+          "cone": 12.0,
+          "yaw": 4.763642,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": 13,
+          "name": "poursuite1",
+          "lit": true,
+          "color": 16767334,
+          "intensity": 100,
+          "cone": 4.0,
+          "yaw": -153.43495,
+          "pitch": 21.966795,
+          "follow": "@rang:1"
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": 8,
+          "name": "rampe1",
+          "lit": true,
+          "color": 16767334,
+          "intensity": 75,
+          "cone": 14.0,
+          "yaw": 136.84761,
+          "pitch": -28.027899,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": -12,
+          "name": "table2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 60,
+          "cone": 10.0,
+          "yaw": 35.311214,
+          "pitch": 40.898323,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": -8,
+          "name": "rampe4",
+          "lit": true,
+          "color": 16767334,
+          "intensity": 75,
+          "cone": 14.0,
+          "yaw": 43.15239,
+          "pitch": -28.027899,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 9,
+          "name": "face1",
+          "lit": false,
+          "color": 10330580,
+          "intensity": 60,
+          "cone": 5.0,
+          "yaw": -144.16235,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": 2,
+          "name": "rampe2",
+          "lit": true,
+          "color": 16767334,
+          "intensity": 75,
+          "cone": 14.0,
+          "yaw": 101.88866,
+          "pitch": -26.486519,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 6,
+          "name": "galerie1",
+          "lit": true,
+          "color": 16767334,
+          "intensity": 100,
+          "cone": 12.0,
+          "yaw": 175.23636,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": -2,
+          "name": "rampe3",
+          "lit": true,
+          "color": 16767334,
+          "intensity": 75,
+          "cone": 14.0,
+          "yaw": 78.11134,
+          "pitch": -26.486519,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": 9,
+          "name": "contre1",
+          "lit": true,
+          "color": 16767334,
+          "intensity": 70,
+          "cone": 5.0,
+          "yaw": 142.12502,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": 12,
+          "name": "table1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 60,
+          "cone": 10.0,
+          "yaw": 144.68878,
+          "pitch": 40.898323,
+          "follow": ""
+        }
+      ],
+      "fade": 0.0
+    },
+    "studio": {
+      "spots": [
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 3,
+          "name": "face2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 75,
+          "cone": 9.0,
+          "yaw": -104.03625,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -9,
+          "name": "face4",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 80,
+          "cone": 14.0,
+          "yaw": -35.837654,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": -9,
+          "name": "contre2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 70,
+          "cone": 8.0,
+          "yaw": 54.246113,
+          "pitch": 20.837305,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": -13,
+          "name": "poursuite2",
+          "lit": false,
+          "color": 16767334,
+          "intensity": 100,
+          "cone": 4.0,
+          "yaw": -26.565052,
+          "pitch": 21.966795,
+          "follow": "@rang:1"
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -3,
+          "name": "face3",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 75,
+          "cone": 9.0,
+          "yaw": -75.96375,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": -6,
+          "name": "galerie2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 50,
+          "cone": 10.0,
+          "yaw": 4.763642,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": 13,
+          "name": "poursuite1",
+          "lit": false,
+          "color": 16767334,
+          "intensity": 100,
+          "cone": 4.0,
+          "yaw": -153.43495,
+          "pitch": 21.966795,
+          "follow": "@rang:1"
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": 8,
+          "name": "rampe1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 50,
+          "cone": 14.0,
+          "yaw": 159.44395,
+          "pitch": -24.74259,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": -12,
+          "name": "table2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 95,
+          "cone": 15.0,
+          "yaw": 35.311214,
+          "pitch": 40.898323,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": -8,
+          "name": "rampe4",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 50,
+          "cone": 14.0,
+          "yaw": 20.556046,
+          "pitch": -24.74259,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 9,
+          "name": "face1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 80,
+          "cone": 14.0,
+          "yaw": -144.16235,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": 2,
+          "name": "rampe2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 50,
+          "cone": 14.0,
+          "yaw": 111.80141,
+          "pitch": -28.611586,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 6,
+          "name": "galerie1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 50,
+          "cone": 10.0,
+          "yaw": 175.23636,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": -2,
+          "name": "rampe3",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 50,
+          "cone": 14.0,
+          "yaw": 68.19859,
+          "pitch": -28.611586,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": 9,
+          "name": "contre1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 70,
+          "cone": 8.0,
+          "yaw": 125.75389,
+          "pitch": 20.837305,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": 12,
+          "name": "table1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 95,
+          "cone": 15.0,
+          "yaw": 144.68878,
+          "pitch": 40.898323,
+          "follow": ""
+        }
+      ],
+      "fade": 0.0
+    },
+    "attente": {
+      "spots": [
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 3,
+          "name": "face2",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 75,
+          "cone": 9.0,
+          "yaw": -104.03625,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -9,
+          "name": "face4",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 80,
+          "cone": 14.0,
+          "yaw": -35.837654,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": -9,
+          "name": "contre2",
+          "lit": true,
+          "color": 10330580,
+          "intensity": 30,
+          "cone": 6.0,
+          "yaw": 37.874985,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": -13,
+          "name": "poursuite2",
+          "lit": false,
+          "color": 16767334,
+          "intensity": 100,
+          "cone": 4.0,
+          "yaw": -26.565052,
+          "pitch": 21.966795,
+          "follow": "@rang:1"
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -3,
+          "name": "face3",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 75,
+          "cone": 9.0,
+          "yaw": -75.96375,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": -6,
+          "name": "galerie2",
+          "lit": true,
+          "color": 13220095,
+          "intensity": 30,
+          "cone": 10.0,
+          "yaw": 4.763642,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": 13,
+          "name": "poursuite1",
+          "lit": false,
+          "color": 16767334,
+          "intensity": 100,
+          "cone": 4.0,
+          "yaw": -153.43495,
+          "pitch": 21.966795,
+          "follow": "@rang:1"
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": 8,
+          "name": "rampe1",
+          "lit": true,
+          "color": 12884187,
+          "intensity": 30,
+          "cone": 13.0,
+          "yaw": 159.44395,
+          "pitch": -24.74259,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": -12,
+          "name": "table2",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 95,
+          "cone": 15.0,
+          "yaw": 35.311214,
+          "pitch": 40.898323,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": -8,
+          "name": "rampe4",
+          "lit": true,
+          "color": 12884187,
+          "intensity": 30,
+          "cone": 13.0,
+          "yaw": 20.556046,
+          "pitch": -24.74259,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 9,
+          "name": "face1",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 80,
+          "cone": 14.0,
+          "yaw": -144.16235,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": 2,
+          "name": "rampe2",
+          "lit": true,
+          "color": 12884187,
+          "intensity": 30,
+          "cone": 13.0,
+          "yaw": 111.80141,
+          "pitch": -28.611586,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 6,
+          "name": "galerie1",
+          "lit": true,
+          "color": 13220095,
+          "intensity": 30,
+          "cone": 10.0,
+          "yaw": 175.23636,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": -2,
+          "name": "rampe3",
+          "lit": true,
+          "color": 12884187,
+          "intensity": 30,
+          "cone": 13.0,
+          "yaw": 68.19859,
+          "pitch": -28.611586,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": 9,
+          "name": "contre1",
+          "lit": true,
+          "color": 10330580,
+          "intensity": 30,
+          "cone": 6.0,
+          "yaw": 142.12502,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": 12,
+          "name": "table1",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 95,
+          "cone": 15.0,
+          "yaw": 144.68878,
+          "pitch": 40.898323,
+          "follow": ""
+        }
+      ],
+      "fade": 0.0
+    },
+    "pause": {
+      "spots": [
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 3,
+          "name": "face2",
+          "lit": true,
+          "color": 16369108,
+          "intensity": 35,
+          "cone": 8.0,
+          "yaw": -104.03625,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -9,
+          "name": "face4",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 80,
+          "cone": 14.0,
+          "yaw": -35.837654,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": -9,
+          "name": "contre2",
+          "lit": false,
+          "color": 10330580,
+          "intensity": 30,
+          "cone": 6.0,
+          "yaw": 37.874985,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": -13,
+          "name": "poursuite2",
+          "lit": false,
+          "color": 16767334,
+          "intensity": 100,
+          "cone": 4.0,
+          "yaw": -26.565052,
+          "pitch": 21.966795,
+          "follow": "@rang:1"
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": -3,
+          "name": "face3",
+          "lit": true,
+          "color": 16369108,
+          "intensity": 35,
+          "cone": 8.0,
+          "yaw": -75.96375,
+          "pitch": 43.98223,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": -6,
+          "name": "galerie2",
+          "lit": true,
+          "color": 13220095,
+          "intensity": 40,
+          "cone": 10.0,
+          "yaw": 4.763642,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -53,
+          "z": 13,
+          "name": "poursuite1",
+          "lit": false,
+          "color": 16767334,
+          "intensity": 100,
+          "cone": 4.0,
+          "yaw": -153.43495,
+          "pitch": 21.966795,
+          "follow": "@rang:1"
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": 8,
+          "name": "rampe1",
+          "lit": true,
+          "color": 14919390,
+          "intensity": 40,
+          "cone": 14.0,
+          "yaw": 159.44395,
+          "pitch": -24.74259,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": -12,
+          "name": "table2",
+          "lit": true,
+          "color": 13220095,
+          "intensity": 40,
+          "cone": 12.0,
+          "yaw": 35.311214,
+          "pitch": 40.898323,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 71,
+          "y": -58,
+          "z": -8,
+          "name": "rampe4",
+          "lit": true,
+          "color": 14919390,
+          "intensity": 40,
+          "cone": 14.0,
+          "yaw": 20.556046,
+          "pitch": -24.74259,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 9,
+          "name": "face1",
+          "lit": false,
+          "color": 16773590,
+          "intensity": 80,
+          "cone": 14.0,
+          "yaw": -144.16235,
+          "pitch": 48.925114,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": 2,
+          "name": "rampe2",
+          "lit": true,
+          "color": 14919390,
+          "intensity": 40,
+          "cone": 14.0,
+          "yaw": 111.80141,
+          "pitch": -28.611586,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 6,
+          "name": "galerie1",
+          "lit": true,
+          "color": 13220095,
+          "intensity": 40,
+          "cone": 10.0,
+          "yaw": 175.23636,
+          "pitch": 45.079365,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 73,
+          "y": -57,
+          "z": -2,
+          "name": "rampe3",
+          "lit": true,
+          "color": 14919390,
+          "intensity": 40,
+          "cone": 14.0,
+          "yaw": 68.19859,
+          "pitch": -28.611586,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 93,
+          "y": -53,
+          "z": 9,
+          "name": "contre1",
+          "lit": false,
+          "color": 10330580,
+          "intensity": 30,
+          "cone": 6.0,
+          "yaw": 142.12502,
+          "pitch": 23.941729,
+          "follow": ""
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 89,
+          "y": -46,
+          "z": 12,
+          "name": "table1",
+          "lit": true,
+          "color": 13220095,
+          "intensity": 40,
+          "cone": 12.0,
+          "yaw": 144.68878,
+          "pitch": 40.898323,
+          "follow": ""
+        }
+      ],
+      "fade": 0.0
+    }
+  },
+  "cues": {
+    "ouverture": [
+      "sequence ouverture",
+      "attendre 14",
+      "tv intro"
+    ],
+    "fin": [
+      "tv outro",
+      "sequence fin"
+    ]
+  },
+  "auto": {
+    "lancement": "depart-epreuve",
+    "fin": "retour-plateau",
+    "revelation": "revelation",
+    "podium": "podium"
+  },
+  "rounds": {},
+  "sequences": {
+    "annonce": {
+      "duree": 8.0,
+      "boucle": false,
+      "description": "Annonce d'une épreuve : TENSION, poursuite sur le CraftMaster, plan du trône",
+      "pistes": [
+        {
+          "type": "commande",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "commande": "ambiance tension 1"
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "poursuite1",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.5,
+              "fondu": 0.8,
+              "allume": true,
+              "couleur": "blanc",
+              "intensite": 100,
+              "cone": 4.0,
+              "suit": "@maitre",
+              "vise": "@point:trone",
+              "effet": "aucun"
+            }
+          ]
+        },
+        {
+          "type": "camera",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.3,
+              "fondu": 0.0,
+              "plan": "camera:studio:2",
+              "transition": "coupe"
+            }
+          ]
+        }
+      ]
+    },
+    "depart-epreuve": {
+      "duree": 4.0,
+      "boucle": false,
+      "description": "Départ en épreuve : le plateau passe en ATTENTE",
+      "pistes": [
+        {
+          "type": "commande",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "commande": "ambiance attente 4"
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "poursuite",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 1.0,
+              "allume": false
+            }
+          ]
+        }
+      ]
+    },
+    "epreuve-studio": {
+      "duree": 4.0,
+      "boucle": false,
+      "description": "Épreuve au studio : tout clair, plongée puis plan large",
+      "pistes": [
+        {
+          "type": "commande",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "commande": "ambiance studio 2"
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "poursuite",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 1.0,
+              "allume": false
+            }
+          ]
+        },
+        {
+          "type": "camera",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "plan": "camera:studio:9",
+              "transition": "enchaine"
+            },
+            {
+              "t": 3.0,
+              "fondu": 0.0,
+              "plan": "camera:studio:1",
+              "transition": "enchaine"
+            }
+          ]
+        }
+      ]
+    },
+    "fin": {
+      "duree": 18.0,
+      "boucle": false,
+      "description": "Fin (sous le générique de fin, qui mène les caméras) : SALLE en 5 s, le rideau se ferme, noir",
+      "pistes": [
+        {
+          "type": "commande",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "commande": "ambiance salle 5"
+            },
+            {
+              "t": 16.0,
+              "fondu": 0.0,
+              "commande": "noir 2"
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "poursuite",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 2.0,
+              "allume": false
+            }
+          ]
+        },
+        {
+          "type": "rideau",
+          "cible": "stage",
+          "muette": false,
+          "cles": [
+            {
+              "t": 9.0,
+              "fondu": 0.0,
+              "ouvert": false
+            }
+          ]
+        }
+      ]
+    },
+    "jugement": {
+      "duree": 5.0,
+      "boucle": false,
+      "description": "Jugement : DISCUSSION, poursuite douce sur le candidat du moment",
+      "pistes": [
+        {
+          "type": "commande",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "commande": "ambiance discussion 2"
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "poursuite2",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.5,
+              "fondu": 1.0,
+              "allume": true,
+              "couleur": "chaud",
+              "intensite": 70,
+              "cone": 5.0,
+              "suit": "@moment",
+              "vise": "@point:table",
+              "effet": "respiration",
+              "vitesse": 0.5
+            }
+          ]
+        }
+      ]
+    },
+    "ouverture": {
+      "duree": 16.0,
+      "boucle": false,
+      "description": "Ouverture : noir, le trône en silhouette, les candidats s'allument en vague, le rideau s'ouvre sur la galerie, puis DISCUSSION",
+      "pistes": [
+        {
+          "type": "lumiere",
+          "cible": "tout",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.5,
+              "allume": false
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "contre",
+          "muette": false,
+          "cles": [
+            {
+              "t": 1.0,
+              "fondu": 1.5,
+              "allume": true,
+              "couleur": "bleu",
+              "intensite": 70,
+              "cone": 4.0,
+              "vise": "@point:trone",
+              "effet": "aucun"
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "rampe",
+          "muette": false,
+          "cles": [
+            {
+              "t": 2.5,
+              "fondu": 1.0,
+              "allume": true,
+              "couleur": "ambre",
+              "intensite": 55,
+              "cone": 13.0,
+              "vise": "@point:rideau",
+              "effet": "chenillard",
+              "vitesse": 1.5
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "table",
+          "muette": false,
+          "cles": [
+            {
+              "t": 4.5,
+              "fondu": 1.0,
+              "allume": true,
+              "couleur": "chaud",
+              "intensite": 85,
+              "cone": 10.0,
+              "vise": "@point:table",
+              "effet": "aucun",
+              "vague": 1.2
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "face",
+          "muette": false,
+          "cles": [
+            {
+              "t": 6.5,
+              "fondu": 1.5,
+              "allume": true,
+              "couleur": "chaud",
+              "intensite": 70,
+              "cone": 7.0,
+              "vise": "@point:trone",
+              "effet": "aucun"
+            }
+          ]
+        },
+        {
+          "type": "rideau",
+          "cible": "stage",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "ouvert": false
+            },
+            {
+              "t": 8.5,
+              "fondu": 0.0,
+              "ouvert": true
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "galerie",
+          "muette": false,
+          "cles": [
+            {
+              "t": 9.0,
+              "fondu": 2.0,
+              "allume": true,
+              "couleur": "chaud",
+              "intensite": 70,
+              "cone": 10.0,
+              "vise": "@point:galerie",
+              "effet": "aucun"
+            }
+          ]
+        },
+        {
+          "type": "camera",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "plan": "camera:studio:9",
+              "transition": "fondu"
+            },
+            {
+              "t": 4.0,
+              "fondu": 0.0,
+              "plan": "travelling:survol",
+              "transition": "enchaine"
+            },
+            {
+              "t": 12.5,
+              "fondu": 0.0,
+              "plan": "camera:studio:1",
+              "transition": "enchaine"
+            }
+          ]
+        },
+        {
+          "type": "commande",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 13.0,
+              "fondu": 0.0,
+              "commande": "ambiance discussion 3"
+            }
+          ]
+        }
+      ]
+    },
+    "podium": {
+      "duree": 12.0,
+      "boucle": false,
+      "description": "Podium : coupure franche en or, poursuites sur le premier, travelling sur la galerie, puis VAINQUEUR",
+      "pistes": [
+        {
+          "type": "lumiere",
+          "cible": "tout",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "couleur": "or",
+              "intensite": 100
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "face",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "effet": "strobe",
+              "vitesse": 1.5
+            },
+            {
+              "t": 2.0,
+              "fondu": 0.5,
+              "effet": "aucun"
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "poursuite",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.2,
+              "fondu": 0.3,
+              "allume": true,
+              "couleur": "or",
+              "intensite": 100,
+              "cone": 4.0,
+              "suit": "@rang:1",
+              "vise": "@point:table",
+              "effet": "respiration",
+              "vitesse": 0.6
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "galerie",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "allume": true,
+              "couleur": "or",
+              "intensite": 100,
+              "cone": 12.0,
+              "vise": "@point:galerie",
+              "effet": "aucun"
+            }
+          ]
+        },
+        {
+          "type": "camera",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "plan": "camera:studio:8",
+              "transition": "flash"
+            },
+            {
+              "t": 3.0,
+              "fondu": 0.0,
+              "plan": "travelling:galerie",
+              "transition": "enchaine"
+            }
+          ]
+        },
+        {
+          "type": "commande",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 2.5,
+              "fondu": 0.0,
+              "commande": "ambiance vainqueur 2"
+            }
+          ]
+        }
+      ]
+    },
+    "point": {
+      "duree": 3.0,
+      "boucle": false,
+      "description": "Un point : pulsation dorée courte sur la table",
+      "pistes": [
+        {
+          "type": "lumiere",
+          "cible": "table",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.2,
+              "couleur": "or",
+              "intensite": 100,
+              "effet": "pulse",
+              "vitesse": 2.0
+            },
+            {
+              "t": 1.6,
+              "fondu": 0.8,
+              "couleur": "chaud",
+              "intensite": 85,
+              "effet": "aucun"
+            }
+          ]
+        }
+      ]
+    },
+    "prix": {
+      "duree": 5.0,
+      "boucle": false,
+      "description": "Les prix : poursuites sur les socles du fond, plan des prix",
+      "pistes": [
+        {
+          "type": "lumiere",
+          "cible": "poursuite",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 1.0,
+              "allume": true,
+              "couleur": "or",
+              "intensite": 90,
+              "cone": 6.0,
+              "vise": "@point:prix",
+              "effet": "respiration",
+              "vitesse": 0.5
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "contre",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 1.0,
+              "couleur": "or",
+              "intensite": 70
+            }
+          ]
+        },
+        {
+          "type": "camera",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.5,
+              "fondu": 0.0,
+              "plan": "camera:studio:14",
+              "transition": "enchaine"
+            }
+          ]
+        }
+      ]
+    },
+    "retour-plateau": {
+      "duree": 6.0,
+      "boucle": false,
+      "description": "Retour au plateau : DISCUSSION en 4 s, plan large en fondu, tour de table",
+      "pistes": [
+        {
+          "type": "commande",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "commande": "ambiance discussion 4"
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "poursuite",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 1.0,
+              "allume": false
+            }
+          ]
+        },
+        {
+          "type": "camera",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "plan": "camera:studio:1",
+              "transition": "fondu"
+            },
+            {
+              "t": 2.5,
+              "fondu": 0.0,
+              "plan": "travelling:tour-de-table",
+              "transition": "enchaine"
+            }
+          ]
+        }
+      ]
+    },
+    "revelation": {
+      "duree": 26.0,
+      "boucle": false,
+      "description": "Révélation : TENSION, rideau qui frissonne pendant le roulement, puis la galerie en blanc franc et une poursuite sur chaque nom",
+      "pistes": [
+        {
+          "type": "commande",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "commande": "ambiance tension 1"
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "rampe",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.5,
+              "fondu": 0.5,
+              "allume": true,
+              "couleur": "bleu",
+              "intensite": 45,
+              "cone": 13.0,
+              "vise": "@point:rideau",
+              "effet": "chenillard",
+              "vitesse": 2.0
+            },
+            {
+              "t": 6.8,
+              "fondu": 0.0,
+              "allume": false
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "contre",
+          "muette": false,
+          "cles": [
+            {
+              "t": 3.0,
+              "fondu": 0.3,
+              "effet": "pulse",
+              "vitesse": 1.5
+            },
+            {
+              "t": 6.8,
+              "fondu": 0.0,
+              "effet": "aucun"
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "galerie",
+          "muette": false,
+          "cles": [
+            {
+              "t": 7.0,
+              "fondu": 0.0,
+              "allume": true,
+              "couleur": "blanc",
+              "intensite": 100,
+              "cone": 12.0,
+              "vise": "@point:galerie",
+              "effet": "aucun"
+            }
+          ]
+        },
+        {
+          "type": "lumiere",
+          "cible": "poursuite1",
+          "muette": false,
+          "cles": [
+            {
+              "t": 7.2,
+              "fondu": 0.3,
+              "allume": true,
+              "couleur": "blanc",
+              "intensite": 100,
+              "cone": 4.0,
+              "suit": "@moment",
+              "vise": "@point:galerie",
+              "effet": "aucun"
+            }
+          ]
+        },
+        {
+          "type": "camera",
+          "cible": "",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 0.0,
+              "plan": "camera:studio:1",
+              "transition": "fondu"
+            },
+            {
+              "t": 3.0,
+              "fondu": 0.0,
+              "plan": "camera:studio:11",
+              "transition": "coupe"
+            },
+            {
+              "t": 5.0,
+              "fondu": 0.0,
+              "plan": "camera:studio:10",
+              "transition": "coupe"
+            },
+            {
+              "t": 7.0,
+              "fondu": 0.0,
+              "plan": "camera:studio:13",
+              "transition": "flash"
+            }
+          ]
+        }
+      ]
+    },
+    "rideau-chenillard": {
+      "duree": 8.0,
+      "boucle": true,
+      "description": "Couche : chenillard ambre en boucle sur le rideau",
+      "pistes": [
+        {
+          "type": "lumiere",
+          "cible": "rampe",
+          "muette": false,
+          "cles": [
+            {
+              "t": 0.0,
+              "fondu": 1.0,
+              "allume": true,
+              "couleur": "ambre",
+              "intensite": 55,
+              "cone": 13.0,
+              "vise": "@point:rideau",
+              "effet": "chenillard",
+              "vitesse": 1.2
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "plateau": {
+    "scene": "scene",
+    "public": "public",
+    "devant": 90.0,
+    "maitre": "LordFinn",
+    "points": {
+      "trone": {
+        "world": "minecraft:overworld",
+        "x": 86.5,
+        "y": -57.5,
+        "z": 0.5
+      },
+      "table": {
+        "world": "minecraft:overworld",
+        "x": 81.0,
+        "y": -58.3,
+        "z": 0.5
+      },
+      "galerie": {
+        "world": "minecraft:overworld",
+        "x": 64.0,
+        "y": -51.6,
+        "z": 0.5
+      },
+      "rideau": {
+        "world": "minecraft:overworld",
+        "x": 68.5,
+        "y": -53.5,
+        "z": 0.5
+      },
+      "prix": {
+        "world": "minecraft:overworld",
+        "x": 95.5,
+        "y": -59.2,
+        "z": 0.5
+      }
+    }
+  }
+}

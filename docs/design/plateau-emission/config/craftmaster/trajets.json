@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "paths": [
+    {
+      "name": "survol",
+      "lieu": "studio",
+      "world": "minecraft:overworld",
+      "camera": "studio:1",
+      "steps": [
+        {
+          "x": 93.5,
+          "y": -52.4,
+          "z": 0.5,
+          "yaw": 90.0,
+          "pitch": 10.3,
+          "travel": 0.0
+        },
+        {
+          "x": 87.5,
+          "y": -53.2,
+          "z": 0.5,
+          "yaw": 90.0,
+          "pitch": 7.5,
+          "travel": 4
+        },
+        {
+          "x": 78.5,
+          "y": -54.6,
+          "z": 0.5,
+          "yaw": 90.0,
+          "pitch": -10.2,
+          "travel": 4,
+          "hold": 1,
+          "curve": "sortie"
+        }
+      ]
+    },
+    {
+      "name": "galerie",
+      "lieu": "studio",
+      "world": "minecraft:overworld",
+      "camera": "studio:8",
+      "steps": [
+        {
+          "x": 70.8,
+          "y": -53.4,
+          "z": -5.0,
+          "yaw": 78.4,
+          "pitch": -13.6,
+          "travel": 0.0,
+          "fov": 70
+        },
+        {
+          "x": 70.8,
+          "y": -53.4,
+          "z": 6.0,
+          "yaw": 101.6,
+          "pitch": -13.6,
+          "travel": 9,
+          "fov": 70
+        }
+      ]
+    },
+    {
+      "name": "tour-de-table",
+      "lieu": "studio",
+      "world": "minecraft:overworld",
+      "camera": "studio:12",
+      "steps": [
+        {
+          "x": 75.871,
+          "y": -56.7,
+          "z": -2.75,
+          "yaw": -60.0,
+          "pitch": 13.8,
+          "travel": 0,
+          "cible": "@point:table"
+        },
+        {
+          "x": 78.753,
+          "y": -56.7,
+          "z": -5.391,
+          "yaw": -25.0,
+          "pitch": 13.8,
+          "travel": 3,
+          "cible": "@point:table"
+        },
+        {
+          "x": 82.629,
+          "y": -56.7,
+          "z": -5.901,
+          "yaw": 10.0,
+          "pitch": 13.8,
+          "travel": 3,
+          "cible": "@point:table"
+        },
+        {
+          "x": 86.096,
+          "y": -56.7,
+          "z": -4.096,
+          "yaw": 45.0,
+          "pitch": 13.8,
+          "travel": 3,
+          "cible": "@point:table"
+        }
+      ]
+    },
+    {
+      "name": "approche-trone",
+      "lieu": "studio",
+      "world": "minecraft:overworld",
+      "camera": "studio:2",
+      "steps": [
+        {
+          "x": 80.3,
+          "y": -56.9,
+          "z": 0.5,
+          "yaw": -90.0,
+          "pitch": 3.7,
+          "travel": 0.0,
+          "fov": 50
+        },
+        {
+          "x": 83.2,
+          "y": -57.15,
+          "z": 0.5,
+          "yaw": -90.0,
+          "pitch": 2.6,
+          "travel": 5,
+          "fov": 38,
+          "curve": "sortie"
+        }
+      ]
+    },
+    {
+      "name": "recul",
+      "lieu": "studio",
+      "world": "minecraft:overworld",
+      "camera": "studio:1",
+      "steps": [
+        {
+          "x": 80.0,
+          "y": -54.4,
+          "z": 0.5,
+          "yaw": 90.0,
+          "pitch": -8.5,
+          "travel": 0.0
+        },
+        {
+          "x": 93.5,
+          "y": -51.6,
+          "z": 0.5,
+          "yaw": 90.0,
+          "pitch": 12.3,
+          "travel": 7,
+          "curve": "entree"
+        }
+      ]
+    }
+  ]
+}

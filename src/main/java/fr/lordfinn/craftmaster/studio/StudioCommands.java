@@ -273,7 +273,19 @@ public final class StudioCommands {
                 s.setName(n);
                 return "Projecteur nommé « " + s.name() + " ».";
             });
-        })));
+        })
+                // By its place (from the console, a script, without looking at it): /cfsp nom face1 74 -46 9
+                .then(argument("pos", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos()).executes(c -> {
+                    String n = StringArgumentType.getString(c, "name");
+                    BlockPos pos = net.minecraft.commands.arguments.coordinates.BlockPosArgument.getLoadedBlockPos(c, "pos");
+                    if (!(c.getSource().getLevel().getBlockEntity(pos) instanceof SpotlightBlockEntity s)) {
+                        fail(c, "Pas de projecteur en " + pos.getX() + " " + pos.getY() + " " + pos.getZ() + ".");
+                        return 0;
+                    }
+                    s.setName(n);
+                    ok(c, "Projecteur " + pos.getX() + " " + pos.getY() + " " + pos.getZ() + " nommé « " + s.name() + " ».");
+                    return 1;
+                }))));
         root.then(literal("list").executes(StudioCommands::listSpotlights));
         root.then(literal("liste").executes(StudioCommands::listSpotlights));
         return root;

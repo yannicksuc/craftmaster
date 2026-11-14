@@ -1,0 +1,28 @@
+{
+  "duree": 3,
+  "boucle": false,
+  "description": "Un point : pulsation dorée courte sur la table",
+  "pistes": [
+    {
+      "type": "lumiere",
+      "cible": "table",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0.2,
+          "couleur": "or",
+          "intensite": 100,
+          "effet": "pulse",
+          "vitesse": 2
+        },
+        {
+          "t": 1.6,
+          "fondu": 0.8,
+          "couleur": "chaud",
+          "intensite": 85,
+          "effet": "aucun"
+        }
+      ]
+    }
+  ]
+}

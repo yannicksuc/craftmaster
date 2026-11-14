@@ -1,0 +1,150 @@
+{
+  "duree": 16,
+  "boucle": false,
+  "description": "Ouverture : noir, le trône en silhouette, les candidats s'allument en vague, le rideau s'ouvre sur la galerie, puis DISCUSSION",
+  "pistes": [
+    {
+      "type": "lumiere",
+      "cible": "tout",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0.5,
+          "allume": false
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "contre",
+      "cles": [
+        {
+          "t": 1,
+          "fondu": 1.5,
+          "allume": true,
+          "couleur": "bleu",
+          "intensite": 70,
+          "cone": 4,
+          "vise": "@point:trone",
+          "effet": "aucun"
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "rampe",
+      "cles": [
+        {
+          "t": 2.5,
+          "fondu": 1,
+          "allume": true,
+          "couleur": "ambre",
+          "intensite": 55,
+          "cone": 13,
+          "vise": "@point:rideau",
+          "effet": "chenillard",
+          "vitesse": 1.5
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "table",
+      "cles": [
+        {
+          "t": 4.5,
+          "fondu": 1,
+          "vague": 1.2,
+          "allume": true,
+          "couleur": "chaud",
+          "intensite": 85,
+          "cone": 10,
+          "vise": "@point:table",
+          "effet": "aucun"
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "face",
+      "cles": [
+        {
+          "t": 6.5,
+          "fondu": 1.5,
+          "allume": true,
+          "couleur": "chaud",
+          "intensite": 70,
+          "cone": 7,
+          "vise": "@point:trone",
+          "effet": "aucun"
+        }
+      ]
+    },
+    {
+      "type": "rideau",
+      "cible": "stage",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "ouvert": false
+        },
+        {
+          "t": 8.5,
+          "fondu": 0,
+          "ouvert": true
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "galerie",
+      "cles": [
+        {
+          "t": 9,
+          "fondu": 2,
+          "allume": true,
+          "couleur": "chaud",
+          "intensite": 70,
+          "cone": 10,
+          "vise": "@point:galerie",
+          "effet": "aucun"
+        }
+      ]
+    },
+    {
+      "type": "camera",
+      "cible": "",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "plan": "camera:studio:9",
+          "transition": "fondu"
+        },
+        {
+          "t": 4,
+          "fondu": 0,
+          "plan": "travelling:survol",
+          "transition": "enchaine"
+        },
+        {
+          "t": 12.5,
+          "fondu": 0,
+          "plan": "camera:studio:1",
+          "transition": "enchaine"
+        }
+      ]
+    },
+    {
+      "type": "commande",
+      "cles": [
+        {
+          "t": 13,
+          "fondu": 0,
+          "commande": "ambiance discussion 3"
+        }
+      ]
+    }
+  ]
+}

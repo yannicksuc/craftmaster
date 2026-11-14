@@ -1,0 +1,46 @@
+{
+  "duree": 8,
+  "boucle": false,
+  "description": "Annonce d'une épreuve : TENSION, poursuite sur le CraftMaster, plan du trône",
+  "pistes": [
+    {
+      "type": "commande",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "commande": "ambiance tension 1"
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "poursuite1",
+      "cles": [
+        {
+          "t": 0.5,
+          "fondu": 0.8,
+          "allume": true,
+          "couleur": "blanc",
+          "intensite": 100,
+          "cone": 4,
+          "vise": "@point:trone",
+          "effet": "aucun",
+          "suit": "@maitre"
+        }
+      ]
+    },
+    {
+      "type": "camera",
+      "cible": "",
+      "cles": [
+        {
+          "t": 0.3,
+          "fondu": 0,
+          "plan": "camera:studio:2",
+          "transition": "coupe"
+        }
+      ]
+    }
+  ]
+}

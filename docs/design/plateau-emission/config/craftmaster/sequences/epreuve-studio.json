@@ -1,0 +1,46 @@
+{
+  "duree": 4,
+  "boucle": false,
+  "description": "Épreuve au studio : tout clair, plongée puis plan large",
+  "pistes": [
+    {
+      "type": "commande",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "commande": "ambiance studio 2"
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "poursuite",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 1,
+          "allume": false
+        }
+      ]
+    },
+    {
+      "type": "camera",
+      "cible": "",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "plan": "camera:studio:9",
+          "transition": "enchaine"
+        },
+        {
+          "t": 3,
+          "fondu": 0,
+          "plan": "camera:studio:1",
+          "transition": "enchaine"
+        }
+      ]
+    }
+  ]
+}

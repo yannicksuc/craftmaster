@@ -1,0 +1,98 @@
+{
+  "duree": 12,
+  "boucle": false,
+  "description": "Podium : coupure franche en or, poursuites sur le premier, travelling sur la galerie, puis VAINQUEUR",
+  "pistes": [
+    {
+      "type": "lumiere",
+      "cible": "tout",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "couleur": "or",
+          "intensite": 100
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "face",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "effet": "strobe",
+          "vitesse": 1.5
+        },
+        {
+          "t": 2,
+          "fondu": 0.5,
+          "effet": "aucun"
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "poursuite",
+      "cles": [
+        {
+          "t": 0.2,
+          "fondu": 0.3,
+          "allume": true,
+          "couleur": "or",
+          "intensite": 100,
+          "cone": 4,
+          "vise": "@point:table",
+          "effet": "respiration",
+          "suit": "@rang:1",
+          "vitesse": 0.6
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "galerie",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "allume": true,
+          "couleur": "or",
+          "intensite": 100,
+          "cone": 12,
+          "vise": "@point:galerie",
+          "effet": "aucun"
+        }
+      ]
+    },
+    {
+      "type": "camera",
+      "cible": "",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "plan": "camera:studio:8",
+          "transition": "flash"
+        },
+        {
+          "t": 3,
+          "fondu": 0,
+          "plan": "travelling:galerie",
+          "transition": "enchaine"
+        }
+      ]
+    },
+    {
+      "type": "commande",
+      "cles": [
+        {
+          "t": 2.5,
+          "fondu": 0,
+          "commande": "ambiance vainqueur 2"
+        }
+      ]
+    }
+  ]
+}

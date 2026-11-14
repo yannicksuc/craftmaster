@@ -1,0 +1,35 @@
+# Mise en place du plateau principal sur le serveur, à lancer à la console (RCON) APRÈS avoir copié
+# config/craftmaster/ (caméras, travellings, scénographie, séquences, zone « scene ») et redémarré.
+# Ce qui vit dans le monde ou les données des scores, et donc ne passe pas par les fichiers : le nom des
+# projecteurs (dans leurs blocs) et le rideau de scène.
+
+# Les projecteurs et le rideau doivent être chargés
+forceload add 60 -16 96 16
+
+# Projecteurs, numérotés de la gauche à la droite du public (qui regarde la scène, vers l'ouest)
+#  face : portique au-dessus de l'avant-scène ; rampe : au sol devant le rideau ; galerie : au-dessus des tableaux ;
+#  poursuite : murs de côté ; table : plafond près du trône (face des candidats) ; contre : mur du fond (contre-jour du trône)
+cfsp nom face1 74 -46 9
+cfsp nom face2 74 -46 3
+cfsp nom face3 74 -46 -3
+cfsp nom face4 74 -46 -9
+cfsp nom rampe1 71 -58 8
+cfsp nom rampe2 73 -57 2
+cfsp nom rampe3 73 -57 -2
+cfsp nom rampe4 71 -58 -8
+cfsp nom galerie1 64 -46 6
+cfsp nom galerie2 64 -46 -6
+cfsp nom poursuite1 74 -53 13
+cfsp nom poursuite2 74 -53 -13
+cfsp nom table1 89 -46 12
+cfsp nom table2 89 -46 -12
+cfsp nom contre1 93 -53 9
+cfsp nom contre2 93 -53 -9
+
+# Le rideau de scène
+craftMasterStage curtain set stage 68 -53 0
+
+# Le plateau en état « salle » pour commencer
+ambiance lancer salle 2
+
+forceload remove 60 -16 96 16

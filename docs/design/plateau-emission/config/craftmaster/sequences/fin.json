@@ -1,0 +1,44 @@
+{
+  "duree": 18,
+  "boucle": false,
+  "description": "Fin (sous le générique de fin, qui mène les caméras) : SALLE en 5 s, le rideau se ferme, noir",
+  "pistes": [
+    {
+      "type": "commande",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "commande": "ambiance salle 5"
+        },
+        {
+          "t": 16,
+          "fondu": 0,
+          "commande": "noir 2"
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "poursuite",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 2,
+          "allume": false
+        }
+      ]
+    },
+    {
+      "type": "rideau",
+      "cible": "stage",
+      "cles": [
+        {
+          "t": 9,
+          "fondu": 0,
+          "ouvert": false
+        }
+      ]
+    }
+  ]
+}

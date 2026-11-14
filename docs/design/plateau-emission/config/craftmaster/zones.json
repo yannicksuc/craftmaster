@@ -1,0 +1,14 @@
+[
+  {
+    "name": "scene",
+    "world": "minecraft:overworld",
+    "x0": 63,
+    "y0": -58,
+    "z0": -8,
+    "x1": 72,
+    "y1": -48,
+    "z1": 8,
+    "players": [],
+    "enabled": false
+  }
+]

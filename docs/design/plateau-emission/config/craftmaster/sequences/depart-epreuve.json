@@ -1,0 +1,28 @@
+{
+  "duree": 4,
+  "boucle": false,
+  "description": "Départ en épreuve : le plateau passe en ATTENTE",
+  "pistes": [
+    {
+      "type": "commande",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "commande": "ambiance attente 4"
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "poursuite",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 1,
+          "allume": false
+        }
+      ]
+    }
+  ]
+}

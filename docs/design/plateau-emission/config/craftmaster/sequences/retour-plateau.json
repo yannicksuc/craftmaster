@@ -1,0 +1,46 @@
+{
+  "duree": 6,
+  "boucle": false,
+  "description": "Retour au plateau : DISCUSSION en 4 s, plan large en fondu, tour de table",
+  "pistes": [
+    {
+      "type": "commande",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "commande": "ambiance discussion 4"
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "poursuite",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 1,
+          "allume": false
+        }
+      ]
+    },
+    {
+      "type": "camera",
+      "cible": "",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "plan": "camera:studio:1",
+          "transition": "fondu"
+        },
+        {
+          "t": 2.5,
+          "fondu": 0,
+          "plan": "travelling:tour-de-table",
+          "transition": "enchaine"
+        }
+      ]
+    }
+  ]
+}

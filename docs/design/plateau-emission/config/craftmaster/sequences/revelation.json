@@ -1,0 +1,119 @@
+{
+  "duree": 26,
+  "boucle": false,
+  "description": "Révélation : TENSION, rideau qui frissonne pendant le roulement, puis la galerie en blanc franc et une poursuite sur chaque nom",
+  "pistes": [
+    {
+      "type": "commande",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "commande": "ambiance tension 1"
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "rampe",
+      "cles": [
+        {
+          "t": 0.5,
+          "fondu": 0.5,
+          "allume": true,
+          "couleur": "bleu",
+          "intensite": 45,
+          "cone": 13,
+          "vise": "@point:rideau",
+          "effet": "chenillard",
+          "vitesse": 2
+        },
+        {
+          "t": 6.8,
+          "fondu": 0,
+          "allume": false
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "contre",
+      "cles": [
+        {
+          "t": 3,
+          "fondu": 0.3,
+          "effet": "pulse",
+          "vitesse": 1.5
+        },
+        {
+          "t": 6.8,
+          "fondu": 0,
+          "effet": "aucun"
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "galerie",
+      "cles": [
+        {
+          "t": 7,
+          "fondu": 0,
+          "allume": true,
+          "couleur": "blanc",
+          "intensite": 100,
+          "cone": 12,
+          "vise": "@point:galerie",
+          "effet": "aucun"
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "poursuite1",
+      "cles": [
+        {
+          "t": 7.2,
+          "fondu": 0.3,
+          "allume": true,
+          "couleur": "blanc",
+          "intensite": 100,
+          "cone": 4,
+          "vise": "@point:galerie",
+          "effet": "aucun",
+          "suit": "@moment"
+        }
+      ]
+    },
+    {
+      "type": "camera",
+      "cible": "",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "plan": "camera:studio:1",
+          "transition": "fondu"
+        },
+        {
+          "t": 3,
+          "fondu": 0,
+          "plan": "camera:studio:11",
+          "transition": "coupe"
+        },
+        {
+          "t": 5,
+          "fondu": 0,
+          "plan": "camera:studio:10",
+          "transition": "coupe"
+        },
+        {
+          "t": 7,
+          "fondu": 0,
+          "plan": "camera:studio:13",
+          "transition": "flash"
+        }
+      ]
+    }
+  ]
+}

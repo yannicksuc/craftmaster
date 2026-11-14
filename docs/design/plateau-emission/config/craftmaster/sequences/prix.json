@@ -1,0 +1,48 @@
+{
+  "duree": 5,
+  "boucle": false,
+  "description": "Les prix : poursuites sur les socles du fond, plan des prix",
+  "pistes": [
+    {
+      "type": "lumiere",
+      "cible": "poursuite",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 1,
+          "allume": true,
+          "couleur": "or",
+          "intensite": 90,
+          "cone": 6,
+          "vise": "@point:prix",
+          "effet": "respiration",
+          "vitesse": 0.5
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "contre",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 1,
+          "couleur": "or",
+          "intensite": 70
+        }
+      ]
+    },
+    {
+      "type": "camera",
+      "cible": "",
+      "cles": [
+        {
+          "t": 0.5,
+          "fondu": 0,
+          "plan": "camera:studio:14",
+          "transition": "enchaine"
+        }
+      ]
+    }
+  ]
+}

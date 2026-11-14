@@ -1,0 +1,35 @@
+{
+  "duree": 5,
+  "boucle": false,
+  "description": "Jugement : DISCUSSION, poursuite douce sur le candidat du moment",
+  "pistes": [
+    {
+      "type": "commande",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "commande": "ambiance discussion 2"
+        }
+      ]
+    },
+    {
+      "type": "lumiere",
+      "cible": "poursuite2",
+      "cles": [
+        {
+          "t": 0.5,
+          "fondu": 1,
+          "allume": true,
+          "couleur": "chaud",
+          "intensite": 70,
+          "cone": 5,
+          "vise": "@point:table",
+          "effet": "respiration",
+          "suit": "@moment",
+          "vitesse": 0.5
+        }
+      ]
+    }
+  ]
+}

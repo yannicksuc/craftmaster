@@ -1,0 +1,24 @@
+{
+  "duree": 8,
+  "boucle": true,
+  "description": "Couche : chenillard ambre en boucle sur le rideau",
+  "pistes": [
+    {
+      "type": "lumiere",
+      "cible": "rampe",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 1,
+          "allume": true,
+          "couleur": "ambre",
+          "intensite": 55,
+          "cone": 13,
+          "vise": "@point:rideau",
+          "effet": "chenillard",
+          "vitesse": 1.2
+        }
+      ]
+    }
+  ]
+}
