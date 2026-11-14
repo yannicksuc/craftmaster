@@ -967,5 +967,9 @@
   "screen.craftmaster.timeline.field.vitesse": "Vitesse",
   "screen.craftmaster.timeline.field.vague": "Vague",
   "show.craftmaster.published.you": "Scores publiés, ce qui change pour toi :",
-  "show.craftmaster.published.total": "Total %s pts"
+  "show.craftmaster.published.total": "Total %s pts",
+  "screen.craftmaster.scores.publish.count": "Publier (%s)",
+  "screen.craftmaster.scores.publish.none": "Publié",
+  "screen.craftmaster.scores.publish.tip": "Montre aux joueurs les scores validés : tableaux, têtes, étiquettes, liste Tab, classement, et ses changements à chacun dans le chat",
+  "screen.craftmaster.scores.publish.draft": "Valide d'abord la manche"
 }

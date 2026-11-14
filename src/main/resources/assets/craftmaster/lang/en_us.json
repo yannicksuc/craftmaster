@@ -967,5 +967,9 @@
   "screen.craftmaster.timeline.field.vitesse": "Speed",
   "screen.craftmaster.timeline.field.vague": "Wave",
   "show.craftmaster.published.you": "Scores published, what changed for you:",
-  "show.craftmaster.published.total": "Total %s pts"
+  "show.craftmaster.published.total": "Total %s pts",
+  "screen.craftmaster.scores.publish.count": "Publish (%s)",
+  "screen.craftmaster.scores.publish.none": "Published",
+  "screen.craftmaster.scores.publish.tip": "Shows the validated scores to the players: portraits, busts, labels, Tab list, ranking, and each one's changes in the chat",
+  "screen.craftmaster.scores.publish.draft": "Validate the round first"
 }

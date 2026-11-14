@@ -115,6 +115,9 @@ public class ScoreEntryScreen extends Screen {
         if (manches.isEmpty() || current == null) view = View.BOARD;
     }
 
+    /** Right edge of the "Publish" button (the hint starts after it). */
+    private int publishRight;
+
     static Component t(String key, Object... args) {
         return Component.translatable("screen.craftmaster.scores." + key, args);
     }
@@ -395,6 +398,21 @@ public class ScoreEntryScreen extends Screen {
         UiButton forget = addRenderableWidget(UiButton.of(left + w - 156, ay, 18, 18, Component.literal("✕"), this::forgetDraft));
         forget.setTooltip(Tooltip.create(t("forget.tip")));
         forget.active = count > 0 || !drafts.gestures.isEmpty();
+        // Publish: what players see (portraits, busts, labels, Tab, ranking) catches up with what is validated
+        int unpublished = board.has("unpublished") ? board.get("unpublished").getAsInt() : 0;
+        Component publishLabel = unpublished > 0 ? t("publish.count", unpublished) : t("publish.none");
+        int pw = font.width(publishLabel) + 14;
+        publishRight = left + 6 + pw;
+        UiButton publish = addRenderableWidget(UiButton.of(left + 6, ay, pw, 18, publishLabel, () -> {
+                    JsonArray actions = new JsonArray();
+                    JsonObject a = new JsonObject();
+                    a.addProperty("type", "scores.publish");
+                    a.addProperty("season", season());
+                    actions.add(a);
+                    runActions(actions);
+                }));
+        publish.active = count == 0 && unpublished > 0;
+        publish.setTooltip(Tooltip.create(count > 0 ? t("publish.draft") : t("publish.tip")));
 
         // Row B: gestures, server undo / redo (labelled), close
         int by = top + h - 22;
@@ -776,9 +794,10 @@ public class ScoreEntryScreen extends Screen {
         int dx = left + w - 162 - font.width(d);
         if (count > 0) g.text(font, d, dx, ay + 5, Theme.GOLD, false);
         String line = (showStatus ? status : hint).getString();
-        int room = (count > 0 ? dx - 8 : left + w - 162) - (left + 8);
-        if (font.width(line) > room) line = font.plainSubstrByWidth(line, room - font.width("…")) + "…";
-        g.text(font, line, left + 8, ay + 5, showStatus ? 0xFFFFD86A : Theme.TEXT_DIM, false);
+        int hx = Math.max(left + 8, publishRight + 6);
+        int room = (count > 0 ? dx - 8 : left + w - 162) - hx;
+        if (font.width(line) > room) line = font.plainSubstrByWidth(line, Math.max(0, room - font.width("…"))) + "…";
+        if (room > 20) g.text(font, line, hx, ay + 5, showStatus ? 0xFFFFD86A : Theme.TEXT_DIM, false);
         super.extractRenderState(g, mx, my, partial);
         // The dragged card above everything, slightly bigger
         if (dragging && dragged != null) {

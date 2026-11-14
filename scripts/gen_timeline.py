@@ -76,6 +76,12 @@ LANG = {
     P + "field.effet": ("Effect", "Effet"),
     P + "field.vitesse": ("Speed", "Vitesse"),
     P + "field.vague": ("Wave", "Vague"),
+    # The score entry screen's publish button
+    "screen.craftmaster.scores.publish.count": ("Publish (%s)", "Publier (%s)"),
+    "screen.craftmaster.scores.publish.none": ("Published", "Publié"),
+    "screen.craftmaster.scores.publish.tip": ("Shows the validated scores to the players: portraits, busts, labels, Tab list, ranking, and each one's changes in the chat",
+                                                   "Montre aux joueurs les scores validés : tableaux, têtes, étiquettes, liste Tab, classement, et ses changements à chacun dans le chat"),
+    "screen.craftmaster.scores.publish.draft": ("Validate the round first", "Valide d'abord la manche"),
     # The players' publish announcement (Show.announcePublished)
     "show.craftmaster.published.you": ("Scores published, what changed for you:", "Scores publiés, ce qui change pour toi :"),
     "show.craftmaster.published.total": ("Total %s pts", "Total %s pts"),

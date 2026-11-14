@@ -42,6 +42,19 @@ public final class ScoreEntryBoard {
             o.addProperty("undoAt", data.history().getFirst().at());
         }
         if (data.nextRedo() != null) o.addProperty("redoText", data.nextRedo().description());
+        // Players whose scores changed since the last publish (the screen's "Publish" button)
+        java.util.Map<String, java.util.Map<String, Integer>> live = s.labelledScores();
+        java.util.Map<String, java.util.Map<String, Integer>> pub = s.published == null ? java.util.Map.of() : s.published.scores();
+        java.util.Set<String> who = new java.util.HashSet<>(live.keySet());
+        who.addAll(pub.keySet());
+        int unpublished = 0;
+        for (String p : who) {
+            java.util.Map<String, Integer> a = new java.util.HashMap<>(live.getOrDefault(p, java.util.Map.of())), b = new java.util.HashMap<>(pub.getOrDefault(p, java.util.Map.of()));
+            a.values().removeIf(v -> v == 0);
+            b.values().removeIf(v -> v == 0);
+            if (!a.equals(b)) unpublished++;
+        }
+        o.addProperty("unpublished", unpublished);
 
         JsonArray players = new JsonArray();
         List<String> names = s.players.values().stream().filter(p -> !p.archived).map(p -> p.name).toList();
