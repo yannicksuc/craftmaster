@@ -10,9 +10,12 @@ import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
+import java.util.function.Consumer;
+
 /**
  * A shot in the director's Cameras tab: its preview (the last still the server sent), its number in a corner, its
- * name on a strip at the bottom; the one on air has a red frame and "DIRECT". A click puts it on air.
+ * name on a strip at the bottom; the one on air has a red frame and "DIRECT" (G / D: left or right of a split screen
+ * of two). A click puts it on air; Ctrl+click puts it side by side with the one on air, or takes it out of the split.
  */
 final class ShotTile extends AbstractButton {
 
@@ -20,20 +23,23 @@ final class ShotTile extends AbstractButton {
 
     private final String key;
     private final String number;
+    private final String badge;
     private final boolean live;
-    private final Runnable action;
+    private final Consumer<Boolean> action;
 
-    ShotTile(int x, int y, int w, int h, String key, int number, String name, boolean live, Runnable action) {
+    /** {@code badge}: "" off air, else what the red badge says; {@code action} gets true on Ctrl+click. */
+    ShotTile(int x, int y, int w, int h, String key, int number, String name, String badge, Consumer<Boolean> action) {
         super(x, y, w, h, Component.literal(number + " " + name));
         this.key = key;
         this.number = String.valueOf(number);
-        this.live = live;
+        this.badge = badge;
+        this.live = !badge.isEmpty();
         this.action = action;
     }
 
     @Override
     public void onPress(InputWithModifiers input) {
-        action.run();
+        action.accept(input.hasControlDown());
     }
 
     @Override
@@ -55,7 +61,7 @@ final class ShotTile extends AbstractButton {
         g.fill(x + 1, y + 1, x + 1 + nw, y + 11, live ? LIVE : 0xC0100A0C);
         g.text(font, number, x + 4, y + 2, live ? 0xFFFFFFFF : Theme.GOLD, false);
         if (live) {
-            String d = "● DIRECT";
+            String d = badge;
             g.fill(x + w - 1 - font.width(d) - 6, y + 1, x + w - 1, y + 11, LIVE);
             g.text(font, d, x + w - 1 - font.width(d) - 3, y + 2, 0xFFFFFFFF, false);
         }

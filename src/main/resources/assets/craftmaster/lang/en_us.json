@@ -1131,6 +1131,8 @@
   "message.craftmaster.feed_forced": "Everyone follows the show",
   "message.craftmaster.feed_released": "Back to your view",
   "message.craftmaster.feed_forced_key": "Everyone follows the show now: back to your choice afterwards",
+  "screen.craftmaster.modo_desk.pair.tip": "Ctrl+click: beside the shot on air (split screen)",
+  "screen.craftmaster.modo_desk.unpair.tip": "Ctrl+click: take it out of the split screen",
   "screen.craftmaster.modo_desk.direction": "Directing",
   "screen.craftmaster.modo_desk.auto.tip": "The shots change by themselves (points, intros, reveal…)",
   "screen.craftmaster.modo_desk.voice_on": "Voice: on",

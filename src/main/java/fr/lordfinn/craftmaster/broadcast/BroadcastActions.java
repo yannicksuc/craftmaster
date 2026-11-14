@@ -12,8 +12,10 @@ import java.util.Map;
  * to undo), they become an {@link Actions.Broadcast} effect that {@link Director} plays. Which camera or player a
  * name means is only known in the world, so the director resolves it (and says so when it cannot).
  * <pre>
- * camera.cut        {camera, transition?, effect?}  camera: number, name or role ("2", "Plan large", "large", "trone"),
- *                                                in the focus; or elsewhere: "studio:2", "ensuri:1", "caméra 2 du studio"
+ * camera.cut        {camera, transition?, effect?, pair?}  camera: number, name or role ("2", "Plan large", "large", "trone"),
+ *                                                in the focus; or elsewhere: "studio:2", "ensuri:1", "caméra 2 du studio";
+ *                                                pair true (Ctrl+click in the directors' grids) = side by side with the
+ *                                                camera on air (split screen of two), or back to one if it is one of the two
  * camera.follow     {player, transition?, effect?}  follow shot on a player (in a round: selects their zone too)
  * camera.pov        {player, transition?, effect?}  through a player's eyes
  * camera.path       {path, transition?, effect?}    plays a recorded travelling
@@ -51,6 +53,7 @@ public final class BroadcastActions {
                 out.put("camera", cameraRef(a));
                 transition(a, out, false);
                 effect(a, out);
+                if (bool(a, "pair", false)) out.put("pair", true);
             }
             case "camera.follow", "camera.pov" -> {
                 out.put("player", required(a, "player"));

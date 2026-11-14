@@ -391,6 +391,38 @@ public final class Director {
         return tiles;
     }
 
+    /**
+     * Ctrl+click on a shot in the directors' grids ({@code camera.cut} with {@code pair}): {@code spot} goes side by
+     * side with the camera on air (split screen of two, the one on air on the left); on a split screen of two, one of
+     * them leaves it (the other stays alone on air), another camera takes the place of the right one. False when there
+     * is nothing to pair with (a follow shot, a travelling, the same camera): a plain cut then.
+     */
+    private static boolean pair(MinecraftServer server, CameraSpot spot, int transition, String effect, List<String> lines) {
+        String key = spot.key();
+        String keep;
+        if (shot.kind() == BroadcastNetwork.SHOT_CAMERA) {
+            if (shot.camera().equals(key)) return false;
+            keep = shot.camera();
+        } else if (shot.kind() == BroadcastNetwork.SHOT_MOSAIC && shot.tiles().size() == 2) {
+            List<String> on = shot.tiles().stream().map(Tile::camera).toList();
+            int i = on.indexOf(key);
+            if (i >= 0) {
+                CameraSpot other = Cameras.list().get(on.get(1 - i));
+                if (other == null) return false;
+                take(server, ShotRequest.camera(other, transition, effect, Source.MANUAL));
+                lines.add("Écran partagé retiré : caméra " + other.label() + " seule à l'antenne.");
+                return true;
+            }
+            keep = on.getFirst();
+        } else return false;
+        CameraSpot first = Cameras.list().get(keep);
+        if (first == null) return false;
+        List<Tile> tiles = List.of(new Tile(first.key(), first.name()), new Tile(key, spot.name()));
+        take(server, new ShotRequest(BroadcastNetwork.SHOT_MOSAIC, first.lieu(), "", transition, effect, tiles, Source.MANUAL));
+        lines.add("À l'antenne : écran partagé, caméras " + first.label() + " et " + spot.label() + withEffect(effect) + ".");
+        return true;
+    }
+
     /** Moves the free camera ({@link BroadcastNetwork#SHOT_FREE}): sent to the broadcast games, which glide to it. */
     public static void moveFree(MinecraftServer server, FreeCamera pose) {
         free = pose;
@@ -599,6 +631,7 @@ public final class Director {
                             + (Cameras.list().isEmpty() ? " (aucune caméra posée)." : " (studio:2, ensuri:1… pour une autre)."));
                     return;
                 }
+                if (Boolean.TRUE.equals(a.get("pair")) && pair(server, spot, transition, effect, lines)) return;
                 take(server, ShotRequest.camera(spot, transition, effect, Source.MANUAL));
                 lines.add("À l'antenne : caméra " + spot.label() + withEffect(effect) + ".");
             }

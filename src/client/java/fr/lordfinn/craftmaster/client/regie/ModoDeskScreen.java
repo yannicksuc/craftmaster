@@ -178,16 +178,21 @@ public class ModoDeskScreen extends Screen {
         String kind = shot.has("kind") ? shot.get("kind").getAsString() : "none";
         String onAir = shot.has("camera") ? shot.get("camera").getAsString() : "";
         String followed = shot.has("player") ? shot.get("player").getAsString() : "";
+        // Split screen of two (Ctrl+click): both tiles on air, left then right
+        List<String> split = new ArrayList<>();
+        if (kind.equals("mosaic") && shot.has("tiles")) for (JsonElement e : shot.getAsJsonArray("tiles")) split.add(e.getAsString());
         // The shots: a preview tile each (5 per row, 16:9), the one on air framed in red
         int cols = 5, gap = 3, tw = (w - 12 - (cols - 1) * gap) / cols, th = tw * 9 / 16, i = 0;
         for (JsonElement e : array("cameras")) {
             JsonObject c = e.getAsJsonObject();
             String key = c.get("key").getAsString();
             String name = c.get("name").getAsString();
-            boolean live = kind.equals("camera") && key.equals(onAir);
+            int side = split.size() == 2 ? split.indexOf(key) : -1;
+            String badge = kind.equals("camera") && key.equals(onAir) ? "● DIRECT" : side == 0 ? "● DIRECT G" : side == 1 ? "● DIRECT D" : "";
             ShotTile tile = new ShotTile(left + 6 + (i % cols) * (tw + gap), y + (i / cols) * (th + gap), tw, th, key,
-                    c.get("n").getAsInt(), name.isEmpty() ? c.get("role").getAsString() : name, live, () -> run("camera.cut", "camera", key));
-            tile.setTooltip(Tooltip.create(Component.literal(c.get("lieu").getAsString())));
+                    c.get("n").getAsInt(), name.isEmpty() ? c.get("role").getAsString() : name, badge,
+                    pair -> run("camera.cut", "camera", key, "pair", pair));
+            tile.setTooltip(Tooltip.create(Component.literal(c.get("lieu").getAsString() + "\n").append(t(side >= 0 ? "unpair.tip" : "pair.tip"))));
             addRenderableWidget(tile);
             if (++i >= 15) break;
         }

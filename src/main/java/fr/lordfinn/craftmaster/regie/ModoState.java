@@ -64,6 +64,10 @@ public final class ModoState {
             shot.addProperty("kind", shotKind(show.shot().kind()));
             shot.addProperty("camera", show.shot().camera());
             shot.addProperty("player", show.shot().player());
+            // Split screen: the cameras of its tiles (the grids mark each of them on air)
+            JsonArray tiles = new JsonArray();
+            for (BroadcastNetwork.Tile t : show.shot().tiles()) tiles.add(t.camera());
+            shot.add("tiles", tiles);
             o.add("shot", shot);
             o.addProperty("auto", show.auto());
             o.addProperty("focus", show.focus());

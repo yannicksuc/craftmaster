@@ -136,6 +136,8 @@ Chaque caméra a aussi une **clé** unique pour la viser de n'importe où : `stu
   vignettes se rafraîchissent à tour de rôle (une image sur deux, trois ou quatre) : parfait pour des salles où l'on
   construit, moins pour une course rapide. Connu : sur un terrain plat ouvert, une fine ligne orangée peut
   apparaître à l'horizon des vignettes (rien dans des salles fermées).
+- **Deux plans choisis côte à côte** : Ctrl+clic sur un plan de la régie des modos (en jeu ou sur le site), à côté de
+  celui à l'antenne ([Régie des modos](RegieModos.md#deux-plans-à-lantenne-écran-partagé)).
 - `/cam pov Ensuri` (« vue d'Ensuri ») : à travers les yeux d'un joueur.
 
 ## Le menu d'une caméra (clic droit dessus)

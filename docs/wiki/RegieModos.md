@@ -38,7 +38,7 @@ Un modo ne peut pas envoyer plus de 5 ordres par seconde.
 ## Dans le jeu
 Touche **`;`** (réglable dans les contrôles, « Régie des modos ») ou `/regie`. Un onglet par droit :
 - **Caméras** : une touche par caméra (● rouge : à l'antenne ; survol : son lieu), réalisation auto oui / non, plan large,
-  transition (coupe, fondu, enchaîné), suivre un candidat ;
+  transition (coupe, fondu, enchaîné), suivre un candidat ; deux plans côte à côte, voir plus bas ;
 - **Manche** : manche suivante, fin de manche, stop chrono, les tablettes du minuteur (go, pause, à zéro, relancer), la
   manche en cours et son chrono, une touche par manche pour la lancer ;
 - **Points** : pour la manche en cours, −1 / +1 / +2 / +3 par candidat ; les appuis rapprochés sur un même candidat
@@ -47,6 +47,19 @@ Touche **`;`** (réglable dans les contrôles, « Régie des modos ») ou `/regi
 
 L'écran suit le serveur (une fois par seconde au plus) : un droit ajouté fait apparaître son onglet, `/modo pause` ou un
 droit retiré ferme la régie.
+
+## Deux plans à l'antenne (écran partagé)
+Dans la grille des plans, en jeu comme sur le site :
+- **clic** : ce plan seul à l'antenne (comme avant) ;
+- **Ctrl+clic** (⌘ sur Mac ; **appui long** au doigt sur le site) sur un autre plan : les deux côte à côte, celui qui
+  était à l'antenne à gauche ; les deux tuiles sont encadrées en rouge, « DIRECT · GAUCHE » / « DIRECT · DROITE » (en
+  jeu : « DIRECT G » / « DIRECT D ») ;
+- Ctrl+clic sur l'un des deux : il sort, l'autre reste seul ; Ctrl+clic sur un troisième : il remplace celui de droite ;
+- un clic seul revient toujours à un seul plan.
+
+C'est l'écran partagé du mode diffusion (même image que `/cam mosaic`, à deux tuiles), choisi plan par plan. Action :
+`camera.cut` avec `pair: true` (le serveur décide d'ajouter, de remplacer ou de retirer selon ce qui est à l'antenne).
+Sur un plan qui suit un candidat ou un trajet, Ctrl+clic fait une coupe normale.
 
 ## Sur le site
 Page **https://lordfinn.fr/craftmaster/regie** : mêmes onglets, faits pour le téléphone. Le modo se connecte au site
