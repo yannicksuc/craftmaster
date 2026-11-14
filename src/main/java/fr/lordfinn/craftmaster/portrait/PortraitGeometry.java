@@ -72,8 +72,6 @@ public final class PortraitGeometry {
     public static final double CANVAS_FRONT = -HD + CANVAS;
     /** Back of the canvas (z). */
     public static final double CANVAS_BACK = -HD;
-    /** With the window look, the figure stands this far (px) behind the canvas plane. */
-    public static final double WINDOW_DEPTH = 2;
 
     /**
      * The figure's base cube for a part, as in the adult player model (relative to the part's pivot, before
@@ -194,18 +192,17 @@ public final class PortraitGeometry {
     }
 
     /**
-     * How far (px, toward the viewer) the figure is moved: not at all normally (the canvas cuts it), and with the
-     * window look, behind the canvas plane so it is entirely "inside" the window.
+     * How far (px, toward the viewer) the figure is moved: never. The window look keeps it exactly where the pose
+     * puts it (what is behind the canvas plane is in the room, what is in front comes out of the window); its
+     * offset z sets how deep in the room it stands.
      */
     public static double figureShift(Pose pose, boolean window) {
-        if (!window) return 0;
-        double[] z = figureDepth(pose);
-        return Math.min(0, CANVAS_FRONT - WINDOW_DEPTH - z[1]);
+        return 0;
     }
 
     /** z of the back of the figure as drawn (portrait space): the window's room must be deeper than that. */
     public static double figureBackZ(Pose pose, boolean window) {
-        return figureDepth(pose)[0] + figureShift(pose, window);
+        return figureDepth(pose)[0];
     }
 
     /** Part space (its cube's coordinates) → portrait space, as drawn (normal look). */
@@ -224,7 +221,8 @@ public final class PortraitGeometry {
     private static List<Piece> pieces(Pose pose, boolean window) {
         List<Piece> out = new ArrayList<>();
         Matrix4d frame = frameMatrix(pose);
-        for (Box b : window ? MOULDINGS : FRAME_BOXES) out.add(new Piece(b, frame));
+        // The window look's back plate weighs like the canvas: switching the look never moves the portrait
+        for (Box b : FRAME_BOXES) out.add(new Piece(b, frame));
         double shift = figureShift(pose, window);
         for (Part p : BODY_PARTS)
             if (!pose.isHidden(p)) out.add(new Piece(partBox(p, false), partMatrix(pose, p, shift)));

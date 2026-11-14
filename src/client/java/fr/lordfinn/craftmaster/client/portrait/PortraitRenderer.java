@@ -384,7 +384,7 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         java.util.function.Function<VertexConsumer, PortraitClipper> clipper = window
                 ? c -> PortraitClipper.portal(c, frameToCamera, canvasFront - 0.02f, (float) PortraitGeometry.OPEN_HW, (float) PortraitGeometry.OPEN_HH)
                 : c -> PortraitClipper.cut(c, frameToCamera, cutZ, keepFront, (float) PortraitGeometry.HW, (float) PortraitGeometry.HH);
-        if (!window || seeInside) {
+        {
             for (Part part : PortraitGeometry.BODY_PARTS) {
                 if (pose.isHidden(part)) continue;
                 poseStack.pushPose();
@@ -406,7 +406,8 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
 
     /**
      * The pose editor's preview: the frame and the whole figure in portrait space (nothing cut, so a part hidden
-     * in the painting can still be seen and grabbed), turned by the editor's view, the edited part tinted.
+     * in the painting can still be seen and grabbed; with the window look, as in the world), turned by the
+     * editor's view, the edited part tinted.
      */
     private void submitPreview(State s, PoseStack poseStack, SubmitNodeCollector collector) {
         Pose pose = s.pose;
@@ -421,8 +422,31 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         poseStack.scale(16, 16, 16);
         int frameTint = s.frameSelected ? SELECTED_TINT : s.frameHovered ? HOVER_TINT : 0xFFFFFFFF;
         submitTinted(mouldings, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, frameTint);
-        submitTinted(canvas, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, frameTint);
+        if (!s.window) submitTinted(canvas, poseStack, collector, RenderTypes.entityCutout(FRAME_TEXTURE), light, frameTint);
         poseStack.popPose();
+        // Window look: as in the world, the room and what stands in it are an illusion seen through the opening
+        // (flattened onto the canvas plane, nothing from behind); what leans out of the window is drawn as it is
+        java.util.function.Function<VertexConsumer, PortraitClipper> clipper = null;
+        if (s.window) {
+            poseStack.pushPose();
+            poseStack.mulPose(new Matrix4f(PortraitGeometry.frameMatrix(pose)));
+            Matrix4f frameToCamera = new Matrix4f(poseStack.last().pose());
+            float canvasFront = (float) PortraitGeometry.CANVAS_FRONT;
+            float hw = (float) PortraitGeometry.OPEN_HW, hh = (float) PortraitGeometry.OPEN_HH;
+            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(FRAME_TEXTURE), (p, c) -> backPlate(c, p, light));
+            if (PortraitClipper.facesViewer(frameToCamera)) {
+                float depth = (float) Math.max(s.windowDepth, -(PortraitGeometry.figureBackZ(pose, true) - canvasFront) + 1);
+                float scale = s.windowSize / 100f;
+                collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(BACKDROP_TEXTURE), (p, c) -> {
+                    PortraitClipper clip = PortraitClipper.portalParallel(c, frameToCamera, canvasFront - 0.02f, hw, hh);
+                    roomBack(clip, p, depth, scale, light);
+                    roomWalls(clip, p, depth, scale, light);
+                    clip.flush();
+                });
+            }
+            poseStack.popPose();
+            clipper = c -> PortraitClipper.portalParallel(c, frameToCamera, canvasFront - 0.02f, hw, hh);
+        }
 
         PortraitSkins.Skin skin = s.skin != null ? s.skin : PortraitSkins.defaultSkin();
         Map<Part, ModelPart> parts = skin.slim() ? slim : wide;
@@ -433,7 +457,8 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
             poseStack.mulPose(new Matrix4f(PortraitGeometry.partMatrix(pose, part)));
             poseStack.scale(16, 16, 16);
             int tint = part == s.selected ? SELECTED_TINT : part == s.hovered ? HOVER_TINT : 0xFFFFFFFF;
-            submitTinted(parts.get(part), poseStack, collector, figure, light, tint);
+            if (clipper != null) submitPart(parts.get(part), poseStack, collector, figure, light, tint, clipper);
+            else submitTinted(parts.get(part), poseStack, collector, figure, light, tint);
             if (part == Part.BODY && skin.cape() != null)
                 submitTinted(cape, poseStack, collector, RenderTypes.entityCutout(skin.cape()), light, tint);
             poseStack.popPose();

@@ -64,14 +64,53 @@ public final class PortraitClient {
         net.minecraft.world.phys.Vec3 look = mc.player.getViewVector(1);
         double reach = PortraitNetwork.FAR_REACH;
         net.minecraft.world.phys.Vec3 end = eye.add(look.scale(reach));
-        net.minecraft.world.phys.EntityHitResult hit = net.minecraft.world.entity.projectile.ProjectileUtil.getEntityHitResult(mc.player, eye, end,
-                mc.player.getBoundingBox().expandTowards(look.scale(reach)).inflate(1), e -> e instanceof PortraitEntity && !e.isRemoved(), reach * reach);
+        net.minecraft.world.phys.EntityHitResult hit = portraitAlong(mc, eye, end);
         if (hit == null) return;
         double portrait = hit.getLocation().distanceTo(eye);
         net.minecraft.world.phys.BlockHitResult block = mc.level.clip(new net.minecraft.world.level.ClipContext(eye, end,
                 net.minecraft.world.level.ClipContext.Block.OUTLINE, net.minecraft.world.level.ClipContext.Fluid.NONE, mc.player));
         if (block.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK && block.getLocation().distanceTo(eye) < portrait) return;
         if (ClientPlayNetworking.canSend(PortraitNetwork.OpenFar.TYPE)) ClientPlayNetworking.send(new PortraitNetwork.OpenFar(hit.getEntity().getId()));
+    }
+
+    /**
+     * The nearest portrait on the segment eye → end, or null. Every loaded portrait is tried: the game's entity
+     * search goes by the sections around the entity's position (the hook, far above a long string's frame).
+     */
+    static net.minecraft.world.phys.EntityHitResult portraitAlong(Minecraft mc, net.minecraft.world.phys.Vec3 eye, net.minecraft.world.phys.Vec3 end) {
+        if (mc.level == null) return null;
+        PortraitEntity best = null;
+        net.minecraft.world.phys.Vec3 at = null;
+        double bestD = Double.MAX_VALUE;
+        for (net.minecraft.world.entity.Entity e : mc.level.entitiesForRendering()) {
+            if (!(e instanceof PortraitEntity p) || p.isRemoved()) continue;
+            var box = p.getBoundingBox();
+            var hit = box.contains(eye) ? java.util.Optional.of(eye) : box.clip(eye, end);
+            if (hit.isEmpty()) continue;
+            double d = hit.get().distanceToSqr(eye);
+            if (d < bestD) {
+                bestD = d;
+                best = p;
+                at = hit.get();
+            }
+        }
+        return best == null ? null : new net.minecraft.world.phys.EntityHitResult(best, at);
+    }
+
+    /** After the game's aim: a portrait within reach, nearer than what the game found, is what the player aims at. */
+    public static void pickInReach(Minecraft mc, float partialTick) {
+        net.minecraft.world.entity.Entity viewer = mc.getCameraEntity();
+        if (viewer == null || mc.player == null || mc.level == null) return;
+        net.minecraft.world.phys.Vec3 eye = viewer.getEyePosition(partialTick);
+        double reach = mc.player.entityInteractionRange();
+        net.minecraft.world.phys.Vec3 end = eye.add(viewer.getViewVector(partialTick).scale(reach));
+        net.minecraft.world.phys.EntityHitResult hit = portraitAlong(mc, eye, end);
+        if (hit == null) return;
+        net.minecraft.world.phys.HitResult now = mc.hitResult;
+        if (now != null && now.getType() != net.minecraft.world.phys.HitResult.Type.MISS
+                && now.getLocation().distanceToSqr(eye) <= hit.getLocation().distanceToSqr(eye)) return;
+        mc.hitResult = hit;
+        mc.crosshairPickEntity = hit.getEntity();
     }
 
     public static Pose previewPose(int entityId) {

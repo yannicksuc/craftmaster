@@ -59,6 +59,20 @@ public class PortraitScreen extends Screen {
         return portrait;
     }
 
+    /** The window look as set here (not saved yet), for the pose editor's preview: {on (1/0), depth, size}. */
+    int[] windowLook() {
+        keep();
+        int depth, size;
+        try {
+            depth = Integer.parseInt(depthV.trim());
+            size = Integer.parseInt(sizeV.replace("%", "").trim());
+        } catch (NumberFormatException e) {
+            depth = portrait.windowDepth();
+            size = portrait.windowSize();
+        }
+        return new int[]{windowV ? 1 : 0, depth, size};
+    }
+
     /** The pose editor saved or deleted a pose: offer the fresh list. */
     void libraryChanged() {
         rebuildWidgets();

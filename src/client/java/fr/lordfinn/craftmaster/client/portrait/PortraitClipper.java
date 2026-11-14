@@ -17,7 +17,8 @@ import java.util.List;
  *   <li>{@link #portal}: the window (Antichamber) look. Everything is behind the opening; each vertex is moved
  *   along its line of sight onto the canvas plane (it stays exactly where the eye sees it), then the flattened
  *   polygons are clipped to the opening. A tiny offset keeps their depth order. Seen through the opening the
- *   inside looks deep, from anywhere else the portrait is a thin flat canvas: nothing exists outside it.</li>
+ *   inside looks deep, from anywhere else the portrait is a thin flat canvas: nothing exists outside it. What is
+ *   in front of the canvas plane (a figure leaning out of the window) is drawn as it is.</li>
  * </ul>
  * Planes and the opening are given in "frame space" (pixels, see PortraitGeometry) with the matrix that took that
  * space to camera space when the portrait was submitted.
@@ -57,6 +58,8 @@ public final class PortraitClipper implements VertexConsumer {
 
     private final VertexConsumer out;
     private final boolean portal;
+    /** Seen without perspective (the pose editor's preview): the lines of sight are all along camera z. */
+    private boolean parallel;
     /** Front normal of the canvas in camera space, and the plane's constant (n·X = d on the plane). */
     private final Vector3f n;
     private final float d;
@@ -99,6 +102,18 @@ public final class PortraitClipper implements VertexConsumer {
     /** The window look: flattens onto frame-space plane z = planeZ, inside the opening (half sizes). */
     public static PortraitClipper portal(VertexConsumer out, Matrix4f frameToCamera, float planeZ, float openHalfW, float openHalfH) {
         return new PortraitClipper(out, frameToCamera, planeZ, false, true, openHalfW, openHalfH, 0, 0);
+    }
+
+    /** The window look seen without perspective (the pose editor's preview): flattened straight along camera z. */
+    public static PortraitClipper portalParallel(VertexConsumer out, Matrix4f frameToCamera, float planeZ, float openHalfW, float openHalfH) {
+        PortraitClipper c = portal(out, frameToCamera, planeZ, openHalfW, openHalfH);
+        c.parallel = true;
+        return c;
+    }
+
+    /** The same test without perspective: the canvas faces the viewer (who looks toward camera -z). */
+    public static boolean facesViewer(Matrix4f frameToCamera) {
+        return frameToCamera.transformDirection(new Vector3f(0, 0, 1)).z > 1e-4f;
     }
 
     /** True when the camera is in front of the canvas (the window can only be looked through from the front). */
@@ -223,8 +238,10 @@ public final class PortraitClipper implements VertexConsumer {
             emitOutsideHidden(poly);
             return;
         }
-        // Behind the canvas only, then flattened along the lines of sight, then cut to the opening
-        if (d >= 0) return;
+        // In front of the canvas plane: out of the window, drawn as it is
+        emit(clip(new ArrayList<>(poly), flip(keep)));
+        // Behind it: flattened along the lines of sight, then cut to the opening (only seen from the front)
+        if (parallel ? n.z <= 1e-4f : d >= 0) return;
         // Flattening is a projection: a big quad would get its texture bent by the GPU's interpolation (it moves
         // with the point of view). Small pieces keep it straight; each is flattened on its own.
         int n = pieces(poly);
@@ -260,6 +277,11 @@ public final class PortraitClipper implements VertexConsumer {
         for (V p : poly) {
             float along = n.x * p.x + n.y * p.y + n.z * p.z;     // < d: behind the plane
             p.depth = d - along;                                 // distance behind, in blocks
+            if (parallel) {
+                // Almost onto the plane, along the line of sight: a few % of the depth keeps the order
+                p.z += (d - along) / n.z * 0.97f;
+                continue;
+            }
             float s = d / along;
             p.x *= s; p.y *= s; p.z *= s;
         }
@@ -268,7 +290,7 @@ public final class PortraitClipper implements VertexConsumer {
             if (poly.size() < 3) return;
         }
         // Depth order kept with a tiny step back (at most 0.8 px, for 6 blocks of depth: the deepest room)
-        for (V p : poly) {
+        if (!parallel) for (V p : poly) {
             float back = Math.min(1f, p.depth / 6f) * (0.8f / 16f);
             p.x -= n.x * back; p.y -= n.y * back; p.z -= n.z * back;
         }

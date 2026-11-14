@@ -166,10 +166,12 @@ class PortraitGeometryTest {
     }
 
     @Test
-    void windowLookPutsTheFigureBehindTheCanvas() {
+    void windowLookKeepsTheFigureAndThePortraitInPlace() {
         for (Map.Entry<String, Pose> e : PoseLibrary.presets().entrySet()) {
-            double max = maxZ(e.getValue(), true);
-            assertTrue(max <= PortraitGeometry.CANVAS_FRONT - PortraitGeometry.WINDOW_DEPTH + EPS, e.getKey() + " at z " + max);
+            Pose p = e.getValue();
+            assertEquals(maxZ(p, false), maxZ(p, true), EPS, e.getKey());
+            Vector3d a = PortraitGeometry.portraitOrigin(p, false, 3), b = PortraitGeometry.portraitOrigin(p, true, 3);
+            assertEquals(0, a.distance(b), EPS, e.getKey() + ": the portrait does not move when the look changes");
         }
         // Nothing of the window look exists outside the frame: same bounds as the frame + figure
         double[] b = PortraitGeometry.bounds(Pose.NEUTRAL, true);

@@ -511,6 +511,11 @@ public class PoseEditorScreen extends Screen {
         hover = drag == Drag.NONE && inPreview(mouseX, mouseY) ? PoseHitTest.pick(editing, view, mouseX, mouseY, slimSkin()) : null;
 
         PortraitRenderer.State s = PortraitRenderer.previewState(editing, skin());
+        // The window look as the portrait has it (or as its settings screen has it, not saved yet)
+        int[] look = parent != null ? parent.windowLook() : new int[]{portrait.window() ? 1 : 0, portrait.windowDepth(), portrait.windowSize()};
+        s.window = look[0] == 1;
+        s.windowDepth = look[1];
+        s.windowSize = look[2];
         s.selected = group.part;
         s.frameSelected = group == Group.FRAME;
         if (hover != null) {
