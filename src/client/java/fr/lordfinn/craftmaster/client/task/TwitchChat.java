@@ -44,6 +44,8 @@ public final class TwitchChat {
         public fr.lordfinn.craftmaster.client.score.PlayerFrameHud.Settings playerFrame = new fr.lordfinn.craftmaster.client.score.PlayerFrameHud.Settings();
         /** In-game clips (F9 / F10): frame rate, quality, sending to the server. */
         public fr.lordfinn.craftmaster.client.media.Clips.Settings clips = new fr.lordfinn.craftmaster.client.media.Clips.Settings();
+        /** The régie agent (docs/wiki/RegieIA.md): on / off, from Simple Voice Chat's menu. */
+        public boolean regieAgent = true;
     }
 
     public static final class Twitch {
@@ -122,6 +124,19 @@ public final class TwitchChat {
         thread = new Thread(() -> loop(channel), "CraftMaster Twitch chat");
         thread.setDaemon(true);
         thread.start();
+    }
+
+    /** Writes the settings as they are now (a toggle changed in game). */
+    public static synchronized void save() {
+        Path f = file();
+        try {
+            Files.createDirectories(f.getParent());
+            try (Writer w = Files.newBufferedWriter(f, StandardCharsets.UTF_8)) {
+                GSON.toJson(config, w);
+            }
+        } catch (IOException e) {
+            CraftMaster.LOG.warn("Réglages du client non enregistrés ({})", f, e);
+        }
     }
 
     public static synchronized void stop() {

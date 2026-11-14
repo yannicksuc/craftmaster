@@ -532,5 +532,11 @@ voix Windows (Paul), déposées dans `run-26.2/regie-trigger/`.
 | Clic [Annuler] (`/regieia annuler <demande>`) | déjà annulée : « Rien à annuler » ; sinon état d'avant remis | ✔ |
 | « Ajoute une caméra 15 qui filme le trône de près, un peu en plongée, et appelle-la trône serré » | `/cam placer 15 …` (5 blocs, 2 plus haut, zoom 30), nommée | ✔ |
 
+Icône et bouton (Simple Voice Chat 2.6.27+26.2 sur le client et le serveur de dev, menu ouvert par
+`open de.maxhenkel.voicechat.gui.VoiceChatScreen` dans `run-26.2/dev-input.txt`, captures MCP) : bouton à sa place
+après « volumes », clic → coupé (barre rouge, `regieAgent: false`), une demande dite alors n'est pas envoyée à
+l'agent et aucune icône ne s'affiche ; activé : étincelle + barres pendant la parole, étincelle clignotante
+pendant le travail, à côté de la place de l'icône de Voice Chat. ✔
+
 Tests automatiques : `AgentBridgeTest` (noms entre guillemets, lignes de conduite refusées, adresses masquées) ;
 `tools/voice-regie/tests/test_agent.py` (relais aller-retour, outil inconnu, jeu parti, routage `agent.request`).

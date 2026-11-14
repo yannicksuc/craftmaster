@@ -31,6 +31,7 @@ import java.util.Locale;
  * screenshot                     saves the picture to screenshots/ like F2 (any screen, no world needed)
  * hover x y                      screens that follow the mouse read this position instead ("hover" alone: the real one)
  * slowmo factor                  animations that ask {@link #timeScale} run this many times slower (1 = normal)
+ * open CLASS                    opens that screen (no-argument constructor), e.g. another mod's menu
  * use seconds                    holds the "use" key in the world that long, then lets go (charge a throw, a bow…)
  * </pre>
  */
@@ -108,6 +109,16 @@ public final class DevInput {
                 // "regie": the moderators' director, as with its key
                 if (line.strip().equals("regie")) {
                     fr.lordfinn.craftmaster.client.regie.ModoDeskClient.open(mc);
+                    continue;
+                }
+                // "open <class>": opens a screen built with its no-argument constructor (another mod's menu, e.g.
+                // de.maxhenkel.voicechat.gui.VoiceChatScreen)
+                if (line.strip().startsWith("open ")) {
+                    try {
+                        mc.gui.setScreen((net.minecraft.client.gui.screens.Screen) Class.forName(line.strip().substring(5).strip()).getConstructor().newInstance());
+                    } catch (ReflectiveOperationException | RuntimeException e) {
+                        CraftMaster.LOG.warn("[DevInput] {} : {}", line, e.toString());
+                    }
                     continue;
                 }
                 // "attack": a hit on what the crosshair aims at (logged)

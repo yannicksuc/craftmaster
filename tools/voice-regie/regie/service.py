@@ -100,6 +100,11 @@ class Regie:
         actions, agent_job = u.actions, None
         # "Change the setup" goes to the agent, which runs now; the game polls it (agentJob)
         asks = [a for a in actions if a.get("type") == "agent.request"]
+        if asks and body.get("agent") is False:
+            # Turned off in the game (Simple Voice Chat's menu): say so, start nothing
+            actions = [a for a in actions if a.get("type") != "agent.request"]
+            u.reply = "L'agent de régie est coupé (bouton dans le menu de Voice Chat)."
+            asks = []
         if asks:
             actions = [a for a in actions if a.get("type") != "agent.request"]
             request = transcript if len(asks) == 1 else " ; ".join(a["demande"] for a in asks)

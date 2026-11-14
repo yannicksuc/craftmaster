@@ -193,7 +193,7 @@ public final class VoiceRegie {
             return;
         }
         long t = System.nanoTime();
-        RegieService.Reply reply = new RegieService(URL).command(Wav.encode(pcm), ctx.json());
+        RegieService.Reply reply = new RegieService(URL).command(Wav.encode(pcm), ctx.json(), RegieAgent.enabled());
         CraftMaster.LOG.info("Voice control: \"{}\" -> {} {} ({} ms)", reply.transcript(), reply.actionsJson(),
                 reply.error() == null ? "" : reply.error(), (System.nanoTime() - t) / 1_000_000);
         mc.execute(() -> onReply(id, reply));

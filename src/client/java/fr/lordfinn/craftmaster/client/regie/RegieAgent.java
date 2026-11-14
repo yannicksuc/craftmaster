@@ -44,8 +44,31 @@ public final class RegieAgent {
 
     record Pending(String job, int cid, String request, String reply) {}
 
+    /** On / off (Simple Voice Chat's menu button, saved in config/craftmaster-client.json). */
+    public static boolean enabled() {
+        return fr.lordfinn.craftmaster.client.task.TwitchChat.config().regieAgent;
+    }
+
+    public static void setEnabled(boolean on) {
+        fr.lordfinn.craftmaster.client.task.TwitchChat.config().regieAgent = on;
+        fr.lordfinn.craftmaster.client.task.TwitchChat.save();
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null) mc.player.sendOverlayMessage(Component.translatable(on ? "message.craftmaster.regie.agent_on" : "message.craftmaster.regie.agent_off"));
+    }
+
+    /** What the HUD icon shows (AgentHudIcon). */
+    public enum State { NONE, LISTENING, WORKING }
+
+    public static State state() {
+        if (!RUNNING.isEmpty()) return State.WORKING;
+        if (!enabled() || !VoiceRegie.isAdmin()) return State.NONE;
+        VoiceRegie.Phase p = VoiceRegie.view.phase();
+        return p == VoiceRegie.Phase.LISTENING || p == VoiceRegie.Phase.THINKING ? State.LISTENING : State.NONE;
+    }
+
     public static void init() {
         ClientPlayNetworking.registerGlobalReceiver(RegiePayloads.AgentReply.TYPE, (p, ctx) -> onReply(p));
+        AgentHudIcon.init();
         ClientPlayConnectionEvents.DISCONNECT.register((h, mc) -> {
             RUNNING.clear();
             PENDING.clear();
@@ -64,6 +87,10 @@ public final class RegieAgent {
         if (mc.player == null) return;
         if (!VoiceRegie.isAdmin()) {
             chat(Component.translatable("message.craftmaster.regie.not_admin").withStyle(ChatFormatting.RED));
+            return;
+        }
+        if (!enabled()) {
+            chat(prefix().append(Component.translatable("message.craftmaster.regie.agent_off").withStyle(ChatFormatting.GRAY)));
             return;
         }
         String player = mc.player.getPlainTextName();

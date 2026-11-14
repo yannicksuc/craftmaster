@@ -53,15 +53,24 @@ public final class RegieService {
 
     /** The request body: the WAV in base64 next to the context JSON (already serialized by the server). */
     public static String body(byte[] wav, String contextJson) {
-        return "{\"audio\":\"" + Base64.getEncoder().encodeToString(wav) + "\",\"context\":"
+        return body(wav, contextJson, true);
+    }
+
+    /** {@code agent}: may "change the setup" requests go to the régie agent (off: the service says it is off). */
+    public static String body(byte[] wav, String contextJson, boolean agent) {
+        return "{\"audio\":\"" + Base64.getEncoder().encodeToString(wav) + "\",\"agent\":" + agent + ",\"context\":"
                 + (contextJson == null || contextJson.isBlank() ? "{}" : contextJson) + "}";
     }
 
     public Reply command(byte[] wav, String contextJson) {
+        return command(wav, contextJson, true);
+    }
+
+    public Reply command(byte[] wav, String contextJson, boolean agent) {
         HttpRequest req = HttpRequest.newBuilder(URI.create(url + "/command"))
                 .timeout(Duration.ofSeconds(30))
                 .header("Content-Type", "application/json; charset=utf-8")
-                .POST(HttpRequest.BodyPublishers.ofString(body(wav, contextJson), StandardCharsets.UTF_8))
+                .POST(HttpRequest.BodyPublishers.ofString(body(wav, contextJson, agent), StandardCharsets.UTF_8))
                 .build();
         try {
             HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));

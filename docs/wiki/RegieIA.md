@@ -23,6 +23,15 @@ Réservé aux organisateurs (`craftmaster:admin` ou opérateur), comme la [régi
 - Il faut le **service de la régie vocale** lancé sur le PC (`tools\voice-regie\start.ps1`) : l'agent y tourne,
   avec l'abonnement Claude (Claude Code) ou une clé API.
 
+- **L'icône** : à côté de celle de Simple Voice Chat (même taille, même place, réglable par ses options
+  « position / taille de l'icône »), une étincelle : avec des barres de son tant qu'on parle (touche N),
+  clignotante tant que l'agent travaille. Cachée avec les icônes de Voice Chat, avec F1, jamais à l'image de la
+  diffusion.
+- **Activer / couper** : bouton étincelle dans le menu de Voice Chat (touche V), en bas, après « volumes »
+  (barré de rouge = coupé ; organisateurs seulement). Coupé : les demandes de préparation ne partent plus (le
+  panneau dit « L'agent de régie est coupé »), `/ia` refuse, la régie vocale rapide continue. Retenu dans
+  `config/craftmaster-client.json` (`regieAgent`).
+
 Comptez **10 à 20 s** par demande (lecture, quelques commandes, réponse). Pendant ce temps on peut continuer
 l'émission, la régie vocale rapide reste disponible.
 
@@ -71,6 +80,10 @@ serveur : exécute en tant que LordFinn (sortie capturée), photo avant le 1er c
   `src/client/.../regie/RegieAgent.java` (relais du jeu, chat, `/ia`).
 - Sans clé API, l'agent passe par Claude Code (`claude -p`, abonnement) avec un serveur MCP `craftmaster` lancé par
   le Python Windows (même dans WSL), qui rappelle le service ; la conversation suit par `--resume`.
+- Icône et bouton : `client/regie/AgentHudIcon.java` (place lue dans les réglages de Voice Chat par réflexion :
+  il n'a pas d'API pour son HUD), `AgentToggleButton` + `mixin/VoiceChatScreenMixin` (ajouté à son menu, appliqué
+  seulement s'il est installé : `VoiceChatMixinPlugin`), sprites `textures/gui/sprites/icons/regie_agent_*.png`
+  (`scripts/gen_regie_agent_icons.py`, palette et barre rouge de Voice Chat).
 - Réglages : `REGIE_AGENT_MODEL` (défaut : celui de la régie, `claude-opus-5-5`), `REGIE_AGENT_EFFORT` (`medium`).
 
 ## Dépannage

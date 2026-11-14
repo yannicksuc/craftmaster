@@ -111,7 +111,8 @@ class RegieTest {
     @Test
     void serviceRequestBody() {
         String body = RegieService.body(new byte[]{1, 2, 3}, "{\"a\":1}");
-        assertEquals("{\"audio\":\"" + Base64.getEncoder().encodeToString(new byte[]{1, 2, 3}) + "\",\"context\":{\"a\":1}}", body);
+        assertEquals("{\"audio\":\"" + Base64.getEncoder().encodeToString(new byte[]{1, 2, 3}) + "\",\"agent\":true,\"context\":{\"a\":1}}", body);
+        assertTrue(RegieService.body(new byte[0], null, false).contains("\"agent\":false"));
         assertTrue(RegieService.body(new byte[0], null).endsWith("\"context\":{}}"));
     }
 

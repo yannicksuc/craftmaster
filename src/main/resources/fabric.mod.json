@@ -13,7 +13,7 @@
     "client": ["fr.lordfinn.craftmaster.client.CraftMasterClient"],
     "voicechat": ["fr.lordfinn.craftmaster.compat.VoiceActivity"]
   },
-  "mixins": ["craftmaster.mixins.json", {"config": "craftmaster.client.mixins.json", "environment": "client"}, {"config": "craftmaster.axiom.mixins.json", "environment": "client"}],
+  "mixins": ["craftmaster.mixins.json", {"config": "craftmaster.client.mixins.json", "environment": "client"}, {"config": "craftmaster.axiom.mixins.json", "environment": "client"}, {"config": "craftmaster.voicechat.mixins.json", "environment": "client"}],
   "depends": {
     "fabricloader": ">=${loader_version}",
     "minecraft": "${minecraft_version}",
