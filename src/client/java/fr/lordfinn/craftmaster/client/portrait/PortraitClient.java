@@ -84,14 +84,16 @@ public final class PortraitClient {
         double bestD = Double.MAX_VALUE;
         for (net.minecraft.world.entity.Entity e : mc.level.entitiesForRendering()) {
             if (!(e instanceof PortraitEntity p) || p.isRemoved()) continue;
-            var box = p.getBoundingBox();
-            var hit = box.contains(eye) ? java.util.Optional.of(eye) : box.clip(eye, end);
-            if (hit.isEmpty()) continue;
-            double d = hit.get().distanceToSqr(eye);
-            if (d < bestD) {
-                bestD = d;
-                best = p;
-                at = hit.get();
+            // The frame and figure, and the hook under the ceiling (a hit there breaks the portrait, not the block)
+            for (var box : new net.minecraft.world.phys.AABB[]{p.getBoundingBox(), p.hookBox()}) {
+                var hit = box.contains(eye) ? java.util.Optional.of(eye) : box.clip(eye, end);
+                if (hit.isEmpty()) continue;
+                double d = hit.get().distanceToSqr(eye);
+                if (d < bestD) {
+                    bestD = d;
+                    best = p;
+                    at = hit.get();
+                }
             }
         }
         return best == null ? null : new net.minecraft.world.phys.EntityHitResult(best, at);

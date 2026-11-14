@@ -105,6 +105,12 @@ public final class DevInput {
                     else if (a.length > 1) fr.lordfinn.craftmaster.client.axiom.TravellingGizmos.devAction(a[1]);
                     continue;
                 }
+                // "attack": a hit on what the crosshair aims at (logged)
+                if (line.strip().equals("attack") && mc.player != null && mc.gameMode != null) {
+                    CraftMaster.LOG.info("[DevInput] aim: {}", mc.hitResult instanceof net.minecraft.world.phys.EntityHitResult e ? e.getEntity() : mc.hitResult == null ? null : mc.hitResult.getType());
+                    if (mc.hitResult instanceof net.minecraft.world.phys.EntityHitResult e) mc.gameMode.attack(mc.player, e.getEntity());
+                    continue;
+                }
                 // "pickdata": Ctrl + middle click on the entity aimed at
                 if (line.strip().equals("pickdata") && mc.crosshairPickEntity != null && mc.getConnection() != null) {
                     mc.getConnection().send(new net.minecraft.network.protocol.game.ServerboundPickItemFromEntityPacket(mc.crosshairPickEntity.getId(), true));

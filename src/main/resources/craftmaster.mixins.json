@@ -2,6 +2,6 @@
   "required": true,
   "package": "fr.lordfinn.craftmaster.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": ["DisplayAccessor", "TextDisplayAccessor", "PickPortraitMixin"],
+  "mixins": ["DisplayAccessor", "TextDisplayAccessor", "PickPortraitMixin", "PortraitReachMixin"],
   "injectors": { "defaultRequire": 1 }
 }

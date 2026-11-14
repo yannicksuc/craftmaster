@@ -405,6 +405,17 @@ public class PortraitEntity extends Entity {
         return new Vec3(blocks.x * cos + blocks.z * sin, blocks.y, -blocks.x * sin + blocks.z * cos);
     }
 
+    /** The brass hook under the ceiling (where it is now, not during a rearrangement): it can be hit too. */
+    public AABB hookBox() {
+        Vec3 h = position();
+        return new AABB(h.x - 0.15, h.y - 0.25, h.z - 0.15, h.x + 0.15, h.y + 0.01, h.z + 0.15);
+    }
+
+    /** What can be hit or used: the frame and figure, and the hook (the string between them cannot). */
+    public AABB reachBox() {
+        return getBoundingBox().minmax(hookBox());
+    }
+
     /** Around the frame and the figure (not the string), so clicking near the ceiling does not hit it. */
     @Override
     protected AABB makeBoundingBox(Vec3 pos) {
