@@ -829,6 +829,13 @@ public final class Director {
                 String who = p.getGameProfile().name();
                 String zone = Lieux.zoneOf(server, who, focusLieu());
                 if (zone != null && !zone.equals(focus())) setFocus(server, null, CameraSpot.zoneOf(zone));
+                // In a round with the others in other zones: sometimes them small under him (one large, the others below)
+                List<Tile> tiles = CameraSpot.STUDIO.equals(phaseLieu()) || !CameraChoice.chance(0.35) ? null
+                        : CameraChoice.zoneTiles(server, inSight(server), phaseLieu(), who);
+                if (tiles != null && splitTiles(server, tiles, SplitLayouts.MAIN, BroadcastNetwork.CUT, "", Source.MANUAL, new ArrayList<>())) {
+                    lines.add("À l'antenne : on va voir " + who + " (en grand, les autres zones en petit).");
+                    return;
+                }
                 showPlayer(server, p, Source.MANUAL);
                 CameraSpot on = shot.kind() == BroadcastNetwork.SHOT_CAMERA ? Cameras.list().get(shot.camera()) : null;
                 lines.add("À l'antenne : on va voir " + who + (on != null ? " (caméra " + on.label() + ")" : " (on le suit)") + ".");
@@ -1154,9 +1161,18 @@ public final class Director {
             }
         }
 
-        /** The silent moments: the camera that sees the most contestants, else the wide shot. */
+        /**
+         * The silent moments: the camera that sees the most contestants; in a round where they are in different zones
+         * and no camera sees two of them, a split screen of the zones (layout chosen at random among those that fit);
+         * else the wide shot.
+         */
         static boolean mostPlayers(MinecraftServer server, int transition) {
-            CameraSpot cam = CameraChoice.most(inSight(server));
+            List<ServerPlayer> players = inSight(server);
+            if (!CameraSpot.STUDIO.equals(phaseLieu()) && CameraChoice.mostCount(players) < 2) {
+                List<Tile> tiles = CameraChoice.zoneTiles(server, players, phaseLieu(), null);
+                if (tiles != null) return splitTiles(server, tiles, CameraChoice.layoutFor(tiles.size()), transition, "", Source.AUTO, new ArrayList<>());
+            }
+            CameraSpot cam = CameraChoice.most(players);
             if (cam == null) {
                 CameraSpot w = wideSpot();
                 if (w == null || !FollowPrefs.avoided(w.key())) return wide(server, transition);

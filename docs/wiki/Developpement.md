@@ -145,7 +145,7 @@ src/client/java/…/client/                   client uniquement (jamais chargé 
   broadcast/              mode diffusion (chantier E) : Broadcast (F8, /diffusion, touches 1–9 et molette, HUD
                           vanilla masqué), ShowStateClient (état reçu, chrono lissé), DirectorCamera (vue du plan,
                           transitions), FollowCamera (plan qui suit : cadrages, rayons contre les blocs, prise en
-                          main souris / molette), Transition (fondu enchaîné : copie de la dernière image), BroadcastOverlay
+                          main souris / molette ; une instance pour le plan, une par tuile « follow:<joueur> »), Transition (fondu enchaîné : copie de la dernière image), BroadcastOverlay
                           (habillage TV), ThemeSound, CameraRenderer (trépied, voyant rouge, numéro)
   task/CurrentTask        BOUCHON du contrat du chantier D (remplacé par la vraie classe à la fusion)
   mixin/                  CameraMixin (vue du plan, champ), GameRendererMixin (pas de balancement), HandsRendererMixin,

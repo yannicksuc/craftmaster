@@ -180,7 +180,10 @@ public final class DirectorCamera {
         boolean effectChanged = !s.effect().equals(shown.effect());
         shown = s;
         shownSince = since;
-        if (s.kind() != BroadcastNetwork.SHOT_MOSAIC) Mosaic.rendering = -1;
+        if (s.kind() != BroadcastNetwork.SHOT_MOSAIC) {
+            Mosaic.rendering = -1;
+            FollowCamera.clearTiles();
+        }
         if (effectChanged || s.effect().isEmpty()) applyEffect();
         try {
             // A new shot replays the moves of its effects (focus pull), even when the effect stays the same
@@ -229,7 +232,7 @@ public final class DirectorCamera {
             }
             case BroadcastNetwork.SHOT_POV -> pov(mc, shown.player(), partialTick);
             case BroadcastNetwork.SHOT_FREE -> free(dt);
-            case BroadcastNetwork.SHOT_MOSAIC -> mosaic(mc);
+            case BroadcastNetwork.SHOT_MOSAIC -> mosaic(mc, partialTick);
             default -> null;
         };
         if (result != null) lastPose = result;
@@ -270,12 +273,21 @@ public final class DirectorCamera {
         return new double[]{at.x, at.y + e.getBbHeight() * 0.6, at.z};
     }
 
-    /** The tiles of the split screen in turn, one per frame (each tile is refreshed every n frames). */
-    private static Pose mosaic(Minecraft mc) {
+    /**
+     * The tiles of the split screen in turn, one per frame (each tile is refreshed every n frames). A tile
+     * "follow:<player>" follows that player with its own framings ({@link FollowCamera#tile}).
+     */
+    private static Pose mosaic(Minecraft mc, float partialTick) {
         int n = Math.min(shown.tiles().size(), Mosaic.MAX);
         if (n == 0) return null;
         int i = (int) (mosaicFrame++ % n);
-        Pose p = camera(mc, ShowStateClient.cameras().get(shown.tiles().get(i).camera()), shotSeconds());
+        String key = shown.tiles().get(i).camera();
+        String followed = fr.lordfinn.craftmaster.broadcast.SplitLayouts.followed(key);
+        Pose p;
+        if (followed != null) {
+            Player target = player(mc, followed);
+            p = target == null ? null : FollowCamera.tile(mc, target, partialTick, shotSeconds());
+        } else p = camera(mc, ShowStateClient.cameras().get(key), shotSeconds());
         Mosaic.rendering = p == null ? -1 : i;
         return p;
     }

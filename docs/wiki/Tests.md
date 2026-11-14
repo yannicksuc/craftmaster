@@ -595,5 +595,10 @@ plus. Pas vérifié : la coupe sur qui parle (pas de Simple Voice Chat sur le se
 tout ; poids qui monte puis retombe ; caché par un bloc ; tirage pondéré ; caméra qui voit le plus de joueurs.
 Régie vocale : `test_offline.py` (« on va aller voir Ensuri pour voir comment ça se passe », « reste sur Juste »,
 « plus large », « évite la caméra 3 », « repasse en auto »…), `test_validate.py`.
+Écran partagé avec une tuile qui suit (branche de l'écran partagé fusionnée ; `camaction <json>` dans
+`run-26.2/dev-input.txt` envoie l'action comme les touches de diffusion) : `camera.split` [follow:LordFinn, 1, 3]
+en « principal » : LordFinn suivi en grand avec ses cadrages, les caméras 1 et 3 en petit ✔ ; [follow:LordFinn, 2]
+« bord à bord » ✔. Pas vérifié en jeu : l'écran partagé automatique des zones d'une manche et « on va voir » en
+manche (il faut deux candidats dans deux zones : un seul joueur sur le serveur de dev).
 Pas vérifié : la vraie souris (le `@Redirect` de `MouseHandler.turnPlayer` s'applique, le jeu démarre ; mêmes
 entrées que `camturn`), les replays et les intros (même code, `DirectorCamera.follow`).

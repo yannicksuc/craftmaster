@@ -138,6 +138,13 @@ public final class DevInput {
                     fr.lordfinn.craftmaster.client.broadcast.FollowCamera.turn(Double.parseDouble(a[1]), Double.parseDouble(a[2]));
                     continue;
                 }
+                // "camaction <json>": a direction action sent as the broadcast keys do (e.g. {"type":"camera.split",...})
+                if (line.strip().startsWith("camaction ")) {
+                    @SuppressWarnings("unchecked")
+                    java.util.Map<String, Object> act = new com.google.gson.Gson().fromJson(line.strip().substring(10), java.util.Map.class);
+                    fr.lordfinn.craftmaster.client.broadcast.Broadcast.request(act);
+                    continue;
+                }
                 if (line.strip().startsWith("camwheel ")) {
                     fr.lordfinn.craftmaster.client.broadcast.Broadcast.onScroll(Double.parseDouble(line.strip().split("\s+")[1]));
                     continue;

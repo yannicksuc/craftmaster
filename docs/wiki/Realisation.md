@@ -95,7 +95,11 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   nom ne s'affiche que la première fois (ou après 3 min sans l'avoir montré), pas à chaque aller-retour. Sans clignoter : une voix
   ne compte qu'après ~1 s (une toux, un « oui » ne coupent pas), un plan tient au moins 3,5 s, un échange à deux ou
   plusieurs passe sur une caméra qui les voit tous au lieu du ping-pong, et après 6 s de silence on passe sur la
-  caméra qui voit le plus de joueurs (sinon le plan large). Une coupe à la main lui laisse l'antenne 20 s ; un point, une mise en
+  caméra qui voit le plus de joueurs (sinon le plan large). **En manche**, si les candidats sont dans des zones
+  différentes et qu'aucune caméra n'en voit deux, le silence passe en **écran partagé** : une tuile par zone
+  occupée (sa caméra qui voit le mieux, sinon une tuile qui suit son joueur), disposition tirée au sort parmi celles
+  qui vont (deux : bord à bord ou cadres ; plus : cadres ou un en grand) ; seulement si toutes les tuiles sont dans
+  la même dimension et assez proches pour que le jeu de diffusion les voie toutes (distance de vue du serveur). Une coupe à la main lui laisse l'antenne 20 s ; un point, une mise en
   lumière, la révélation passent avant. Seuls ceux qu'une caméra cadre comptent (pas les modos ni les spectateurs).
   `/cam auto voix on|off` (oui par défaut), `/cam auto voix` : où on en est. Rien n'est enregistré : seulement qui
   émet, et quand.
@@ -133,14 +137,16 @@ Jamais deux fois le même d'affilée.
   a de chances d'être prise ; mais s'il est collé à l'objectif, elle est écartée. Il doit être vraiment visible
   (tête, poitrine ou pieds : au moins deux vus depuis l'objectif, pas cachés par un bloc) et bien dans le cadre, pas
   au bord.
-- Les mêmes cadrages servent aux replays et aux plans « suivi » des intros de manche.
+- Les mêmes cadrages servent aux replays, aux plans « suivi » des intros de manche et aux **tuiles qui suivent un
+  joueur** dans un écran partagé (`follow:<joueur>` à la place d'une caméra : chaque tuile a ses propres cadrages,
+  sans prise en main, sans coupe sur une caméra posée).
 
 ### Consignes à la réalisation automatique
 À la voix, aussi vite qu'un clic, ou en commande :
 
 | Dit | Commande | Effet |
 |---|---|---|
-| « on va voir Ensuri », « et maintenant allons voir comment ça se passe chez Ensuri » | `/cam voir Ensuri` | une caméra posée qui le voit bien (tirée au sort, selon sa place dans l'image), sinon le plan qui le suit ; l'auto continue ensuite |
+| « on va voir Ensuri », « et maintenant allons voir comment ça se passe chez Ensuri » | `/cam voir Ensuri` | une caméra posée qui le voit bien (tirée au sort, selon sa place dans l'image), sinon le plan qui le suit ; en manche, une fois sur trois environ, lui en grand et les autres zones en petit dessous ; l'auto continue ensuite |
 | « reste sur Ensuri » · « tu peux lâcher Ensuri » | `/cam rester Ensuri` · `off` | rien ne coupe ailleurs (qui parle, points, mise en lumière d'un autre) |
 | « plus large » · « plus serré » · « cadrage normal » | `/cam cadrage large\|serre\|auto` | cadrages plus loin / plus près, caméras qui le montrent plus petit / plus grand |
 | « évite la caméra 3 » · « tu peux reprendre la caméra 3 » | `/cam eviter 3` · `off` | l'auto ne la prend plus (si elle est à l'antenne, on passe ailleurs) |

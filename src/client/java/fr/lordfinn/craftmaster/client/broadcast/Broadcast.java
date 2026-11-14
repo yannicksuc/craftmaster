@@ -240,7 +240,7 @@ public final class Broadcast {
         request(a);
     }
 
-    static void request(Map<String, Object> action) {
+    public static void request(Map<String, Object> action) {
         if (ClientPlayNetworking.canSend(CameraRequest.TYPE)) ClientPlayNetworking.send(new CameraRequest(GSON.toJson(action)));
     }
 

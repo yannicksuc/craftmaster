@@ -49,28 +49,28 @@ public final class FollowCamera {
     /** Room kept between the lens and a block (blocks). */
     static final double MARGIN = 0.3;
 
-    private static String player = "";
-    private static Random random = new Random();
-    private static Plan plan, previous;
+    private String player = "";
+    private Random random = new Random();
+    private Plan plan, previous;
     /** Own clock (seconds), and when the framing started being held and for how long. */
-    private static double clock, planStart, holdFor;
+    private double clock, planStart, holdFor;
     /** Glide from {@code from}: start and length (0 = none). */
-    private static Params from;
-    private static double glideStart, glideLength;
+    private Params from;
+    private double glideStart, glideLength;
     /** Smoothed feet and facing of the player. */
-    private static Vec3 feet;
-    private static float facing;
+    private Vec3 feet;
+    private float facing;
     /** Distance actually used (pulled in by the blocks), and how long the framing has been squeezed. */
-    private static double shown = -1, squeezed;
+    private double shown = -1, squeezed;
     /** A cross-fade to another framing: the next frame takes its distance at once. */
-    private static boolean snap;
+    private boolean snap;
     /** When a squeezed framing was last changed (or kept, no better one being free): not again before {@link #RETRY}. */
-    private static double lastSqueeze = -100;
+    private double lastSqueeze = -100;
     /** Smoothed walking speed of the player (blocks per second). */
-    private static double speed;
-    private static Vec3 lastFeet;
+    private double speed;
+    private Vec3 lastFeet;
     /** Side step round the player when a block is in the way (degrees of azimuth, elevation), smoothed. */
-    private static double dodgeYaw, dodgeElevation;
+    private double dodgeYaw, dodgeElevation;
     /** Side steps tried when squeezed (azimuth, elevation, in degrees from the current one). */
     private static final double[][] DODGES = {{15, 0}, {-15, 0}, {30, 0}, {-30, 0}, {50, 0}, {-50, 0}, {0, -12}, {0, 12}, {25, -10}, {-25, -10}};
     static final double DODGE_MAX_YAW = 75, DODGE_MIN_ELEVATION = -25, DODGE_MAX_ELEVATION = 20;
@@ -78,28 +78,58 @@ public final class FollowCamera {
     static final double SQUEEZE = 1.0, RETRY = 3;
     /** Closer than this to the head (blocks) for {@link #TOO_CLOSE_FOR} s: another framing at once (a low door). */
     static final double TOO_CLOSE = 0.9, TOO_CLOSE_FOR = 0.25;
-    private static double tooClose;
+    private double tooClose;
     /** Chance, at a change of framing, to cut to a placed camera that sees the player; how long it is held (s). */
     static final double SPOT_CHANCE = 0.35, SPOT_HOLD = 7;
     /** The placed camera on screen (null = the framings), whether the last change came from one, how long lost. */
-    private static CameraSpot spot;
-    private static boolean afterSpot;
-    private static double spotLost;
+    private CameraSpot spot;
+    private boolean afterSpot;
+    private double spotLost;
     /** The director's wish: +1 wider, -1 tighter, 0 as it comes; the cameras to avoid; distance factor (smoothed). */
     private static int prefSize;
     private static java.util.Set<String> prefAvoid = java.util.Set.of();
-    private static double sizeFactor = 1;
+    private double sizeFactor = 1;
     /** Hand-held: world direction (yaw of the camera round the player), elevation, distance, last touch (ms). */
-    private static boolean manual;
-    private static double handYaw, handElevation, handDistance, handThirds, handFocus;
-    private static long lastTouch;
+    private boolean manual;
+    private double handYaw, handElevation, handDistance, handThirds, handFocus;
+    private long lastTouch;
     /** The parameters of the last frame (where a glide or the hand-held camera starts from). */
-    private static Params current;
+    private Params current;
 
-    private FollowCamera() {}
+
+    /** The follow shot on screen, and the follow tiles of a split screen (one per player, by lower-case name). */
+    private static FollowCamera main = new FollowCamera("", 0, false);
+    private static final java.util.Map<String, FollowCamera> TILES = new java.util.HashMap<>();
+    /** A split screen's tile: no hand-held camera, no cut to a placed camera, no cross-fade (it would fill the screen). */
+    private final boolean tile;
+    private long lastNanos;
+
+    private FollowCamera(String name, int serial, boolean tile) {
+        this.tile = tile;
+        init(name, serial);
+    }
 
     /** A new follow shot: starts again from the opening framing. */
     static void reset(String name, int serial) {
+        main = new FollowCamera(name, serial, false);
+    }
+
+    /** The follow tile of {@code target} in a split screen, this frame (each tile keeps its own framings). */
+    static DirectorCamera.Pose tile(Minecraft mc, Player target, float partialTick, double shotSeconds) {
+        String name = target.getGameProfile().name();
+        FollowCamera c = TILES.computeIfAbsent(name.toLowerCase(java.util.Locale.ROOT), k -> new FollowCamera(name, k.hashCode(), true));
+        long now = System.nanoTime();
+        double dt = c.lastNanos == 0 ? 0 : Math.min(0.25, (now - c.lastNanos) / 1e9);
+        c.lastNanos = now;
+        return c.frame(mc, target, partialTick, dt, shotSeconds);
+    }
+
+    /** The split screen is over: its follow tiles start afresh next time. */
+    static void clearTiles() {
+        TILES.clear();
+    }
+
+    private void init(String name, int serial) {
         player = name;
         random = new Random(name.toLowerCase(java.util.Locale.ROOT).hashCode() * 31L + serial);
         plan = null;
@@ -136,7 +166,7 @@ public final class FollowCamera {
     /** The mouse and the wheel move the follow shot's camera now (broadcast game, follow shot on screen, no menu). */
     public static boolean handHeld() {
         Minecraft mc = Minecraft.getInstance();
-        return Broadcast.active() && mc.gui.screen() == null && current != null
+        return Broadcast.active() && mc.gui.screen() == null && main.current != null
                 && DirectorCamera.shown().kind() == BroadcastNetwork.SHOT_FOLLOW
                 && !(fr.lordfinn.craftmaster.client.replay.ReplayClient.active()
                 && fr.lordfinn.craftmaster.client.replay.ReplayDirector.mode() == fr.lordfinn.craftmaster.client.replay.ReplayDirector.Mode.FREE);
@@ -146,22 +176,22 @@ public final class FollowCamera {
     public static boolean turn(double dx, double dy) {
         if (!handHeld()) return false;
         if (dx == 0 && dy == 0) return true;
-        grab();
-        handYaw += dx * TURN;
-        handElevation = Math.max(FollowFraming.MIN_ELEVATION, Math.min(FollowFraming.MAX_ELEVATION, handElevation + dy * TURN));
+        main.grab();
+        main.handYaw += dx * TURN;
+        main.handElevation = Math.max(FollowFraming.MIN_ELEVATION, Math.min(FollowFraming.MAX_ELEVATION, main.handElevation + dy * TURN));
         return true;
     }
 
     /** Wheel: closer (up) or further (down). True if taken. */
     public static boolean zoom(double amount) {
         if (!handHeld()) return false;
-        grab();
-        handDistance = Math.max(FollowFraming.MIN_DISTANCE, Math.min(FollowFraming.MAX_DISTANCE, handDistance * Math.pow(ZOOM, amount)));
+        main.grab();
+        main.handDistance = Math.max(FollowFraming.MIN_DISTANCE, Math.min(FollowFraming.MAX_DISTANCE, main.handDistance * Math.pow(ZOOM, amount)));
         return true;
     }
 
     /** The operator takes the camera where it is now (or keeps it). */
-    private static void grab() {
+    private void grab() {
         lastTouch = System.currentTimeMillis();
         if (manual) return;
         manual = true;
@@ -182,6 +212,10 @@ public final class FollowCamera {
 
     /** The camera on {@code target} for this frame. */
     static DirectorCamera.Pose pose(Minecraft mc, Player target, float partialTick, double dt, double shotSeconds) {
+        return main.frame(mc, target, partialTick, dt, shotSeconds);
+    }
+
+    private DirectorCamera.Pose frame(Minecraft mc, Player target, float partialTick, double dt, double shotSeconds) {
         clock += dt;
         float eyeHeight = target.getEyeHeight();
         Vec3 realFeet = target.getPosition(partialTick);
@@ -203,7 +237,7 @@ public final class FollowCamera {
         }
         if (plan == null) {
             plan = FollowFraming.PLANS.getFirst();
-            if (room(mc, target, eyeHeight, plan, 0) < FollowFraming.ROOM_NEEDED) plan = FollowFraming.choose(null, null, p -> room(mc, target, eyeHeight, p, 0), FollowCamera::weight, random);
+            if (room(mc, target, eyeHeight, plan, 0) < FollowFraming.ROOM_NEEDED) plan = FollowFraming.choose(null, null, p -> room(mc, target, eyeHeight, p, 0), this::weight, random);
             planStart = clock;
             holdFor = FollowFraming.hold(random);
             log(plan.name());
@@ -267,7 +301,7 @@ public final class FollowCamera {
      * A block in the way of the framing: steps round the player (to the side, lower or higher) towards the nearest
      * place with room, smoothly, like a cameraman stepping aside; back to the framing itself once it is clear again.
      */
-    private static void dodge(Minecraft mc, Player target, Vec3 pivot, Params base, double dt) {
+    private void dodge(Minecraft mc, Player target, Vec3 pivot, Params base, double dt) {
         double now = free(mc, target, pivot, FollowFraming.direction(dodged(base, dodgeYaw, dodgeElevation), facing), base.distance());
         double plain = dodgeYaw == 0 && dodgeElevation == 0 ? now : free(mc, target, pivot, FollowFraming.direction(base, facing), base.distance());
         double wantYaw = dodgeYaw, wantElevation = dodgeElevation, tau;
@@ -301,7 +335,7 @@ public final class FollowCamera {
     }
 
     /** The automatic framing now: the held framing with its slow moves, eased in from the last one while gliding. */
-    private static Params auto() {
+    private Params auto() {
         Params held = FollowFraming.params(plan, clock - planStart);
         if (glideLength <= 0) return held;
         double t = (clock - glideStart) / glideLength;
@@ -313,7 +347,7 @@ public final class FollowCamera {
     }
 
     /** The placed camera on screen, or null when it no longer shows the player well (then back to the framings). */
-    private static DirectorCamera.Pose spotPose(Minecraft mc, Player target, Vec3 realFeet, double dt) {
+    private DirectorCamera.Pose spotPose(Minecraft mc, Player target, Vec3 realFeet, double dt) {
         CameraSpot s = ShowStateClient.cameras().get(spot.key());
         double seconds = clock - planStart;
         boolean ok = s != null && !prefAvoid.contains(s.key().toLowerCase(java.util.Locale.ROOT)) && sees(mc, target, realFeet, s, seconds);
@@ -322,7 +356,7 @@ public final class FollowCamera {
             log("caméra " + spot.label() + " → cadrages");
             spot = null;
             afterSpot = true;
-            Plan chosen = FollowFraming.choose(null, previous, p -> room(mc, target, target.getEyeHeight(), p, 0), FollowCamera::weight, random);
+            Plan chosen = FollowFraming.choose(null, previous, p -> room(mc, target, target.getEyeHeight(), p, 0), this::weight, random);
             if (chosen != null) {
                 previous = plan;
                 plan = chosen;
@@ -341,7 +375,7 @@ public final class FollowCamera {
     }
 
     /** Does placed camera {@code s} (at {@code seconds} of its motion) show the player well? */
-    private static boolean sees(Minecraft mc, Player target, Vec3 feet, CameraSpot s, double seconds) {
+    private boolean sees(Minecraft mc, Player target, Vec3 feet, CameraSpot s, double seconds) {
         if (!s.world().equals(ShowStateClient.world(mc))) return false;
         CameraMotion.View v = CameraMotion.view(s, seconds);
         ShotCoverage.Lens lens = new ShotCoverage.Lens(v.x(), v.y(), v.z(), v.yaw(), v.pitch(), s.fov() > 0 ? s.fov() : mc.options.fov().get());
@@ -350,7 +384,7 @@ public final class FollowCamera {
     }
 
     /** A placed camera that shows the player well, the likelier the more of its picture they fill; null if none. */
-    private static CameraSpot pickSpot(Minecraft mc, Player target) {
+    private CameraSpot pickSpot(Minecraft mc, Player target) {
         Vec3 feet = target.position();
         ShotCoverage.Body body = new ShotCoverage.Body(player, feet.x, feet.y, feet.z, target.getBbWidth(), target.getBbHeight());
         java.util.List<ShotCoverage.Seen> seen = new java.util.ArrayList<>();
@@ -372,9 +406,9 @@ public final class FollowCamera {
     }
 
     /** Goes to another framing: a glide round the player if the way is clear, else a cross-fade. */
-    private static void next(Minecraft mc, Player target, float eyeHeight, double glide, String why) {
+    private void next(Minecraft mc, Player target, float eyeHeight, double glide, String why) {
         // Sometimes a placed camera that sees the player well (not twice in a row, not when squeezed or resuming)
-        if (why.isEmpty() && !afterSpot && random.nextDouble() < SPOT_CHANCE) {
+        if (!tile && why.isEmpty() && !afterSpot && random.nextDouble() < SPOT_CHANCE) {
             CameraSpot s = pickSpot(mc, target);
             if (s != null) {
                 spot = s;
@@ -386,7 +420,7 @@ public final class FollowCamera {
             }
         }
         afterSpot = false;
-        Plan chosen = FollowFraming.choose(manual ? null : plan, previous, p -> room(mc, target, eyeHeight, p, holdFor), FollowCamera::weight, random);
+        Plan chosen = FollowFraming.choose(manual ? null : plan, previous, p -> room(mc, target, eyeHeight, p, holdFor), this::weight, random);
         if (chosen == null) return;
         if (why.startsWith("trop") && FollowFraming.free(chosen, room(mc, target, eyeHeight, chosen, 0)) < shown * 1.25 + (why.startsWith("trop près") ? 0.3 : 0.4)) {
             // Squeezed, but nothing has clearly more room here (a door, a narrow passage): keep this framing
@@ -415,7 +449,7 @@ public final class FollowCamera {
             glideLength = glide;
             log(why + chosen.name() + " (glisse)");
         } else {
-            Transition.capture();
+            if (!tile) Transition.capture();
             glideLength = 0;
             snap = true;
             log(why + chosen.name() + " (enchaîné : le chemin traverse un mur)");
@@ -426,7 +460,7 @@ public final class FollowCamera {
      * How much a framing is wanted now: walking, the ones that see the player's face coming (less often from
      * behind); the director's wish, the wider or the tighter ones.
      */
-    private static double weight(Plan p) {
+    private double weight(Plan p) {
         double w = 1;
         if (speed >= 1.5) {
             double a = Math.abs(((p.azimuth() % 360) + 540) % 360 - 180);
@@ -438,7 +472,7 @@ public final class FollowCamera {
     }
 
     /** Share of framing {@code p}'s distance left free by the blocks, the worst of its start, middle and end. */
-    private static double room(Minecraft mc, Player target, float eyeHeight, Plan p, double hold) {
+    private double room(Minecraft mc, Player target, float eyeHeight, Plan p, double hold) {
         double worst = 1;
         for (double s : new double[]{0, hold / 2, hold}) {
             Params q = FollowFraming.params(p, s);
@@ -486,7 +520,7 @@ public final class FollowCamera {
         return mc.level.clip(new ClipContext(a, b, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, target)).getType() != HitResult.Type.MISS;
     }
 
-    private static void log(String what) {
+    private void log(String what) {
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) CraftMaster.LOG.info("[Suivi] {} : {}", player, what);
     }
 }
