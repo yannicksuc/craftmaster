@@ -70,6 +70,12 @@ public class SpotlightBlockEntity extends BlockEntity {
 
     // Client only: what is drawn this frame, easing toward the settings
     public float renderYaw, renderPitch, renderIntensity, renderCone;
+    /**
+     * Client only: the followed player's feet as the beam follows them (the follow camera's {@link
+     * fr.lordfinn.craftmaster.camera.TargetTracker}), and whom it tracks ("" = none).
+     */
+    public final fr.lordfinn.craftmaster.camera.TargetTracker renderTracker = new fr.lordfinn.craftmaster.camera.TargetTracker(0.12, 0.25, 0.25, 1.2);
+    public String renderTracked = "";
     public float[] renderColor;
     public long renderNanos;
     public boolean renderReady;

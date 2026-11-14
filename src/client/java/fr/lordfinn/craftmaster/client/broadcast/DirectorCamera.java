@@ -8,10 +8,7 @@ import fr.lordfinn.craftmaster.camera.CameraPath;
 import fr.lordfinn.craftmaster.camera.CameraSpot;
 import fr.lordfinn.craftmaster.client.fx.ScreenEffects;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -43,9 +40,6 @@ public final class DirectorCamera {
     private static Shot pending;
     /** When the pending shot goes on air (System.currentTimeMillis). */
     private static long pendingAt;
-    /** Follow shot smoothing. */
-    private static Vec3 followPos;
-    private static float followYaw, followPitch;
     private static long lastFrame;
     private static String followed = "";
     /** Free camera: the target sent by the server, and the smoothed pose. */
@@ -66,7 +60,6 @@ public final class DirectorCamera {
         seenSerial = -1;
         fadeStart = -1;
         pending = null;
-        followPos = null;
         followed = "";
         freeTarget = null;
         freePos = null;
@@ -181,13 +174,16 @@ public final class DirectorCamera {
     }
 
     private static void show(Shot s, long since) {
-        if (s.kind() == BroadcastNetwork.SHOT_FOLLOW && !s.player().equals(followed)) followPos = null;
+        if (s.kind() == BroadcastNetwork.SHOT_FOLLOW && !s.player().equals(followed)) FollowCamera.reset(s.player(), s.serial());
         followed = s.kind() == BroadcastNetwork.SHOT_FOLLOW ? s.player() : "";
         if (s.kind() != BroadcastNetwork.SHOT_FREE) freePos = null;
         boolean effectChanged = !s.effect().equals(shown.effect());
         shown = s;
         shownSince = since;
-        if (s.kind() != BroadcastNetwork.SHOT_MOSAIC) Mosaic.rendering = -1;
+        if (s.kind() != BroadcastNetwork.SHOT_MOSAIC) {
+            Mosaic.rendering = -1;
+            FollowCamera.clearTiles();
+        }
         if (effectChanged || s.effect().isEmpty()) applyEffect();
         try {
             // A new shot replays the moves of its effects (focus pull), even when the effect stays the same
@@ -236,7 +232,7 @@ public final class DirectorCamera {
             }
             case BroadcastNetwork.SHOT_POV -> pov(mc, shown.player(), partialTick);
             case BroadcastNetwork.SHOT_FREE -> free(dt);
-            case BroadcastNetwork.SHOT_MOSAIC -> mosaic(mc);
+            case BroadcastNetwork.SHOT_MOSAIC -> mosaic(mc, partialTick);
             default -> null;
         };
         if (result != null) lastPose = result;
@@ -277,12 +273,21 @@ public final class DirectorCamera {
         return new double[]{at.x, at.y + e.getBbHeight() * 0.6, at.z};
     }
 
-    /** The tiles of the split screen in turn, one per frame (each tile is refreshed every n frames). */
-    private static Pose mosaic(Minecraft mc) {
+    /**
+     * The tiles of the split screen in turn, one per frame (each tile is refreshed every n frames). A tile
+     * "follow:<player>" follows that player with its own framings ({@link FollowCamera#tile}).
+     */
+    private static Pose mosaic(Minecraft mc, float partialTick) {
         int n = Math.min(shown.tiles().size(), Mosaic.MAX);
         if (n == 0) return null;
         int i = (int) (mosaicFrame++ % n);
-        Pose p = camera(mc, ShowStateClient.cameras().get(shown.tiles().get(i).camera()), shotSeconds());
+        String key = shown.tiles().get(i).camera();
+        String followed = fr.lordfinn.craftmaster.broadcast.SplitLayouts.followed(key);
+        Pose p;
+        if (followed != null) {
+            Player target = player(mc, followed);
+            p = target == null ? null : FollowCamera.tile(mc, target, partialTick, shotSeconds());
+        } else p = camera(mc, ShowStateClient.cameras().get(key), shotSeconds());
         Mosaic.rendering = p == null ? -1 : i;
         return p;
     }
@@ -323,7 +328,7 @@ public final class DirectorCamera {
         return new Pose(freePos, freeYaw, freePitch, freeFov);
     }
 
-    /** Front three-quarter shot on a player, smoothed, pulled in front of walls. Falls back on the wide shot. */
+    /** Framings that change by themselves round a player, never in a block ({@link FollowCamera}). Falls back on the wide shot. */
     private static Pose follow(Minecraft mc, String name, float partialTick, double dt) {
         Player target = player(mc, name);
         if (target == null) {
@@ -331,34 +336,6 @@ public final class DirectorCamera {
             if (wide == null) wide = ShowStateClient.cameras().group(CameraSpot.STUDIO).wide();
             return wide == null ? null : camera(mc, wide, shotSeconds());
         }
-        Vec3 feet = target.getPosition(partialTick);
-        float bodyYaw = target instanceof LivingEntity le ? le.yBodyRot : target.getYRot();
-        double[] want = CameraMotion.followPosition(feet.x, feet.y, feet.z, bodyYaw, 3.3, 1.1, 1.85);
-        Vec3 eye = feet.add(0, target.getEyeHeight() - 0.1, 0);
-        Vec3 desired = new Vec3(want[0], want[1], want[2]);
-        // Keep the camera on this side of the walls
-        HitResult hit = mc.level.clip(new ClipContext(eye, desired, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, target));
-        if (hit.getType() != HitResult.Type.MISS) {
-            Vec3 back = hit.getLocation().subtract(eye);
-            double len = back.length();
-            desired = len < 0.6 ? eye.add(back.scale(0.5)) : eye.add(back.scale((len - 0.3) / len));
-        }
-        if (followPos == null) {
-            followPos = desired;
-            float[] look = CameraMotion.lookAt(desired.x, desired.y, desired.z, eye.x, eye.y, eye.z);
-            followYaw = look[0];
-            followPitch = look[1];
-        } else {
-            // Position lags a bit (operator walking), the framing follows faster
-            followPos = followPos.lerp(desired, CameraMotion.smoothing(dt, 0.55));
-            float[] look = CameraMotion.lookAt(followPos.x, followPos.y, followPos.z, eye.x, eye.y, eye.z);
-            double k = CameraMotion.smoothing(dt, 0.18);
-            followYaw = CameraMotion.lerpAngle(followYaw, look[0], k);
-            followPitch = followPitch + (float) ((look[1] - followPitch) * k);
-        }
-        double s = shotSeconds();
-        float breathYaw = (float) (0.4 * Math.sin(s * 2 * Math.PI / 9.7));
-        float breathPitch = (float) (0.25 * Math.sin(s * 2 * Math.PI / 12.1 + 1));
-        return new Pose(followPos, followYaw + breathYaw, followPitch + breathPitch, 0);
+        return FollowCamera.pose(mc, target, partialTick, dt, shotSeconds());
     }
 }

@@ -139,6 +139,7 @@ public final class Director {
 
     public static void register() {
         BroadcastNetwork.registerTypes();
+        FollowPrefs.register();
         ServerPlayNetworking.registerGlobalReceiver(BroadcastMode.TYPE, (payload, ctx) -> {
             if (payload.on()) broadcasters.add(ctx.player().getUUID());
             else broadcasters.remove(ctx.player().getUUID());
@@ -635,10 +636,58 @@ public final class Director {
 
     // ---------------------------------------------------------------- tick
 
+    /**
+     * A follow shot by rule ({@code /cam follow @moment}, « suis le premier du classement »): the same rules as the
+     * follow-spots ({@link SpotlightFollow}), the player picked again every second while the shot is on air (kept
+     * while they still match, so it does not jump between two people), "" = none. Another cut ends it.
+     */
+    private static String followRule = "";
+    /** The last player a shot was about (followed, through their eyes, a camera chosen for them). */
+    private static String shownPlayer = "";
+
+    /** The player the broadcast shows now (the follow-spots' {@code @antenne}), "" if none. */
+    public static String shownPlayer() {
+        return shot.kind() == BroadcastNetwork.SHOT_FOLLOW || shot.kind() == BroadcastNetwork.SHOT_POV ? shot.player() : shownPlayer;
+    }
+    private static int followRuleSerial = -1;
+
+    /** Follows whoever {@code rule} picks now; false if nobody matches. */
+    static boolean followByRule(MinecraftServer server, String rule, int transition, Source source) {
+        String picked = pickByRule(server, rule, "");
+        if (picked.isEmpty()) return false;
+        take(server, ShotRequest.follow(picked, transition, "", source));
+        followRule = rule;
+        followRuleSerial = serial;
+        return true;
+    }
+
+    /** The player {@code rule} picks, from the followed player (or the wide camera) — {@code current} kept while they match. */
+    private static String pickByRule(MinecraftServer server, String rule, String current) {
+        ServerPlayer from = current.isEmpty() ? null : findPlayer(server, current);
+        net.minecraft.server.level.ServerLevel level = from != null ? (net.minecraft.server.level.ServerLevel) from.level() : server.overworld();
+        CameraSpot w = wideSpot();
+        net.minecraft.world.phys.Vec3 pivot = from != null ? from.position()
+                : w != null ? new net.minecraft.world.phys.Vec3(w.x(), w.y(), w.z()) : net.minecraft.world.phys.Vec3.atCenterOf(level.getRespawnData().pos());
+        return fr.lordfinn.craftmaster.studio.SpotlightFollow.pick(level, rule, pivot, current);
+    }
+
     private static void tick(MinecraftServer server) {
         Credits.tick(server);
         MancheIntros.tick(server);
         long now = server.getTickCount();
+        // A follow shot by rule: who matches now (another cut ended it)
+        if (!followRule.isEmpty() && now % 20 == 0) {
+            if (shot.serial() != followRuleSerial || shot.kind() != BroadcastNetwork.SHOT_FOLLOW) followRule = "";
+            else {
+                String picked = pickByRule(server, followRule, shot.player());
+                if (!picked.isEmpty() && !picked.equalsIgnoreCase(shot.player())) {
+                    String rule = followRule;
+                    take(server, ShotRequest.follow(picked, BroadcastNetwork.CROSSFADE, "", Source.SEQUENCE));
+                    followRule = rule;
+                    followRuleSerial = serial;
+                }
+            }
+        }
         // The show moved to another lieu (round started, reveal, credits): the operator's choice is dropped
         String phase = phaseLieu();
         if (!phase.equals(lastPhase)) {
@@ -762,6 +811,16 @@ public final class Director {
             }
             case "camera.follow" -> {
                 String name = String.valueOf(a.get("player"));
+                // A rule instead of a name (the follow-spots' rules): who matches, picked again while it is on air
+                String rule = findPlayer(server, name) == null ? fr.lordfinn.craftmaster.studio.SpotlightFollow.parse(name) : null;
+                if (rule != null) {
+                    if (!followByRule(server, rule, transition, Source.MANUAL)) {
+                        lines.add("⚠ Personne ne correspond pour l'instant à « " + fr.lordfinn.craftmaster.studio.SpotlightFollow.describe(rule) + " ».");
+                        return;
+                    }
+                    lines.add("À l'antenne : on suit " + fr.lordfinn.craftmaster.studio.SpotlightFollow.describe(rule) + " (" + shot.player() + " pour l'instant).");
+                    return;
+                }
                 ServerPlayer p = findPlayer(server, name);
                 if (p == null) {
                     lines.add("⚠ " + name + " n'est pas connecté : impossible de le suivre.");
@@ -818,9 +877,72 @@ public final class Director {
             case "camera.split" -> splitAction(server, a, transition, effect, lines);
             case "camera.focus" -> focusAction(server, a, lines);
             case "camera.lieu" -> lieuAction(server, a, lines);
+            case "camera.goto" -> {
+                String name = String.valueOf(a.get("player"));
+                ServerPlayer p = findPlayer(server, name);
+                if (p == null) {
+                    lines.add("⚠ " + name + " n'est pas connecté.");
+                    return;
+                }
+                String who = p.getGameProfile().name();
+                String zone = Lieux.zoneOf(server, who, focusLieu());
+                if (zone != null && !zone.equals(focus())) setFocus(server, null, CameraSpot.zoneOf(zone));
+                // In a round with the others in other zones: sometimes them small under him (one large, the others below)
+                List<Tile> tiles = CameraSpot.STUDIO.equals(phaseLieu()) || !CameraChoice.chance(0.35) ? null
+                        : CameraChoice.zoneTiles(server, inSight(server), phaseLieu(), who);
+                if (tiles != null && splitTiles(server, tiles, SplitLayouts.MAIN, BroadcastNetwork.CUT, "", Source.MANUAL, new ArrayList<>())) {
+                    lines.add("À l'antenne : on va voir " + who + " (en grand, les autres zones en petit).");
+                    return;
+                }
+                showPlayer(server, p, Source.MANUAL);
+                CameraSpot on = shot.kind() == BroadcastNetwork.SHOT_CAMERA ? Cameras.list().get(shot.camera()) : null;
+                lines.add("À l'antenne : on va voir " + who + (on != null ? " (caméra " + on.label() + ")" : " (on le suit)") + ".");
+            }
+            case "camera.stay" -> {
+                if (Boolean.FALSE.equals(a.get("enabled")) || a.get("player") == null) {
+                    FollowPrefs.stay(server, "");
+                    lines.add("La réalisation ne reste plus sur un joueur.");
+                    return;
+                }
+                String name = String.valueOf(a.get("player"));
+                ServerPlayer p = findPlayer(server, name);
+                if (p == null) {
+                    lines.add("⚠ " + name + " n'est pas connecté.");
+                    return;
+                }
+                String who = p.getGameProfile().name();
+                FollowPrefs.stay(server, who);
+                take(server, ShotRequest.follow(who, BroadcastNetwork.CUT, "", Source.MANUAL));
+                lines.add("On reste sur " + who + " (« repasse en auto » pour reprendre).");
+            }
+            case "camera.framing" -> {
+                String size = String.valueOf(a.get("size"));
+                int k = switch (size) {
+                    case "wider" -> 1;
+                    case "tighter" -> -1;
+                    default -> 0;
+                };
+                FollowPrefs.size(server, k);
+                lines.add("Cadrage automatique " + (k > 0 ? "plus large." : k < 0 ? "plus serré." : "normal."));
+            }
+            case "camera.avoid" -> {
+                String ref = String.valueOf(a.get("camera"));
+                CameraSpot spot = resolve(server, ref);
+                if (spot == null) {
+                    lines.add("⚠ Aucune caméra « " + ref + " » dans " + focusName() + ".");
+                    return;
+                }
+                boolean on = !Boolean.FALSE.equals(a.get("enabled"));
+                FollowPrefs.avoid(server, spot.key(), on);
+                if (on && shot.kind() == BroadcastNetwork.SHOT_CAMERA && shot.camera().equals(spot.key()))
+                    AutoDirection.mostPlayers(server, BroadcastNetwork.CROSSFADE);
+                lines.add((on ? "La réalisation automatique évite la caméra " : "La réalisation automatique peut reprendre la caméra ") + spot.label() + ".");
+            }
             case "camera.auto" -> {
                 auto = (Boolean) a.get("enabled");
                 autoRevertAt = -1;
+                // « Repasse en auto »: no player held, framing as it comes (the avoided cameras stay avoided)
+                if (auto) FollowPrefs.reset(server);
                 if (auto && shot.kind() == BroadcastNetwork.SHOT_NONE) wide(server, BroadcastNetwork.CROSSFADE);
                 sync(server);
                 lines.add("Réalisation automatique " + (auto ? "activée." : "désactivée."));
@@ -1009,6 +1131,25 @@ public final class Director {
             player.sendOverlayMessage(Component.literal(r.lines().getLast()).withStyle(r.ok() ? ChatFormatting.GOLD : ChatFormatting.RED));
     }
 
+    /** The players a shot may show: in the world, not spectators, not the broadcast games. */
+    static List<ServerPlayer> inSight(MinecraftServer server) {
+        List<ServerPlayer> out = new ArrayList<>();
+        for (ServerPlayer p : server.getPlayerList().getPlayers())
+            if (!p.isSpectator() && !broadcasters.contains(p.getUUID())) out.add(p);
+        return out;
+    }
+
+    /**
+     * On {@code p}: a placed camera that sees them well (the more of the picture they fill the likelier, never one
+     * they are on), else the follow shot (its framings change by themselves, and cut to such cameras too).
+     */
+    static boolean showPlayer(MinecraftServer server, ServerPlayer p, Source source) {
+        shownPlayer = p.getGameProfile().name();
+        CameraSpot cam = CameraChoice.showing(List.of(p));
+        if (cam != null) return take(server, ShotRequest.camera(cam, BroadcastNetwork.CUT, "", source));
+        return take(server, ShotRequest.follow(p.getGameProfile().name(), BroadcastNetwork.CUT, "", source));
+    }
+
     // ---------------------------------------------------------------- automatic direction
 
     /**
@@ -1036,6 +1177,8 @@ public final class Director {
         public void tick(MinecraftServer server) {
             long tick = server.getTickCount();
             if (!voiceCuts || !Speaking.available() || tick % 2 != 0) return;
+            // « Reste sur Ensuri »: the voice does not cut away
+            if (!FollowPrefs.stay().isEmpty()) return;
             long now = System.currentTimeMillis();
             // Who is heard and can be shown by a camera of what is on (studio, the round's lieu)
             List<String> talking = new ArrayList<>();
@@ -1056,8 +1199,7 @@ public final class Director {
                 case SOLO -> {
                     ServerPlayer p = findPlayer(server, d.who().getFirst());
                     if (p == null) yield false;
-                    List<CameraSpot> cams = framing(server, List.of(p));
-                    yield cams.isEmpty() ? false : take(server, ShotRequest.camera(cams.getFirst(), BroadcastNetwork.CUT, "", Source.AUTO));
+                    yield showPlayer(server, p, Source.AUTO);
                 }
                 case GROUP -> {
                     List<ServerPlayer> ps = new ArrayList<>();
@@ -1065,17 +1207,40 @@ public final class Director {
                         ServerPlayer p = findPlayer(server, n);
                         if (p != null) ps.add(p);
                     }
-                    List<CameraSpot> cams = framing(server, ps);
-                    yield cams.isEmpty() ? wide(server, BroadcastNetwork.CUT)
-                            : take(server, ShotRequest.camera(cams.getFirst(), BroadcastNetwork.CUT, "", Source.AUTO));
+                    CameraSpot cam = CameraChoice.showing(ps);
+                    yield cam == null ? mostPlayers(server, BroadcastNetwork.CUT)
+                            : take(server, ShotRequest.camera(cam, BroadcastNetwork.CUT, "", Source.AUTO));
                 }
-                case WIDE -> wide(server, BroadcastNetwork.CROSSFADE);
+                case WIDE -> mostPlayers(server, BroadcastNetwork.CROSSFADE);
                 default -> false;
             };
             if (taken) {
                 speech.aired(now, d);
                 voiceSerial = shot.serial();
             }
+        }
+
+        /**
+         * The silent moments: the camera that sees the most contestants; in a round where they are in different zones
+         * and no camera sees two of them, a split screen of the zones (layout chosen at random among those that fit);
+         * else the wide shot.
+         */
+        static boolean mostPlayers(MinecraftServer server, int transition) {
+            List<ServerPlayer> players = inSight(server);
+            if (!CameraSpot.STUDIO.equals(phaseLieu()) && CameraChoice.mostCount(players) < 2) {
+                List<Tile> tiles = CameraChoice.zoneTiles(server, players, phaseLieu(), null);
+                if (tiles != null) return splitTiles(server, tiles, CameraChoice.layoutFor(tiles.size()), transition, "", Source.AUTO, new ArrayList<>());
+            }
+            CameraSpot cam = CameraChoice.most(players);
+            if (cam == null) {
+                CameraSpot w = wideSpot();
+                if (w == null || !FollowPrefs.avoided(w.key())) return wide(server, transition);
+                // The wide camera is avoided: another one of the focus
+                for (CameraSpot s : Cameras.list().group(focus()).all()) if (!FollowPrefs.avoided(s.key())) { cam = s; break; }
+                if (cam == null) return false;
+            }
+            if (shot.kind() == BroadcastNetwork.SHOT_CAMERA && shot.camera().equals(cam.key())) return true;
+            return take(server, ShotRequest.camera(cam, transition, "", Source.AUTO));
         }
 
         /**
@@ -1113,6 +1278,8 @@ public final class Director {
 
         /** The close shot on a player: a camera of their zone in the round, else following them. */
         private static void closeOn(MinecraftServer server, String player) {
+            // « Reste sur Ensuri »: no cut to someone else
+            if (!FollowPrefs.stay().isEmpty() && !FollowPrefs.stay().equalsIgnoreCase(player)) return;
             List<CameraSpot> cams = Lieux.camerasFor(server, player, phaseLieu());
             if (!cams.isEmpty()) take(server, ShotRequest.camera(cams.getFirst(), BroadcastNetwork.CUT, "", Source.AUTO));
             else take(server, ShotRequest.follow(player, BroadcastNetwork.CUT, "", Source.AUTO));

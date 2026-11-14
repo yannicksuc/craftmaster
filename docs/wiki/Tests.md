@@ -55,6 +55,9 @@ phrases synthétisées (voix Windows française) : avec les pseudos en vocabulai
   « plan sur le trône », « podium »), plan large par défaut, molette (suivante / précédente en boucle), numéro libre,
   champs normalisés. `CameraMotionTest` : caméra fixe immobile, respiration discrète et continue d'une image à
   l'autre, travelling qui avance puis s'arrête, panoramique des deux côtés, angles, plan qui suit devant le joueur.
+  `FollowFramingTest` : azimut 0 devant le joueur, glissement par le plus court, départ et arrêt en douceur,
+  mouvements lents et bornés, jamais deux fois le même cadrage d'affilée, seulement les cadrages qui ont la place
+  (sinon le plus dégagé), préférence (devant quand il marche).
   `BroadcastActionsTest` : actions `camera.*` / `broadcast.*` / `show.*` (transitions, champs manquants ou faux,
   valeurs par défaut), effets sans modifier les données ni le journal, une action fausse annule toute la liste.
 - Lieux, travellings, intros (chantier E, suite) — `CameraLieuxTest` : groupes et clés (studio, manche, zone),
@@ -605,3 +608,48 @@ Cause : sous un pack de shaders, la lumière était dessinée avec le type des �
 profondeur. Elle passe désormais par le type « yeux », émissif et sans écriture de profondeur. Le type du faisceau de
 balise a aussi été essayé : Complementary en faisait des disques plats à bords nets. Les facettes du faisceau
 s'arrêtent au plus tard là où le bord du cône touche le sol.
+
+## 17. Plan qui suit un joueur (vérifié en jeu sur 26.2 le 14/11/2026)
+Serveur `:26.2:runServer` (monde plat, décor fait au RCON : salle de 4 blocs de haut avec poteaux et fenêtre,
+porte basse, couloir de 2 de large et 3 de haut, pièce de 2 blocs sous plafond, piliers dehors) ; LordFinn
+(`dev-client.ps1 -Version 26.2`) marche au pathfinding MCP de dehors à la salle, au couloir puis à la pièce basse ;
+Joueur2 en spectateur, `/diffusion on`, `/cam follow LordFinn`, captures MCP en rafale (40 images à 1,1 s).
+Prise en main : `camturn <dx> <dy>` et `camwheel <crans>` dans `run2-26.2/dev-input.txt` (mêmes entrées que la
+souris et la molette). Journal de dev `[Suivi]` : chaque cadrage choisi et pourquoi.
+
+| Vérifié | |
+|---|---|
+| Joueur immobile dehors : trois-quarts → plongée → gros plan → trois-quarts gauche, glissés, jamais deux fois le même | ✔ |
+| Salle, porte basse, couloir, pièce sous plafond bas : jamais dans un bloc ni derrière un mur, le corps reste visible | ✔ |
+| Couloir : cadrages dans l'axe (face, de dos), la caméra se décale autour de lui quand un mur gêne | ✔ |
+| Porte basse : plus d'image « dans la tête » (changement immédiat, en fondu enchaîné si le chemin traverse un mur) | ✔ |
+| Souris : tourne autour du joueur, monte / descend ; molette : rapproche / éloigne ; reste là tant qu'on y touche | ✔ |
+| 8 s sans y toucher : reprise automatique en glissant vers un cadrage | ✔ |
+
+Corrigé grâce à ces essais : changements de cadrage en rafale dans les passages étroits (4 en 12 s, maintenant au plus
+un toutes les 3 s, et seulement vers un cadrage qui a vraiment plus de place) ; gros plans de nuque à l'entrée d'un
+couloir (esquive autour du joueur, puis changement immédiat sous 0,9 bloc) ; coin de mur cachant le corps (rayon
+poitrine → objectif).
+Caméras posées (3 caméras `/cam placer` : salle, dehors, bout du couloir) : `/cam voir LordFinn` prend la caméra
+de la salle quand il y est, celle du couloir quand il y est, le suit quand aucune ne le voit (poteau devant, caméra
+évitée) ✔ ; `/cam eviter 1`, `cadrage large|serre`, `rester`, `auto on` répondent ✔ ; le suivi coupe de lui-même
+sur la caméra de la salle (2 fois en 75 s) puis revient aux cadrages ✔. Corrigé : la part de l'image comptée en
+aire sous-estimait un joueur en pied (rien n'était choisi) → hauteur occupée ; un joueur au bord du cadre ne compte
+plus. Pas vérifié : la coupe sur qui parle (pas de Simple Voice Chat sur le serveur de dev ; même code que `voir`,
+`SpeakerCuts` inchangé). `ShotCoverageTest` : plus près = plus grand, derrière ou hors cadre = rien, collé =
+tout ; poids qui monte puis retombe ; caché par un bloc ; tirage pondéré ; caméra qui voit le plus de joueurs.
+Régie vocale : `test_offline.py` (« on va aller voir Ensuri pour voir comment ça se passe », « reste sur Juste »,
+« plus large », « évite la caméra 3 », « repasse en auto »…), `test_validate.py`.
+Écran partagé avec une tuile qui suit (branche de l'écran partagé fusionnée ; `camaction <json>` dans
+`run-26.2/dev-input.txt` envoie l'action comme les touches de diffusion) : `camera.split` [follow:LordFinn, 1, 3]
+en « principal » : LordFinn suivi en grand avec ses cadrages, les caméras 1 et 3 en petit ✔ ; [follow:LordFinn, 2]
+« bord à bord » ✔. Pas vérifié en jeu : l'écran partagé automatique des zones d'une manche et « on va voir » en
+manche (il faut deux candidats dans deux zones : un seul joueur sur le serveur de dev).
+Suivi commun caméras / projecteurs : `/cam follow @maitre` suit LordFinn, cadré sans retard en courant (gros plan
+tenu en marchant) ✔ ; projecteur suspendu en poursuite, LordFinn marche 3 s dans un sens puis dans l'autre de nuit,
+vu par la caméra 2 : la flaque reste centrée sous ses pieds (avant, elle traînait derrière) ✔ ; poursuite
+`@antenne` : vide au départ, LordFinn dès « /cam voir LordFinn » ✔. `TargetTrackerTest` : pas de retard sur un
+joueur qui marche (le lissage seul traîne de v × tau), avance plafonnée, arrêt sans dépassement, téléportation,
+saut non anticipé. Régie vocale : « suis le premier du classement », « suis qui est sur scène ».
+Pas vérifié : la vraie souris (le `@Redirect` de `MouseHandler.turnPlayer` s'applique, le jeu démarre ; mêmes
+entrées que `camturn`), les replays et les intros (même code, `DirectorCamera.follow`).

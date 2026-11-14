@@ -317,6 +317,38 @@ class OfflineUnderstander:
             return [{"type": "camera.cut", "camera": "trone"}]
         if re.fullmatch(r"(?:plan (?:sur le |du )?|caméra (?:sur le )?|le )?podium", text):
             return [{"type": "camera.cut", "camera": "podium"}]
+        # Automatic framing: go and see a player, stay on them, wider / tighter, cameras to avoid, back to auto
+        m = re.fullmatch(r"(?:et )?(?:maintenant )?(?:on va|allons|on part|on file) (?:aller )?voir "
+                         r"(?:comment ça se passe (?:chez|pour|du côté d'|du côté de) )?(?P<player>.+?)"
+                         r"(?: pour voir comment ça se passe| voir comment ça se passe| comment ça se passe)?", text)
+        if m:
+            return [{"type": "camera.goto", "player": m.group("player").strip()}]
+        m = re.fullmatch(r"(?:on )?(?:reste|restez|restons) sur (?P<player>.+)", text)
+        if m:
+            return [{"type": "camera.stay", "player": m.group("player").strip()}]
+        if re.fullmatch(r"(?:tu peux )?(?:lâcher|lâche|lâchez) .+|(?:ne )?reste plus sur .+", text):
+            return [{"type": "camera.stay", "enabled": False}]
+        if re.fullmatch(r"(?:un peu |cadrage )?plus large", text):
+            return [{"type": "camera.framing", "size": "wider"}]
+        if re.fullmatch(r"(?:un peu |cadrage )?plus serré", text):
+            return [{"type": "camera.framing", "size": "tighter"}]
+        if re.fullmatch(r"cadrage (?:normal|auto(?:matique)?)", text):
+            return [{"type": "camera.framing", "size": "auto"}]
+        m = re.fullmatch(r"(?:évite|évitez|n'utilise plus|plus de) (?:la )?cam[ée]ra " + NUM, text)
+        if m:
+            n = m.group("n")
+            return [{"type": "camera.avoid", "camera": str(FRENCH_NUMBERS.get(n, n))}]
+        m = re.fullmatch(r"(?:tu peux )?(?:reprendre|reprends|réutilise) (?:la )?cam[ée]ra " + NUM, text)
+        if m:
+            n = m.group("n")
+            return [{"type": "camera.avoid", "camera": str(FRENCH_NUMBERS.get(n, n)), "enabled": False}]
+        if re.fullmatch(r"(?:repasse|repassez|reviens|on repasse|on revient) en auto(?:matique)?", text):
+            return [{"type": "camera.auto", "enabled": True}]
+        m = re.fullmatch(r"(?:suis|suivez|on suit|caméra sur) (?P<who>le premier(?: du classement)?|le dernier(?: du classement)?|"
+                         r"qui est sur (?:la )?scène|le joueur du moment|le craftmaster|le maître du jeu)", text)
+        if m:
+            rules = {"premier": "premier", "dernier": "dernier", "scène": "scene", "moment": "moment", "craftmaster": "maitre", "maître": "maitre"}
+            return [{"type": "camera.follow", "rule": next(v for k, v in rules.items() if k in m.group("who"))}]
         m = re.fullmatch(r"(?:suis|suivez|on suit|caméra sur) (?P<player>.+)", text)
         if m:
             return [{"type": "camera.follow", "player": m.group("player")}]

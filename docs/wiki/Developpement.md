@@ -71,7 +71,11 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
                           PoseLibrary (poses.json), PortraitNetwork, PortraitCommands (/cfpt), PortraitItem
   camera/                 réalisation TV (chantier E) : CameraSpot (une caméra : numéro, nom, rôle, objectif, zoom,
                           mouvement), CameraList (recherche « caméra 2 » / « plan large » / « trône »…, pur),
-                          CameraMotion (respiration, travelling, panoramique, plan qui suit : maths pures),
+                          CameraMotion (respiration, travelling, panoramique : maths pures), TargetTracker (suivi
+                          d'une cible commun au plan qui suit et aux poursuites : lissé sans retard, en avance), FollowFraming
+                          (cadrages du plan qui suit, glissement, choix selon la place : pur), ShotCoverage (part de la
+                          hauteur de l'image qu'occupe un joueur vu d'une caméra posée, visibilité, tirage pondéré,
+                          caméra qui voit le plus de joueurs : pur),
                           Cameras (registre cameras.json + trépieds), CameraEntity (trépied), CameraItem ;
                           lieux et zones : Lieux (manches, zones d'épreuve, zone d'un joueur, caméras qui le
                           filment) ; travellings : CameraPath (étapes, spline, pur), CameraPaths (trajets.json),
@@ -141,7 +145,8 @@ src/client/java/…/client/                   client uniquement (jamais chargé 
                           (skin du joueur ou image téléchargée), PortraitScreen (réglages), PoseEditorScreen
   broadcast/              mode diffusion (chantier E) : Broadcast (F8, /diffusion, touches 1–9 et molette, HUD
                           vanilla masqué), ShowStateClient (état reçu, chrono lissé), DirectorCamera (vue du plan,
-                          transitions), Transition (fondu enchaîné : copie de la dernière image), BroadcastOverlay
+                          transitions), FollowCamera (plan qui suit : cadrages, rayons contre les blocs, prise en
+                          main souris / molette ; une instance pour le plan, une par tuile « follow:<joueur> »), Transition (fondu enchaîné : copie de la dernière image), BroadcastOverlay
                           (habillage TV), ThemeSound, CameraRenderer (trépied, voyant rouge, numéro)
   task/CurrentTask        BOUCHON du contrat du chantier D (remplacé par la vraie classe à la fusion)
   mixin/                  CameraMixin (vue du plan, champ), GameRendererMixin (pas de balancement), HandsRendererMixin,
@@ -230,7 +235,11 @@ tools/voice-regie/                          service local de la régie vocale (P
 - **Réalisation TV** (chantier E) : le serveur décide du plan (`Director`) et l'envoie à tous dans l'état de
   l'émission (`craftmaster:show_state`, renvoyé dès qu'il change, vérifié tous les 10 ticks) ; chaque jeu en mode
   diffusion calcule sa vue lui-même, image par image (`DirectorCamera` : mouvement de la caméra en temps réel, plan
-  qui suit lissé, transitions). La vue remplace position et rotation de `Camera` juste après `alignWithEntity`
+  qui suit, transitions). Plan qui suit (`FollowCamera`) : la caméra est sur une sphère autour de la tête
+  (azimut, élévation, distance) ; on interpole ces paramètres, pas les positions, donc elle tourne autour du joueur
+  au lieu de le traverser. Place libre : 5 rayons `ClipContext.Block.VISUAL` de la tête vers le centre et les coins
+  de l'objectif, moins 0,3 bloc ; la distance affichée rentre aussitôt devant un bloc et ne ressort que lissée.
+  Souris : `MouseHandlerMixin` redirige `LocalPlayer.turn` de `turnPlayer` quand le plan qui suit est à l'écran. La vue remplace position et rotation de `Camera` juste après `alignWithEntity`
   (mixin) : la caméra reste « attachée » au joueur pour les chunks et le tri, n'est pas « détachée » (le corps du
   joueur n'est pas dessiné). Le **fondu enchaîné** copie l'image à l'écran (`RenderTarget#copyColorFrom`, au moment
   où le plan change, avant le rendu de la nouvelle image) et la dessine au-dessus avec une opacité décroissante

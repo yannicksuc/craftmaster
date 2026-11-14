@@ -183,7 +183,11 @@ Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`
 | `/cam remove <n>` | | Retire la caméra et son trépied |
 | `/cam cut <caméra> [transition]` · `/cam wide` · `/cam next` · `/cam prev` | | Change de plan |
 | `/cam follow <joueur> [transition]` | | Plan qui suit un joueur |
-| `/cam auto <on\|off>` · `/cam transition <transition>` | | Réalisation automatique · transition par défaut |
+| `/cam auto <on\|off>` · `/cam transition <transition>` | | Réalisation automatique (on : plus de joueur retenu, cadrage normal) · transition par défaut |
+| `/cam voir <joueur>` | | On va le voir : caméra posée qui le voit bien, sinon le plan qui le suit |
+| `/cam rester <joueur\|off>` | | La réalisation auto reste sur ce joueur |
+| `/cam cadrage <large\|serre\|auto>` | | Cadrage automatique plus large / plus serré / normal |
+| `/cam eviter <caméra> [off]` | | La réalisation auto n'utilise plus cette caméra (off : de nouveau) |
 | `/cam lieu <caméra> <studio\|manche> [zone]` | | Range la caméra dans un lieu (et une zone : nom de zone d'épreuve ou candidat) |
 | `/cam focus [<studio\|manche\|auto> [zone]]` · `/cam zone <zone\|joueur\|suivante\|precedente\|tout>` | | Lieu / zone que visent les touches 1–9 et « caméra 2 » (sans argument : où on en est) |
 | `/cam list tout` | | Les caméras de tous les lieux, par lieu et zone |
@@ -282,6 +286,6 @@ Détail dans [Plateau](Plateau.md). Sans cible, une commande agit sur l'écran, 
 | `/image clear\|remove` · `/image size <l> <h>` · `/image fit <true\|false>` | | Mire / retirer / taille / image entière ou étirée |
 | `/craftMasterDesk name <nom\|->` | `cfdk` | Nom sur la plaque du pupitre regardé (admin) |
 | `/craftMasterGong` | `cfgo` | Coup du gong le plus proche (admin) |
-| `/craftMasterSpotlight` | `cfsp` | Projecteurs : `nom <nom>` (celui regardé) ; `[tout\|groupe <nom>] allume\|eteint\|couleur <c>\|intensite <0-100>\|cone <1-30>\|ici\|suivre <joueur\|@scene\|@moment\|@candidat\|@proche\|@zone:nom>\|stop [fondu s]` ; `liste` — voir [Scénographie](Scenographie.md) |
+| `/craftMasterSpotlight` | `cfsp` | Projecteurs : `nom <nom>` (celui regardé) ; `[tout\|groupe <nom>] allume\|eteint\|couleur <c>\|intensite <0-100>\|cone <1-30>\|ici\|suivre <joueur|@scene|@moment|@antenne|@candidat\|@scene\|@moment\|@candidat\|@proche\|@zone:nom>\|stop [fondu s]` ; `liste` — voir [Scénographie](Scenographie.md) |
 | `/ambiance` | `cfam` | Ambiances : `enregistrer <nom> [parties] [fondu]`, `lancer <nom> [fondu]`, `modifier <nom> <cible> <ordre>` (sans la jouer), `noir [fondu]`, `supprimer`, liste cliquable |
 | `/conduite` | `cfco` | Conduites : `ajouter <nom> <ligne>`, `voir`, `inserer`, `retirer`, `lancer`, `stop`, `statut`, `auto <moment> <conduite>`, `manche <manche> <conduite>` |

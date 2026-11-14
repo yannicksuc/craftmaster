@@ -88,6 +88,7 @@ public final class Broadcast {
 
         ClientPlayNetworking.registerGlobalReceiver(ShowState.TYPE, (payload, ctx) -> ShowStateClient.set(payload));
         ClientPlayNetworking.registerGlobalReceiver(BroadcastNetwork.FreeCamera.TYPE, (payload, ctx) -> DirectorCamera.freeCamera(payload));
+        ClientPlayNetworking.registerGlobalReceiver(fr.lordfinn.craftmaster.broadcast.FollowPrefs.Payload.TYPE, (payload, ctx) -> FollowCamera.prefs(payload.json()));
         ClientPlayNetworking.registerGlobalReceiver(ShowCue.TYPE, (payload, ctx) -> {
             if (Cues.THEME.equals(payload.kind())) {
                 if ("stop".equals(payload.title())) ThemeSound.stop();
@@ -202,9 +203,11 @@ public final class Broadcast {
         request(a);
     }
 
-    /** Mouse wheel in broadcast mode (from the mixin): previous / next camera, with Shift the zone. True if consumed. */
+    /** Mouse wheel in broadcast mode (from the mixin): previous / next camera, with Shift the zone, closer / further on a follow shot. True if consumed. */
     public static boolean onScroll(double amount) {
         if (!active() || amount == 0) return false;
+        // Follow shot on screen: the wheel moves its camera closer or further (FollowCamera); Shift keeps the zones
+        if (!Minecraft.getInstance().hasShiftDown() && FollowCamera.zoom(amount)) return true;
         long now = System.currentTimeMillis();
         if (now - lastScroll < 180) return true;
         lastScroll = now;
@@ -237,7 +240,7 @@ public final class Broadcast {
         request(a);
     }
 
-    static void request(Map<String, Object> action) {
+    public static void request(Map<String, Object> action) {
         if (ClientPlayNetworking.canSend(CameraRequest.TYPE)) ClientPlayNetworking.send(new CameraRequest(GSON.toJson(action)));
     }
 

@@ -17,7 +17,9 @@ import java.util.Map;
  *                                                in the focus; or elsewhere: "studio:2", "ensuri:1", "caméra 2 du studio";
  *                                                pair true (Ctrl+click in the directors' grids) = side by side with the
  *                                                camera on air (split screen of two), or back to one if it is one of the two
- * camera.follow     {player, transition?, effect?}  follow shot on a player (in a round: selects their zone too)
+ * camera.follow     {player | rule, transition?, effect?}  follow shot on a player (in a round: selects their zone too),
+ *                                                or by rule, the follow-spots' ones (@moment, @candidat, @scene, @maitre,
+ *                                                @rang:1, @dernier, @hasard, @public, @proche, @zone:x): picked again while on air
  * camera.pov        {player, transition?, effect?}  through a player's eyes
  * camera.path       {path, transition?, effect?}    plays a recorded travelling
  * camera.mosaic     {lieu?, enabled?, layout?}   split screen of the zones (or cameras) of a lieu; enabled false = off
@@ -28,7 +30,11 @@ import java.util.Map;
  * camera.focus      {lieu?, zone?, player?, cut?}   lieu / zone the keys address: lieu "auto" = follow the show,
  *                                                zone "next" / "prev"; player = their zone; cut = show its wide camera
  * camera.lieu       {camera, lieu, zone?}        moves a camera to the studio or a round (and a zone of it)
- * camera.auto       {enabled}                   automatic direction on / off
+ * camera.auto       {enabled}                   automatic direction on / off (on: also ends camera.stay and camera.framing)
+ * camera.goto       {player}                    « on va voir Ensuri » : a placed camera that sees them well, else following them
+ * camera.stay       {player?, enabled?}         the automatic direction stays on a player (enabled false / no player = stop)
+ * camera.framing    {size}                      automatic framing: wider | tighter | auto
+ * camera.avoid      {camera, enabled?}          the automatic choices never take this camera (enabled false = they may again)
  * camera.transition {transition}                default transition: coupe | fondu | enchaine
  * broadcast.lowerthird {player? | text?, subtitle?, seconds?}
  * broadcast.task    {seconds?}                  task card on the broadcast (chantier D's card)
@@ -43,7 +49,8 @@ public final class BroadcastActions {
 
     public static final List<String> TYPES = List.of("camera.cut", "camera.follow", "camera.auto", "camera.transition",
             "broadcast.lowerthird", "broadcast.task", "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop",
-            "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu", "camera.voice", "camera.split");
+            "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu", "camera.voice", "camera.split",
+            "camera.goto", "camera.stay", "camera.framing", "camera.avoid");
 
     public static boolean handles(String type) {
         return TYPES.contains(type);
@@ -60,7 +67,17 @@ public final class BroadcastActions {
                 effect(a, out);
                 if (bool(a, "pair", false)) out.put("pair", true);
             }
-            case "camera.follow", "camera.pov" -> {
+            case "camera.follow" -> {
+                String rule = str(a, "rule");
+                if (rule != null) {
+                    String r = fr.lordfinn.craftmaster.studio.SpotlightFollow.parse(rule);
+                    if (r == null) throw new Actions.Invalid("règle de suivi « " + rule + " » inconnue (moment, candidat, scene, maitre, premier, dernier, hasard, public, proche, zone:x).");
+                    out.put("player", r);
+                } else out.put("player", required(a, "player"));
+                transition(a, out, false);
+                effect(a, out);
+            }
+            case "camera.pov" -> {
                 out.put("player", required(a, "player"));
                 transition(a, out, false);
                 effect(a, out);
@@ -111,6 +128,18 @@ public final class BroadcastActions {
                 if (zone != null) out.put("zone", zone);
             }
             case "camera.auto", "camera.voice" -> out.put("enabled", bool(a, "enabled", true));
+            case "camera.goto" -> out.put("player", required(a, "player"));
+            case "camera.stay" -> {
+                String player = str(a, "player");
+                boolean on = a.get("enabled") == null ? player != null : bool(a, "enabled", false);
+                out.put("enabled", on);
+                if (on) out.put("player", required(a, "player"));
+            }
+            case "camera.framing" -> out.put("size", framingSize(required(a, "size")));
+            case "camera.avoid" -> {
+                out.put("camera", cameraRef(a));
+                out.put("enabled", a.get("enabled") == null || bool(a, "enabled", false));
+            }
             case "camera.transition" -> transition(a, out, true);
             case "broadcast.lowerthird" -> {
                 String player = str(a, "player"), text = str(a, "text");
@@ -132,6 +161,17 @@ public final class BroadcastActions {
             default -> throw new Actions.Invalid("action inconnue « " + type + " ».");
         }
         return out;
+    }
+
+    /** "plus large" / "wider" → wider, "plus serré" / "tighter" → tighter, "auto" / "normal" → auto. */
+    static String framingSize(String s) {
+        String t = CameraList.fold(s).replaceAll("[_-]+", " ").strip();
+        return switch (t) {
+            case "wider", "large", "plus large", "larger", "wide", "+1", "1" -> "wider";
+            case "tighter", "serre", "plus serre", "tight", "close", "proche", "plus pres", "-1" -> "tighter";
+            case "auto", "normal", "automatique", "0", "defaut" -> "auto";
+            default -> throw new Actions.Invalid("cadrage « " + s + " » inconnu (wider, tighter ou auto).");
+        };
     }
 
     /**

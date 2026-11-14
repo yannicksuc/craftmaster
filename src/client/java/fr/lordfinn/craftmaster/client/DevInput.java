@@ -153,6 +153,23 @@ public final class DevInput {
                     mc.getConnection().send(new net.minecraft.network.protocol.game.ServerboundPickItemFromEntityPacket(mc.crosshairPickEntity.getId(), true));
                     continue;
                 }
+                // "camturn <dx> <dy>" / "camwheel <notches>": the mouse and the wheel of the broadcast game (follow shot)
+                if (line.strip().startsWith("camturn ")) {
+                    String[] a = line.strip().split("\s+");
+                    fr.lordfinn.craftmaster.client.broadcast.FollowCamera.turn(Double.parseDouble(a[1]), Double.parseDouble(a[2]));
+                    continue;
+                }
+                // "camaction <json>": a direction action sent as the broadcast keys do (e.g. {"type":"camera.split",...})
+                if (line.strip().startsWith("camaction ")) {
+                    @SuppressWarnings("unchecked")
+                    java.util.Map<String, Object> act = new com.google.gson.Gson().fromJson(line.strip().substring(10), java.util.Map.class);
+                    fr.lordfinn.craftmaster.client.broadcast.Broadcast.request(act);
+                    continue;
+                }
+                if (line.strip().startsWith("camwheel ")) {
+                    fr.lordfinn.craftmaster.client.broadcast.Broadcast.onScroll(Double.parseDouble(line.strip().split("\s+")[1]));
+                    continue;
+                }
                 // "camera first|back|front": the point of view, as F5 cycles it (the player's own model seen from behind)
                 if (line.strip().startsWith("camera ")) {
                     String v = line.strip().substring(7).strip();
