@@ -237,7 +237,8 @@ public class TravellingScreen extends Screen {
                 int ey = y;
                 hits.add(new Hit(vx - 2, y, vr, y + 12, () -> startSelector(target, vx - 2, ey, vr - vx + 2), null, null, t("entity_tip")));
                 y += 13;
-                net.minecraft.world.entity.Entity found = TrackedTargets.entity(target);
+                net.minecraft.world.entity.Entity found = TrackedTargets.entity(CameraPath.trackKey(target,
+                        s.get("x").getAsDouble(), s.get("y").getAsDouble(), s.get("z").getAsDouble()));
                 String status = found != null ? "→ " + found.getName().getString() : t("entity_none").getString();
                 g.text(font, font.plainSubstrByWidth(status, vr - vx), vx, y, found != null ? DIM : 0xFFE08A6A, false);
                 y += 11;

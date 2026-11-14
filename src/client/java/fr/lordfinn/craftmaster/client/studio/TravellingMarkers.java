@@ -106,6 +106,7 @@ public final class TravellingMarkers {
             CameraPath p = ShowStateClient.path(name);
             if (p == null) continue;
             for (int i = 0; i < p.steps().size(); i++) {
+                if (TravellingEdit.hiddenByOverlap(p.name(), i)) continue;
                 CameraPath.Step s = p.steps().get(i);
                 Vec3 to = new Vec3(s.x() - eye.x, s.y() - eye.y, s.z() - eye.z);
                 double along = to.dot(look);

@@ -36,16 +36,17 @@ public final class TrackedTargets {
         });
     }
 
-    /** The entity a target gives now (null: none, or not loaded here). */
-    public static Entity entity(String target) {
+    /** The entity a track key (CameraPath.trackKey) gives now (null: none, or not loaded here). */
+    public static Entity entity(String key) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null || target == null) return null;
-        Integer id = ids.get(target.strip());
+        if (mc.level == null || key == null) return null;
+        Integer id = ids.get(key);
         if (id != null && id >= 0) {
             Entity e = mc.level.getEntity(id);
             if (e != null) return e;
         }
-        for (var pl : mc.level.players()) if (pl.getGameProfile().name().equalsIgnoreCase(target.strip())) return pl;
+        String name = fr.lordfinn.craftmaster.camera.CameraPath.trackTarget(key).strip();
+        for (var pl : mc.level.players()) if (pl.getGameProfile().name().equalsIgnoreCase(name)) return pl;
         return null;
     }
 

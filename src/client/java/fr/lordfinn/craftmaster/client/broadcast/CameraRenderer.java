@@ -188,10 +188,14 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
                 if (fr.lordfinn.craftmaster.client.studio.ControlView.controllingStep(p.name(), i)) continue;
                 fr.lordfinn.craftmaster.camera.CameraPath.Pose st = fr.lordfinn.craftmaster.client.studio.TravellingEdit.pose(p, i);
                 boolean selected = fr.lordfinn.craftmaster.client.studio.TravellingEdit.isSelected(p.name(), i);
-                float[] at = {(float) (st.x() - e.getX()), (float) (st.y() - e.getY()), (float) (st.z() - e.getZ()), st.yaw(), st.pitch(),
+                // A step tracking an entity or looking at a place: its ghost camera aims there
+                float[] aim = p.aimFromStep(i, DirectorCamera::playerPosition);
+                float ayaw = aim != null ? aim[0] : st.yaw(), apitch = aim != null ? aim[1] : st.pitch();
+                float[] at = {(float) (st.x() - e.getX()), (float) (st.y() - e.getY()), (float) (st.z() - e.getZ()), ayaw, apitch,
                         tint(selected ? brighter(colour) : colour, selected ? 0xD0 : main ? 0xB0 : 0x30), main ? 3.6f : 1.8f};
                 if (selected || fr.lordfinn.craftmaster.client.studio.TravellingMarkers.showsGhost(p.name(), i)) s.stepGhosts.add(at);
-                else s.dots.add(at);
+                // Several travellings' steps at the same place: their colours in turn
+                else if (!fr.lordfinn.craftmaster.client.studio.TravellingEdit.hiddenByOverlap(p.name(), i)) s.dots.add(at);
             }
             trail(e, p, colour, main, s.trail);
         }

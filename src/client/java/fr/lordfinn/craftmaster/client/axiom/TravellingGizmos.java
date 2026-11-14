@@ -174,6 +174,7 @@ public final class TravellingGizmos {
             CameraPath p = ShowStateClient.path(name);
             if (p == null) continue;
             for (int i = 0; i < p.steps().size(); i++) {
+                if (TravellingEdit.hiddenByOverlap(name, i)) continue;
                 CameraPath.Pose v = TravellingEdit.pose(p, i);
                 double along = pick(eye, look, new Vec3(v.x(), v.y(), v.z()), 0.18);
                 if (along < bestStep) {
@@ -188,7 +189,7 @@ public final class TravellingGizmos {
             for (int i = 0; i < p.steps().size(); i++) {
                 CameraPath.Pose v = TravellingEdit.pose(p, i);
                 Vec3 at = new Vec3(v.x(), v.y(), v.z());
-                if (busy || look == null || sel != null && sel.is(name, i)) continue;
+                if (busy || look == null || sel != null && sel.is(name, i) || TravellingEdit.hiddenByOverlap(name, i)) continue;
                 double along = pick(eye, look, at, 0.22);
                 if (along < bestStep) {
                     bestStep = along;

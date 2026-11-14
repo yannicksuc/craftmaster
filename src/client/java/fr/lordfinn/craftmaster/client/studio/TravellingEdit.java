@@ -212,6 +212,45 @@ public final class TravellingEdit {
     }
 
 
+    // ---------------------------------------------------------------- steps at the same place
+
+    private static long overlapAt;
+    private static java.util.Set<StepRef> overlapHidden = java.util.Set.of();
+
+    /**
+     * Steps of several travellings at the same place (they often all start at the camera): one is shown at a time,
+     * each travelling's colour in turn every 1.5 s. Is this one hidden right now?
+     */
+    public static boolean hiddenByOverlap(String path, int index) {
+        long now = System.currentTimeMillis();
+        if (now - overlapAt > 100) {
+            overlapAt = now;
+            overlapHidden = overlaps(now);
+        }
+        return overlapHidden.contains(new StepRef(path, index));
+    }
+
+    private static java.util.Set<StepRef> overlaps(long now) {
+        Map<String, List<StepRef>> groups = new HashMap<>();
+        for (String name : TravellingMarkers.shownPaths(net.minecraft.client.Minecraft.getInstance())) {
+            CameraPath p = ShowStateClient.path(name);
+            if (p == null) continue;
+            for (int i = 0; i < p.steps().size(); i++) {
+                CameraPath.Pose v = pose(p, i);
+                String key = Math.round(v.x() * 10) + "," + Math.round(v.y() * 10) + "," + Math.round(v.z() * 10);
+                groups.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(new StepRef(name, i));
+            }
+        }
+        java.util.Set<StepRef> hidden = new java.util.HashSet<>();
+        for (List<StepRef> g : groups.values()) {
+            if (g.stream().map(StepRef::path).distinct().count() < 2) continue;
+            g.sort(java.util.Comparator.comparing(StepRef::path).thenComparingInt(StepRef::index));
+            int shown = (int) ((now / 1500) % g.size());
+            for (int k = 0; k < g.size(); k++) if (k != shown) hidden.add(g.get(k));
+        }
+        return hidden;
+    }
+
     // ---------------------------------------------------------------- world tools
 
     public static void gizmosDrawn() {

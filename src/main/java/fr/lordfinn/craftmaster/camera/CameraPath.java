@@ -245,13 +245,38 @@ public record CameraPath(String name, String lieu, String world, List<Step> step
         return new Pose(p.x(), p.y(), p.z(), (float) (lb[0] + dy * w), (float) (lb[1] + (lc[1] - lb[1]) * w), p.fov());
     }
 
+    /**
+     * How a step's tracked entity is asked for: its target, and where the step stands (a selector such as
+     * {@code @n[type=sheep]} is the nearest one to that step, see TrackTargets).
+     */
+    public static String trackKey(String target, double x, double y, double z) {
+        return target.strip() + "\u0001" + Math.round(x) + " " + Math.round(y) + " " + Math.round(z);
+    }
+
+    public static String trackKey(Step s) {
+        return trackKey(s.target(), s.x(), s.y(), s.z());
+    }
+
+    /** The target written in a track key (before the step's place). */
+    public static String trackTarget(String key) {
+        int cut = key.indexOf('\u0001');
+        return cut < 0 ? key : key.substring(0, cut);
+    }
+
+    /** Yaw / pitch from step {@code i}'s own place toward what it tracks or looks at, or null (its own angle). */
+    public float[] aimFromStep(int i, java.util.function.Function<String, double[]> resolve) {
+        if (i < 0 || i >= steps.size()) return null;
+        Step s = steps.get(i);
+        return aim(i, new Pose(s.x(), s.y(), s.z(), s.yaw(), s.pitch(), s.fov()), resolve);
+    }
+
     /** Yaw / pitch toward step {@code i}'s target from the camera's place, or null if it has none. */
     private float[] aim(int i, Pose from, java.util.function.Function<String, double[]> resolve) {
         if (i < 0 || i >= steps.size()) return null;
         Step s = steps.get(i);
         if (s.target().isEmpty()) return null;
         double[] at = s.targetPlace();
-        if (at == null && resolve != null) at = resolve.apply(s.target());
+        if (at == null && resolve != null) at = resolve.apply(trackKey(s));
         if (at == null) return null;
         double dx = at[0] - from.x(), dy = at[1] - from.y(), dz = at[2] - from.z();
         double flat = Math.sqrt(dx * dx + dz * dz);

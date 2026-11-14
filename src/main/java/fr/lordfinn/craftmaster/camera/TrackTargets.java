@@ -26,14 +26,14 @@ import java.util.Map;
 /**
  * The entities the travelling steps track: a step's target can be an entity selector, as in commands
  * ({@code @n[type=sheep]}, {@code @p}, {@code @e[tag=star,limit=1]}) or a name. The server resolves each one every half
- * second, from where the travelling starts (so {@code @n} is the nearest one to the camera), and tells the clients
+ * second, from each step's own place (so {@code @n} is the nearest one to that step), and tells the clients
  * which entity it is; they follow it smoothly (DirectorCamera). Coordinates ("x y z") are not resolved here.
  */
 public final class TrackTargets {
 
     private TrackTargets() {}
 
-    /** Selector → entity id (-1: none found), sent whole when it changes. */
+    /** Track key (CameraPath.trackKey: selector and step place) → entity id (-1: none found), sent whole when it changes. */
     public record Targets(String json) implements CustomPacketPayload {
         public static final Type<Targets> TYPE = new Type<>(CraftMaster.id("track_targets"));
         public static final StreamCodec<FriendlyByteBuf, Targets> CODEC = CustomPacketPayload.codec(
@@ -65,11 +65,11 @@ public final class TrackTargets {
             if (p.isEmpty()) continue;
             ServerLevel level = Busts.level(server, p.world());
             if (level == null) continue;
-            CameraPath.Step first = p.steps().getFirst();
+            // Each step looks for its entity from where it stands (@n: the nearest one to that step)
             for (CameraPath.Step s : p.steps()) {
-                String target = s.target();
-                if (!isEntity(target) || now.containsKey(target.strip())) continue;
-                now.put(target.strip(), find(server, level, new Vec3(first.x(), first.y(), first.z()), target.strip()));
+                if (!isEntity(s.target())) continue;
+                String key = CameraPath.trackKey(s);
+                if (!now.containsKey(key)) now.put(key, find(server, level, new Vec3(s.x(), s.y(), s.z()), s.target().strip()));
             }
         }
         if (!force && now.equals(last)) return;
