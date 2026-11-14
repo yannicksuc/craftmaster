@@ -438,10 +438,17 @@ public class PoseEditorScreen extends Screen {
     public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
         if (!inPreview(x, y) || scrollY == 0) return super.mouseScrolled(x, y, scrollX, scrollY);
         if (minecraft.hasControlDown()) {
-            zoom = Math.max(0.5, Math.min(3, zoom * (scrollY > 0 ? 1.15 : 1 / 1.15)));
-        } else {
+            // Ctrl + wheel: 1° (Shift: 5°) on the axis shown, like the arrows
             step(Math.signum(scrollY) * (minecraft.hasShiftDown() ? 5 : 1));
+            return true;
         }
+        // The wheel zooms, toward the mouse: the point under it stays under it
+        PoseHitTest.View before = view();
+        double next = Math.max(0.3, Math.min(6, zoom * (scrollY > 0 ? 1.15 : 1 / 1.15)));
+        double f = next / zoom;
+        zoom = next;
+        panX += (x - before.cx()) * (1 - f);
+        panY += (y - before.cy()) * (1 - f);
         return true;
     }
 
