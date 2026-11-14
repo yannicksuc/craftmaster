@@ -33,6 +33,7 @@ import java.util.Locale;
  * slowmo factor                  animations that ask {@link #timeScale} run this many times slower (1 = normal)
  * open CLASS                    opens that screen (no-argument constructor), e.g. another mod's menu
  * use seconds                    holds the "use" key in the world that long, then lets go (charge a throw, a bow…)
+ * camera first|back|front        the point of view, as F5 cycles it (see the player's own model)
  * </pre>
  */
 public final class DevInput {
@@ -121,6 +122,26 @@ public final class DevInput {
                     }
                     continue;
                 }
+                // "ears": where the game and Simple Voice Chat listen from right now, and the camera (logged)
+                if (line.strip().equals("ears") && mc.player != null) {
+                    Object voice = null;
+                    try {
+                        voice = Class.forName("de.maxhenkel.voicechat.voice.client.ClientManager").getMethod("getCameraState").invoke(null);
+                    } catch (ReflectiveOperationException | RuntimeException ignored) {
+                    }
+                    CraftMaster.LOG.info("[DevInput] ears: sound={} voice={} camera={} eyes={} mode={}",
+                            mc.getSoundManager().getListenerTransform().position(), voice,
+                            mc.gameRenderer.mainCamera().position(), mc.player.getEyePosition(),
+                            fr.lordfinn.craftmaster.client.broadcast.PlayerEars.mode());
+                    continue;
+                }
+                // "control <x y z> <yaw> <pitch>": look through a camera standing there (as its menu's button; any screen ends it)
+                if (line.strip().startsWith("control ")) {
+                    String[] a = line.strip().split("\s+");
+                    if (a.length >= 6) fr.lordfinn.craftmaster.client.studio.ControlView.startCamera("dev", "dev", new net.minecraft.world.phys.Vec3(
+                            Double.parseDouble(a[1]), Double.parseDouble(a[2]), Double.parseDouble(a[3])), Float.parseFloat(a[4]), Float.parseFloat(a[5]), 70);
+                    continue;
+                }
                 // "attack": a hit on what the crosshair aims at (logged)
                 if (line.strip().equals("attack") && mc.player != null && mc.gameMode != null) {
                     CraftMaster.LOG.info("[DevInput] aim: {}", mc.hitResult instanceof net.minecraft.world.phys.EntityHitResult e ? e.getEntity() : mc.hitResult == null ? null : mc.hitResult.getType());
@@ -130,6 +151,13 @@ public final class DevInput {
                 // "pickdata": Ctrl + middle click on the entity aimed at
                 if (line.strip().equals("pickdata") && mc.crosshairPickEntity != null && mc.getConnection() != null) {
                     mc.getConnection().send(new net.minecraft.network.protocol.game.ServerboundPickItemFromEntityPacket(mc.crosshairPickEntity.getId(), true));
+                    continue;
+                }
+                // "camera first|back|front": the point of view, as F5 cycles it (the player's own model seen from behind)
+                if (line.strip().startsWith("camera ")) {
+                    String v = line.strip().substring(7).strip();
+                    mc.options.setCameraType(v.equals("back") ? net.minecraft.client.CameraType.THIRD_PERSON_BACK
+                            : v.equals("front") ? net.minecraft.client.CameraType.THIRD_PERSON_FRONT : net.minecraft.client.CameraType.FIRST_PERSON);
                     continue;
                 }
                 if (line.strip().startsWith("look ") && mc.player != null) {

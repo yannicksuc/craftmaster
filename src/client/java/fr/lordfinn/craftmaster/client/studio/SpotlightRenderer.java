@@ -214,7 +214,8 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
             int color = s.color;
             float intensity = s.intensity, cone = s.cone;
             BeamEdges.Edges edges = s.edges;
-            collector.submitCustomGeometry(poseStack, SpotLightRenderType.light(), (p, c) -> beam(c, p, length, edges, color, intensity, cone));
+            float[] eye = eye(s, camera);
+            collector.submitCustomGeometry(poseStack, SpotLightRenderType.light(), (p, c) -> beam(c, p, length, edges, color, intensity, cone, eye));
         }
         poseStack.popPose();
         submitPool(s, poseStack, collector);
@@ -237,13 +238,49 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
      * The cone, in head space (blocks): two layers, wide and soft, narrow and brighter, fading to nothing at the end.
      * Each side ends at its own length ({@link BeamEdges}), just before the block it meets.
      */
-    private static void beam(VertexConsumer c, PoseStack.Pose p, double length, BeamEdges.Edges edges, int rgb, float intensity, float coneAngle) {
+    private static void beam(VertexConsumer c, PoseStack.Pose p, double length, BeamEdges.Edges edges, int rgb, float intensity,
+                             float coneAngle, float[] eye) {
         double r1 = endRadius(length, coneAngle);
         // The wider the cone, the thinner the haze it lights
         float spread = (float) Math.min(1, 6 / Math.max(6, coneAngle * 1.6));
         int a = Math.round(60 * intensity * spread), b = Math.round(55 * intensity * spread);
-        cone(c, p, length, edges == null ? null : edges.outer(), LENS_RADIUS, r1, Geo.argb(a, rgb), rgb);
-        cone(c, p, length, edges == null ? null : edges.inner(), LENS_RADIUS * 0.55, r1 * 0.45, Geo.argb(b, rgb), rgb);
+        // Seen from inside: how deep in the beam the eye is (0 outside, 1 well inside), against the outer layer
+        float inside = 0;
+        if (eye != null && eye[2] > BEAM_START - NEAR_MARGIN && eye[2] < length + NEAR_MARGIN) {
+            double rz = BeamEdges.radius(Math.max(BEAM_START, Math.min(length, eye[2])), BEAM_START, length, LENS_RADIUS, r1);
+            inside = (float) Math.max(0, Math.min(1, (rz + NEAR_MARGIN - Math.hypot(eye[0], eye[1])) / NEAR_MARGIN));
+        }
+        float[] near = inside > 0 ? eye : null;
+        cone(c, p, length, edges == null ? null : edges.outer(), LENS_RADIUS, r1, a, rgb, near, inside);
+        cone(c, p, length, edges == null ? null : edges.inner(), LENS_RADIUS * 0.55, r1 * 0.45, b, rgb, near, inside);
+    }
+
+    /** Within this distance of the beam's edge the eye counts as inside it (blocks). */
+    private static final double NEAR_MARGIN = 0.6;
+    /**
+     * Seen from inside a beam (first person in the light), its haze fades out around the eye so the view stays clear:
+     * down to NEAR_MIN at the eye, back to full NEAR_RANGE blocks away (the far part and the end of the beam unchanged).
+     */
+    private static final double NEAR_RANGE = 5, NEAR_MIN = 0.1;
+
+    /** The camera in the head's space (where the beam is drawn), or null. */
+    private static float[] eye(State s, CameraRenderState camera) {
+        if (camera == null || camera.pos == null || s.blockPos == null) return null;
+        org.joml.Vector3f v = new org.joml.Vector3f(
+                (float) (camera.pos.x - s.blockPos.getX() - s.pivot.x),
+                (float) (camera.pos.y - s.blockPos.getY() - s.pivot.y),
+                (float) (camera.pos.z - s.blockPos.getZ() - s.pivot.z));
+        Axis.YP.rotationDegrees(-s.yaw).mul(Axis.XP.rotationDegrees(s.pitch)).conjugate().transform(v);
+        return new float[]{v.x, v.y, v.z};
+    }
+
+    /** How much of the light is kept at this point, seen from {@code eye} ({@code inside}: how deep the eye is in the beam). */
+    private static float nearFade(float[] eye, float inside, float x, float y, float z) {
+        if (eye == null) return 1;
+        double dx = x - eye[0], dy = y - eye[1], dz = z - eye[2];
+        double t = Math.max(0, Math.min(1, (Math.sqrt(dx * dx + dy * dy + dz * dz) - 0.3) / NEAR_RANGE));
+        double kept = NEAR_MIN + (1 - NEAR_MIN) * t * t * (3 - 2 * t);
+        return (float) (1 - inside * (1 - kept));
     }
 
     /** Radius of the beam {@code length} blocks from the lens, for a cone of {@code coneAngle} degrees (half-angle). */
@@ -268,28 +305,46 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
     /** Fractions of each side's length where the light is given: full, a third (60 %), none. */
     private static final float[] STEPS = {0, 0.6f, 1};
 
-    private static void cone(VertexConsumer c, PoseStack.Pose p, double length, float[] ends, double r0, double r1, int c0, int rgb) {
-        int[] colors = {c0, Geo.argb((c0 >>> 24) / 3, rgb), Geo.argb(0, rgb)};
+    /** Light along a side (fraction of its length): full, a third at 60 %, none at the end. */
+    private static float profile(float f) {
+        return f < STEPS[1] ? 1 - (2 / 3f) * f / STEPS[1] : (1 / 3f) * (1 - f) / (1 - STEPS[1]);
+    }
+
+    private static void cone(VertexConsumer c, PoseStack.Pose p, double length, float[] ends, double r0, double r1, int alpha, int rgb,
+                             float[] eye, float inside) {
+        // Seen from inside: cut finer along the length, so the light can fade around the eye and come back further on
+        float[] steps = STEPS;
+        if (eye != null) {
+            int n = (int) Math.max(3, Math.min(48, Math.ceil(length / 0.5)));
+            steps = new float[n + 1];
+            for (int k = 0; k <= n; k++) steps[k] = k / (float) n;
+        }
         double z0 = BEAM_START;
         for (int i = 0; i < SIDES; i++) {
             int j = (i + 1) % SIDES;
             double a0 = 2 * Math.PI * i / SIDES, a1 = 2 * Math.PI * j / SIDES;
             double e0 = ends == null ? length : ends[i], e1 = ends == null ? length : ends[j];
-            for (int k = 0; k < STEPS.length - 1; k++) {
+            for (int k = 0; k < steps.length - 1; k++) {
                 // Both windings: seen from outside and from inside the beam
-                float[] q00 = edge(a0, z0 + (e0 - z0) * STEPS[k], z0, length, r0, r1);
-                float[] q01 = edge(a1, z0 + (e1 - z0) * STEPS[k], z0, length, r0, r1);
-                float[] q10 = edge(a0, z0 + (e0 - z0) * STEPS[k + 1], z0, length, r0, r1);
-                float[] q11 = edge(a1, z0 + (e1 - z0) * STEPS[k + 1], z0, length, r0, r1);
-                int cn = colors[k], cf = colors[k + 1];
-                Geo.glow(c, p, q00[0], q00[1], q00[2], cn);
-                Geo.glow(c, p, q10[0], q10[1], q10[2], cf);
-                Geo.glow(c, p, q11[0], q11[1], q11[2], cf);
-                Geo.glow(c, p, q01[0], q01[1], q01[2], cn);
-                Geo.glow(c, p, q01[0], q01[1], q01[2], cn);
-                Geo.glow(c, p, q11[0], q11[1], q11[2], cf);
-                Geo.glow(c, p, q10[0], q10[1], q10[2], cf);
-                Geo.glow(c, p, q00[0], q00[1], q00[2], cn);
+                float[] q00 = edge(a0, z0 + (e0 - z0) * steps[k], z0, length, r0, r1);
+                float[] q01 = edge(a1, z0 + (e1 - z0) * steps[k], z0, length, r0, r1);
+                float[] q10 = edge(a0, z0 + (e0 - z0) * steps[k + 1], z0, length, r0, r1);
+                float[] q11 = edge(a1, z0 + (e1 - z0) * steps[k + 1], z0, length, r0, r1);
+                float pn = alpha * profile(steps[k]), pf = alpha * profile(steps[k + 1]);
+                int an = Math.round(pn * nearFade(eye, inside, q00[0], q00[1], q00[2]));
+                int bn = Math.round(pn * nearFade(eye, inside, q01[0], q01[1], q01[2]));
+                int af = Math.round(pf * nearFade(eye, inside, q10[0], q10[1], q10[2]));
+                int bf = Math.round(pf * nearFade(eye, inside, q11[0], q11[1], q11[2]));
+                if (an + bn + af + bf == 0) continue;
+                int c00 = Geo.argb(an, rgb), c01 = Geo.argb(bn, rgb), c10 = Geo.argb(af, rgb), c11 = Geo.argb(bf, rgb);
+                Geo.glow(c, p, q00[0], q00[1], q00[2], c00);
+                Geo.glow(c, p, q10[0], q10[1], q10[2], c10);
+                Geo.glow(c, p, q11[0], q11[1], q11[2], c11);
+                Geo.glow(c, p, q01[0], q01[1], q01[2], c01);
+                Geo.glow(c, p, q01[0], q01[1], q01[2], c01);
+                Geo.glow(c, p, q11[0], q11[1], q11[2], c11);
+                Geo.glow(c, p, q10[0], q10[1], q10[2], c10);
+                Geo.glow(c, p, q00[0], q00[1], q00[2], c00);
             }
         }
     }

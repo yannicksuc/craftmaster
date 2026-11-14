@@ -147,7 +147,9 @@ l'interface, bouton 0 gauche / 1 droit, mods 1 Maj, 2 Ctrl, 4 Alt ; `DevInput`).
 `["!input", "click 351 106\nkey Z 2", délai]`. Hors dev, rien n'est lu. Le survol (infobulles) suit la vraie
 souris et reste à voir à la main. Aussi : `hold NOM secondes` (touche tenue, ex. `hold SPACE 2` pour arracher le
 sceau d'une lettre), `slowmo 4` (animations 4 fois plus lentes, pour capturer chaque phase ; `slowmo 1` remet),
-`quit` (ferme le client de test proprement), `screenshot` (capture dans `screenshots/` comme F2, même sur l'écran
+`quit` (ferme le client de test proprement), `ears` (écrit dans le journal du client d'où écoutent le jeu et Simple
+Voice Chat, la caméra, les yeux et le mode de `PlayerEars`), `control x y z yaw pitch` (regarder par une caméra posée
+là, comme son bouton ; un écran ouvert en sort), `screenshot` (capture dans `screenshots/` comme F2, même sur l'écran
 titre où l'outil `screenshot` de MCP Fabric refuse faute de monde), `hover x y` (position de souris lue par les
 écrans qui la suivent, ex. la parallaxe de l'[écran d'accueil](Accueil.md) ; `hover` seul rend la vraie), `use secondes` (tient la touche « utiliser » dans le monde, même sans
 écran ouvert : charger un lancer, gonfler un ballon, tirer à l'arc ; `stop_using_item` de MCP Fabric ne relâche que
@@ -560,3 +562,23 @@ Corrigé : le halo flottait d'un ou deux centièmes de bloc au-dessus du sol, tr
 (`SpotLightRenderType.pool()`). Le faisceau était coupé net par le sol, une marche ou un lit, en dents de scie selon
 le point de vue : chaque facette du cône est tracée jusqu'au bloc qu'elle rencontre et s'éteint juste avant
 (`BeamEdges`). Non vérifié : avec un pack de shaders Iris (le halo garde alors son petit décalage).
+
+## 15. Écoute depuis le joueur dans les vues de caméra (vérifiée en jeu sur 26.2 le 14/11/2026)
+Serveur `:26.2:runServer` (jeu 26601, RCON 26602) + LordFinn (`dev-client.ps1 -Version 26.2`, pont MCP 26641) et
+Joueur2 (`runClient2`, pont MCP 26642), Simple Voice Chat 2.6.27+26.2 dans les `mods/` des trois (enlevé après).
+LordFinn en (0,5 ; 100 ; 0,5), Joueur2 à 2 blocs, caméra 1 à 40 blocs (`/cam placer 1 40.5 105 0.5 vers …`). Mesure
+par la ligne `ears` de `dev-input.txt` : écoute du jeu (`SoundManager.getListenerTransform()`), état de la caméra de
+Voice Chat (`ClientManager.getCameraState()`, qui sert au volume, à la direction OpenAL et à la stéréo des voix).
+
+| Vue | Caméra | Écoute du jeu | Voice Chat | |
+|---|---|---|---|---|
+| Normale | yeux | yeux | yeux | ✔ |
+| F7 imposé (`/tv flux forcer`), caméra 1 à l'antenne | (40,5 ; 105 ; 0,5) | yeux (0,5 ; 101,6 ; 0,5) | yeux, vers +Z | ✔ |
+| F7, le joueur tourne à 90° | caméra 1 | yeux, vers −X | yeux, vers −X, yRot 90 | ✔ |
+| Regarder par une caméra (`control 40.5 105 0.5 90 10`) | (40,5 ; 105 ; 0,5) | yeux | yeux, orientation d'avant (tangage 0, pas 10) | ✔ |
+| Aperçu d'un travelling de 20 s (`/cam trajet t1 apercu`) | sur le trajet, ~31 blocs | yeux | yeux | ✔ |
+| Mode diffusion F8 (`/tv broadcast LordFinn on`) | caméra 1 | caméra 1 | caméra 1 | ✔ (voulu) |
+
+Non mesuré en jeu : une vraie voix (les clients de test n'ont pas de micro : Voice Chat « désactivé », la position
+mesurée est celle qu'il utilise pour toutes les voix), le son lui-même (jeux de test muets), et l'image d'après une
+prise de vignette (l'écoute y garde sa place ; ça ne dure qu'une image).
