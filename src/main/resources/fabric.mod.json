@@ -10,7 +10,8 @@
   "environment": "*",
   "entrypoints": {
     "main": ["fr.lordfinn.craftmaster.CraftMaster"],
-    "client": ["fr.lordfinn.craftmaster.client.CraftMasterClient"]
+    "client": ["fr.lordfinn.craftmaster.client.CraftMasterClient"],
+    "voicechat": ["fr.lordfinn.craftmaster.compat.VoiceActivity"]
   },
   "mixins": ["craftmaster.mixins.json", {"config": "craftmaster.client.mixins.json", "environment": "client"}, {"config": "craftmaster.axiom.mixins.json", "environment": "client"}],
   "depends": {
@@ -20,6 +21,7 @@
   },
   "suggests": {
     "watermedia": ">=3.0.0",
-    "axiom": ">=6.1.0"
+    "axiom": ">=6.1.0",
+    "voicechat": ">=2.6.0"
   }
 }

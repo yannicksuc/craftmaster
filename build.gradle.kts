@@ -28,6 +28,11 @@ repositories {
         forRepository { maven("https://api.modrinth.com/maven") { name = "Modrinth" } }
         filter { includeGroup("maven.modrinth") }
     }
+    // Simple Voice Chat's API (who is speaking, for the automatic direction): optional, only compiled against
+    exclusiveContent {
+        forRepository { maven("https://maven.maxhenkel.de/repository/public") { name = "henkelmax" } }
+        filter { includeGroup("de.maxhenkel.voicechat") }
+    }
 }
 
 // Axiom's client API (axiomclientapi) is nested in Axiom's jar: extracted once to build/axiom-api
@@ -51,6 +56,7 @@ dependencies {
     // Optional at runtime: with Axiom, the travelling steps are moved / turned with its gizmos (client/axiom, mixins
     // applied only when Axiom is loaded); its client API, nested in its jar, is needed to compile against it
     compileOnly("maven.modrinth:axiom:${property("axiom_version")}")
+    compileOnly("de.maxhenkel.voicechat:voicechat-api:2.6.0")
     compileOnly(files(axiomApi))
     implementation("net.fabricmc:fabric-loader:${property("fabric_loader_version")}")
     implementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")

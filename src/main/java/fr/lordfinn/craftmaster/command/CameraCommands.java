@@ -247,7 +247,14 @@ public final class CameraCommands {
                 .then(literal("mosaic").executes(c -> run(c, action("camera.mosaic")))
                         .then(literal("off").executes(c -> run(c, action("camera.mosaic", "enabled", false))))
                         .then(argument("lieu", word()).suggests(LIEUX).executes(c -> run(c, action("camera.mosaic", "lieu", str(c, "lieu"))))))
-                .then(literal("auto").then(argument("enabled", word()).suggests(ON_OFF)
+                .then(literal("auto")
+                        // Cut on who speaks (voice chat) as well
+                        .then(literal("voix").executes(c -> voice(c))
+                                .then(argument("enabled", word()).suggests(ON_OFF).executes(c -> {
+                                    Director.setVoiceCuts(onOff(c, "enabled"));
+                                    return voice(c);
+                                })))
+                        .then(argument("enabled", word()).suggests(ON_OFF)
                         .executes(c -> run(c, action("camera.auto", "enabled", onOff(c, "enabled"))))))
                 .then(literal("transition").then(argument("transition", word()).suggests(TRANSITIONS)
                         .executes(c -> run(c, action("camera.transition", "transition", str(c, "transition"))))))
@@ -601,6 +608,13 @@ public final class CameraCommands {
     }
 
     // ---------------------------------------------------------------- /craftMasterTv
+
+    private static int voice(CommandContext<CommandSourceStack> c) {
+        ok(c, "Réalisation automatique sur qui parle : " + (Director.voiceCuts() ? "oui" : "non")
+                + (fr.lordfinn.craftmaster.broadcast.Speaking.available() ? "" : " (chat vocal absent : rien à suivre)")
+                + (Director.autoDirection() ? "." : " · la réalisation automatique est arrêtée (/cam auto on)."));
+        return 1;
+    }
 
     private static int feed(CommandContext<CommandSourceStack> c) {
         ok(c, fr.lordfinn.craftmaster.broadcast.ShowFeed.describe());

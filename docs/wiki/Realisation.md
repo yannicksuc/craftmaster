@@ -87,6 +87,14 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   (7 s), sur celui qui ouvre son enveloppe ou qu'on met en lumière (`/tv spotlight <joueur>`, 9 s, avec un synthé
   « ouvre son enveloppe »), sur la caméra *podium* pendant toute la révélation, sur le plan large au lancement d'une
   manche et à la fin de chaque plan automatique. Une coupe à la main reprend la main.
+- **Sur qui parle** (avec Simple Voice Chat sur le serveur) : la réalisation automatique coupe aussi sur celui qui
+  parle, sur la caméra qui le cadre le mieux (son plan seul, le CraftMaster sur le sien), sans clignoter : une voix
+  ne compte qu'après ~1 s (une toux, un « oui » ne coupent pas), un plan tient au moins 3,5 s, un échange à deux ou
+  plusieurs passe sur un plan qui les cadre tous (croisé, plongée, sinon le large) au lieu du ping-pong, et après
+  6 s de silence on revient au plan large. Une coupe à la main lui laisse l'antenne 20 s ; un point, une mise en
+  lumière, la révélation passent avant. Seuls ceux qu'une caméra cadre comptent (pas les modos ni les spectateurs).
+  `/cam auto voix on|off` (oui par défaut), `/cam auto voix` : où on en est. Rien n'est enregistré : seulement qui
+  émet, et quand.
 - Le joueur caméra en **spectateur** est déplacé tout seul près du plan (4 blocs sous l'objectif) pour que le
   serveur lui envoie le décor et les joueurs ; un joueur qui n'est pas spectateur n'est jamais déplacé.
 

@@ -114,6 +114,10 @@ public final class Director {
     private static long shotStartTick;
     private static int defaultTransition = BroadcastNetwork.CUT;
     private static boolean auto, letterbox;
+    /** The automatic direction also cuts on who speaks (voice chat), when there is one. */
+    private static boolean voiceCuts = true;
+    /** Last cut by an operator (tick): the voice leaves them the air for a moment. */
+    private static long lastManualTick = Long.MIN_VALUE / 2;
     private static int scoresMode = BroadcastNetwork.SCORES_AUTO;
     private static final Set<UUID> broadcasters = new HashSet<>();
     /** Tick when an automatic close shot goes back to the wide shot (-1 = none pending). */
@@ -192,6 +196,14 @@ public final class Director {
 
     public static boolean autoDirection() {
         return auto;
+    }
+
+    public static boolean voiceCuts() {
+        return voiceCuts;
+    }
+
+    public static void setVoiceCuts(boolean on) {
+        voiceCuts = on;
     }
 
     public static int defaultTransition() {
@@ -310,7 +322,10 @@ public final class Director {
      */
     public static boolean take(MinecraftServer server, ShotRequest r) {
         if (r.source() == Source.AUTO && sequenceRunning()) return false;
-        if (r.source() == Source.MANUAL) autoRevertAt = -1;
+        if (r.source() == Source.MANUAL) {
+            autoRevertAt = -1;
+            lastManualTick = server.getTickCount();
+        }
         int transition = r.transition() < 0 ? defaultTransition : r.transition();
         shot = new Shot(r.kind(), r.camera(), r.player(), transition, ++serial, r.effect(), r.tiles());
         shotStartTick = server.getTickCount();
@@ -839,6 +854,96 @@ public final class Director {
 
         private static boolean active() {
             return auto && !sequenceRunning();
+        }
+
+        // ------------------------------------------------------------ cutting on who speaks
+
+        /** An operator's cut keeps the air this long before the voice cuts again (ticks). */
+        private static final long MANUAL_PAUSE = 20 * 20;
+        /** A camera frames someone within this distance (blocks) and this part of its field of view. */
+        private static final double FRAME_DISTANCE = 14, FRAME_SHARE = 0.42;
+
+        private final SpeakerCuts speech = new SpeakerCuts();
+        /** The serial of the last shot the voice put on air (another one = someone else cut). */
+        private int voiceSerial = -1;
+
+        @Override
+        public void tick(MinecraftServer server) {
+            long tick = server.getTickCount();
+            if (!voiceCuts || !Speaking.available() || tick % 2 != 0) return;
+            long now = System.currentTimeMillis();
+            // Who is heard and can be shown by a camera of what is on (studio, the round's lieu)
+            List<String> talking = new ArrayList<>();
+            for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+                if (p.isSpectator() || broadcasters.contains(p.getUUID())) continue;
+                if (Speaking.talking(p.getUUID(), now) && !framing(server, List.of(p)).isEmpty()) talking.add(p.getGameProfile().name());
+            }
+            if (shot.serial() != voiceSerial && voiceSerial != -2) {
+                // Someone else cut (operator, score, sequence): the voice starts again from there
+                speech.otherShot(now);
+                voiceSerial = -2;
+            }
+            SpeakerCuts.Decision d = speech.update(now, talking);
+            // The air is held: an automatic close shot (score, spotlight), the reveal, an operator a moment ago
+            if (d.kind() == SpeakerCuts.Kind.NONE || autoRevertAt >= 0 || revealHold || MancheIntros.launching()
+                    || tick - lastManualTick < MANUAL_PAUSE) return;
+            boolean taken = switch (d.kind()) {
+                case SOLO -> {
+                    ServerPlayer p = findPlayer(server, d.who().getFirst());
+                    if (p == null) yield false;
+                    List<CameraSpot> cams = framing(server, List.of(p));
+                    yield cams.isEmpty() ? false : take(server, ShotRequest.camera(cams.getFirst(), BroadcastNetwork.CUT, "", Source.AUTO));
+                }
+                case GROUP -> {
+                    List<ServerPlayer> ps = new ArrayList<>();
+                    for (String n : d.who()) {
+                        ServerPlayer p = findPlayer(server, n);
+                        if (p != null) ps.add(p);
+                    }
+                    List<CameraSpot> cams = framing(server, ps);
+                    yield cams.isEmpty() ? wide(server, BroadcastNetwork.CUT)
+                            : take(server, ShotRequest.camera(cams.getFirst(), BroadcastNetwork.CUT, "", Source.AUTO));
+                }
+                case WIDE -> wide(server, BroadcastNetwork.CROSSFADE);
+                default -> false;
+            };
+            if (taken) {
+                speech.aired(now, d);
+                voiceSerial = shot.serial();
+            }
+        }
+
+        /**
+         * The cameras of what is on (the studio, or the round's lieu) that frame all these players — close enough,
+         * well inside their field of view —, the tightest first (the wide shot comes last).
+         */
+        private static List<CameraSpot> framing(MinecraftServer server, List<ServerPlayer> players) {
+            if (players.isEmpty()) return List.of();
+            List<CameraSpot> out = new ArrayList<>();
+            for (CameraSpot s : Cameras.list().lieu(phaseLieu()).all()) {
+                double fov = s.fov() > 0 ? s.fov() : 70;
+                double half = Math.toRadians(fov) * FRAME_SHARE;
+                double yaw = Math.toRadians(s.yaw()), pitch = Math.toRadians(s.pitch());
+                double fx = -Math.sin(yaw) * Math.cos(pitch), fy = -Math.sin(pitch), fz = Math.cos(yaw) * Math.cos(pitch);
+                boolean all = true;
+                for (ServerPlayer p : players) {
+                    if (!p.level().dimension().identifier().toString().equals(s.world())) { all = false; break; }
+                    double dx = p.getX() - s.x(), dy = p.getEyeY() - 0.2 - s.y(), dz = p.getZ() - s.z();
+                    double d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                    if (d < 0.5 || d > FRAME_DISTANCE || Math.acos(Math.max(-1, Math.min(1, (dx * fx + dy * fy + dz * fz) / d))) > half) {
+                        all = false;
+                        break;
+                    }
+                }
+                if (all) out.add(s);
+            }
+            // Tightest first: what the frame covers at the players' distance
+            out.sort(java.util.Comparator.comparingDouble(s -> {
+                double far = 0;
+                for (ServerPlayer p : players) far = Math.max(far, Math.sqrt(p.distanceToSqr(s.x(), s.y(), s.z())));
+                return far * Math.tan(Math.toRadians(s.fov() > 0 ? s.fov() : 70) / 2);
+            }));
+            return out;
         }
 
         /** The close shot on a player: a camera of their zone in the round, else following them. */
