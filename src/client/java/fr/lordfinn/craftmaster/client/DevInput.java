@@ -33,6 +33,7 @@ import java.util.Locale;
  * slowmo factor                  animations that ask {@link #timeScale} run this many times slower (1 = normal)
  * open CLASS                    opens that screen (no-argument constructor), e.g. another mod's menu
  * use seconds                    holds the "use" key in the world that long, then lets go (charge a throw, a bow…)
+ * camera first|back|front        the point of view, as F5 cycles it (see the player's own model)
  * </pre>
  */
 public final class DevInput {
@@ -150,6 +151,13 @@ public final class DevInput {
                 // "pickdata": Ctrl + middle click on the entity aimed at
                 if (line.strip().equals("pickdata") && mc.crosshairPickEntity != null && mc.getConnection() != null) {
                     mc.getConnection().send(new net.minecraft.network.protocol.game.ServerboundPickItemFromEntityPacket(mc.crosshairPickEntity.getId(), true));
+                    continue;
+                }
+                // "camera first|back|front": the point of view, as F5 cycles it (the player's own model seen from behind)
+                if (line.strip().startsWith("camera ")) {
+                    String v = line.strip().substring(7).strip();
+                    mc.options.setCameraType(v.equals("back") ? net.minecraft.client.CameraType.THIRD_PERSON_BACK
+                            : v.equals("front") ? net.minecraft.client.CameraType.THIRD_PERSON_FRONT : net.minecraft.client.CameraType.FIRST_PERSON);
                     continue;
                 }
                 if (line.strip().startsWith("look ") && mc.player != null) {
