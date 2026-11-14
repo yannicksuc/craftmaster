@@ -67,7 +67,7 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
 |---|---|
 | Commandes | `/cam cut 2` · `/cam cut "Plan large" fondu` · `/cam cut trone enchaine` · `/cam wide` · `/cam next` / `prev` · `/cam follow Ensuri` |
 | Voix | « caméra 2 », « plan large », « plan sur le trône », « le podium », « suis Ensuri », « caméra 3 en fondu » |
-| Client de diffusion | touches **1 à 9** = caméra 1 à 9 du lieu actif, **molette** = caméra précédente / suivante, **Tab** / Maj + molette = zone suivante, **0** = écran partagé, `/diffusion camera <n, nom ou clé>`, `/diffusion zone <zone\|next>` |
+| Client de diffusion | touches **1 à 9** = caméra 1 à 9 du lieu actif, **molette** = caméra précédente / suivante (sur un plan qui suit : rapproche / éloigne), **Tab** / Maj + molette = zone suivante, **0** = écran partagé, `/diffusion camera <n, nom ou clé>`, `/diffusion zone <zone\|next>` |
 
 - Les touches et la molette du client de diffusion demandent la coupe au serveur : elle n'est faite que si ce
   joueur est organisateur ou a la permission **`craftmaster:camera`**. Suivre la réalisation ne demande rien.
@@ -83,8 +83,8 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   où une transition se donne : coupes, trajets, plans d'intro (`/tv intro <m> plan 1 transition miroir`), voix
   (« caméra 2 en miroir », « flash blanc sur le trône »). Un jeu de diffusion d'une version plus ancienne du mod
   joue ces trois-là en coupe.
-- **Plan qui suit un joueur** (`/cam follow`) : de trois quarts face, un peu au-dessus, lissé (le cadre suit sans
-  à-coups), jamais derrière un mur. Son nom s'affiche en synthé quelques secondes.
+- **Plan qui suit un joueur** (`/cam follow`) : son nom s'affiche en synthé quelques secondes, puis la caméra
+  change de cadrage toute seule (voir *Le plan qui suit un joueur* plus bas) ; on peut la prendre en main.
 - **Réalisation automatique** (`/cam auto on|off`, « réalisation automatique ») : coupe sur le candidat qui marque
   (7 s), sur celui qui ouvre son enveloppe ou qu'on met en lumière (`/tv spotlight <joueur>`, 9 s, avec un synthé
   « ouvre son enveloppe »), sur la caméra *podium* pendant toute la révélation, sur le plan large au lancement d'une
@@ -99,6 +99,34 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   émet, et quand.
 - Le joueur caméra en **spectateur** est déplacé tout seul près du plan (4 blocs sous l'objectif) pour que le
   serveur lui envoie le décor et les joueurs ; un joueur qui n'est pas spectateur n'est jamais déplacé.
+
+## Le plan qui suit un joueur
+La caméra tourne autour du joueur suivi comme un cadreur à l'épaule : elle tient un cadrage 7 à 12 s avec un
+mouvement lent (elle tourne autour de lui, s'approche ou recule un peu), puis glisse en douceur vers le suivant.
+Jamais deux fois le même d'affilée.
+
+| Cadrage | En bref |
+|---|---|
+| trois-quarts (droite, gauche) | le visage de trois quarts, un peu au-dessus |
+| profil | de côté, à hauteur d'yeux |
+| face | droit devant, il vient vers nous |
+| gros plan | le visage, tout près |
+| contre-plongée | de bas, il paraît grand |
+| plongée | de haut, on voit autour de lui |
+| plan large | de loin, avec le décor |
+| par-dessus l'épaule, de dos, trois-quarts dos | ce qu'il regarde, ce qu'il fait |
+
+- Le joueur est placé sur un tiers de l'image, pas au centre.
+- Quand il marche, la caméra préfère les cadrages qui le voient venir (face, trois-quarts).
+- **Jamais dans un bloc ni derrière un mur** : un cadrage n'est choisi que s'il a la place ; si un mur passe entre
+  le joueur et la caméra, elle se met devant aussitôt et ne recule qu'en douceur, en se décalant autour de lui (de
+  côté, plus bas) vers là où il y a de la place, comme un cadreur qui fait un pas de côté. Si ça ne suffit pas (un
+  couloir, un plafond bas), elle passe sur un cadrage qui a plus de place (dans l'axe du couloir, plus bas). Si le chemin d'un cadrage à
+  l'autre traverse un mur, elle passe par un fondu enchaîné au lieu de glisser.
+- **À la main** (sur le jeu de diffusion) : la **souris** tourne la caméra autour du joueur, la **molette** la
+  rapproche ou l'éloigne (Maj + molette change toujours de zone, les touches 1 à 9 coupent toujours). Tant qu'on y
+  touche, elle reste où on l'a mise ; **8 s** sans y toucher, les cadrages automatiques reprennent en douceur.
+- Les mêmes cadrages servent aux replays et aux plans « suivi » des intros de manche.
 
 ## Les lieux : caméras du studio et caméras des épreuves
 Chaque caméra a un **lieu** : le **studio** (par défaut ; toutes les anciennes caméras y sont) ou une **manche**

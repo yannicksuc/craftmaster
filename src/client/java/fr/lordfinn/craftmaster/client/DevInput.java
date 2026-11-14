@@ -132,6 +132,16 @@ public final class DevInput {
                     mc.getConnection().send(new net.minecraft.network.protocol.game.ServerboundPickItemFromEntityPacket(mc.crosshairPickEntity.getId(), true));
                     continue;
                 }
+                // "camturn <dx> <dy>" / "camwheel <notches>": the mouse and the wheel of the broadcast game (follow shot)
+                if (line.strip().startsWith("camturn ")) {
+                    String[] a = line.strip().split("\s+");
+                    fr.lordfinn.craftmaster.client.broadcast.FollowCamera.turn(Double.parseDouble(a[1]), Double.parseDouble(a[2]));
+                    continue;
+                }
+                if (line.strip().startsWith("camwheel ")) {
+                    fr.lordfinn.craftmaster.client.broadcast.Broadcast.onScroll(Double.parseDouble(line.strip().split("\s+")[1]));
+                    continue;
+                }
                 if (line.strip().startsWith("look ") && mc.player != null) {
                     String[] a = line.strip().split("\s+");
                     mc.player.setYRot(Float.parseFloat(a[1]));

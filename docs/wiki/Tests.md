@@ -55,6 +55,9 @@ phrases synthétisées (voix Windows française) : avec les pseudos en vocabulai
   « plan sur le trône », « podium »), plan large par défaut, molette (suivante / précédente en boucle), numéro libre,
   champs normalisés. `CameraMotionTest` : caméra fixe immobile, respiration discrète et continue d'une image à
   l'autre, travelling qui avance puis s'arrête, panoramique des deux côtés, angles, plan qui suit devant le joueur.
+  `FollowFramingTest` : azimut 0 devant le joueur, glissement par le plus court, départ et arrêt en douceur,
+  mouvements lents et bornés, jamais deux fois le même cadrage d'affilée, seulement les cadrages qui ont la place
+  (sinon le plus dégagé), préférence (devant quand il marche).
   `BroadcastActionsTest` : actions `camera.*` / `broadcast.*` / `show.*` (transitions, champs manquants ou faux,
   valeurs par défaut), effets sans modifier les données ni le journal, une action fausse annule toute la liste.
 - Lieux, travellings, intros (chantier E, suite) — `CameraLieuxTest` : groupes et clés (studio, manche, zone),
@@ -540,3 +543,27 @@ pendant le travail, à côté de la place de l'icône de Voice Chat. ✔
 
 Tests automatiques : `AgentBridgeTest` (noms entre guillemets, lignes de conduite refusées, adresses masquées) ;
 `tools/voice-regie/tests/test_agent.py` (relais aller-retour, outil inconnu, jeu parti, routage `agent.request`).
+
+## 14. Plan qui suit un joueur (vérifié en jeu sur 26.2 le 14/11/2026)
+Serveur `:26.2:runServer` (monde plat, décor fait au RCON : salle de 4 blocs de haut avec poteaux et fenêtre,
+porte basse, couloir de 2 de large et 3 de haut, pièce de 2 blocs sous plafond, piliers dehors) ; LordFinn
+(`dev-client.ps1 -Version 26.2`) marche au pathfinding MCP de dehors à la salle, au couloir puis à la pièce basse ;
+Joueur2 en spectateur, `/diffusion on`, `/cam follow LordFinn`, captures MCP en rafale (40 images à 1,1 s).
+Prise en main : `camturn <dx> <dy>` et `camwheel <crans>` dans `run2-26.2/dev-input.txt` (mêmes entrées que la
+souris et la molette). Journal de dev `[Suivi]` : chaque cadrage choisi et pourquoi.
+
+| Vérifié | |
+|---|---|
+| Joueur immobile dehors : trois-quarts → plongée → gros plan → trois-quarts gauche, glissés, jamais deux fois le même | ✔ |
+| Salle, porte basse, couloir, pièce sous plafond bas : jamais dans un bloc ni derrière un mur, le corps reste visible | ✔ |
+| Couloir : cadrages dans l'axe (face, de dos), la caméra se décale autour de lui quand un mur gêne | ✔ |
+| Porte basse : plus d'image « dans la tête » (changement immédiat, en fondu enchaîné si le chemin traverse un mur) | ✔ |
+| Souris : tourne autour du joueur, monte / descend ; molette : rapproche / éloigne ; reste là tant qu'on y touche | ✔ |
+| 8 s sans y toucher : reprise automatique en glissant vers un cadrage | ✔ |
+
+Corrigé grâce à ces essais : changements de cadrage en rafale dans les passages étroits (4 en 12 s, maintenant au plus
+un toutes les 3 s, et seulement vers un cadrage qui a vraiment plus de place) ; gros plans de nuque à l'entrée d'un
+couloir (esquive autour du joueur, puis changement immédiat sous 0,9 bloc) ; coin de mur cachant le corps (rayon
+poitrine → objectif).
+Pas vérifié : la vraie souris (le `@Redirect` de `MouseHandler.turnPlayer` s'applique, le jeu démarre ; mêmes
+entrées que `camturn`), les replays et les intros (même code, `DirectorCamera.follow`).

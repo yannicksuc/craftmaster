@@ -202,9 +202,11 @@ public final class Broadcast {
         request(a);
     }
 
-    /** Mouse wheel in broadcast mode (from the mixin): previous / next camera, with Shift the zone. True if consumed. */
+    /** Mouse wheel in broadcast mode (from the mixin): previous / next camera, with Shift the zone, closer / further on a follow shot. True if consumed. */
     public static boolean onScroll(double amount) {
         if (!active() || amount == 0) return false;
+        // Follow shot on screen: the wheel moves its camera closer or further (FollowCamera); Shift keeps the zones
+        if (!Minecraft.getInstance().hasShiftDown() && FollowCamera.zoom(amount)) return true;
         long now = System.currentTimeMillis();
         if (now - lastScroll < 180) return true;
         lastScroll = now;
