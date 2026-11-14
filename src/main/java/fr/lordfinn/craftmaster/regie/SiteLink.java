@@ -67,6 +67,10 @@ public final class SiteLink {
     private static volatile Set<String> watching = Set.of();
     private static final ConcurrentLinkedQueue<JsonObject> RESULTS = new ConcurrentLinkedQueue<>();
     private static final Map<String, String> SENT = new LinkedHashMap<>();
+    /** The version of each camera preview the site has (Thumbnails). */
+    private static final Map<String, Integer> SENT_THUMBS = new LinkedHashMap<>();
+    /** At most this many previews per push (each ~30 KB): the others go with the next ones, a second later. */
+    private static final int THUMBS_PER_PUSH = 4;
     private static volatile String lastModerators = "";
     private static volatile long lastPush;
     private static volatile String status = "arrêté";
@@ -149,6 +153,7 @@ public final class SiteLink {
         }
         running = true;
         SENT.clear();
+        SENT_THUMBS.clear();
         lastModerators = "";
         status = "connexion…";
         poller = Thread.ofPlatform().daemon().name("CraftMaster-site-orders").start(SiteLink::pollLoop);
@@ -253,12 +258,14 @@ public final class SiteLink {
                     // Results not delivered: put them back for the next push
                     if (body.has("results")) for (JsonElement e : body.getAsJsonArray("results")) RESULTS.add(e.getAsJsonObject());
                     SENT.clear();
+                    SENT_THUMBS.clear();
                     lastModerators = "";
                 }
             } catch (InterruptedException e) {
                 if (!running) return;
             } catch (Exception e) {
                 SENT.clear();
+                SENT_THUMBS.clear();
                 lastModerators = "";
             }
         }
@@ -316,6 +323,22 @@ public final class SiteLink {
         }
         SENT.keySet().retainAll(states.keySet());
         body.add("states", changedStates);
+        // The shots' previews: the new ones (a few per push), and which cameras still exist
+        JsonObject thumbs = new JsonObject();
+        JsonArray keep = new JsonArray();
+        for (Map.Entry<String, byte[]> e : Thumbnails.images().entrySet()) {
+            keep.add(e.getKey());
+            int v = Thumbnails.versionOf(e.getKey());
+            if (thumbs.size() < THUMBS_PER_PUSH && SENT_THUMBS.getOrDefault(e.getKey(), -1) != v) {
+                thumbs.addProperty(e.getKey(), java.util.Base64.getEncoder().encodeToString(e.getValue()));
+                SENT_THUMBS.put(e.getKey(), v);
+            }
+        }
+        if (!thumbs.isEmpty()) {
+            body.add("thumbs", thumbs);
+            body.add("thumbKeys", keep);
+            changed = true;
+        }
         JsonArray results = new JsonArray();
         JsonObject r;
         while ((r = RESULTS.poll()) != null) results.add(r);
