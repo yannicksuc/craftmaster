@@ -329,8 +329,10 @@ public class SpotlightBlockEntity extends BlockEntity {
         setChanged();
     }
 
-    private static void put(ServerLevel server, java.util.Map<BlockPos, Integer> want, BlockPos p, int level) {
-        if (want.size() < MAX_LIGHTS) want.merge(p.immutable(), level, Math::max);
+    /** Adds a light block, only in the air (or over a light block): never over the spotlight itself or anything built. */
+    private void put(ServerLevel server, java.util.Map<BlockPos, Integer> want, BlockPos p, int level) {
+        if (want.size() >= MAX_LIGHTS || p.equals(worldPosition) || !free(server, p)) return;
+        want.merge(p.immutable(), level, Math::max);
     }
 
     /** Air, or a light block (ours or another spotlight's). */
