@@ -59,13 +59,35 @@ final class SpotLightRenderType {
      * vanilla's pipelines: ours would not show at all under a shader pack; the lightning one shows, overlapping as before).
      */
     static RenderType light() {
-        // Under a shader pack: vanilla's lightning (assigning ours to Iris's "basic" program draws it far too dark)
-        return shaderPackOn() ? net.minecraft.client.renderer.rendertype.RenderTypes.lightning() : LIGHT;
+        if (shaderPackOn()) return underShaders();
+        textured = false;
+        return LIGHT;
     }
+
+    /** A white texel for the eyes type, which samples a texture. */
+    private static final net.minecraft.resources.Identifier WHITE = CraftMaster.id("textures/entity/white.png");
+
+    /**
+     * Under a shader pack (Iris only knows vanilla's pipelines; ours would not show, and assigning it to Iris's "basic"
+     * program drew it far too dark): vanilla's "eyes" type (spider eyes, Iris's spidereyes program) — emissive,
+     * tested against the world but NOT writing depth, so a beam in front no longer hides the pools and beams behind it
+     * (vanilla's lightning, used before, writes depth: the pools came out cut in crescents and the beams in shards).
+     * The beacon beam type was tried too: Complementary drew its pools as flat discs with hard edges.
+     * Its vertices need a texture position and a light: {@link #textured} tells {@link Geo#light} to give them.
+     */
+    private static RenderType underShaders() {
+        textured = true;
+        return net.minecraft.client.renderer.rendertype.RenderTypes.eyes(WHITE);
+    }
+
+    /** Is the light being drawn with the textured type (under a shader pack)? Set each time a type is picked. */
+    static volatile boolean textured;
 
     /** The type for the pools (see {@link #POOL_PIPELINE}); vanilla's lightning under a shader pack, as {@link #light()}. */
     static RenderType pool() {
-        return shaderPackOn() ? net.minecraft.client.renderer.rendertype.RenderTypes.lightning() : POOL;
+        if (shaderPackOn()) return underShaders();
+        textured = false;
+        return POOL;
     }
 
     private static Object irisApi;

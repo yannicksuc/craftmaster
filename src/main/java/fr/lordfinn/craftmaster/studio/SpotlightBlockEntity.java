@@ -223,9 +223,11 @@ public class SpotlightBlockEntity extends BlockEntity {
         be.updateLight();
     }
 
-    /** Where a followed player is lit: the chest. */
+    /** Where a followed player is aimed at: their feet. */
     public static Vec3 followPoint(Vec3 feet, double height) {
-        return feet.add(0, height * 0.55, 0);
+        // The feet, like a follow spot on stage: the pool lands under the player and the cone lights them from head to toe
+        // (aimed at the chest, the pool fell on the floor behind them)
+        return feet.add(0, 0.05, 0);
     }
 
     /** Puts the light block where the beam lands (in the air in front of the block it hits), or removes it. */

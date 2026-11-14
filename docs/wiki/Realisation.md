@@ -323,6 +323,23 @@ prend le relais.
 - Limite : un plan pris loin des joueurs (la caméra d'une autre manche) peut montrer un décor pas encore chargé
   chez eux.
 
+## Ce qu'on entend quand on regarde par une caméra
+Dans les vues qui mettent une caméra à la place des yeux d'un joueur **qui continue de jouer**, l'image change, pas
+l'écoute : les sons du jeu (pas, blocs, musique d'un jukebox, mobs…) et les **voix de Simple Voice Chat** (volume
+selon la distance, gauche / droite, atténuation, y compris une voix transformée par un modificateur comme Voicemod,
+qui arrive comme n'importe quelle voix) sont entendus **depuis la tête du joueur**, tournée là où il regarde. Ça
+vaut pour :
+- le **flux de l'émission** (F7, ou imposé) ;
+- l'**aperçu** d'un travelling (`/cam trajet <nom> apercu`, bouton Aperçu) ;
+- **regarder par** une caméra, une étape de travelling ou un projecteur pour la cadrer (gauche / droite : là où le
+  joueur regardait avant d'entrer dans la vue).
+Le tonnerre et les autres sons lointains gardent leur retard compté depuis le joueur. Les prises de vignettes des
+plans (une image dessinée depuis une caméra, toutes les 30 s) ne déplacent plus l'écoute pendant une image.
+
+**Mode diffusion (F8)** : l'écoute reste sur la caméra à l'antenne, comme l'image. Le joueur du PC de stream n'est
+pas dans l'émission (un spectateur ramené sous la caméra, parfois à plusieurs blocs) : le stream entend l'endroit
+qu'il montre, comme le micro d'une caméra de télé, et l'écoute suit chaque coupe en même temps que l'image.
+
 ## Le mode diffusion (client)
 - **F8** (touche réglable, catégorie CraftMaster) ou `/craftMasterBroadcast` (`/diffusion`) `[on|off]` ;
   `/diffusion chat on|off` montre ou cache le chat ; `/diffusion status`.

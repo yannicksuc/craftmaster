@@ -70,6 +70,19 @@ final class Geo {
         c.addVertex(p, x, y, z).setColor(argb);
     }
 
+    /**
+     * A vertex of the spotlights' light: position + colour, plus a white texel, full light and a normal when it is drawn
+     * with the textured type used under a shader pack ({@link SpotLightRenderType#textured}).
+     */
+    static void light(VertexConsumer c, PoseStack.Pose p, float x, float y, float z, int argb) {
+        if (SpotLightRenderType.textured) {
+            c.addVertex(p, x, y, z).setColor(argb).setUv(0.5f, 0.5f).setOverlay(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY)
+                    .setLight(net.minecraft.util.LightCoordsUtil.FULL_BRIGHT).setNormal(p, 0, 1, 0);
+        } else {
+            c.addVertex(p, x, y, z).setColor(argb);
+        }
+    }
+
     static int argb(int alpha, int rgb) {
         return (Math.max(0, Math.min(255, alpha)) << 24) | (rgb & 0xFFFFFF);
     }
