@@ -1045,7 +1045,7 @@
   "screen.craftmaster.travelling.delete": "Delete this travelling (click twice)",
   "screen.craftmaster.travelling.delete_sure": "Sure?",
   "screen.craftmaster.travelling.preview": "Preview",
-  "screen.craftmaster.travelling.preview_tip": "On your screen only",
+  "screen.craftmaster.travelling.preview_tip": "On your screen only · Shift or Esc: stop",
   "screen.craftmaster.travelling.ghost_on": "Ghost: on",
   "screen.craftmaster.travelling.ghost_off": "Ghost: off",
   "screen.craftmaster.travelling.ghost_tip": "Seen by organisers only",

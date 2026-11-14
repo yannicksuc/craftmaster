@@ -165,7 +165,7 @@ LANG = {
     "screen.craftmaster.travelling.delete": ("Delete this travelling (click twice)", "Supprimer ce travelling (deux clics)"),
     "screen.craftmaster.travelling.delete_sure": ("Sure?", "Sûr ?"),
     "screen.craftmaster.travelling.preview": ("Preview", "Aperçu"),
-    "screen.craftmaster.travelling.preview_tip": ("On your screen only", "Sur ton écran seulement"),
+    "screen.craftmaster.travelling.preview_tip": ("On your screen only · Shift or Esc: stop", "Sur ton écran seulement · Maj ou Échap : arrêter"),
     "screen.craftmaster.travelling.ghost_on": ("Ghost: on", "Fantôme : oui"),
     "screen.craftmaster.travelling.ghost_off": ("Ghost: off", "Fantôme : non"),
     "screen.craftmaster.travelling.ghost_tip": ("Seen by organisers only", "Visible des organisateurs seulement"),

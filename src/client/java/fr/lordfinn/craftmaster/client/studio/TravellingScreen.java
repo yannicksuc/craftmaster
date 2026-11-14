@@ -177,7 +177,7 @@ public class TravellingScreen extends Screen {
         // Actions
         boolean ghost = data.get("ghost").getAsBoolean();
         x = lx;
-        x = button(g, x, y, t("preview"), false, mx, my, () -> send("preview"), t("preview_tip"));
+        x = button(g, x, y, t("preview"), false, mx, my, () -> TravellingEdit.preview(camera(), path(), selected), t("preview_tip"));
         button(g, x, y, ghost ? t("ghost_on") : t("ghost_off"), ghost, mx, my, () -> send("ghost", "value", !ghost), t("ghost_tip"));
         y += 18;
         // Steps

@@ -251,6 +251,25 @@ public final class TravellingEdit {
         return hidden;
     }
 
+    // ---------------------------------------------------------------- preview
+
+    private static String[] reopen;
+
+    /** Starts the preview of a travelling from its editor: the editor closes, and opens again after (on that step). */
+    public static void preview(String camera, String path, int step) {
+        reopen = new String[]{camera, path, String.valueOf(step)};
+        net.minecraft.client.Minecraft.getInstance().gui.setScreen(null);
+        send(camera, path, "preview", null);
+    }
+
+    static void afterPreview() {
+        if (reopen == null) return;
+        JsonObject o = new JsonObject();
+        o.addProperty("select", Integer.parseInt(reopen[2]));
+        send(reopen[0], reopen[1], "open", o);
+        reopen = null;
+    }
+
     // ---------------------------------------------------------------- world tools
 
     public static void gizmosDrawn() {

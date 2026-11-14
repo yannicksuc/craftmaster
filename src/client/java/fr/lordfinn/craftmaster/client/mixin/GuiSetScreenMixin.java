@@ -13,6 +13,11 @@ public class GuiSetScreenMixin {
 
     @ModifyVariable(method = "setScreen", at = @At("HEAD"), argsOnly = true)
     private Screen craftmaster$homeScreen(Screen screen) {
+        // Esc during a travelling preview: it ends the preview, no pause menu
+        if (screen instanceof net.minecraft.client.gui.screens.PauseScreen && fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.previewing()) {
+            fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.stopPreview();
+            return null;
+        }
         return HomeScreens.replace(screen);
     }
 }

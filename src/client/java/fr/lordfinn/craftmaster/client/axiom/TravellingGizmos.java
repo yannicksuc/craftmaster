@@ -110,7 +110,8 @@ public final class TravellingGizmos {
         TravellingEdit.hover(null);
         Minecraft mc = Minecraft.getInstance();
         // Looking through a camera / a step: no gizmo or "+" in front of the lens
-        boolean on = mc.player != null && AxiomClient.isAxiomActive() && !fr.lordfinn.craftmaster.client.studio.ControlView.active();
+        boolean on = mc.player != null && AxiomClient.isAxiomActive() && !fr.lordfinn.craftmaster.client.studio.ControlView.active()
+                && !fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.previewing();
         Set<String> edited = on ? TravellingMarkers.editedPaths(mc) : Set.of();
         // Cameras showing their ghost that have no travelling yet: a dot on each side starts one
         java.util.List<CameraEntity> bare = new java.util.ArrayList<>();

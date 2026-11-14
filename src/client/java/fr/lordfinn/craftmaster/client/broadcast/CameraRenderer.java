@@ -156,7 +156,7 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         if (s.rodArm) items.updateForNonLiving(s.knuckle, FurnitureRenderer.stack(KNUCKLE), ItemDisplayContext.NONE, e);
         // Its travellings' ghosts: a see-through copy moving along each one, in a loop (organisers, ghost option on)
         s.ghosts.clear();
-        if (e.showsGhost() && !Broadcast.active() && fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin()) {
+        if (e.showsGhost() && !Broadcast.active() && !DirectorCamera.previewing() && fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin()) {
             double now = (e.level().getGameTime() + partialTick) / 20.0;
             for (fr.lordfinn.craftmaster.camera.CameraPath p : ShowStateClient.allPaths()) {
                 if (!p.camera().equals(key) || p.isEmpty()) continue;

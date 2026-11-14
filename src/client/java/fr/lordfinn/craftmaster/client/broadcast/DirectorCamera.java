@@ -110,6 +110,11 @@ public final class DirectorCamera {
         previewMs = ticks * 50L + 600;
     }
 
+    /** Ends the travelling preview now (Shift or Esc). */
+    public static void stopPreview() {
+        previewStart = -1;
+    }
+
     /** A travelling preview is playing on this screen. */
     public static boolean previewing() {
         if (previewStart < 0) return false;

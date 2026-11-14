@@ -58,7 +58,8 @@ public final class TravellingMarkers {
     /** The travellings whose steps are shown: of cameras with their ghost on, and the marker held. */
     public static Set<String> shownPaths(Minecraft mc) {
         Set<String> out = new HashSet<>();
-        if (mc.player == null || mc.level == null || Broadcast.active() || !fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin()) return out;
+        if (mc.player == null || mc.level == null || Broadcast.active() || !fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin()
+                || fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.previewing()) return out;
         Set<String> ghostCameras = new HashSet<>();
         for (var e : mc.level.entitiesForRendering()) if (e instanceof CameraEntity c && c.showsGhost()) ghostCameras.add(c.cameraKey());
         for (CameraPath p : ShowStateClient.allPaths()) if (!p.camera().isEmpty() && ghostCameras.contains(p.camera())) out.add(p.name());
@@ -72,7 +73,8 @@ public final class TravellingMarkers {
     /** The travellings edited in the world: of each camera showing its ghost, the one picked (TravellingEdit), and the marker held. */
     public static Set<String> editedPaths(Minecraft mc) {
         Set<String> out = new HashSet<>();
-        if (mc.player == null || mc.level == null || Broadcast.active() || !fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin()) return out;
+        if (mc.player == null || mc.level == null || Broadcast.active() || !fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin()
+                || fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.previewing()) return out;
         for (var e : mc.level.entitiesForRendering())
             if (e instanceof CameraEntity c && c.showsGhost()) {
                 String p = TravellingEdit.edited(c.cameraKey());
@@ -83,7 +85,17 @@ public final class TravellingMarkers {
         return out;
     }
 
+    private static boolean wasPreviewing;
+
     private static void tick(Minecraft mc) {
+        // Travelling preview: Shift ends it; once over, the editor opens again on the step it was on
+        boolean previewing = fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.previewing();
+        if (previewing && mc.gui.screen() == null && mc.options.keyShift.isDown()) {
+            fr.lordfinn.craftmaster.client.broadcast.DirectorCamera.stopPreview();
+            previewing = false;
+        }
+        if (wasPreviewing && !previewing) TravellingEdit.afterPreview();
+        wasPreviewing = previewing;
         hover = null;
         if (mc.player == null || mc.level == null) return;
         Set<String> shown = shownPaths(mc);
