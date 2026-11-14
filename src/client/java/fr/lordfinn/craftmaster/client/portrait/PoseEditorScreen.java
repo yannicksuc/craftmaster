@@ -279,7 +279,7 @@ public class PoseEditorScreen extends Screen {
         y += 22;
         addRenderableWidget(UiButton.of(left + 2, y, 113, 20, Component.translatable("screen.craftmaster.pose.use"), this::use))
                 .setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.use_tip")));
-        addRenderableWidget(UiButton.of(left + 117, y, 113, 20, Component.translatable("gui.done"), this::onClose));
+        addRenderableWidget(UiButton.of(left + 117, y, 113, 20, Component.translatable("gui.cancel"), this::onClose));
 
         // Toolbar under the preview
         int tx = px0 + 2, ty = py0 + ph - TOOL - 2;
