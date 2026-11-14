@@ -180,9 +180,13 @@ public final class DevInput {
     /** 1 Shift, 2 Ctrl, 4 Alt → the game's (SDL) modifier bits. */
     private static int mods(String[] a, int i) {
         int m = arg(a, i, 0), out = 0;
+        //? if >=26.3 {
         if ((m & 1) != 0) out |= 0x0001;
         if ((m & 2) != 0) out |= 0x0040;
         if ((m & 4) != 0) out |= 0x0100;
+        //?} else {
+        /*out = m & 7; // 26.2: Shift 1, Ctrl 2, Alt 4 (InputWithModifiers), the same bits as the file
+        *///?}
         return out;
     }
 

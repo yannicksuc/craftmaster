@@ -75,6 +75,18 @@ CASES = [
     ("Lance l'intro du pont.", [{"type": "intro.play", "manche": "pont"}]),
     ("Lance l'intro de la tour.", [{"type": "intro.play", "manche": "tour"}]),
     ("Écran partagé.", [{"type": "camera.mosaic"}]),
+    # Split screen of chosen cameras (camera.split)
+    ("Mets la 3 et la 5 côte à côte.", [{"type": "camera.split", "cameras": ["3", "5"]}]),
+    ("La caméra deux et la caméra quatre ensemble.", [{"type": "camera.split", "cameras": ["2", "4"]}]),
+    ("Ajoute la caméra galerie en petit.", [{"type": "camera.split", "add": "galerie", "layout": "principal"}]),
+    ("Ajoute la 4.", [{"type": "camera.split", "add": "4"}]),
+    ("Retire la 3.", [{"type": "camera.split", "remove": "3"}]),
+    ("La 2 en principal.", [{"type": "camera.split", "main": "2", "layout": "principal"}]),
+    ("Coupe en deux.", [{"type": "camera.split", "layout": "bord"}]),
+    ("Bord à bord.", [{"type": "camera.split", "layout": "bord"}]),
+    ("Mets-les dans des cadres.", [{"type": "camera.split", "layout": "cadres"}]),
+    ("Repasse en un seul plan.", [{"type": "camera.split", "enabled": False}]),
+    ("Plus d'écran partagé.", [{"type": "camera.split", "enabled": False}]),
     # Screen effects
     ("Passe la diffusion en noir et blanc.", [{"type": "fx.set", "target": "diffusion", "effect": "noir et blanc"}]),
     ("Mets Cycy en flou.", [{"type": "fx.set", "target": "Cyllu", "effect": "flou"}]),

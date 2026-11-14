@@ -114,6 +114,46 @@ def _replay(text: str, ctx: ShowContext) -> list[dict] | None:
     return None
 
 
+# A camera said in a split-screen order: « la 3 », « la caméra 3 », « la caméra galerie », « le plan large »
+CAM = r"(?:la |le |l')?(?:cam[ée]ra |plan )?(?P<{0}>[\w'-]+(?: [\w'-]+)?)"
+SMALL = r"(?: en petit)?"
+
+
+def _cam(word: str) -> str:
+    word = word.strip()
+    return str(FRENCH_NUMBERS.get(word, word))
+
+
+def _split(text: str) -> dict | None:
+    """Split screens of chosen cameras (camera.split): add, remove, main shot, layout, back to one shot."""
+    m = re.fullmatch(r"(?:mets |montre )?" + CAM.format("a") + r" et " + CAM.format("b")
+                     + r" (?:côte à côte|ensemble|en écran partagé|en split)", text)
+    if m:
+        return {"type": "camera.split", "cameras": [_cam(m.group("a")), _cam(m.group("b"))]}
+    m = re.fullmatch(r"ajoute " + CAM.format("c") + r"(?P<small> en petit)?(?: à l'écran| dans l'écran partagé)?", text)
+    if m:
+        out = {"type": "camera.split", "add": _cam(m.group("c"))}
+        if m.group("small"):
+            out["layout"] = "principal"
+        return out
+    m = re.fullmatch(r"(?:retire|enlève|sors) " + CAM.format("c") + r"(?: de l'écran(?: partagé)?)?", text)
+    if m and not m.group("c").startswith(("effet", "les ")):
+        return {"type": "camera.split", "remove": _cam(m.group("c"))}
+    m = re.fullmatch(r"(?:mets )?" + CAM.format("c") + r" en (?:principal|principale|grand)", text)
+    if m:
+        return {"type": "camera.split", "main": _cam(m.group("c")), "layout": "principal"}
+    if re.fullmatch(r"(?:coupe|coupez|partage) (?:l'écran |l'image )?en deux|(?:en )?bord à bord", text):
+        return {"type": "camera.split", "layout": "bord"}
+    if re.fullmatch(r"(?:mets-les |mets les )?(?:dans des|en) cadres", text):
+        return {"type": "camera.split", "layout": "cadres"}
+    if re.fullmatch(r"(?:une |un plan )?principale? et (?:les autres|des petits) en petit(?:s)?(?: en bas| dessous)?", text):
+        return {"type": "camera.split", "layout": "principal"}
+    if re.fullmatch(r"(?:re)?(?:passe|repasse|reviens|revenons) (?:en|à) un seul plan|un seul plan|plus d'écran partagé"
+                    r"|(?:enlève|retire|coupe) l'écran partagé", text):
+        return {"type": "camera.split", "enabled": False}
+    return None
+
+
 def _clean(text: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"[.!?,;:«»\"]", " ", text.lower())).strip()
 
@@ -258,6 +298,9 @@ class OfflineUnderstander:
             if ctx.player(who) is not None:
                 return [{"type": "camera.focus", "player": who, "cut": True}]
             return [{"type": "camera.focus", "zone": re.sub(r"^(?:l'|la |le )", "", who), "cut": True}]
+        split = _split(text)
+        if split is not None:
+            return [split]
         if re.fullmatch(r"(?:un |l')?(?:écran partagé|mosaïque|split screen)", text):
             return [{"type": "camera.mosaic"}]
         m = re.fullmatch(r"(?:la |sur la )?cam[ée]ra " + NUM + r" (?P<of>du studio|du plateau|d'.+|de .+|du .+)", text)

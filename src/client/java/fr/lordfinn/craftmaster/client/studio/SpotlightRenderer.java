@@ -37,6 +37,8 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
     /** A beam that hits nothing fades out over this length (blocks). */
     private static final double OPEN_LENGTH = 26;
     private static final int SIDES = 20;
+    /** Where the beam starts, in front of the lens (blocks, head space). */
+    private static final double BEAM_START = 5.5 / 16;
 
     public static class State extends BlockEntityRenderState {
         /** Being looked through by its organiser (ControlView). */
@@ -51,10 +53,14 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         /** Half-angle, degrees. */
         float cone;
         double length;
+        /** Where each side of the beam ends, just before the block it meets (see {@link BeamEdges}); null: the full length. */
+        BeamEdges.Edges edges;
         /** Where the beam lands, relative to the block's corner, and the face it lands on (null: nothing hit). */
         Vec3 hit;
         Direction face;
         Vec3 pivot;
+        /** The pool laid on the blocks around where it lands (see {@link PoolCells}); null: nothing to light. */
+        PoolCells.Cells cells;
     }
 
     public SpotlightRenderer(BlockEntityRendererProvider.Context ctx) {}
@@ -131,19 +137,27 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
 
         s.hit = null;
         s.face = null;
+        s.cells = null;
         s.length = OPEN_LENGTH;
+        s.edges = null;
         if (s.lit && be.getLevel() != null) {
             BlockHitResult hit = SpotlightBlockEntity.trace(be.getLevel(), pivot, s.yaw, s.pitch);
             if (hit.getType() == HitResult.Type.BLOCK) {
                 s.length = hit.getLocation().distanceTo(pivot);
                 s.hit = hit.getLocation().subtract(Vec3.atLowerCornerOf(be.getBlockPos()));
                 s.face = hit.getDirection();
+                double[] dir = SpotlightAim.direction(s.yaw, s.pitch);
+                s.cells = PoolCells.of(be, be.getLevel(), hit.getLocation(), s.face, endRadius(s.length, s.cone) * 1.25, dir);
             }
+            s.edges = BeamEdges.of(be, be.getLevel(), pivot, s.yaw, s.pitch, s.cone, BEAM_START, s.length, s.hit != null,
+                    LENS_RADIUS, endRadius(s.length, s.cone), SIDES, OPEN_LENGTH);
         }
     }
 
     @Override
     public void submit(State s, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+        // A shader pack drawing its shadow map: light casts no shadow (the beams darkened the ceiling in shards)
+        if (fr.lordfinn.craftmaster.client.portrait.PortraitClipper.shadowPass()) return;
         // Looked through (ControlView): neither its head nor its beam (the view is inside them), only where it lands
         if (s.controlled) {
             submitPool(s, poseStack, collector);
@@ -199,34 +213,37 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
             double length = s.length;
             int color = s.color;
             float intensity = s.intensity, cone = s.cone;
-            collector.submitCustomGeometry(poseStack, SpotLightRenderType.light(), (p, c) -> beam(c, p, length, color, intensity, cone));
+            BeamEdges.Edges edges = s.edges;
+            collector.submitCustomGeometry(poseStack, SpotLightRenderType.light(), (p, c) -> beam(c, p, length, edges, color, intensity, cone));
         }
         poseStack.popPose();
         submitPool(s, poseStack, collector);
     }
 
     private static void submitPool(State s, PoseStack poseStack, SubmitNodeCollector collector) {
-        if (s.lit && s.hit != null) {
-            Vec3 hit = s.hit;
-            Direction face = s.face;
+        if (s.lit && s.cells != null) {
+            PoolCells.Cells cells = s.cells;
             double radius = endRadius(s.length, s.cone);
             int color = s.color;
             // A wide wash spreads the same light over more ground: its pool is paler
             float strength = s.intensity * (float) Math.min(1, 1.6 / Math.max(1, radius));
-            float lift = s.poolLift;
-            collector.submitCustomGeometry(poseStack, SpotLightRenderType.light(), (p, c) -> pool(c, p, hit, face, radius * 1.25, color, strength, lift));
+            // Kept off the floor by the depth bias of its render type; a lift only under a shader pack (vanilla's type)
+            float lift = SpotLightRenderType.shaderPackOn() ? s.poolLift : 0.002f;
+            collector.submitCustomGeometry(poseStack, SpotLightRenderType.pool(), (p, c) -> PoolCells.draw(c, p, cells, color, strength, lift));
         }
     }
 
-    /** The cone, in head space (blocks): two layers, wide and soft, narrow and brighter, fading to nothing at the end. */
-    private static void beam(VertexConsumer c, PoseStack.Pose p, double length, int rgb, float intensity, float coneAngle) {
-        float z0 = 5.5f / 16, z1 = (float) length;
-        float r1 = (float) endRadius(length, coneAngle);
+    /**
+     * The cone, in head space (blocks): two layers, wide and soft, narrow and brighter, fading to nothing at the end.
+     * Each side ends at its own length ({@link BeamEdges}), just before the block it meets.
+     */
+    private static void beam(VertexConsumer c, PoseStack.Pose p, double length, BeamEdges.Edges edges, int rgb, float intensity, float coneAngle) {
+        double r1 = endRadius(length, coneAngle);
         // The wider the cone, the thinner the haze it lights
         float spread = (float) Math.min(1, 6 / Math.max(6, coneAngle * 1.6));
         int a = Math.round(60 * intensity * spread), b = Math.round(55 * intensity * spread);
-        cone(c, p, z0, z1, (float) LENS_RADIUS, r1, Geo.argb(a, rgb), Geo.argb(0, rgb));
-        cone(c, p, z0, z1, (float) (LENS_RADIUS * 0.55), r1 * 0.45f, Geo.argb(b, rgb), Geo.argb(0, rgb));
+        cone(c, p, length, edges == null ? null : edges.outer(), LENS_RADIUS, r1, Geo.argb(a, rgb), rgb);
+        cone(c, p, length, edges == null ? null : edges.inner(), LENS_RADIUS * 0.55, r1 * 0.45, Geo.argb(b, rgb), rgb);
     }
 
     /** Radius of the beam {@code length} blocks from the lens, for a cone of {@code coneAngle} degrees (half-angle). */
@@ -248,55 +265,38 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         return v < to ? Math.min(to, v + step) : Math.max(to, v - step);
     }
 
-    private static void cone(VertexConsumer c, PoseStack.Pose p, float z0, float z1, float r0, float r1, int c0, int c1) {
-        // Fade over the length, but keep a little light where it lands
-        int mid = Geo.argb((c0 >>> 24) / 3, c0);
-        float zm = z0 + (z1 - z0) * 0.6f, rm = r0 + (r1 - r0) * 0.6f;
-        ring(c, p, z0, zm, r0, rm, c0, mid);
-        ring(c, p, zm, z1, rm, r1, mid, c1);
-    }
+    /** Fractions of each side's length where the light is given: full, a third (60 %), none. */
+    private static final float[] STEPS = {0, 0.6f, 1};
 
-    private static void ring(VertexConsumer c, PoseStack.Pose p, float z0, float z1, float r0, float r1, int c0, int c1) {
+    private static void cone(VertexConsumer c, PoseStack.Pose p, double length, float[] ends, double r0, double r1, int c0, int rgb) {
+        int[] colors = {c0, Geo.argb((c0 >>> 24) / 3, rgb), Geo.argb(0, rgb)};
+        double z0 = BEAM_START;
         for (int i = 0; i < SIDES; i++) {
-            double a0 = 2 * Math.PI * i / SIDES, a1 = 2 * Math.PI * (i + 1) / SIDES;
-            float x00 = (float) (Math.cos(a0) * r0), y00 = (float) (Math.sin(a0) * r0);
-            float x01 = (float) (Math.cos(a1) * r0), y01 = (float) (Math.sin(a1) * r0);
-            float x10 = (float) (Math.cos(a0) * r1), y10 = (float) (Math.sin(a0) * r1);
-            float x11 = (float) (Math.cos(a1) * r1), y11 = (float) (Math.sin(a1) * r1);
-            // Both windings: seen from outside and from inside the beam
-            Geo.glow(c, p, x00, y00, z0, c0);
-            Geo.glow(c, p, x10, y10, z1, c1);
-            Geo.glow(c, p, x11, y11, z1, c1);
-            Geo.glow(c, p, x01, y01, z0, c0);
-            Geo.glow(c, p, x01, y01, z0, c0);
-            Geo.glow(c, p, x11, y11, z1, c1);
-            Geo.glow(c, p, x10, y10, z1, c1);
-            Geo.glow(c, p, x00, y00, z0, c0);
+            int j = (i + 1) % SIDES;
+            double a0 = 2 * Math.PI * i / SIDES, a1 = 2 * Math.PI * j / SIDES;
+            double e0 = ends == null ? length : ends[i], e1 = ends == null ? length : ends[j];
+            for (int k = 0; k < STEPS.length - 1; k++) {
+                // Both windings: seen from outside and from inside the beam
+                float[] q00 = edge(a0, z0 + (e0 - z0) * STEPS[k], z0, length, r0, r1);
+                float[] q01 = edge(a1, z0 + (e1 - z0) * STEPS[k], z0, length, r0, r1);
+                float[] q10 = edge(a0, z0 + (e0 - z0) * STEPS[k + 1], z0, length, r0, r1);
+                float[] q11 = edge(a1, z0 + (e1 - z0) * STEPS[k + 1], z0, length, r0, r1);
+                int cn = colors[k], cf = colors[k + 1];
+                Geo.glow(c, p, q00[0], q00[1], q00[2], cn);
+                Geo.glow(c, p, q10[0], q10[1], q10[2], cf);
+                Geo.glow(c, p, q11[0], q11[1], q11[2], cf);
+                Geo.glow(c, p, q01[0], q01[1], q01[2], cn);
+                Geo.glow(c, p, q01[0], q01[1], q01[2], cn);
+                Geo.glow(c, p, q11[0], q11[1], q11[2], cf);
+                Geo.glow(c, p, q10[0], q10[1], q10[2], cf);
+                Geo.glow(c, p, q00[0], q00[1], q00[2], cn);
+            }
         }
     }
 
-    /** A soft disc of light on the face the beam lands on (block space), bright in the middle. */
-    private static void pool(VertexConsumer c, PoseStack.Pose p, Vec3 hit, Direction face, double radius, int rgb, float strength, float lift) {
-        Vec3 n = new Vec3(face.getStepX(), face.getStepY(), face.getStepZ());
-        Vec3 u = Math.abs(n.y) > 0.5 ? new Vec3(1, 0, 0) : new Vec3(0, 1, 0);
-        Vec3 v = n.cross(u);
-        u = v.cross(n);
-        Vec3 center = hit.add(n.scale(lift));
-        int inner = Geo.argb(Math.round(120 * strength), rgb), outer = Geo.argb(0, rgb);
-        int segments = 28;
-        for (int i = 0; i < segments; i++) {
-            double a0 = 2 * Math.PI * i / segments, a1 = 2 * Math.PI * (i + 1) / segments;
-            Vec3 e0 = center.add(u.scale(Math.cos(a0) * radius)).add(v.scale(Math.sin(a0) * radius));
-            Vec3 e1 = center.add(u.scale(Math.cos(a1) * radius)).add(v.scale(Math.sin(a1) * radius));
-            Geo.glow(c, p, (float) center.x, (float) center.y, (float) center.z, inner);
-            Geo.glow(c, p, (float) e0.x, (float) e0.y, (float) e0.z, outer);
-            Geo.glow(c, p, (float) e1.x, (float) e1.y, (float) e1.z, outer);
-            Geo.glow(c, p, (float) center.x, (float) center.y, (float) center.z, inner);
-            Geo.glow(c, p, (float) center.x, (float) center.y, (float) center.z, inner);
-            Geo.glow(c, p, (float) e1.x, (float) e1.y, (float) e1.z, outer);
-            Geo.glow(c, p, (float) e0.x, (float) e0.y, (float) e0.z, outer);
-            Geo.glow(c, p, (float) center.x, (float) center.y, (float) center.z, inner);
-        }
+    private static float[] edge(double angle, double z, double z0, double length, double r0, double r1) {
+        double r = BeamEdges.radius(z, z0, length, r0, r1);
+        return new float[]{(float) (Math.cos(angle) * r), (float) (Math.sin(angle) * r), (float) z};
     }
 
     @Override

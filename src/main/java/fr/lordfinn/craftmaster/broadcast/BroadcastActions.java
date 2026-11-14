@@ -3,6 +3,7 @@ package fr.lordfinn.craftmaster.broadcast;
 import fr.lordfinn.craftmaster.camera.CameraList;
 import fr.lordfinn.craftmaster.show.Actions;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,12 +13,18 @@ import java.util.Map;
  * to undo), they become an {@link Actions.Broadcast} effect that {@link Director} plays. Which camera or player a
  * name means is only known in the world, so the director resolves it (and says so when it cannot).
  * <pre>
- * camera.cut        {camera, transition?, effect?}  camera: number, name or role ("2", "Plan large", "large", "trone"),
- *                                                in the focus; or elsewhere: "studio:2", "ensuri:1", "caméra 2 du studio"
+ * camera.cut        {camera, transition?, effect?, pair?}  camera: number, name or role ("2", "Plan large", "large", "trone"),
+ *                                                in the focus; or elsewhere: "studio:2", "ensuri:1", "caméra 2 du studio";
+ *                                                pair true (Ctrl+click in the directors' grids) = side by side with the
+ *                                                camera on air (split screen of two), or back to one if it is one of the two
  * camera.follow     {player, transition?, effect?}  follow shot on a player (in a round: selects their zone too)
  * camera.pov        {player, transition?, effect?}  through a player's eyes
  * camera.path       {path, transition?, effect?}    plays a recorded travelling
- * camera.mosaic     {lieu?, enabled?}            split screen of the zones (or cameras) of a lieu; enabled false = off
+ * camera.mosaic     {lieu?, enabled?, layout?}   split screen of the zones (or cameras) of a lieu; enabled false = off
+ * camera.split      {cameras?, add?, remove?, main?, layout?, enabled?}  split screen of chosen cameras (2 to 6), from
+ *                                                what is on air: cameras = all of them ("3,5" or a list, the first is the
+ *                                                main shot), add / remove one, main = that one first, layout = cadres |
+ *                                                bord | principal (also for the next split), enabled false = one shot
  * camera.focus      {lieu?, zone?, player?, cut?}   lieu / zone the keys address: lieu "auto" = follow the show,
  *                                                zone "next" / "prev"; player = their zone; cut = show its wide camera
  * camera.lieu       {camera, lieu, zone?}        moves a camera to the studio or a round (and a zone of it)
@@ -40,7 +47,7 @@ public final class BroadcastActions {
 
     public static final List<String> TYPES = List.of("camera.cut", "camera.follow", "camera.auto", "camera.transition",
             "broadcast.lowerthird", "broadcast.task", "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop",
-            "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu", "camera.voice",
+            "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu", "camera.voice", "camera.split",
             "camera.goto", "camera.stay", "camera.framing", "camera.avoid");
 
     public static boolean handles(String type) {
@@ -56,6 +63,7 @@ public final class BroadcastActions {
                 out.put("camera", cameraRef(a));
                 transition(a, out, false);
                 effect(a, out);
+                if (bool(a, "pair", false)) out.put("pair", true);
             }
             case "camera.follow", "camera.pov" -> {
                 out.put("player", required(a, "player"));
@@ -71,7 +79,26 @@ public final class BroadcastActions {
                 String lieu = str(a, "lieu");
                 if (lieu != null) out.put("lieu", lieu);
                 if (a.get("enabled") != null) out.put("enabled", bool(a, "enabled", false));
+                layout(a, out);
                 transition(a, out, false);
+            }
+            case "camera.split" -> {
+                Object cams = a.get("cameras");
+                if (cams != null) {
+                    List<String> refs = new ArrayList<>();
+                    for (Object o : cams instanceof List<?> l ? l : List.of(String.valueOf(cams).split("[,;]| et ")))
+                        if (ref(o) != null) refs.add(ref(o));
+                    if (refs.isEmpty()) throw new Actions.Invalid("« cameras » : donnez des caméras (« 3,5 »).");
+                    out.put("cameras", refs);
+                }
+                for (String k : List.of("add", "remove", "main")) if (ref(a.get(k)) != null) out.put(k, ref(a.get(k)));
+                if (a.get("enabled") != null) out.put("enabled", bool(a, "enabled", false));
+                layout(a, out);
+                if (out.size() == 1)
+                    throw new Actions.Invalid("écran partagé : donnez des caméras (cameras), une à ajouter (add) ou retirer (remove), "
+                            + "la principale (main), une disposition (layout) ou enabled false.");
+                transition(a, out, false);
+                effect(a, out);
             }
             case "camera.focus" -> {
                 String lieu = str(a, "lieu"), zone = str(a, "zone"), player = str(a, "player");
@@ -188,6 +215,22 @@ public final class BroadcastActions {
         Object v = a.get("camera");
         if (v instanceof Number n && n.doubleValue() == Math.rint(n.doubleValue())) return String.valueOf(n.longValue());
         return required(a, "camera");
+    }
+
+    /** A camera reference (number, name, key), numbers without ".0"; null when empty. */
+    private static String ref(Object v) {
+        if (v == null) return null;
+        if (v instanceof Number n && n.doubleValue() == Math.rint(n.doubleValue())) return String.valueOf(n.longValue());
+        String s = String.valueOf(v).trim();
+        return s.isEmpty() ? null : s;
+    }
+
+    private static void layout(Map<String, Object> a, Map<String, Object> out) {
+        String s = str(a, "layout");
+        if (s == null) return;
+        String l = SplitLayouts.parse(s);
+        if (l == null) throw new Actions.Invalid("disposition « " + s + " » inconnue : cadres, bord (à bord) ou principal.");
+        out.put("layout", l);
     }
 
     private static void effect(Map<String, Object> a, Map<String, Object> out) {

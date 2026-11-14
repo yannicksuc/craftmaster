@@ -146,6 +146,18 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                      f("lieu", STR, True, "studio ou id de manche."), f("zone", STR, doc="Zone (nom ou candidat), si dite.")]),
     "camera.mosaic": ("Écran partagé : les zones de la manche côte à côte (« écran partagé », « mosaïque »).",
                       [f("enabled", BOOL, doc="false = retirer l'écran partagé."), f("lieu", STR, doc="studio ou id de manche.")]),
+    "camera.split": ("Écran partagé de caméras CHOISIES (2 à 6), à partir de ce qui est à l'antenne (onAir) : « mets la 3 "
+                     "et la 5 côte à côte », « ajoute la caméra galerie en petit », « retire la 3 », « la 2 en principal », "
+                     "« coupe en deux », « repasse en un seul plan ».",
+                     [f("cameras", STR_LIST, doc="Toutes les caméras de l'écran partagé, la principale d'abord (numéro, nom ou clé). "
+                                                 "Absent = garder celles à l'antenne."),
+                      f("add", STR, doc="Une caméra à ajouter à celles à l'antenne."),
+                      f("remove", STR, doc="Une caméra à retirer de l'écran partagé."),
+                      f("main", STR, doc="La caméra principale (mise en premier ; ajoutée si absente)."),
+                      f("layout", STR, doc="cadres (plans encadrés sur le fond), bord (image coupée en parts, bord à bord) ou "
+                                           "principal (la principale en grand, les autres en petit dessous). Vaut aussi pour les suivants."),
+                      f("enabled", BOOL, doc="false = repasser en un seul plan (la principale)."),
+                      f("transition", STR, doc="coupe, fondu, enchaine, miroir (kaléidoscope), flash (flash blanc) ou surimpression.")]),
     "camera.pov": ("Montre la vue d'un joueur, à travers ses yeux (« vue d'Ensuri »).", [f("player", PLAYER, True, PLAYER_DOC)]),
     # Automatic framing: the director picks the shot itself, under LordFinn's wishes
     "camera.goto": ("On va voir un joueur : la réalisation choisit elle-même comment (une caméra posée qui le voit bien, "
@@ -323,7 +335,7 @@ NO_SCOPE = {"say", "agent.request", "undo", "stopwatch.start", "stopwatch.stop",
             "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop"}
 NO_SCOPE |= {"spotlight.follow", "spotlight.stop", "spotlight.on", "spotlight.off", "spotlight.set",
              "look.play", "look.save", "cue.play", "cue.stop", "stage.blackout"}
-NO_SCOPE |= {"camera.path", "camera.focus", "camera.lieu", "camera.mosaic", "camera.pov"}
+NO_SCOPE |= {"camera.path", "camera.focus", "camera.lieu", "camera.mosaic", "camera.pov", "camera.split"}
 NO_SCOPE |= {"camera.goto", "camera.stay", "camera.framing", "camera.avoid"}
 NO_SCOPE |= {"fx.set", "fx.clear"}
 NO_SCOPE |= {"replay.control", "replay.flag", "tele.show", "clip.start", "clip.stop"}

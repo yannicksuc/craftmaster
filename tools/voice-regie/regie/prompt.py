@@ -64,7 +64,13 @@ Règles :
     "Ensuri", cut: true} ; « caméras de l'équipe bleue » = camera_focus {zone: "equipe-bleue", cut: true} ;
     « caméras du studio » = camera_focus {lieu: "studio"}. « la caméra 3 est sur le pont » = camera_lieu {camera:
     "3", lieu: "pont"}. « lance le travelling du pont » = camera_path {path: "pont"} (nom d'un trajet du contexte).
-    « écran partagé » / « mosaïque » = camera_mosaic {}. « lance l'intro du pont » = intro_play {manche: "pont"} ;
+    « écran partagé » / « mosaïque » seuls = camera_mosaic {} (les zones de la manche). Caméras CHOISIES ensemble =
+    camera_split : « mets la 3 et la 5 côte à côte » = {cameras: ["3", "5"]} ; « ajoute la 4 » / « ajoute la caméra
+    galerie » = {add: "4"} / {add: "galerie"} (« en petit » ajoute layout "principal") ; « retire la 3 » = {remove: "3"} ;
+    « la 2 en principal » / « la 2 en grand » = {main: "2", layout: "principal"} ; « coupe en deux » / « bord à bord » =
+    {layout: "bord"} ; « dans des cadres » = {layout: "cadres"} ; « repasse en un seul plan » / « plus d'écran partagé » =
+    {enabled: false}. onAir dit ce qui est à l'antenne (« mosaic principal studio:3,studio:5 » : la principale d'abord).
+    « lance l'intro du pont » = intro_play {manche: "pont"} ;
     « générique » seul reste show_intro.
 13a. Cadrage automatique (la réalisation choisit le plan elle-même) : « on va voir Ensuri », « et maintenant allons
     voir comment ça se passe chez Cycy » = camera_goto {player} (pas camera_follow : elle choisit entre une caméra

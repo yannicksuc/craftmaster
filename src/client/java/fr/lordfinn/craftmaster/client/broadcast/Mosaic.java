@@ -18,12 +18,12 @@ import org.joml.Matrix3x2f;
  * Split screen ({@code SHOT_MOSAIC}): the game renders the world once per frame, so the tiles take turns — frame
  * k shows tile k mod n from its camera, and once the world is drawn (post effects included, before the interface)
  * the picture is copied into that tile's texture (GameRendererMixin). The overlay then draws every tile's last picture in a grid: each tile is refreshed
- * every n frames (15 fps per tile at 60 fps with 4 tiles), plenty for rooms where people build. Smart culling is
+ * every n frames (15 fps per tile at 60 fps with 4 tiles, 10 with 6), plenty for rooms where people build. Smart culling is
  * off meanwhile, so the chunks seen by one tile are not culled because of another tile's viewpoint.
  */
 public final class Mosaic {
 
-    public static final int MAX = 4;
+    public static final int MAX = fr.lordfinn.craftmaster.broadcast.SplitLayouts.MAX;
 
     /** Tile drawn by the world render of this frame, -1 = none (not a split screen). */
     static int rendering = -1;
@@ -85,14 +85,17 @@ public final class Mosaic {
         return i >= 0 && i < MAX && TILES[i] != null && filledAt[i] > 0;
     }
 
-    /** Draws tile {@code i}'s last picture in the rectangle (GUI coordinates of the current pose). */
-    static void draw(GuiGraphicsExtractor g, int i, float x0, float y0, float x1, float y1) {
+    /**
+     * Draws tile {@code i}'s last picture in the rectangle (GUI coordinates of the current pose): the part u0–u1, v0–v1
+     * of it (0–1, top-left origin; edge to edge cells show the middle of the picture).
+     */
+    static void draw(GuiGraphicsExtractor g, int i, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1) {
         if (!ready(i)) return;
         TextureSetup tex = TextureSetup.singleTexture(TILES[i].getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
         // Render targets are stored bottom-up: V flipped (as in Transition). Opaque: the world picture's alpha is not
         // 1 everywhere (fogged horizon), blending it would let the velvet background show through
         ((GuiGraphicsExtractorAccessor) g).craftmaster$guiRenderState().addGuiElement(new BlitRenderState(
                 RenderPipelines.GUI_OPAQUE_TEXTURED_BACKGROUND, tex, new Matrix3x2f(g.pose()), Math.round(x0), Math.round(y0), Math.round(x1), Math.round(y1),
-                0, 1, 1, 0, 0xFFFFFFFF, null));
+                u0, u1, 1 - v0, 1 - v1, 0xFFFFFFFF, null));
     }
 }

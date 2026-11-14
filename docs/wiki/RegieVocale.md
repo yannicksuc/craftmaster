@@ -40,6 +40,8 @@ besoin de rien).
 | « plus large » · « plus serré » · « cadrage normal » | cadrage automatique (plan qui suit et choix des caméras) |
 | « évite la caméra 3 » · « tu peux reprendre la caméra 3 » | l'auto ne prend plus cette caméra · de nouveau |
 | « repasse en auto » | réalisation auto, sans joueur retenu, cadrage normal |
+| « mets la 3 et la 5 côte à côte », « ajoute la 4 », « ajoute la caméra galerie en petit », « retire la 3 » | écran partagé de plans choisis, 6 au plus ([Régie des modos](RegieModos.md#plusieurs-plans-à-lantenne-écran-partagé)) |
+| « la 2 en principal » / « la 2 en grand », « coupe en deux » / « bord à bord », « mets-les dans des cadres », « repasse en un seul plan » | plan principal, disposition, retour à un seul plan |
 | « générique », « générique de fin », « montre la tâche sur le stream », « montre les scores » | générique, habillage de la diffusion |
 | « la tâche du pont : construisez le pont le plus long… » / « ajoute à la tâche : … » | dicter la tâche ([Tâches](Taches.md)) |
 | « révèle la tâche » / « montre la tâche » / « donne les enveloppes » | révéler, carte à l'écran, enveloppes aux candidats |

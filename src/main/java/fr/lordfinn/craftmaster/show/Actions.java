@@ -159,7 +159,7 @@ public final class Actions {
             // Studio screens: clips, Twitch links and lives (media/)
             "tele.show",
             // TV direction, lieux / travellings / intros (chantier E): no data change for these four
-            "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu",
+            "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu", "camera.split",
             "camera.goto", "camera.stay", "camera.framing", "camera.avoid",
             // ... and the round intros, which are round data (undoable), and playing one
             "intro.set", "intro.shot.add", "intro.shot.set", "intro.shot.remove", "intro.clear", "intro.play", "intro.auto", "intro.shot.move",

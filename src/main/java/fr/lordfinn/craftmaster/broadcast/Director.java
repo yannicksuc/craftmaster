@@ -43,6 +43,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +81,7 @@ public final class Director {
     /** Spectator broadcast games further than this from the shot are moved closer (blocks). */
     private static final double KEEP_NEAR = 24;
     /** At most this many tiles in a split screen. */
-    public static final int MAX_TILES = 4;
+    public static final int MAX_TILES = SplitLayouts.MAX;
 
     /** Who asks for a shot: the operator (commands, voice, keys), the automatic direction, a sequence (credits, intro). */
     public enum Source { MANUAL, AUTO, SEQUENCE }
@@ -392,6 +393,162 @@ public final class Director {
         return tiles;
     }
 
+    /** Layout of the next split screens (the directors' choice; {@link SplitLayouts}). */
+    private static String splitLayout = SplitLayouts.FRAMES;
+
+    public static String splitLayout() {
+        return splitLayout;
+    }
+
+    /** The cameras on air: the split screen's (main shot first), the one camera, or none (follow, travelling…). */
+    public static List<String> onAirCameras() {
+        if (shot.kind() == BroadcastNetwork.SHOT_CAMERA) return List.of(shot.camera());
+        if (shot.kind() == BroadcastNetwork.SHOT_MOSAIC) return shot.tiles().stream().map(Tile::camera).toList();
+        return List.of();
+    }
+
+    /**
+     * Puts these cameras on air (the first one is the main shot): two or more as a split screen in {@code layout}
+     * (null = the directors' current choice), one as a plain cut. For the automatic direction and sequences too
+     * (e.g. one shot per map during a round). Keeps at most {@link SplitLayouts#MAX}; false if there is none.
+     */
+    public static boolean split(MinecraftServer server, List<CameraSpot> spots, String layout, int transition, String effect, Source source,
+                                List<String> lines) {
+        List<Tile> tiles = new ArrayList<>();
+        for (CameraSpot s : spots) if (s != null) tiles.add(new Tile(s.key(), s.name().isEmpty() ? s.role() : s.name()));
+        return splitTiles(server, tiles, layout, transition, effect, source, lines);
+    }
+
+    /**
+     * Like {@link #split}, with tiles: a camera key, or {@link SplitLayouts#followKey} ({@code "follow:<player>"}) for a
+     * tile that follows a player (the broadcast game frames it as a follow shot). The main tile first; 2 to
+     * {@link SplitLayouts#MAX} (duplicates, unknown cameras and players not connected are left out); a single one is a
+     * plain cut (camera) or follow shot. Labels: the tile's own, else the camera's name or the player's name.
+     */
+    public static boolean splitTiles(MinecraftServer server, List<Tile> tiles, String layout, int transition, String effect, Source source,
+                                     List<String> lines) {
+        List<Tile> list = new ArrayList<>();
+        List<String> names = new ArrayList<>();
+        for (Tile t : tiles) {
+            if (t == null || list.size() == SplitLayouts.MAX || list.stream().anyMatch(o -> o.camera().equals(t.camera()))) continue;
+            String player = SplitLayouts.followed(t.camera());
+            if (player != null) {
+                ServerPlayer p = findPlayer(server, player);
+                if (p == null) continue;
+                String who = p.getGameProfile().name();
+                list.add(new Tile(SplitLayouts.followKey(who), t.label().isEmpty() ? who : t.label()));
+                names.add("suivi de " + who);
+            } else {
+                CameraSpot s = Cameras.list().get(t.camera());
+                if (s == null) continue;
+                list.add(new Tile(s.key(), !t.label().isEmpty() ? t.label() : s.name().isEmpty() ? s.role() : s.name()));
+                names.add(s.label());
+            }
+        }
+        if (list.isEmpty()) return false;
+        if (list.size() == 1) {
+            String player = SplitLayouts.followed(list.getFirst().camera());
+            if (player != null) take(server, ShotRequest.follow(player, transition, effect, source));
+            else take(server, ShotRequest.camera(Cameras.list().get(list.getFirst().camera()), transition, effect, source));
+            lines.add("À l'antenne : " + (player != null ? "on suit " + player : "caméra " + names.getFirst()) + withEffect(effect) + ".");
+            return true;
+        }
+        String l = layout == null ? splitLayout : SplitLayouts.of(layout);
+        // The lieu of the shot: the first camera's (follow tiles only: the focus')
+        String lieu = focusLieu();
+        for (Tile t : list) {
+            CameraSpot s = SplitLayouts.followed(t.camera()) == null ? Cameras.list().get(t.camera()) : null;
+            if (s != null) {
+                lieu = s.lieu();
+                break;
+            }
+        }
+        take(server, new ShotRequest(BroadcastNetwork.SHOT_MOSAIC, lieu == null ? "" : lieu, l, transition, effect, list, source));
+        lines.add("À l'antenne : écran partagé en " + SplitLayouts.label(l) + " — " + String.join(", ", names)
+                + (l.equals(SplitLayouts.MAIN) ? " (principal : " + names.getFirst() + ")" : "") + withEffect(effect) + ".");
+        return true;
+    }
+
+    /**
+     * Ctrl+click on a shot in the directors' grids ({@code camera.cut} with {@code pair}): a camera not on air joins the
+     * split screen (or makes one with the camera on air), a camera on air leaves it. False when there is no camera on
+     * air to join (follow shot, travelling) or it is the only one: a plain cut then.
+     */
+    private static boolean pair(MinecraftServer server, CameraSpot spot, int transition, String effect, List<String> lines) {
+        List<String> on = onAirCameras();
+        if (on.isEmpty() || on.equals(List.of(spot.key()))) return false;
+        Map<String, Object> a = new HashMap<>();
+        a.put(on.contains(spot.key()) ? "remove" : "add", spot.key());
+        splitAction(server, a, transition, effect, lines);
+        return true;
+    }
+
+    /** The tile key a reference means: a camera (number, name, key) or "follow:<player>"; null (and a line) if none. */
+    private static String tileKey(MinecraftServer server, String ref, List<String> lines) {
+        String player = SplitLayouts.followed(ref);
+        if (player != null) {
+            ServerPlayer p = findPlayer(server, player);
+            if (p == null) lines.add("⚠ " + player + " n'est pas connecté : impossible de le suivre.");
+            return p == null ? null : SplitLayouts.followKey(p.getGameProfile().name());
+        }
+        CameraSpot s = resolve(server, ref);
+        if (s == null) lines.add("⚠ Aucune caméra « " + ref + " » dans " + focusName() + ".");
+        return s == null ? null : s.key();
+    }
+
+    /** {@code camera.split} (fields checked by {@link BroadcastActions}). */
+    private static void splitAction(MinecraftServer server, Map<String, Object> a, int transition, String effect, List<String> lines) {
+        if (a.get("layout") instanceof String l) {
+            splitLayout = l;
+            sync(server);
+        }
+        List<String> keys = new ArrayList<>(onAirCameras());
+        boolean onlyLayout = true;
+        if (a.get("cameras") instanceof List<?> refs) {
+            onlyLayout = false;
+            keys.clear();
+            for (Object r : refs) {
+                String k = tileKey(server, String.valueOf(r), lines);
+                if (k == null) return;
+                if (!keys.contains(k)) keys.add(k);
+            }
+        }
+        for (String field : List.of("remove", "add", "main")) {
+            if (!(a.get(field) instanceof String ref)) continue;
+            onlyLayout = false;
+            String k = tileKey(server, ref, lines);
+            if (k == null) return;
+            switch (field) {
+                case "remove" -> keys.remove(k);
+                case "add" -> {
+                    if (keys.contains(k)) continue;
+                    if (keys.size() >= SplitLayouts.MAX) {
+                        lines.add("⚠ " + SplitLayouts.MAX + " plans au plus dans l'écran partagé : retires-en un d'abord.");
+                        return;
+                    }
+                    keys.add(k);
+                }
+                default -> {
+                    keys.remove(k);
+                    keys.addFirst(k);
+                }
+            }
+        }
+        if (Boolean.FALSE.equals(a.get("enabled"))) {
+            onlyLayout = false;
+            if (keys.size() > 1) keys = new ArrayList<>(keys.subList(0, 1));
+        }
+        // Only the layout said, and no split screen on air: it is for the next one
+        if (onlyLayout && keys.size() < 2) {
+            lines.add("Écran partagé : « " + SplitLayouts.label(splitLayout) + " » pour le prochain.");
+            return;
+        }
+        List<Tile> tiles = new ArrayList<>();
+        for (String k : keys) tiles.add(new Tile(k, ""));
+        if (!splitTiles(server, tiles, null, transition, effect, Source.MANUAL, lines))
+            lines.add("⚠ Aucune caméra à l'antenne : choisis d'abord un plan.");
+    }
+
     /** Moves the free camera ({@link BroadcastNetwork#SHOT_FREE}): sent to the broadcast games, which glide to it. */
     public static void moveFree(MinecraftServer server, FreeCamera pose) {
         free = pose;
@@ -600,6 +757,7 @@ public final class Director {
                             + (Cameras.list().isEmpty() ? " (aucune caméra posée)." : " (studio:2, ensuri:1… pour une autre)."));
                     return;
                 }
+                if (Boolean.TRUE.equals(a.get("pair")) && pair(server, spot, transition, effect, lines)) return;
                 take(server, ShotRequest.camera(spot, transition, effect, Source.MANUAL));
                 lines.add("À l'antenne : caméra " + spot.label() + withEffect(effect) + ".");
             }
@@ -654,9 +812,11 @@ public final class Director {
                     lines.add("⚠ Il faut au moins deux caméras (ou deux zones avec des caméras) dans " + Lieux.lieuName(lieu) + " pour l'écran partagé.");
                     return;
                 }
-                take(server, new ShotRequest(BroadcastNetwork.SHOT_MOSAIC, lieu, "", transition, effect, tiles, Source.MANUAL));
+                if (a.get("layout") instanceof String l) splitLayout = l;
+                take(server, new ShotRequest(BroadcastNetwork.SHOT_MOSAIC, lieu, splitLayout, transition, effect, tiles, Source.MANUAL));
                 lines.add("À l'antenne : écran partagé (" + tiles.size() + " : " + String.join(", ", tiles.stream().map(Tile::label).toList()) + ").");
             }
+            case "camera.split" -> splitAction(server, a, transition, effect, lines);
             case "camera.focus" -> focusAction(server, a, lines);
             case "camera.lieu" -> lieuAction(server, a, lines);
             case "camera.goto" -> {

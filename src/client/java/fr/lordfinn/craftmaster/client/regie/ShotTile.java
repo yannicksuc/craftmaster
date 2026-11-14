@@ -7,12 +7,17 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.InputWithModifiers;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
+import java.util.function.Consumer;
+
 /**
  * A shot in the director's Cameras tab: its preview (the last still the server sent), its number in a corner, its
- * name on a strip at the bottom; the one on air has a red frame and "DIRECT". A click puts it on air.
+ * name on a strip at the bottom; the ones on air have a red frame and "DIRECT". A click puts it on air alone; Ctrl+click
+ * adds it to the split screen, or takes it out. In a split screen, a star on the name strip: filled on the main shot,
+ * hollow on the others (a click on it makes that one the main shot).
  */
 final class ShotTile extends AbstractButton {
 
@@ -20,20 +25,39 @@ final class ShotTile extends AbstractButton {
 
     private final String key;
     private final String number;
-    private final boolean live;
-    private final Runnable action;
+    /** The star of a tile: none (not in a split screen), hollow (in it), filled (its main shot). */
+    static final int NO_STAR = 0, STAR = 1, MAIN = 2;
+    private static final int STAR_W = 10;
 
-    ShotTile(int x, int y, int w, int h, String key, int number, String name, boolean live, Runnable action) {
+    private final boolean live;
+    private final int star;
+    private final Consumer<Boolean> action;
+    private final Runnable makeMain;
+    private boolean onStar;
+
+    /** {@code action} gets true on Ctrl+click; {@code makeMain}: click on a hollow star. */
+    ShotTile(int x, int y, int w, int h, String key, int number, String name, boolean live, int star, Consumer<Boolean> action, Runnable makeMain) {
         super(x, y, w, h, Component.literal(number + " " + name));
         this.key = key;
         this.number = String.valueOf(number);
         this.live = live;
+        this.star = star;
         this.action = action;
+        this.makeMain = makeMain;
+    }
+
+    @Override
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
+        onStar = star == STAR && event.x() >= getX() + getWidth() - 1 - STAR_W && event.y() >= getY() + getHeight() - 11;
+        super.onClick(event, doubleClick);
     }
 
     @Override
     public void onPress(InputWithModifiers input) {
-        action.run();
+        if (onStar) {
+            onStar = false;
+            makeMain.run();
+        } else action.accept(input.hasControlDown());
     }
 
     @Override
@@ -50,7 +74,9 @@ final class ShotTile extends AbstractButton {
         // Name on a dark strip, number in a corner badge (red on air)
         String name = getMessage().getString().substring(number.length() + 1);
         g.fill(x + 1, y + h - 11, x + w - 1, y + h - 1, 0xC0100A0C);
-        g.text(font, font.plainSubstrByWidth(name, w - 6), x + 3, y + h - 10, Theme.TEXT, false);
+        int sw = star == NO_STAR ? 0 : STAR_W;
+        g.text(font, font.plainSubstrByWidth(name, w - 6 - sw), x + 3, y + h - 10, Theme.TEXT, false);
+        if (star != NO_STAR) g.text(font, star == MAIN ? "★" : "☆", x + w - 1 - STAR_W + 1, y + h - 10, star == MAIN ? Theme.GOLD : Theme.TEXT_DIM, false);
         int nw = font.width(number) + 6;
         g.fill(x + 1, y + 1, x + 1 + nw, y + 11, live ? LIVE : 0xC0100A0C);
         g.text(font, number, x + 4, y + 2, live ? 0xFFFFFFFF : Theme.GOLD, false);

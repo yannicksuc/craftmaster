@@ -64,6 +64,11 @@ public final class ModoState {
             shot.addProperty("kind", shotKind(show.shot().kind()));
             shot.addProperty("camera", show.shot().camera());
             shot.addProperty("player", show.shot().player());
+            // Split screen: the cameras of its tiles, main shot first (the grids mark each of them on air), its layout
+            JsonArray tiles = new JsonArray();
+            for (BroadcastNetwork.Tile t : show.shot().tiles()) tiles.add(t.camera());
+            shot.add("tiles", tiles);
+            if (show.shot().kind() == BroadcastNetwork.SHOT_MOSAIC) shot.addProperty("layout", fr.lordfinn.craftmaster.broadcast.SplitLayouts.of(show.shot().player()));
             o.add("shot", shot);
             o.addProperty("auto", show.auto());
             o.addProperty("focus", show.focus());
@@ -72,6 +77,9 @@ public final class ModoState {
             o.addProperty("transition", tr == BroadcastNetwork.FADE ? "fondu" : tr == BroadcastNetwork.CROSSFADE ? "enchaine"
                     : tr == BroadcastNetwork.CUT ? "coupe" : fr.lordfinn.craftmaster.broadcast.BroadcastActions.transitionName(tr));
             o.addProperty("voice", fr.lordfinn.craftmaster.broadcast.Director.voiceCuts());
+            // Split screens: the layout chosen (also the next one's) and how many shots at most
+            o.addProperty("layout", fr.lordfinn.craftmaster.broadcast.Director.splitLayout());
+            o.addProperty("splitMax", fr.lordfinn.craftmaster.broadcast.SplitLayouts.MAX);
         }
         if (cam) {
             // Stage: looks and cue lists to play in one click (stage/)
