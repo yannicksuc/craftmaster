@@ -8,6 +8,7 @@ import fr.lordfinn.craftmaster.camera.FollowFraming.Params;
 import fr.lordfinn.craftmaster.camera.FollowFraming.Plan;
 import fr.lordfinn.craftmaster.camera.CameraSpot;
 import fr.lordfinn.craftmaster.camera.ShotCoverage;
+import fr.lordfinn.craftmaster.camera.TargetTracker;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
@@ -66,9 +67,16 @@ public final class FollowCamera {
     private boolean snap;
     /** When a squeezed framing was last changed (or kept, no better one being free): not again before {@link #RETRY}. */
     private double lastSqueeze = -100;
-    /** Smoothed walking speed of the player (blocks per second). */
+    /**
+     * The player's feet as the camera follows them ({@link TargetTracker}, shared with the follow-spots): smoothed
+     * without lagging behind a walking player; their walking speed and direction.
+     */
+    private final TargetTracker body = new TargetTracker(0.2, 0.25, 0, 0.6);
     private double speed;
-    private Vec3 lastFeet;
+    /** Seconds of motion the framing looks ahead of a walking player, and the cap (blocks). */
+    static final double LOOK_AHEAD = 0.3, LOOK_AHEAD_MAX = 1.0;
+    /** The third the player is put on (signed, smoothed): room left in front of them when they walk across the picture. */
+    private double thirdsNow = Double.NaN;
     /** Side step round the player when a block is in the way (degrees of azimuth, elevation), smoothed. */
     private double dodgeYaw, dodgeElevation;
     /** Side steps tried when squeezed (azimuth, elevation, in degrees from the current one). */
@@ -144,7 +152,6 @@ public final class FollowCamera {
         spot = null;
         afterSpot = false;
         speed = 0;
-        lastFeet = null;
         manual = false;
         glideLength = 0;
         current = null;
@@ -221,20 +228,16 @@ public final class FollowCamera {
         Vec3 realFeet = target.getPosition(partialTick);
         Vec3 realEye = realFeet.add(0, eyeHeight, 0);
         float bodyYaw = target instanceof LivingEntity le ? le.yBodyRot : target.getYRot();
-        if (lastFeet != null && dt > 0) {
-            double v = Math.hypot(realFeet.x - lastFeet.x, realFeet.z - lastFeet.z) / dt;
-            speed += (Math.min(v, 20) - speed) * CameraMotion.smoothing(dt, 0.5);
-        }
-        lastFeet = realFeet;
-        if (feet == null) {
+        body.update(realFeet.x, realFeet.y, realFeet.z, dt);
+        if (feet == null) facing = bodyYaw;
+        else facing = CameraMotion.lerpAngle(facing, bodyYaw, CameraMotion.smoothing(dt, 1.6));
+        feet = new Vec3(body.x(), body.y(), body.z());
+        // The followed head must never be behind a wall (a door just walked through)
+        if (blocked(mc, target, realEye, feet.add(0, eyeHeight, 0))) {
+            body.snap(realFeet.x, realFeet.y, realFeet.z);
             feet = realFeet;
-            facing = bodyYaw;
-        } else {
-            feet = feet.lerp(realFeet, CameraMotion.smoothing(dt, 0.2));
-            facing = CameraMotion.lerpAngle(facing, bodyYaw, CameraMotion.smoothing(dt, 1.6));
-            // The smoothed head must not lag behind a wall (a door just walked through)
-            if (blocked(mc, target, realEye, feet.add(0, eyeHeight, 0))) feet = realFeet;
         }
+        speed = body.speed();
         if (plan == null) {
             plan = FollowFraming.PLANS.getFirst();
             if (room(mc, target, eyeHeight, plan, 0) < FollowFraming.ROOM_NEEDED) plan = FollowFraming.choose(null, null, p -> room(mc, target, eyeHeight, p, 0), this::weight, random);
@@ -283,9 +286,19 @@ public final class FollowCamera {
         }
 
         Vec3 cam = pivot.add(d[0] * shown, d[1] * shown, d[2] * shown);
-        // The player on a third of the picture: aim a little to the side of the head
+        // The player on a third of the picture: aim a little to the side of the head; walking across the picture,
+        // on the third that leaves room in front of them, and the aim a little ahead of where they go
         double hx = -d[0], hz = -d[2], h = Math.sqrt(hx * hx + hz * hz);
-        Vec3 aim = h < 1e-4 ? pivot : pivot.add(-hz / h * p.thirds(), 0, hx / h * p.thirds());
+        double rx = h < 1e-4 ? 0 : -hz / h, rz = h < 1e-4 ? 0 : hx / h;
+        double across = body.vx() * rx + body.vz() * rz;
+        double wantThirds = Math.abs(across) > 1.2 ? Math.copySign(Math.max(Math.abs(p.thirds()), 0.4), across) : p.thirds();
+        thirdsNow = Double.isNaN(thirdsNow) || manual ? wantThirds : thirdsNow + (wantThirds - thirdsNow) * CameraMotion.smoothing(dt, 0.9);
+        double ax = body.vx() * LOOK_AHEAD, az = body.vz() * LOOK_AHEAD, al = Math.hypot(ax, az);
+        if (al > LOOK_AHEAD_MAX) {
+            ax *= LOOK_AHEAD_MAX / al;
+            az *= LOOK_AHEAD_MAX / al;
+        }
+        Vec3 aim = pivot.add(rx * thirdsNow + ax, 0, rz * thirdsNow + az);
         float[] look = CameraMotion.lookAt(cam.x, cam.y, cam.z, aim.x, aim.y, aim.z);
         float breathYaw = (float) (0.4 * Math.sin(shotSeconds * 2 * Math.PI / 9.7));
         float breathPitch = (float) (0.25 * Math.sin(shotSeconds * 2 * Math.PI / 12.1 + 1));

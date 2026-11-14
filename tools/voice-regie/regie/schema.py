@@ -129,8 +129,11 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                     f("transition", STR, doc="coupe (défaut), fondu, enchaine, miroir (kaléidoscope), flash (flash blanc) ou surimpression."),
                     f("effect", STR, doc="Effet d'image si demandé : noir_blanc, sepia, pixel, fisheye, vignette, masque_rond, citrouille, look_intro, macro, mise_au_point, stop_motion, timelapse.")]),
     "camera.follow": ("Plan qui suit un joueur (« suis Ensuri », « caméra sur Cycy ») ; pendant une manche, les touches "
-                      "passent aussi aux caméras de sa zone.",
-                      [f("player", PLAYER, True, PLAYER_DOC), f("transition", STR, doc="coupe, fondu, enchaine, miroir (kaléidoscope), flash (flash blanc) ou surimpression.")]),
+                      "passent aussi aux caméras de sa zone. Ou une règle, comme les projecteurs (« suis le premier du "
+                      "classement », « suis qui est sur scène », « suis le joueur du moment ») : le joueur est repris tout seul.",
+                      [f("player", PLAYER, doc=PLAYER_DOC + " (ou rule)"),
+                       f("rule", STR, doc="Au lieu d'un joueur : moment, candidat, scene, maitre, premier (ou rang:2…), dernier, "
+                                          "hasard, public, proche, zone:<nom>."), f("transition", STR, doc="coupe, fondu, enchaine, miroir (kaléidoscope), flash (flash blanc) ou surimpression.")]),
     # TV direction, lieux / travellings / intros (chantier E): no data change except intro.*
     "camera.path": ("Lance un travelling enregistré à l'antenne (« lance le travelling du pont »).",
                     [f("path", STR, True, "Nom du trajet (contexte : paths)."), f("transition", STR, doc="coupe, fondu, enchaine, miroir (kaléidoscope), flash (flash blanc) ou surimpression."),

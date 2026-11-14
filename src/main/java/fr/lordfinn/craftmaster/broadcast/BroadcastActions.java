@@ -17,7 +17,9 @@ import java.util.Map;
  *                                                in the focus; or elsewhere: "studio:2", "ensuri:1", "caméra 2 du studio";
  *                                                pair true (Ctrl+click in the directors' grids) = side by side with the
  *                                                camera on air (split screen of two), or back to one if it is one of the two
- * camera.follow     {player, transition?, effect?}  follow shot on a player (in a round: selects their zone too)
+ * camera.follow     {player | rule, transition?, effect?}  follow shot on a player (in a round: selects their zone too),
+ *                                                or by rule, the follow-spots' ones (@moment, @candidat, @scene, @maitre,
+ *                                                @rang:1, @dernier, @hasard, @public, @proche, @zone:x): picked again while on air
  * camera.pov        {player, transition?, effect?}  through a player's eyes
  * camera.path       {path, transition?, effect?}    plays a recorded travelling
  * camera.mosaic     {lieu?, enabled?, layout?}   split screen of the zones (or cameras) of a lieu; enabled false = off
@@ -65,7 +67,17 @@ public final class BroadcastActions {
                 effect(a, out);
                 if (bool(a, "pair", false)) out.put("pair", true);
             }
-            case "camera.follow", "camera.pov" -> {
+            case "camera.follow" -> {
+                String rule = str(a, "rule");
+                if (rule != null) {
+                    String r = fr.lordfinn.craftmaster.studio.SpotlightFollow.parse(rule);
+                    if (r == null) throw new Actions.Invalid("règle de suivi « " + rule + " » inconnue (moment, candidat, scene, maitre, premier, dernier, hasard, public, proche, zone:x).");
+                    out.put("player", r);
+                } else out.put("player", required(a, "player"));
+                transition(a, out, false);
+                effect(a, out);
+            }
+            case "camera.pov" -> {
                 out.put("player", required(a, "player"));
                 transition(a, out, false);
                 effect(a, out);

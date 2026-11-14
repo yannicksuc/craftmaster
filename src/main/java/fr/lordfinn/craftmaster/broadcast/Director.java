@@ -636,10 +636,51 @@ public final class Director {
 
     // ---------------------------------------------------------------- tick
 
+    /**
+     * A follow shot by rule ({@code /cam follow @moment}, « suis le premier du classement »): the same rules as the
+     * follow-spots ({@link SpotlightFollow}), the player picked again every second while the shot is on air (kept
+     * while they still match, so it does not jump between two people), "" = none. Another cut ends it.
+     */
+    private static String followRule = "";
+    private static int followRuleSerial = -1;
+
+    /** Follows whoever {@code rule} picks now; false if nobody matches. */
+    static boolean followByRule(MinecraftServer server, String rule, int transition, Source source) {
+        String picked = pickByRule(server, rule, "");
+        if (picked.isEmpty()) return false;
+        take(server, ShotRequest.follow(picked, transition, "", source));
+        followRule = rule;
+        followRuleSerial = serial;
+        return true;
+    }
+
+    /** The player {@code rule} picks, from the followed player (or the wide camera) — {@code current} kept while they match. */
+    private static String pickByRule(MinecraftServer server, String rule, String current) {
+        ServerPlayer from = current.isEmpty() ? null : findPlayer(server, current);
+        net.minecraft.server.level.ServerLevel level = from != null ? (net.minecraft.server.level.ServerLevel) from.level() : server.overworld();
+        CameraSpot w = wideSpot();
+        net.minecraft.world.phys.Vec3 pivot = from != null ? from.position()
+                : w != null ? new net.minecraft.world.phys.Vec3(w.x(), w.y(), w.z()) : net.minecraft.world.phys.Vec3.atCenterOf(level.getRespawnData().pos());
+        return fr.lordfinn.craftmaster.studio.SpotlightFollow.pick(level, rule, pivot, current);
+    }
+
     private static void tick(MinecraftServer server) {
         Credits.tick(server);
         MancheIntros.tick(server);
         long now = server.getTickCount();
+        // A follow shot by rule: who matches now (another cut ended it)
+        if (!followRule.isEmpty() && now % 20 == 0) {
+            if (shot.serial() != followRuleSerial || shot.kind() != BroadcastNetwork.SHOT_FOLLOW) followRule = "";
+            else {
+                String picked = pickByRule(server, followRule, shot.player());
+                if (!picked.isEmpty() && !picked.equalsIgnoreCase(shot.player())) {
+                    String rule = followRule;
+                    take(server, ShotRequest.follow(picked, BroadcastNetwork.CROSSFADE, "", Source.SEQUENCE));
+                    followRule = rule;
+                    followRuleSerial = serial;
+                }
+            }
+        }
         // The show moved to another lieu (round started, reveal, credits): the operator's choice is dropped
         String phase = phaseLieu();
         if (!phase.equals(lastPhase)) {
@@ -763,6 +804,16 @@ public final class Director {
             }
             case "camera.follow" -> {
                 String name = String.valueOf(a.get("player"));
+                // A rule instead of a name (the follow-spots' rules): who matches, picked again while it is on air
+                String rule = findPlayer(server, name) == null ? fr.lordfinn.craftmaster.studio.SpotlightFollow.parse(name) : null;
+                if (rule != null) {
+                    if (!followByRule(server, rule, transition, Source.MANUAL)) {
+                        lines.add("⚠ Personne ne correspond pour l'instant à « " + fr.lordfinn.craftmaster.studio.SpotlightFollow.describe(rule) + " ».");
+                        return;
+                    }
+                    lines.add("À l'antenne : on suit " + fr.lordfinn.craftmaster.studio.SpotlightFollow.describe(rule) + " (" + shot.player() + " pour l'instant).");
+                    return;
+                }
                 ServerPlayer p = findPlayer(server, name);
                 if (p == null) {
                     lines.add("⚠ " + name + " n'est pas connecté : impossible de le suivre.");

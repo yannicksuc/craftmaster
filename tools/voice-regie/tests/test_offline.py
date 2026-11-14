@@ -37,6 +37,8 @@ CASES = [
     ("Le podium.", [{"type": "camera.cut", "camera": "podium"}]),
     ("Suis Ensuri.", [{"type": "camera.follow", "player": "Ensuri"}]),
     ("Suis Cycy.", [{"type": "camera.follow", "player": "Cyllu"}]),
+    ("Suis le premier du classement.", [{"type": "camera.follow", "rule": "premier"}]),
+    ("Suis qui est sur scène.", [{"type": "camera.follow", "rule": "scene"}]),
     # Automatic framing
     ("Et maintenant on va aller voir Ensuri pour voir comment ça se passe.", [{"type": "camera.goto", "player": "Ensuri"}]),
     ("On va voir Cycy.", [{"type": "camera.goto", "player": "Cyllu"}]),

@@ -344,6 +344,11 @@ class OfflineUnderstander:
             return [{"type": "camera.avoid", "camera": str(FRENCH_NUMBERS.get(n, n)), "enabled": False}]
         if re.fullmatch(r"(?:repasse|repassez|reviens|on repasse|on revient) en auto(?:matique)?", text):
             return [{"type": "camera.auto", "enabled": True}]
+        m = re.fullmatch(r"(?:suis|suivez|on suit|caméra sur) (?P<who>le premier(?: du classement)?|le dernier(?: du classement)?|"
+                         r"qui est sur (?:la )?scène|le joueur du moment|le craftmaster|le maître du jeu)", text)
+        if m:
+            rules = {"premier": "premier", "dernier": "dernier", "scène": "scene", "moment": "moment", "craftmaster": "maitre", "maître": "maitre"}
+            return [{"type": "camera.follow", "rule": next(v for k, v in rules.items() if k in m.group("who"))}]
         m = re.fullmatch(r"(?:suis|suivez|on suit|caméra sur) (?P<player>.+)", text)
         if m:
             return [{"type": "camera.follow", "player": m.group("player")}]
