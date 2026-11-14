@@ -104,7 +104,28 @@ public final class PortraitNetwork {
         public Type<DeletePose> type() { return TYPE; }
     }
 
+    /** Client → server: an organiser clicked a portrait out of the game's reach (they hang high above the stage). */
+    public record OpenFar(int entityId) implements CustomPacketPayload {
+        public static final Type<OpenFar> TYPE = new Type<>(CraftMaster.id("portrait_open_far"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, OpenFar> CODEC = CustomPacketPayload.codec(
+                (p, buf) -> buf.writeVarInt(p.entityId), buf -> new OpenFar(buf.readVarInt()));
+
+        @Override
+        public Type<OpenFar> type() { return TYPE; }
+    }
+
+    /** How far an organiser can open a portrait from (blocks). */
+    public static final double FAR_REACH = 48;
+
     public static void register() {
+        PayloadTypeRegistry.serverboundPlay().register(OpenFar.TYPE, OpenFar.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(OpenFar.TYPE, (p, ctx) -> {
+            ServerPlayer player = ctx.player();
+            if (!Permissions.isAdmin(player)) return;
+            if (player.level().getEntity(p.entityId()) instanceof PortraitEntity portrait
+                    && portrait.getBoundingBox().getCenter().distanceTo(player.getEyePosition()) <= FAR_REACH + 4)
+                openScreen(player, portrait, false);
+        });
         PayloadTypeRegistry.clientboundPlay().register(Poses.TYPE, Poses.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(Open.TYPE, Open.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(Update.TYPE, Update.CODEC);
