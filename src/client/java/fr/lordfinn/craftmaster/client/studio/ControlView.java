@@ -55,6 +55,11 @@ public final class ControlView {
     }
 
     /** The camera looked through right now (its own prop is not drawn: the view is inside it). */
+    /** Is this travelling step looked through right now (its ghost camera is then not drawn)? */
+    public static boolean controllingStep(String path, int index) {
+        return kind == Kind.STEP && path.equals(stepPath) && index == stepIndex;
+    }
+
     public static boolean controlling(String key) {
         return kind == Kind.CAMERA && key.equals(cameraKey);
     }

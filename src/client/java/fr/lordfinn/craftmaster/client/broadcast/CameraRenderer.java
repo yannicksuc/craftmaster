@@ -183,6 +183,8 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
             boolean main = p.name().equals(edited);
             int colour = fr.lordfinn.craftmaster.client.studio.TravellingEdit.colourOf(p);
             for (int i = 0; i < p.steps().size(); i++) {
+                // The step looked through: not drawn in front of the lens
+                if (fr.lordfinn.craftmaster.client.studio.ControlView.controllingStep(p.name(), i)) continue;
                 fr.lordfinn.craftmaster.camera.CameraPath.Pose st = fr.lordfinn.craftmaster.client.studio.TravellingEdit.pose(p, i);
                 boolean selected = fr.lordfinn.craftmaster.client.studio.TravellingEdit.isSelected(p.name(), i);
                 float[] at = {(float) (st.x() - e.getX()), (float) (st.y() - e.getY()), (float) (st.z() - e.getZ()), st.yaw(), st.pitch(),

@@ -95,7 +95,7 @@ public final class TravellingMarkers {
             if (before != null && p.steps().size() > before) FRESH.put(name + "#" + (p.steps().size() - 1), System.currentTimeMillis() + 3000);
         }
         // With Axiom on, its gizmos take the clicks (client/axiom/TravellingGizmos)
-        if (mc.gui.screen() != null || shown.isEmpty() || TravellingEdit.gizmosActive()) {
+        if (mc.gui.screen() != null || shown.isEmpty() || TravellingEdit.gizmosActive() || ControlView.active()) {
             useWas = mc.options.keyUse.isDown();
             return;
         }

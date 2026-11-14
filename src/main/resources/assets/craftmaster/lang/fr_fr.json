@@ -1079,7 +1079,6 @@
   "screen.craftmaster.travelling.aim": "Visée",
   "screen.craftmaster.travelling.aim_angle": "son propre angle",
   "screen.craftmaster.travelling.aim_player": "suit %s",
-  "screen.craftmaster.travelling.aim_place": "vise %s",
   "screen.craftmaster.travelling.aim_tip": "Son propre angle, un joueur suivi où qu'il aille, ou un point qu'elle fixe",
   "screen.craftmaster.travelling.angle": "Angle",
   "screen.craftmaster.travelling.angle_tip": "Clic pour le taper : horizontal vertical",
@@ -1093,5 +1092,7 @@
   "hud.craftmaster.control.step": "Étape %s de « %s »",
   "screen.craftmaster.camera.pick_path": "Éditer celui-ci dans le monde (ses étapes, avec les gizmos d'Axiom)",
   "screen.craftmaster.camera.edited_path": "Édité dans le monde : Axiom activé, clic sur une étape pour la déplacer / tourner, tirer un + pour une nouvelle étape, clic sur le trajet pour en ajouter une là",
-  "overlay.craftmaster.travelling.step": "Étape %s/%s · %s · %s° / %s°"
+  "overlay.craftmaster.travelling.step": "Étape %s/%s · %s · %s° / %s°",
+  "screen.craftmaster.travelling.aim_centre": "vise le centre de la scène",
+  "screen.craftmaster.travelling.aim_point": "vise le point « %s »"
 }

@@ -1079,7 +1079,6 @@
   "screen.craftmaster.travelling.aim": "Aims at",
   "screen.craftmaster.travelling.aim_angle": "its own angle",
   "screen.craftmaster.travelling.aim_player": "tracks %s",
-  "screen.craftmaster.travelling.aim_place": "looks at %s",
   "screen.craftmaster.travelling.aim_tip": "Its own angle, a player it tracks wherever they go, or a place it keeps looking at",
   "screen.craftmaster.travelling.angle": "Angle",
   "screen.craftmaster.travelling.angle_tip": "Click to type it: horizontal vertical",
@@ -1093,5 +1092,7 @@
   "hud.craftmaster.control.step": "Step %s of « %s »",
   "screen.craftmaster.camera.pick_path": "Edit this one in the world (its steps, with Axiom's gizmos)",
   "screen.craftmaster.camera.edited_path": "Edited in the world: with Axiom on, click a step to move / turn it, drag a + for a new step, click the path to add one there",
-  "overlay.craftmaster.travelling.step": "Step %s/%s · %s · %s° / %s°"
+  "overlay.craftmaster.travelling.step": "Step %s/%s · %s · %s° / %s°",
+  "screen.craftmaster.travelling.aim_centre": "looks at the stage's centre",
+  "screen.craftmaster.travelling.aim_point": "looks at point « %s »"
 }

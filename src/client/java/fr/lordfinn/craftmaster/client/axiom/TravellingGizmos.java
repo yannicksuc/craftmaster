@@ -90,7 +90,9 @@ public final class TravellingGizmos {
         hoverTrail = null;
         TravellingEdit.hover(null);
         Minecraft mc = Minecraft.getInstance();
-        Set<String> edited = mc.player == null || !AxiomClient.isAxiomActive() ? Set.of() : TravellingMarkers.editedPaths(mc);
+        // Looking through a camera / a step: no gizmo or "+" in front of the lens
+        Set<String> edited = mc.player == null || !AxiomClient.isAxiomActive() || fr.lordfinn.craftmaster.client.studio.ControlView.active()
+                ? Set.of() : TravellingMarkers.editedPaths(mc);
         active = !edited.isEmpty();
         if (!active) {
             clear();
