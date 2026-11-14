@@ -77,7 +77,7 @@ public class CameraScreen extends Screen {
     @Override
     protected void init() {
         w = Math.min(220, Math.max(184, width / 3));
-        h = Math.min(height - 12, 182 + 26 + 15 * Math.min(5, cam.has("paths") ? cam.getAsJsonArray("paths").size() : 0) + 26);
+        h = Math.min(height - 12, 182 + 26 + 15 * Math.min(5, cam.has("paths") ? cam.getAsJsonArray("paths").size() : 0) + 14);
         x0 = width - w - 8;
         y0 = Math.max(8, (height - h) / 2);
         labelW = 0;
@@ -156,7 +156,7 @@ public class CameraScreen extends Screen {
         // The two big actions
         int half = (w - 16) / 2;
         bigButton(g, x0 + 6, y, half, t("control"), mx, my, this::control, t("control_tip"));
-        bigButton(g, x0 + 10 + half, y, half, t("cut"), mx, my, () -> send("cut", true), t("cut_tip"));
+        bigButton(g, x0 + 10 + half, y, half, t("cut"), mx, my, () -> send("cut", true), null);
         y += 24;
         // Its travellings, each in its colour (the colour of its ghost and points in the world): click one to edit
         // it in the world (Axiom's gizmos), its pencil for the editor; + for a new one
@@ -185,12 +185,11 @@ public class CameraScreen extends Screen {
             y += 15;
         }
         button(g, lx, y, t("new_path"), false, mx, my, () -> travelling("create", null), t("new_path_tip"));
-        g.text(font, font.plainSubstrByWidth(t("hint").getString(), w - 12), x0 + 6, y0 + h - 11, DIM, false);
 
         super.extractRenderState(g, mx, my, partial);
         for (Hit hh : hits)
             if (hh.tip != null && mx >= hh.x0 && mx < hh.x1 && my >= hh.y0 && my < hh.y1) {
-                g.setTooltipForNextFrame(hh.tip, mx, my);
+                fr.lordfinn.craftmaster.client.ui.Ui.tooltip(g, font, hh.tip, mx, my);
                 break;
             }
     }

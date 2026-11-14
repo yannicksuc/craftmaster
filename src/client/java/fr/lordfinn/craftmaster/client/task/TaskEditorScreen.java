@@ -301,7 +301,7 @@ public class TaskEditorScreen extends Screen {
                 TaskStyle.label(g, font, Component.translatable("screen.craftmaster.seal.wax"), rx, swatchY + 2);
                 TaskStyle.swatches(g, swatchX, swatchY, d.wax, mouseX, mouseY);
                 WaxColor hover = TaskStyle.swatchAt(swatchX, swatchY, mouseX, mouseY);
-                if (hover != null) g.setTooltipForNextFrame(font, TaskStyle.waxName(hover), mouseX, mouseY);
+                if (hover != null) fr.lordfinn.craftmaster.client.ui.Ui.tooltip(g, font, TaskStyle.waxName(hover), mouseX, mouseY);
             }
         }
         super.extractRenderState(g, mouseX, mouseY, partial);

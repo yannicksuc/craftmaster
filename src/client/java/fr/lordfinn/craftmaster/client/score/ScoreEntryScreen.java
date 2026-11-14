@@ -846,7 +846,7 @@ public class ScoreEntryScreen extends Screen {
                 boolean hover = Ui.inside(mx, my, x, bt + 2, 18, 20);
                 if (hover) g.fill(x - 1, bt + 3, x + 19, bt + 23, Theme.GOLD);
                 Ui.face(g, p, x, bt + 4, 18);
-                if (hover) g.setTooltipForNextFrame(font, t("bench.tip", p), mx, my);
+                if (hover) fr.lordfinn.craftmaster.client.ui.Ui.tooltip(g, font, t("bench.tip", p), mx, my);
             }
             if (bench.isEmpty()) g.centeredText(font, t("to_bench"), width / 2, bt + 8, Theme.TEXT_DIM);
         }
@@ -918,7 +918,7 @@ public class ScoreEntryScreen extends Screen {
                 g.centeredText(font, "▼", ax + 4, ct + 18, 0xFFFFFFFF);
                 int step = b.indexOf(p);
                 Component tip = t("card.tip", p, b.stepBase(step), place(step + 1), DigitHead.label(mod), b.score(step));
-                g.setTooltipForNextFrame(font, tip, mx, my);
+                fr.lordfinn.craftmaster.client.ui.Ui.tooltip(g, font, tip, mx, my);
             }
         }
         return hint;
@@ -931,7 +931,7 @@ public class ScoreEntryScreen extends Screen {
         for (int c = 0; c < players.size(); c++) {
             int x = gridLeft() + c * (CELL + 8);
             Ui.face(g, players.get(c), x + 2, py0 + 3, 16);
-            if (Ui.inside(mx, my, x, py0 + 3, CELL, 16)) g.setTooltipForNextFrame(font, Component.literal(players.get(c)), mx, my);
+            if (Ui.inside(mx, my, x, py0 + 3, CELL, 16)) fr.lordfinn.craftmaster.client.ui.Ui.tooltip(g, font, Component.literal(players.get(c)), mx, my);
         }
         int rows = visibleRows();
         for (int r = 0; r < rows && r + scroll < manches.size(); r++) {
@@ -944,7 +944,7 @@ public class ScoreEntryScreen extends Screen {
             g.fill(left + 10, y + 1, left + 30, y + 21, hover ? Theme.shade(Theme.GOLD, 0.3f) : Theme.GOLD);
             g.outline(left + 10, y + 1, 20, 20, Theme.BORDER_DARK);
             g.centeredText(font, String.valueOf(m.get("number").getAsInt()), left + 20, y + 7, Theme.INK);
-            if (hover) g.setTooltipForNextFrame(font, t("open_round"), mx, my);
+            if (hover) fr.lordfinn.craftmaster.client.ui.Ui.tooltip(g, font, t("open_round"), mx, my);
             g.text(font, font.plainSubstrByWidth(m.get("name").getAsString(), gridLeft() - left - 44), left + 36, y + 7, Theme.INK, false);
             ScoreBoard b = drafts.boards.get(id);
             Map<String, Integer> server = serverScores(m);

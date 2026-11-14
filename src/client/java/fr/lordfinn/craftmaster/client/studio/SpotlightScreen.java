@@ -89,7 +89,7 @@ public class SpotlightScreen extends Screen {
         for (String k : new String[]{"name", "lit", "color", "intensity", "cone", "direction", "follow", "effect", "speed"})
             labelW = Math.max(labelW, font.width(t(k)));
         labelW += 10;
-        h = Math.min(height - 16, 262);
+        h = Math.min(height - 16, 250);
         x0 = width - w - 8;
         y0 = Math.max(8, (height - h) / 2);
         SpotlightBlockEntity s = spot();
@@ -192,12 +192,11 @@ public class SpotlightScreen extends Screen {
             send("effect", Sequence.EFFECTS.get(((i < 0 ? 0 : i) + (int) Math.round(d) + Sequence.EFFECTS.size()) % Sequence.EFFECTS.size()));
         });
         if (!s.effect().isEmpty()) y = slider(g, y, t("speed"), "speed", s.effectSpeed(), 0.25, 4, 0.25, "×", mx, my);
-        g.text(font, font.plainSubstrByWidth(t("hint").getString(), w - 12), x0 + 6, y0 + h - 11, DIM, false);
 
         super.extractRenderState(g, mx, my, partial);
         for (Hit hh : hits)
             if (hh.tip != null && mx >= hh.x0 && mx < hh.x1 && my >= hh.y0 && my < hh.y1) {
-                g.setTooltipForNextFrame(hh.tip, mx, my);
+                fr.lordfinn.craftmaster.client.ui.Ui.tooltip(g, font, hh.tip, mx, my);
                 break;
             }
     }

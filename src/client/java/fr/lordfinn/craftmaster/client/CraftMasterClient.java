@@ -47,6 +47,7 @@ public final class CraftMasterClient implements ClientModInitializer {
         fr.lordfinn.craftmaster.client.studio.CameraScreen.registerClient();
         fr.lordfinn.craftmaster.client.studio.ControlView.init();
         fr.lordfinn.craftmaster.client.studio.TravellingScreen.registerClient();
+        fr.lordfinn.craftmaster.client.studio.TrackedTargets.register();
         fr.lordfinn.craftmaster.client.studio.TravellingMarkers.init();
         // Chantier H: task props, results sheet, drawing boards, plinth
         fr.lordfinn.craftmaster.client.trial.TrialClient.init();

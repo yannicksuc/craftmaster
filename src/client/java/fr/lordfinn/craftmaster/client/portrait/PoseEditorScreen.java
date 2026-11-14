@@ -534,7 +534,7 @@ public class PoseEditorScreen extends Screen {
             g.setTooltipForNextFrame(font, lines, java.util.Optional.empty(), mouseX, mouseY);
         } else if (hover != null && drag == Drag.NONE) {
             Component what = hover.frame() ? Group.FRAME.label() : Group.of(hover.part()).label();
-            g.setTooltipForNextFrame(Component.translatable("screen.craftmaster.pose.hover", what), mouseX, mouseY);
+            fr.lordfinn.craftmaster.client.ui.Ui.tooltip(g, font, Component.translatable("screen.craftmaster.pose.hover", what), mouseX, mouseY);
         }
     }
 

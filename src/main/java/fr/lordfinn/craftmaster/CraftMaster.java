@@ -96,6 +96,7 @@ public final class CraftMaster implements ModInitializer {
         fr.lordfinn.craftmaster.stage.TimelineNetwork.register();
         fr.lordfinn.craftmaster.camera.CameraNetwork.register();
         fr.lordfinn.craftmaster.camera.TravellingNetwork.register();
+        fr.lordfinn.craftmaster.camera.TrackTargets.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.stage.TimelineCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.stage.StageCommands.register(dispatcher));
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {

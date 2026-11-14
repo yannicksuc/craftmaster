@@ -257,17 +257,13 @@ public final class DirectorCamera {
         return new Pose(new Vec3(v.x(), v.y(), v.z()), v.yaw(), v.pitch(), v.fov());
     }
 
-    /** A tracked player's chest (a travelling step that follows someone), or null if not in view. */
-    public static double[] playerPosition(String name) {
+    /** A tracked entity's chest (a travelling step that follows a player, or a selector's entity), or null if not here. */
+    public static double[] playerPosition(String target) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null) return null;
-        float partial = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
-        for (var pl : mc.level.players())
-            if (pl.getGameProfile().name().equalsIgnoreCase(name)) {
-                Vec3 at = pl.getPosition(partial);
-                return new double[]{at.x, at.y + pl.getBbHeight() * 0.6, at.z};
-            }
-        return null;
+        var e = fr.lordfinn.craftmaster.client.studio.TrackedTargets.entity(target);
+        if (e == null) return null;
+        Vec3 at = e.getPosition(mc.getDeltaTracker().getGameTimeDeltaPartialTick(false));
+        return new double[]{at.x, at.y + e.getBbHeight() * 0.6, at.z};
     }
 
     /** The tiles of the split screen in turn, one per frame (each tile is refreshed every n frames). */

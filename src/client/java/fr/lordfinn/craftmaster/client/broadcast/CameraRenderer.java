@@ -167,7 +167,8 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
                 // A fixed shot from where the camera already stands needs no ghost
                 if (p.steps().size() == 1 && dx * dx + (dy - e.mount().lensDy()) * (dy - e.mount().lensDy()) + dz * dz < 0.04) continue;
                 int colour = fr.lordfinn.craftmaster.client.studio.TravellingEdit.colourOf(p);
-                s.ghosts.add(new float[]{(float) dx, (float) dy, (float) dz, v.yaw(), v.pitch(), tint(colour, 0x90)});
+                boolean edited = p.name().equals(fr.lordfinn.craftmaster.client.studio.TravellingEdit.edited(key));
+                s.ghosts.add(new float[]{(float) dx, (float) dy, (float) dz, v.yaw(), v.pitch(), tint(colour, edited ? 0x90 : 0x38)});
             }
         }
         // The steps of its travellings shown in the world: a point, or a ghost camera when hovered / selected / new
@@ -188,18 +189,18 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
                 fr.lordfinn.craftmaster.camera.CameraPath.Pose st = fr.lordfinn.craftmaster.client.studio.TravellingEdit.pose(p, i);
                 boolean selected = fr.lordfinn.craftmaster.client.studio.TravellingEdit.isSelected(p.name(), i);
                 float[] at = {(float) (st.x() - e.getX()), (float) (st.y() - e.getY()), (float) (st.z() - e.getZ()), st.yaw(), st.pitch(),
-                        tint(selected ? brighter(colour) : colour, selected ? 0xD0 : main ? 0xB0 : 0x70), main ? 3.6f : 2.4f};
+                        tint(selected ? brighter(colour) : colour, selected ? 0xD0 : main ? 0xB0 : 0x30), main ? 3.6f : 1.8f};
                 if (selected || fr.lordfinn.craftmaster.client.studio.TravellingMarkers.showsGhost(p.name(), i)) s.stepGhosts.add(at);
                 else s.dots.add(at);
             }
             trail(e, p, colour, main, s.trail);
         }
-        // The "+" above the steps and the camera (Axiom on): white, bigger when hovered or held
+        // Past both ends of the edited travelling (Axiom on): a pale square of its colour where a next step could go
         if (gizmos) for (var h : fr.lordfinn.craftmaster.client.studio.TravellingEdit.handles()) {
             fr.lordfinn.craftmaster.camera.CameraPath hp = ShowStateClient.path(h.path());
-            if (hp == null || !hp.camera().equals(key)) continue;
+            if (hp == null || !hp.camera().equals(key) || h.lit()) continue;
             s.dots.add(new float[]{(float) (h.x() - e.getX()), (float) (h.y() - e.getY()), (float) (h.z() - e.getZ()), 0, 0,
-                    tint(0xFFFFFFFF, h.lit() ? 0xF0 : 0xB0), h.lit() ? 5.5f : 3.6f});
+                    tint(fr.lordfinn.craftmaster.client.studio.TravellingEdit.colourOf(hp), 0x50), 2.6f});
         }
         // The ghost of a step about to be added, white
         var preview = fr.lordfinn.craftmaster.client.studio.TravellingEdit.preview();
@@ -217,7 +218,7 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
     private static void trail(CameraEntity e, fr.lordfinn.craftmaster.camera.CameraPath p, int colour, boolean main, java.util.List<float[]> out) {
         if (p.steps().size() < 2) return;
         for (float[] pt : fr.lordfinn.craftmaster.client.studio.TravellingEdit.trail(fr.lordfinn.craftmaster.client.studio.TravellingEdit.asDrawn(p)))
-            out.add(new float[]{(float) (pt[0] - e.getX()), (float) (pt[1] - e.getY()), (float) (pt[2] - e.getZ()), tint(colour, main ? 0xC0 : 0x60), main ? 1.8f : 1.2f});
+            out.add(new float[]{(float) (pt[0] - e.getX()), (float) (pt[1] - e.getY()), (float) (pt[2] - e.getZ()), tint(colour, main ? 0xC0 : 0x28), main ? 1.8f : 0.9f});
     }
 
     private static float tint(int rgb, int alpha) {

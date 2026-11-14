@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.mojang.blaze3d.platform.InputConstants;
 import fr.lordfinn.craftmaster.camera.CameraPath;
 import fr.lordfinn.craftmaster.camera.CameraSpot;
+import fr.lordfinn.craftmaster.camera.TrackTargets;
 import fr.lordfinn.craftmaster.camera.TravellingNetwork;
 import fr.lordfinn.craftmaster.client.ui.Theme;
 import fr.lordfinn.craftmaster.client.ui.Ui;
@@ -133,6 +134,7 @@ public class TravellingScreen extends Screen {
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float partial) {
         hits.clear();
+        dragHits.clear();
         Ui.panel(g, font, x0, y0, w, h, t("title", data.get("number").getAsInt(), data.get("cameraName").getAsString()));
         int lx = x0 + 6, vr = x0 + w - 6;
         // The content scrolls inside the panel when the screen is too small for it
@@ -145,7 +147,6 @@ public class TravellingScreen extends Screen {
             y += 14;
             big(g, lx, y, w - 12, t("create"), mx, my, () -> send("create"), t("create_tip"));
             g.disableScissor();
-            footer(g);
             super.extractRenderState(g, mx, my, partial);
             tooltips(g, mx, my);
             return;
@@ -164,13 +165,9 @@ public class TravellingScreen extends Screen {
         }, t("delete"));
         y += 17;
         // Actions
-        String length = CameraPath.seconds(Math.round(data.get("duration").getAsDouble() * 10) / 10.0);
-        g.text(font, steps().size() <= 1 ? t("fixed") : t("length", steps().size(), length), lx, y + 3, DIM, false);
-        y += 13;
         boolean ghost = data.get("ghost").getAsBoolean();
         x = lx;
         x = button(g, x, y, t("preview"), false, mx, my, () -> send("preview"), t("preview_tip"));
-        x = button(g, x, y, t("air"), false, mx, my, () -> send("air"), t("air_tip"));
         button(g, x, y, ghost ? t("ghost_on") : t("ghost_off"), ghost, mx, my, () -> send("ghost", "value", !ghost), t("ghost_tip"));
         y += 18;
         // Steps
@@ -208,22 +205,43 @@ public class TravellingScreen extends Screen {
                 y = cycle(g, y, vx, vr, t("curve." + curve).getString(), mx, my, d -> {
                     int i = CameraPath.CURVES.indexOf(curve);
                     setField("curve", CameraPath.CURVES.get(((i < 0 ? 0 : i) + (int) Math.round(d) + CameraPath.CURVES.size()) % CameraPath.CURVES.size()));
-                }, t("curve_tip"));
+                }, null);
             }
             float fov = s.get("fov").getAsFloat();
             y = zoom(g, y, fov, mx, my);
-            // Aim: its angle, a tracked player, a place
+            // Aim: its own angle, an entity it tracks (a selector, as in commands), the stage's centre or a point
             g.text(font, t("aim"), lx, y + 3, DIM, false);
             String target = s.get("target").getAsString();
-            List<String[]> aims = aims();
-            int cur = 0;
-            for (int i = 0; i < aims.size(); i++) if (aims.get(i)[1].equals(target)) cur = i;
-            if (cur == 0 && !target.isEmpty()) aims.add(new String[]{target, target});
-            int fcur = cur == 0 && !target.isEmpty() ? aims.size() - 1 : cur;
+            boolean tracks = TrackTargets.isEntity(target);
+            List<String[]> aims = aims(tracks ? target : null);
+            int cur = tracks ? 1 : 0;
+            if (!tracks && !target.isEmpty()) {
+                cur = -1;
+                for (int i = 2; i < aims.size(); i++) if (aims.get(i)[1].equals(target)) cur = i;
+                if (cur < 0) {
+                    aims.add(new String[]{target, target});
+                    cur = aims.size() - 1;
+                }
+            }
+            int fcur = cur;
             y = cycle(g, y, vx, vr, aims.get(fcur)[0], mx, my, d -> {
                 String[] next = aims.get(((fcur + (int) Math.round(d)) % aims.size() + aims.size()) % aims.size());
                 setField("target", next[1]);
-            }, t("aim_tip"));
+            }, null);
+            if (tracks) {
+                // The selector (click: type it, with the chat's autocompletion) and what it finds now
+                g.text(font, t("entity"), lx, y + 2, DIM, false);
+                boolean eh = textBox == null && mx >= vx && mx < vr && my >= y && my < y + 12;
+                if (eh) g.fill(vx - 2, y, vr, y + 12, Theme.HOVER);
+                g.text(font, font.plainSubstrByWidth(target, vr - vx - 2), vx, y + 2, eh ? GOLD : TEXT, false);
+                int ey = y;
+                hits.add(new Hit(vx - 2, y, vr, y + 12, () -> startSelector(target, vx - 2, ey, vr - vx + 2), null, null, t("entity_tip")));
+                y += 13;
+                net.minecraft.world.entity.Entity found = TrackedTargets.entity(target);
+                String status = found != null ? "→ " + found.getName().getString() : t("entity_none").getString();
+                g.text(font, font.plainSubstrByWidth(status, vr - vx), vx, y, found != null ? DIM : 0xFFE08A6A, false);
+                y += 11;
+            }
             if (target.isEmpty()) {
                 g.text(font, t("angle"), lx, y + 2, DIM, false);
                 String dir = Math.round(s.get("yaw").getAsFloat()) + "° / " + Math.round(s.get("pitch").getAsFloat()) + "°";
@@ -252,26 +270,26 @@ public class TravellingScreen extends Screen {
         }
         g.disableScissor();
         contentHeight = y - contentTop;
-        int room = h - 34;
+        int room = h - 22;
         if (contentHeight > room) {
             // A thin bar on the right: where the view is in the content
             int barH = Math.max(12, room * room / contentHeight), barY = y0 + 19 + (room - barH) * scroll / Math.max(1, contentHeight - room);
             g.fill(x0 + w - 3, barY, x0 + w - 1, barY + barH, Theme.BORDER_DARK);
         }
-        footer(g);
-        if (textBox != null) {
+        if (textBox != null && !suggesting) {
             g.fill(textBox.getX() - 3, textBox.getY() - 12, textBox.getX() + textBox.getWidth() + 3, textBox.getY() + 19, Theme.PANEL);
             g.text(font, t("text_hint"), textBox.getX(), textBox.getY() - 10, DIM, false);
         }
         super.extractRenderState(g, mx, my, partial);
+        if (textBox != null && suggesting) drawSuggestions(g, mx, my);
         if (textBox == null) tooltips(g, mx, my);
     }
 
-    /** The aim choices: its own angle, the players online, the stage's named places (as coordinates). */
-    private List<String[]> aims() {
+    /** The aim choices: its own angle, an entity (its selector, "@p" at first), the stage's centre and points. */
+    private List<String[]> aims(String selector) {
         List<String[]> out = new ArrayList<>();
         out.add(new String[]{t("aim_angle").getString(), ""});
-        for (JsonElement e : data.getAsJsonArray("players")) out.add(new String[]{t("aim_player", e.getAsString()).getString(), e.getAsString()});
+        out.add(new String[]{t("aim_entity").getString(), selector != null ? selector : "@p"});
         for (JsonElement e : data.getAsJsonArray("points")) {
             JsonObject p = e.getAsJsonObject();
             if (p.get("at").getAsString().isEmpty()) continue;
@@ -283,26 +301,41 @@ public class TravellingScreen extends Screen {
         return out;
     }
 
+    /** A step in the list: when it starts (its time in the travelling), then what is special about it. */
     private String describe(int i, JsonObject s) {
-        StringBuilder b = new StringBuilder();
-        b.append(i + 1).append(" · ");
-        if (i > 0) b.append(CameraPath.seconds(s.get("travel").getAsDouble())).append(", ").append(t("curve." + s.get("curve").getAsString()).getString());
-        else b.append(t("start").getString());
-        if (s.get("hold").getAsDouble() > 0) b.append(", ").append(t("pause", CameraPath.seconds(s.get("hold").getAsDouble())).getString());
+        StringBuilder b = new StringBuilder(clock(start(i)));
+        List<String> more = new ArrayList<>();
+        if (i > 0) more.add(t("curve." + s.get("curve").getAsString()).getString());
+        if (s.get("hold").getAsDouble() > 0) more.add(t("pause", clock(s.get("hold").getAsDouble())).getString());
+        if (!more.isEmpty()) b.append(" · ").append(String.join(", ", more));
         String target = s.get("target").getAsString();
-        if (!target.isEmpty()) b.append(", ").append(target.matches("-?[0-9.]+ -?[0-9.]+ -?[0-9.]+") ? t("looks").getString() : t("tracks", target).getString());
+        if (!target.isEmpty()) b.append(more.isEmpty() ? " · " : ", ").append(target.matches("-?[0-9.]+ -?[0-9.]+ -?[0-9.]+") ? t("looks").getString() : t("tracks", target).getString());
         if (s.get("fov").getAsFloat() > 0) b.append(", ").append(Math.round(s.get("fov").getAsFloat())).append("°");
         return b.toString();
     }
 
-    private void footer(GuiGraphicsExtractor g) {
-        g.text(font, font.plainSubstrByWidth(t("hint").getString(), w - 12), x0 + 6, y0 + h - 11, DIM, false);
+    /** Seconds from the start when the camera reaches step {@code i}. */
+    private double start(int i) {
+        JsonArray steps = steps();
+        double t = 0;
+        for (int k = 1; k <= i && k < steps.size(); k++)
+            t += steps.get(k - 1).getAsJsonObject().get("hold").getAsDouble() + steps.get(k).getAsJsonObject().get("travel").getAsDouble();
+        return t;
     }
+
+    /** "1m05s", "12s", "3,5s": minutes only past a minute, a tenth only when there is one. */
+    static String clock(double seconds) {
+        long tenths = Math.round(seconds * 10);
+        long whole = tenths / 10, m = whole / 60, sec = whole % 60;
+        String tail = tenths % 10 == 0 ? "" : "," + (tenths % 10);
+        return m > 0 ? m + "m" + (sec < 10 ? "0" : "") + sec + tail + "s" : sec + tail + "s";
+    }
+
 
     private void tooltips(GuiGraphicsExtractor g, int mx, int my) {
         for (Hit hh : hits)
             if (hh.tip != null && mx >= hh.x0 && mx < hh.x1 && my >= hh.y0 && my < hh.y1) {
-                g.setTooltipForNextFrame(hh.tip, mx, my);
+                fr.lordfinn.craftmaster.client.ui.Ui.tooltip(g, font, hh.tip, mx, my);
                 break;
             }
     }
@@ -348,10 +381,12 @@ public class TravellingScreen extends Screen {
         g.fill(b0, y + 4, knob, y + 6, GOLD);
         g.fill(knob - 1, y + 1, knob + 2, y + 9, 0xFFFFFFFF);
         g.text(font, v, vr - tw, y + 1, TEXT, false);
-        hits.add(new Hit(b0 - 2, y - 1, b1 + 3, y + 11, () -> {
+        Hit bar = new Hit(b0 - 2, y - 1, b1 + 3, y + 11, () -> {
             double f = Math.max(0, Math.min(1, (mouseX() - b0) / (double) Math.max(1, b1 - b0)));
             set.accept(Math.round((min + f * (max - min)) / step) * step);
-        }, null, d -> set.accept(Math.max(min, Math.min(max, Math.round((value + d * step * (minecraft.hasShiftDown() ? 4 : 1)) / step) * step))), tip));
+        }, null, d -> set.accept(Math.max(min, Math.min(max, Math.round((value + d * step * (minecraft.hasShiftDown() ? 4 : 1)) / step) * step))), tip);
+        hits.add(bar);
+        dragHits.add(bar);
         return y + 14;
     }
 
@@ -367,14 +402,44 @@ public class TravellingScreen extends Screen {
         g.fill(b0, y + 4, knob, y + 6, fov <= 0 ? DIM : GOLD);
         g.fill(knob - 1, y + 1, knob + 2, y + 9, 0xFFFFFFFF);
         g.text(font, zv, vr - tw, y + 1, fov <= 0 ? DIM : TEXT, false);
-        hits.add(new Hit(b0 - 2, y - 1, b1 + 3, y + 11, () -> {
+        Hit bar = new Hit(b0 - 2, y - 1, b1 + 3, y + 11, () -> {
             double f = Math.max(0, Math.min(1, (mouseX() - b0) / (double) Math.max(1, b1 - b0)));
             setField("fov", Math.round(CameraSpot.MIN_FOV + f * (CameraSpot.MAX_FOV - CameraSpot.MIN_FOV)));
-        }, () -> setField("fov", 0), d -> setField("fov", Math.max(CameraSpot.MIN_FOV, Math.min(CameraSpot.MAX_FOV, shown - d * 5))), t("zoom_tip")));
+        }, () -> setField("fov", 0), d -> setField("fov", Math.max(CameraSpot.MIN_FOV, Math.min(CameraSpot.MAX_FOV, shown - d * 5))), t("zoom_tip"));
+        hits.add(bar);
+        dragHits.add(bar);
         return y + 14;
     }
 
     private double lastMouseX;
+    /** The bars of this frame, and the one held: it follows the mouse until let go (sent at most every 60 ms). */
+    private final List<Hit> dragHits = new ArrayList<>();
+    private Hit dragging;
+    private long dragSent;
+
+    @Override
+    public boolean mouseDragged(MouseButtonEvent e, double dx, double dy) {
+        if (dragging != null) {
+            lastMouseX = e.x();
+            if (System.currentTimeMillis() - dragSent > 60) {
+                dragSent = System.currentTimeMillis();
+                dragging.click().run();
+            }
+            return true;
+        }
+        return super.mouseDragged(e, dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent e) {
+        if (dragging != null) {
+            lastMouseX = e.x();
+            dragging.click().run();
+            dragging = null;
+            return true;
+        }
+        return super.mouseReleased(e);
+    }
 
     private double mouseX() {
         return lastMouseX;
@@ -382,8 +447,67 @@ public class TravellingScreen extends Screen {
 
     // ---------------------------------------------------------------- text
 
+    /** The selector of a tracked entity, typed in place, with the chat's autocompletion under it. */
+    private void startSelector(String value, int x, int y, int width) {
+        startText(value, v -> {
+            if (!v.isBlank()) setField("target", v.strip());
+        });
+        textBox.setX(x);
+        textBox.setY(y - 2);
+        textBox.setWidth(width);
+        textBox.setMaxLength(256);
+        textBox.setValue(value);
+        // All selected: typing replaces it
+        textBox.moveCursorToEnd(false);
+        textBox.setHighlightPos(0);
+        suggesting = true;
+    }
+
+    private boolean suggesting;
+    private List<com.mojang.brigadier.suggestion.Suggestion> suggestions = List.of();
+    private String suggestedFor;
+    private int suggestionIndex, suggestionY, suggestionW;
+
+    /** The autocompletion under the selector box: what fits at the cursor. */
+    private void drawSuggestions(GuiGraphicsExtractor g, int mx, int my) {
+        String text = textBox.getValue();
+        int cursor = Math.min(text.length(), textBox.getCursorPosition());
+        String key = text + "|" + cursor;
+        if (!key.equals(suggestedFor)) {
+            suggestedFor = key;
+            suggestions = TrackedTargets.suggest(text.substring(0, cursor));
+            if (suggestions.size() > 8) suggestions = suggestions.subList(0, 8);
+            suggestionIndex = 0;
+        }
+        if (suggestions.isEmpty()) return;
+        int x = textBox.getX(), y = textBox.getY() + 17;
+        int width = 0;
+        for (var sg : suggestions) width = Math.max(width, font.width(sg.getText()));
+        width += 8;
+        suggestionY = y;
+        suggestionW = width;
+        g.fill(x - 1, y - 1, x + width + 1, y + suggestions.size() * 11 + 1, Theme.BORDER_DARK);
+        g.fill(x, y, x + width, y + suggestions.size() * 11, Theme.PANEL);
+        for (int i = 0; i < suggestions.size(); i++) {
+            boolean on = i == suggestionIndex || mx >= x && mx < x + width && my >= y + i * 11 && my < y + i * 11 + 11;
+            if (on) g.fill(x, y + i * 11, x + width, y + i * 11 + 11, Theme.HOVER);
+            g.text(font, suggestions.get(i).getText(), x + 4, y + i * 11 + 2, on ? GOLD : TEXT, false);
+        }
+    }
+
+    private void applySuggestion(int i) {
+        if (i < 0 || i >= suggestions.size()) return;
+        String text = textBox.getValue();
+        int cursor = Math.min(text.length(), textBox.getCursorPosition());
+        String head = suggestions.get(i).apply(text.substring(0, cursor));
+        textBox.setValue(head + text.substring(cursor));
+        textBox.setCursorPosition(head.length());
+        textBox.setHighlightPos(head.length());
+    }
+
     private void startText(String value, Consumer<String> done) {
         closeText(false);
+        suggesting = false;
         textBox = new EditBox(font, x0 + 6, Math.max(4, y0 - 20), w - 12, 16, Component.empty());
         textBox.setMaxLength(64);
         textBox.setValue(value == null ? "" : value);
@@ -399,6 +523,9 @@ public class TravellingScreen extends Screen {
         removeWidget(textBox);
         textBox = null;
         textDone = null;
+        suggesting = false;
+        suggestions = List.of();
+        suggestedFor = null;
         setFocused(null);
     }
 
@@ -408,6 +535,12 @@ public class TravellingScreen extends Screen {
     public boolean mouseClicked(MouseButtonEvent e, boolean doubleClick) {
         lastMouseX = e.x();
         if (textBox != null) {
+            if (suggesting && !suggestions.isEmpty() && e.x() >= textBox.getX() && e.x() < textBox.getX() + suggestionW
+                    && e.y() >= suggestionY && e.y() < suggestionY + suggestions.size() * 11) {
+                applySuggestion((int) ((e.y() - suggestionY) / 11));
+                setFocused(textBox);
+                return true;
+            }
             if (textBox.isMouseOver(e.x(), e.y())) return super.mouseClicked(e, doubleClick);
             closeText(true);
             return true;
@@ -417,7 +550,13 @@ public class TravellingScreen extends Screen {
         if (inContent(e.y())) for (Hit hh : List.copyOf(hits))
             if (e.x() >= hh.x0 && e.x() < hh.x1 && e.y() >= hh.y0 && e.y() < hh.y1) {
                 if (right && hh.right != null) hh.right.run();
-                else if (!right && hh.click != null) hh.click.run();
+                else if (!right && hh.click != null) {
+                    hh.click.run();
+                    if (dragHits.contains(hh)) {
+                        dragging = hh;
+                        dragSent = System.currentTimeMillis();
+                    }
+                }
                 return true;
             }
         if (e.x() < x0 || e.x() > x0 + w || e.y() < y0 || e.y() > y0 + h) {
@@ -435,7 +574,7 @@ public class TravellingScreen extends Screen {
                 return true;
             }
         if (x >= x0 && x < x0 + w && y >= y0 && y < y0 + h) {
-            scroll = Math.max(0, Math.min(Math.max(0, contentHeight - (h - 34)), scroll - (int) Math.round(sy * 18)));
+            scroll = Math.max(0, Math.min(Math.max(0, contentHeight - (h - 22)), scroll - (int) Math.round(sy * 18)));
             return true;
         }
         return super.mouseScrolled(x, y, sx, sy);
@@ -456,6 +595,16 @@ public class TravellingScreen extends Screen {
             if (e.key() == InputConstants.KEY_ESCAPE) {
                 closeText(false);
                 return true;
+            }
+            if (suggesting && !suggestions.isEmpty()) {
+                if (e.key() == InputConstants.KEY_TAB) {
+                    applySuggestion(suggestionIndex);
+                    return true;
+                }
+                if (e.key() == InputConstants.KEY_UP || e.key() == InputConstants.KEY_DOWN) {
+                    suggestionIndex = Math.floorMod(suggestionIndex + (e.key() == InputConstants.KEY_UP ? -1 : 1), suggestions.size());
+                    return true;
+                }
             }
             return super.keyPressed(e);
         }

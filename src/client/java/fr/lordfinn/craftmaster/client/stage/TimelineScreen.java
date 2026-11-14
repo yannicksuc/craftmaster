@@ -632,13 +632,13 @@ public class TimelineScreen extends Screen {
         // Tooltips last, over everything
         if (textBox == null) for (Hit h : hits)
             if (h.tip != null && mouseX >= h.x0 && mouseX < h.x1 && mouseY >= h.y0 && mouseY < h.y1) {
-                g.setTooltipForNextFrame(h.tip, mouseX, mouseY);
+                fr.lordfinn.craftmaster.client.ui.Ui.tooltip(g, font, h.tip, mouseX, mouseY);
                 break;
             }
         Sequence.Key hover = keyAt(mouseX, mouseY);
         if (hover != null && drag == Drag.NONE && textBox == null) {
             Sequence.Track tr = trackOf(hover);
-            g.setTooltipForNextFrame(Component.literal(Sequence.Key.class.cast(hover).describe(tr == null ? null : tr.type) + " · " + secs(hover.t)), mouseX, mouseY);
+            fr.lordfinn.craftmaster.client.ui.Ui.tooltip(g, font, Component.literal(Sequence.Key.class.cast(hover).describe(tr == null ? null : tr.type) + " · " + secs(hover.t)), mouseX, mouseY);
         }
     }
 

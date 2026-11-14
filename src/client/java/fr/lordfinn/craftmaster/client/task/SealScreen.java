@@ -188,7 +188,7 @@ public class SealScreen extends Screen {
         TaskStyle.swatches(g, swatchX, swatchY, wax, mouseX, mouseY);
         if (toBox.visible) TaskStyle.label(g, font, Component.translatable("screen.craftmaster.seal.to"), x, toBox.getY() + 5);
         WaxColor hover = TaskStyle.swatchAt(swatchX, swatchY, mouseX, mouseY);
-        if (hover != null) g.setTooltipForNextFrame(font, TaskStyle.waxName(hover), mouseX, mouseY);
+        if (hover != null) fr.lordfinn.craftmaster.client.ui.Ui.tooltip(g, font, TaskStyle.waxName(hover), mouseX, mouseY);
         super.extractRenderState(g, mouseX, mouseY, partial);
     }
 }

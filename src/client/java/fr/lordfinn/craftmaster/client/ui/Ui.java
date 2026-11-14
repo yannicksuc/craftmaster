@@ -35,6 +35,14 @@ public final class Ui {
      * A button drawn like {@link UiButton} (velvet face, golden edge when hovered or on), for screens that lay out
      * their own controls every frame (timelines, inspectors).
      */
+    /** Tooltip width (pixels): a tooltip wraps there, never one long line across the screen. */
+    public static final int TOOLTIP_WIDTH = 180;
+
+    /** A tooltip, wrapped (and cut at its line breaks): every menu's tooltips go through here. */
+    public static void tooltip(GuiGraphicsExtractor g, Font font, Component text, int mx, int my) {
+        g.setTooltipForNextFrame(font, font.split(text, TOOLTIP_WIDTH), mx, my);
+    }
+
     public static void button(GuiGraphicsExtractor g, Font font, int x, int y, int w, int h, Component label, boolean on, boolean hover, boolean active) {
         int face = !active ? Theme.BUTTON_OFF : on ? Theme.BUTTON_ON : hover ? Theme.BUTTON_HOVER : Theme.BUTTON;
         g.fill(x, y, x + w, y + h, Theme.shade(face, -0.5f));

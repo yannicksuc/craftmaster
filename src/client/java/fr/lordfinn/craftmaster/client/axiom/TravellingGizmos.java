@@ -42,10 +42,8 @@ import java.util.Set;
 public final class TravellingGizmos {
 
     private static final TravellingGizmos INSTANCE = new TravellingGizmos();
-    /** The "+" above a step or the camera (blocks). */
-    private static final double HANDLE_UP = 0.75;
-    /** A "+" moved less than this is a click, not a drag (blocks). */
-    private static final double MIN_DRAG = 0.35;
+    /** How far past an end the place for a next step is (blocks). */
+    private static final double NEXT_GAP = 2.0;
 
     /** Dev client (DevInput): the left button held, in place of the real one (null: the real one). */
     public static Boolean devLeft;
@@ -59,18 +57,39 @@ public final class TravellingGizmos {
         return INSTANCE;
     }
 
-    private TravellingGizmos() {}
+    private boolean deleteWas;
 
-    /** A "+" handle: of step {@code index} of {@code path} (-1: the camera's, adds at the end). */
+    private TravellingGizmos() {
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+            boolean down = mc.gui.screen() == null && fr.lordfinn.craftmaster.client.compat.ClientCompat.isKeyDown(com.mojang.blaze3d.platform.InputConstants.KEY_DELETE);
+            if (down && !deleteWas && active) removeSelected();
+            deleteWas = down;
+        });
+    }
+
+    /** Removes the selected step (the next one takes its travel time) and deselects. */
+    private boolean removeSelected() {
+        TravellingEdit.StepRef sel = TravellingEdit.selected();
+        if (sel == null) return false;
+        CameraPath p = ShowStateClient.path(sel.path());
+        if (p != null && p.steps().size() > 1) {
+            JsonObject o = new JsonObject();
+            o.addProperty("index", sel.index());
+            o.addProperty("quiet", true);
+            TravellingEdit.send(p.camera(), p.name(), "remove", o);
+        }
+        TravellingEdit.select(null, 0);
+        return true;
+    }
+
+    /** A place for a next step, at an end of {@code path}: a click adds a step there, at {@code index}. */
     private record Handle(String path, int index, Vec3 home) {}
 
     /** A point of a path under the crosshair. */
     private record TrailHit(CameraPath path, double t, CameraPath.Pose pose) {}
 
     private Map<String, Handle> handles = new HashMap<>();
-    /** The "+" being dragged, the plane it moves on (through its place, facing the view at the click), where it is. */
-    private String dragging;
-    private Vec3 dragPoint, dragNormal, dragAt;
+
     private Gizmo selection;
     private TravellingEdit.StepRef selectionOf;
     private boolean selectionGrabbed;
@@ -136,21 +155,34 @@ public final class TravellingGizmos {
             selectionGrabbed = false;
         }
 
-        // The steps (points drawn by CameraRenderer) and their "+" (Axiom draws a gizmo's centre cube only with its
-        // arrows: these are picked here, by the crosshair)
+        // The steps (points drawn by CameraRenderer, picked here by the crosshair), and at both ends of the edited
+        // travelling a pale square where a next step could go (a fixed shot: one on each side)
         Map<String, Handle> nextHandles = new HashMap<>();
         java.util.List<TravellingEdit.HandleDot> dots = new java.util.ArrayList<>();
         Vec3 eye = mc.player.getEyePosition(rc.partialTick());
         boolean selectionHovered = selection != null && selection.isHovered();
-        boolean busy = selectionHovered || selectionGrabbed || dragging != null;
+        boolean busy = selectionHovered || selectionGrabbed;
         double bestStep = 64, bestHandle = 64;
-        for (String name : edited) {
+        // The other travellings shown (paler) can be picked too: a click on one of their steps edits that travelling
+        for (String name : TravellingMarkers.shownPaths(mc)) {
+            if (edited.contains(name) || busy || look == null) continue;
             CameraPath p = ShowStateClient.path(name);
             if (p == null) continue;
             for (int i = 0; i < p.steps().size(); i++) {
                 CameraPath.Pose v = TravellingEdit.pose(p, i);
+                double along = pick(eye, look, new Vec3(v.x(), v.y(), v.z()), 0.18);
+                if (along < bestStep) {
+                    bestStep = along;
+                    hoverCube = new TravellingEdit.StepRef(name, i);
+                }
+            }
+        }
+        for (String name : edited) {
+            CameraPath p = ShowStateClient.path(name);
+            if (p == null || p.isEmpty()) continue;
+            for (int i = 0; i < p.steps().size(); i++) {
+                CameraPath.Pose v = TravellingEdit.pose(p, i);
                 Vec3 at = new Vec3(v.x(), v.y(), v.z());
-                nextHandles.put(name + "#" + i, new Handle(name, i, at.add(0, HANDLE_UP, 0)));
                 if (busy || look == null || sel != null && sel.is(name, i)) continue;
                 double along = pick(eye, look, at, 0.22);
                 if (along < bestStep) {
@@ -158,53 +190,43 @@ public final class TravellingGizmos {
                     hoverCube = new TravellingEdit.StepRef(name, i);
                 }
             }
-            // The camera's own "+" (adds at the end), unless the travelling starts right at the camera: its first
-            // step's "+" is then the camera's
-            CameraEntity cam = camera(mc, p.camera());
-            if (cam != null && !p.isEmpty()) {
-                Vec3 lens = cam.lens();
-                CameraPath.Step first = p.steps().getFirst();
-                if (lens.distanceToSqr(first.x(), first.y(), first.z()) > 0.25)
-                    nextHandles.put(name + "#cam", new Handle(name, -1, lens.add(0, HANDLE_UP + 0.25, 0)));
+            int n = p.steps().size();
+            Vec3 first = stepVec(p, 0), last = stepVec(p, n - 1);
+            if (n == 1) {
+                // A fixed shot: to its left and to its right
+                double yaw = Math.toRadians(TravellingEdit.pose(p, 0).yaw());
+                Vec3 right = new Vec3(-Math.cos(yaw), 0, -Math.sin(yaw)).scale(NEXT_GAP);
+                nextHandles.put(name + "#before", new Handle(name, 0, first.subtract(right)));
+                nextHandles.put(name + "#after", new Handle(name, 1, first.add(right)));
+            } else {
+                // Further along the way it goes, at both ends
+                Vec3 out = last.subtract(stepVec(p, n - 2)), in = first.subtract(stepVec(p, 1));
+                if (out.lengthSqr() > 1e-6) nextHandles.put(name + "#after", new Handle(name, n, last.add(out.normalize().scale(NEXT_GAP))));
+                if (in.lengthSqr() > 1e-6) nextHandles.put(name + "#before", new Handle(name, 0, first.add(in.normalize().scale(NEXT_GAP))));
             }
         }
         handles = nextHandles;
         if (!busy && look != null)
             for (Map.Entry<String, Handle> e : handles.entrySet()) {
-                double along = pick(eye, look, e.getValue().home(), 0.16);
+                double along = pick(eye, look, e.getValue().home(), 0.2);
                 if (along < bestHandle) {
                     bestHandle = along;
                     hoverHandle = e.getKey();
                 }
             }
-        // A "+" in front of a step wins (it is the smaller target)
-        if (hoverHandle != null && bestHandle <= bestStep + 0.5) hoverCube = null;
+        if (hoverHandle != null && bestHandle <= bestStep) hoverCube = null;
         else hoverHandle = null;
         if (hoverCube != null) TravellingEdit.hover(hoverCube);
-
-        // A "+" being dragged (held since its click): it follows the crosshair on the plane facing the view; the new
-        // step's ghost shows there; let go, the step is added
-        if (dragging != null) {
-            Handle h = handles.get(dragging);
-            CameraPath p = h == null ? null : ShowStateClient.path(h.path());
-            if (p == null) dragging = null;
-            else {
-                double denom = look == null ? 0 : look.dot(dragNormal);
-                if (denom > 1e-3) dragAt = eye.add(look.scale(dragPoint.subtract(eye).dot(dragNormal) / denom));
-                if (leftDown) {
-                    CameraPath.Pose aim = aimFor(p, h.index());
-                    preview = new TravellingEdit.Preview(h.path(), new CameraPath.Pose(dragAt.x, dragAt.y, dragAt.z, aim.yaw(), aim.pitch(), aim.fov()));
-                } else {
-                    if (dragAt.distanceTo(h.home()) >= MIN_DRAG) dropHandle(h, dragAt);
-                    dragging = null;
-                }
-            }
-        }
+        // A square under the crosshair: the ghost of the step a click would add
         for (Map.Entry<String, Handle> e : handles.entrySet()) {
             Handle h = e.getValue();
-            boolean held = e.getKey().equals(dragging);
-            Vec3 at = held ? dragAt : h.home();
-            dots.add(new TravellingEdit.HandleDot(h.path(), at.x, at.y, at.z, held || e.getKey().equals(hoverHandle)));
+            boolean lit = e.getKey().equals(hoverHandle);
+            dots.add(new TravellingEdit.HandleDot(h.path(), h.home().x, h.home().y, h.home().z, lit));
+            if (lit) {
+                CameraPath p = ShowStateClient.path(h.path());
+                CameraPath.Pose aim = aimFor(p, h.index());
+                preview = new TravellingEdit.Preview(h.path(), new CameraPath.Pose(h.home().x, h.home().y, h.home().z, aim.yaw(), aim.pitch(), aim.fov()));
+            }
         }
         TravellingEdit.handles(dots);
 
@@ -253,36 +275,21 @@ public final class TravellingGizmos {
         return new CameraPath.Pose(at.x, at.y, at.z, yaw, pitch, fov);
     }
 
-    /**
-     * A "+" dropped at {@code to}: from the camera, a step at the end; from step i, after it when moved toward the
-     * next step (or away from the previous one), before it otherwise.
-     */
-    private void dropHandle(Handle h, Vec3 to) {
+    /** A step where a pale square is, at its end of the travelling, looking the way its neighbour looks. */
+    private void addAt(Handle h) {
         CameraPath p = ShowStateClient.path(h.path());
         if (p == null) return;
-        int n = p.steps().size();
-        int at;
-        if (h.index() < 0) at = n;
-        else {
-            int i = h.index();
-            Vec3 here = stepVec(p, i);
-            Vec3 axis = i + 1 < n && i > 0 ? stepVec(p, i + 1).subtract(stepVec(p, i - 1))
-                    : i + 1 < n ? stepVec(p, i + 1).subtract(here)
-                    : i > 0 ? here.subtract(stepVec(p, i - 1)) : null;
-            boolean after = axis == null || axis.lengthSqr() < 1e-6 || to.subtract(here).dot(axis) >= 0;
-            at = after ? i + 1 : i;
-        }
         CameraPath.Pose aim = aimFor(p, h.index());
-        CameraPath.Pose pose = new CameraPath.Pose(to.x, to.y, to.z, aim.yaw(), aim.pitch(), aim.fov());
-        TravellingEdit.send(p.camera(), p.name(), "insertAt", TravellingEdit.poseJson(at, pose));
-        TravellingEdit.select(p.name(), at);
-        TravellingEdit.drag(p.name(), at, pose);
-        TravellingEdit.drop(p.name(), at);
+        CameraPath.Pose pose = new CameraPath.Pose(h.home().x, h.home().y, h.home().z, aim.yaw(), aim.pitch(), aim.fov());
+        TravellingEdit.send(p.camera(), p.name(), "insertAt", TravellingEdit.poseJson(h.index(), pose));
+        TravellingEdit.select(p.name(), h.index());
+        TravellingEdit.drag(p.name(), h.index(), pose);
+        TravellingEdit.drop(p.name(), h.index());
     }
 
-    /** The angle a new step takes from a "+": its step's, or the last step's for the camera's. */
+    /** The angle a step added at {@code index} takes: its neighbour's (the first step's before the start). */
     private static CameraPath.Pose aimFor(CameraPath p, int index) {
-        int i = index < 0 ? p.steps().size() - 1 : Math.min(index, p.steps().size() - 1);
+        int i = index <= 0 ? 0 : Math.min(index - 1, p.steps().size() - 1);
         CameraPath.Pose v = TravellingEdit.pose(p, Math.max(0, i));
         return v == null ? new CameraPath.Pose(0, 0, 0, 0, 0, 0) : v;
     }
@@ -344,18 +351,13 @@ public final class TravellingGizmos {
                 }
                 if (hoverHandle != null) {
                     Handle h = handles.get(hoverHandle);
-                    Vec3 look = Tool.getLookDirection();
-                    if (h != null && look != null) {
-                        dragging = hoverHandle;
-                        dragPoint = h.home();
-                        dragNormal = look;
-                        dragAt = h.home();
-                    }
+                    if (h != null) addAt(h);
                     return UserAction.ActionResult.USED_STOP;
                 }
                 if (hoverCube != null) {
-                    TravellingEdit.select(hoverCube.path(), hoverCube.index());
                     CameraPath p = ShowStateClient.path(hoverCube.path());
+                    if (p != null) TravellingEdit.setEdited(p.camera(), p.name());
+                    TravellingEdit.select(hoverCube.path(), hoverCube.index());
                     if (p != null) feedback(hoverCube.index(), p.steps().size(), TravellingEdit.pose(p, hoverCube.index()));
                     return UserAction.ActionResult.USED_STOP;
                 }
@@ -386,17 +388,7 @@ public final class TravellingGizmos {
                 }
             }
             case DELETE -> {
-                if (sel != null) {
-                    CameraPath p = ShowStateClient.path(sel.path());
-                    if (p != null && p.steps().size() > 1) {
-                        JsonObject o = new JsonObject();
-                        o.addProperty("index", sel.index());
-                        o.addProperty("quiet", true);
-                        TravellingEdit.send(p.camera(), p.name(), "remove", o);
-                    }
-                    TravellingEdit.select(null, 0);
-                    return UserAction.ActionResult.USED_STOP;
-                }
+                if (removeSelected()) return UserAction.ActionResult.USED_STOP;
             }
             case ESCAPE -> {
                 if (sel != null) {
@@ -446,7 +438,6 @@ public final class TravellingGizmos {
 
     private void clear() {
         handles.clear();
-        dragging = null;
         TravellingEdit.handles(java.util.List.of());
         selection = null;
         selectionOf = null;
