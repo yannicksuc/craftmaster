@@ -39,6 +39,41 @@ final class SpotLightRenderType {
             .withDepthStencilState(new DepthStencilState(DepthStencilState.DEFAULT.depthTest(), false))
             .build();
 
+    /**
+     * The type to draw with now: ours, or vanilla's lightning while an Iris shader pack is on (Iris only knows
+     * vanilla's pipelines: ours would not show at all under a shader pack; the lightning one shows, overlapping as before).
+     */
+    static RenderType light() {
+        // Under a shader pack: vanilla's lightning (assigning ours to Iris's "basic" program draws it far too dark)
+        return shaderPackOn() ? net.minecraft.client.renderer.rendertype.RenderTypes.lightning() : LIGHT;
+    }
+
+    private static Object irisApi;
+    private static java.lang.reflect.Method inUse;
+    private static boolean irisChecked;
+
+    /** Is an Iris shader pack in use (through Iris's API, if Iris is installed)? */
+    static boolean shaderPackOn() {
+        if (!irisChecked) {
+            irisChecked = true;
+            if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("iris")) {
+                try {
+                    Class<?> api = Class.forName("net.irisshaders.iris.api.v0.IrisApi");
+                    irisApi = api.getMethod("getInstance").invoke(null);
+                    inUse = api.getMethod("isShaderPackInUse");
+                } catch (ReflectiveOperationException | LinkageError e) {
+                    irisApi = null;
+                }
+            }
+        }
+        if (irisApi == null) return false;
+        try {
+            return (Boolean) inUse.invoke(irisApi);
+        } catch (ReflectiveOperationException e) {
+            return false;
+        }
+    }
+
     static final RenderType LIGHT = RenderType.create("craftmaster_spot_light",
             //? if >=26.3 {
             RenderSetup.builder(PIPELINE).sortOnUpload().createRenderSetup());

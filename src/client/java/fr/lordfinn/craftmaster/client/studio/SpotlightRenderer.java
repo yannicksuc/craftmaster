@@ -41,6 +41,8 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
     public static class State extends BlockEntityRenderState {
         /** Being looked through by its organiser (ControlView). */
         boolean controlled;
+        /** How far its pool floats off the surface (blocks), different for neighbours. */
+        float poolLift = 0.015f;
         float yaw, pitch;
         boolean hanging, lit;
         int color;
@@ -124,6 +126,8 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         s.color = ((int) (be.renderColor[0] * 255) << 16) | ((int) (be.renderColor[1] * 255) << 8) | (int) (be.renderColor[2] * 255);
         s.lit = s.intensity > 0.005f;
         s.controlled = ControlView.controllingSpot(be.getBlockPos());
+        // Each spotlight's pool a little higher or lower than its neighbours': two pools on one ceiling never fight
+        s.poolLift = 0.012f + 0.004f * Math.floorMod(be.getBlockPos().hashCode(), 6);
 
         s.hit = null;
         s.face = null;
@@ -195,7 +199,7 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
             double length = s.length;
             int color = s.color;
             float intensity = s.intensity, cone = s.cone;
-            collector.submitCustomGeometry(poseStack, SpotLightRenderType.LIGHT, (p, c) -> beam(c, p, length, color, intensity, cone));
+            collector.submitCustomGeometry(poseStack, SpotLightRenderType.light(), (p, c) -> beam(c, p, length, color, intensity, cone));
         }
         poseStack.popPose();
         submitPool(s, poseStack, collector);
@@ -209,7 +213,8 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
             int color = s.color;
             // A wide wash spreads the same light over more ground: its pool is paler
             float strength = s.intensity * (float) Math.min(1, 1.6 / Math.max(1, radius));
-            collector.submitCustomGeometry(poseStack, SpotLightRenderType.LIGHT, (p, c) -> pool(c, p, hit, face, radius * 1.25, color, strength));
+            float lift = s.poolLift;
+            collector.submitCustomGeometry(poseStack, SpotLightRenderType.light(), (p, c) -> pool(c, p, hit, face, radius * 1.25, color, strength, lift));
         }
     }
 
@@ -271,12 +276,12 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
     }
 
     /** A soft disc of light on the face the beam lands on (block space), bright in the middle. */
-    private static void pool(VertexConsumer c, PoseStack.Pose p, Vec3 hit, Direction face, double radius, int rgb, float strength) {
+    private static void pool(VertexConsumer c, PoseStack.Pose p, Vec3 hit, Direction face, double radius, int rgb, float strength, float lift) {
         Vec3 n = new Vec3(face.getStepX(), face.getStepY(), face.getStepZ());
         Vec3 u = Math.abs(n.y) > 0.5 ? new Vec3(1, 0, 0) : new Vec3(0, 1, 0);
         Vec3 v = n.cross(u);
         u = v.cross(n);
-        Vec3 center = hit.add(n.scale(0.015));
+        Vec3 center = hit.add(n.scale(lift));
         int inner = Geo.argb(Math.round(120 * strength), rgb), outer = Geo.argb(0, rgb);
         int segments = 28;
         for (int i = 0; i < segments; i++) {
