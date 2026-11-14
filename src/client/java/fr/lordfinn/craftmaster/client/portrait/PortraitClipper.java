@@ -116,6 +116,36 @@ public final class PortraitClipper implements VertexConsumer {
         return frameToCamera.transformDirection(new Vector3f(0, 0, 1)).z > 1e-4f;
     }
 
+    private static Object irisApi;
+    private static java.lang.reflect.Method inShadowPass;
+    private static boolean irisChecked;
+
+    /**
+     * Is a shader pack drawing its shadow map right now (Iris)? The sun then looks through the window like a
+     * camera: the illusion behind the opening would be flattened for it and cast shadows on the back plate and
+     * the string. Only what really exists (frame, plate, what leans out of the window) casts shadows.
+     */
+    public static boolean shadowPass() {
+        if (!irisChecked) {
+            irisChecked = true;
+            if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("iris")) {
+                try {
+                    Class<?> api = Class.forName("net.irisshaders.iris.api.v0.IrisApi");
+                    irisApi = api.getMethod("getInstance").invoke(null);
+                    inShadowPass = api.getMethod("isRenderingShadowPass");
+                } catch (ReflectiveOperationException | LinkageError e) {
+                    irisApi = null;
+                }
+            }
+        }
+        if (irisApi == null) return false;
+        try {
+            return (Boolean) inShadowPass.invoke(irisApi);
+        } catch (ReflectiveOperationException e) {
+            return false;
+        }
+    }
+
     /** True when the camera is in front of the canvas (the window can only be looked through from the front). */
     public static boolean cameraInFront(Matrix4f frameToCamera, float planeZ) {
         Vector3f origin = frameToCamera.transformPosition(new Vector3f(0, 0, planeZ));
@@ -240,8 +270,10 @@ public final class PortraitClipper implements VertexConsumer {
         }
         // In front of the canvas plane: out of the window, drawn as it is
         emit(clip(new ArrayList<>(poly), flip(keep)));
-        // Behind it: flattened along the lines of sight, then cut to the opening (only seen from the front)
+        // Behind it: flattened along the lines of sight, then cut to the opening (only seen from the front, and
+        // never in a shadow map: an illusion casts no shadow)
         if (parallel ? n.z <= 1e-4f : d >= 0) return;
+        if (!parallel && shadowPass()) return;
         // Flattening is a projection: a big quad would get its texture bent by the GPU's interpolation (it moves
         // with the point of view). Small pieces keep it straight; each is flattened on its own.
         int n = pieces(poly);

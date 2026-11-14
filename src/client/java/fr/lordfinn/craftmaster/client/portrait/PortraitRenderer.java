@@ -361,6 +361,8 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
             float depth = (float) Math.max(s.windowDepth, -(PortraitGeometry.figureBackZ(pose, true) - canvasFront) + 1);
             float scale = s.windowSize / 100f;
             collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(BACKDROP_TEXTURE), (p, c) -> {
+                // An illusion: nothing in a shader pack's shadow map
+                if (PortraitClipper.shadowPass()) return;
                 PortraitClipper clip = PortraitClipper.portal(c, frameToCamera, canvasFront - 0.02f,
                         (float) PortraitGeometry.OPEN_HW, (float) PortraitGeometry.OPEN_HH);
                 roomBack(clip, p, depth, scale, light);
