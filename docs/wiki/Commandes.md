@@ -286,6 +286,6 @@ Détail dans [Plateau](Plateau.md). Sans cible, une commande agit sur l'écran, 
 | `/image clear\|remove` · `/image size <l> <h>` · `/image fit <true\|false>` | | Mire / retirer / taille / image entière ou étirée |
 | `/craftMasterDesk name <nom\|->` | `cfdk` | Nom sur la plaque du pupitre regardé (admin) |
 | `/craftMasterGong` | `cfgo` | Coup du gong le plus proche (admin) |
-| `/craftMasterSpotlight` | `cfsp` | Projecteurs : `nom <nom>` (celui regardé) ; `[tout\|groupe <nom>] allume\|eteint\|couleur <c>\|intensite <0-100>\|cone <1-30>\|ici\|suivre <joueur|@scene|@moment|@antenne|@candidat\|@scene\|@moment\|@candidat\|@proche\|@zone:nom>\|stop [fondu s]` ; `liste` — voir [Scénographie](Scenographie.md) |
+| `/craftMasterSpotlight` | `cfsp` | Projecteurs : `nom <nom>` (celui regardé) ; `[tout\|groupe <nom>] allume\|eteint\|couleur <c>\|intensite <0-100>\|cone <1-30>\|faisceau on\|off\|halo on\|off\|ici\|suivre <joueur|@scene|@moment|@antenne|@candidat\|@scene\|@moment\|@candidat\|@proche\|@zone:nom>\|stop [fondu s]` ; `liste` — voir [Scénographie](Scenographie.md) |
 | `/ambiance` | `cfam` | Ambiances : `enregistrer <nom> [parties] [fondu]`, `lancer <nom> [fondu]`, `modifier <nom> <cible> <ordre>` (sans la jouer), `noir [fondu]`, `supprimer`, liste cliquable |
 | `/conduite` | `cfco` | Conduites : `ajouter <nom> <ligne>`, `voir`, `inserer`, `retirer`, `lancer`, `stop`, `statut`, `auto <moment> <conduite>`, `manche <manche> <conduite>` |

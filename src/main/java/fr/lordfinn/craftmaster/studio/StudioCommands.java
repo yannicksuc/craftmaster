@@ -298,6 +298,7 @@ public final class StudioCommands {
             BlockPos p = s.getBlockPos();
             ok(c, "• " + (s.name().isEmpty() ? "(sans nom)" : s.name()) + " — " + p.getX() + " " + p.getY() + " " + p.getZ()
                     + (s.lit() ? ", allumé " + s.intensity() + " %" : ", éteint") + ", cône " + Math.round(s.cone()) + "°"
+                    + (s.beam() ? "" : ", sans faisceau") + (s.pool() ? "" : ", sans halo")
                     + (s.follow().isEmpty() ? "" : ", suit " + SpotlightFollow.describe(s.follow())
                     + (SpotlightFollow.isRule(s.follow()) ? " (" + (s.target().isEmpty() ? "personne" : s.target()) + ")" : "")));
         }
@@ -359,6 +360,14 @@ public final class StudioCommands {
         for (String word : List.of("intensity", "intensite"))
             node.then(literal(word).then(withFade(argument("percent", integer(0, SpotlightBlockEntity.MAX_INTENSITY)), t,
                     c -> settings(null, null, getInteger(c, "percent"), null, null, null))));
+        // What is drawn: the beam in the air, the pool (round of light) on the floor; the real light stays either way
+        for (String[] w : new String[][]{{"faisceau", "beam"}, {"halo", "pool"}}) {
+            boolean isBeam = w[1].equals("beam");
+            for (String word : w)
+                for (boolean on : new boolean[]{true, false})
+                    for (String v : on ? List.of("on", "oui") : List.of("off", "non"))
+                        node.then(literal(word).then(literal(v).executes(c -> drawn(c, t, isBeam, on))));
+        }
         node.then(literal("cone").then(withFade(argument("degrees", com.mojang.brigadier.arguments.FloatArgumentType.floatArg(
                         SpotlightBlockEntity.MIN_CONE, SpotlightBlockEntity.MAX_CONE)), t,
                 c -> settings(null, null, null, com.mojang.brigadier.arguments.FloatArgumentType.getFloat(c, "degrees"), null, null))));
@@ -407,6 +416,26 @@ public final class StudioCommands {
         // Aims at the player who types it (handy: stand where the light must go)
         for (String word : List.of("here", "ici"))
             node.then(withFade(literal(word), t, c -> settings(null, null, null, null, "", c.getSource().getPosition().add(0, 1, 0))));
+    }
+
+    /** Shows or hides the beam ({@code beam}) or the pool of the target's spotlights (or the one looked at). */
+    private static int drawn(CommandContext<CommandSourceStack> c, SpotTarget t, boolean beam, boolean on) {
+        String what = (beam ? "faisceau " : "halo ") + (on ? "visible" : "caché");
+        String target = t.of(c);
+        if (target != null) {
+            List<SpotlightBlockEntity> list = Spotlights.select(target);
+            if (list.isEmpty()) {
+                fail(c, "Aucun projecteur « " + target + " ».");
+                return 0;
+            }
+            for (SpotlightBlockEntity s : list) Spotlights.setDrawn(s, beam, on);
+            ok(c, list.size() + " projecteur(s) « " + target + " » : " + what + ".");
+            return list.size();
+        }
+        return onSpotlight(c, s -> {
+            Spotlights.setDrawn(s, beam, on);
+            return "Projecteur" + (s.name().isEmpty() ? "" : " « " + s.name() + " »") + " : " + what + ".";
+        });
     }
 
     private static int turnSpot(CommandContext<CommandSourceStack> c, SpotTarget t, float dYaw, float dPitch, boolean flip, double seconds) {

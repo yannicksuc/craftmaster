@@ -6,7 +6,9 @@ poursuite), on **enregistre des ambiances** (l'état de toute la scène), on les
 Tout passe aussi par la régie vocale, le Stream Deck et l'onglet **Scène** de la régie des modos (touche `;`).
 
 ## 1. Les projecteurs
-Pose les projecteurs (onglet CraftMaster), au sol ou suspendus. Puis **nomme-les** en les regardant :
+Pose les projecteurs (onglet CraftMaster), au sol ou suspendus. Là où tombe le faisceau, le serveur pose de la vraie
+lumière (blocs de lumière invisibles, un bloc sur deux, au niveau de l'intensité : 15 à 100 %), qui passe sous les
+chaises et les tables. Puis **nomme-les** en les regardant :
 `/cfsp nom face1`, `/cfsp nom face2`, `/cfsp nom contre`, `/cfsp nom poursuite`…
 Un nom sans son numéro forme un **groupe** : `face` = face1, face2…
 
@@ -30,6 +32,7 @@ Ordres (le dernier nombre, facultatif, est la **durée du fondu** en secondes) :
 | `intensite <0-100> [s]` | la force du faisceau et de la lumière au sol |
 | `cone <1-30> [s]` | demi-angle du cône en degrés : 3 = faisceau serré (défaut), 15 = large, 30 = douche |
 | `ici [s]` | pointe vers toi (place-toi là où la lumière doit tomber) |
+| `faisceau on\|off` · `halo on\|off` | ce qui se dessine : le faisceau dans l'air, le rond de lumière au sol. La vraie lumière du jeu reste dans tous les cas : les deux à `off`, le projecteur éclaire seulement. Aussi dans son menu (ligne « Dessin ») et retenu par les ambiances |
 | `suivre <joueur ou règle>` · `stop` | poursuite (voir plus bas) / arrête de suivre en gardant la direction |
 | `liste` | les projecteurs, leur nom, leur état, qui ils suivent |
 
@@ -64,7 +67,7 @@ montrent). Règle la scène comme tu la veux, puis :
 | `/ambiance enregistrer <nom> [parties] [fondu]` | enregistre la scène actuelle ; parties : `tout` (défaut), ou `lumieres`, `rideaux`, `tableaux`, `ecrans` reliées par des + (`lumieres+rideaux`) |
 | `/ambiance lancer <nom> [fondu]` | rejoue l'ambiance : les projecteurs tournent et changent en fondu, les tableaux montent ou descendent, les rideaux s'ouvrent ou se ferment, les télés changent |
 | `/ambiance` | la liste, cliquable (clic : la lancer ; « mettre à jour » : la remplacer par la scène actuelle) |
-| `/ambiance modifier <nom> <cible> <ordre>` | change l'ambiance enregistrée **sans la jouer** : cible `tout`, un projecteur ou un groupe (`face`) ; ordre `allume`, `eteint`, `couleur <c>`, `intensite <0-100>`, `cone <1-30>`, `suivre <qui\|personne>`, `vise <x y z>` ; ou `tout fondu <s>`, `<rideau> rideau ouvert\|ferme` |
+| `/ambiance modifier <nom> <cible> <ordre>` | change l'ambiance enregistrée **sans la jouer** : cible `tout`, un projecteur ou un groupe (`face`) ; ordre `allume`, `eteint`, `couleur <c>`, `intensite <0-100>`, `cone <1-30>`, `suivre <qui\|personne>`, `vise <x y z>`, `faisceau on\|off`, `halo on\|off` ; ou `tout fondu <s>`, `<rideau> rideau ouvert\|ferme` |
 | `/ambiance noir [fondu]` | tous les projecteurs s'éteignent |
 | `/ambiance supprimer <nom>` | |
 

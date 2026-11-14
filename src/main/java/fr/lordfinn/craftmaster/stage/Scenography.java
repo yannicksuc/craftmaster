@@ -121,6 +121,8 @@ public final class Scenography {
                 p.yaw = s.yaw();
                 p.pitch = s.pitch();
                 p.follow = s.follow();
+                p.beam = s.beam();
+                p.pool = s.pool();
                 look.spots.add(p);
             }
         }
@@ -236,8 +238,18 @@ public final class Scenography {
                     return "Vise : x y z.";
                 }
             }
+            case "faisceau", "beam", "halo", "pool" -> {
+                boolean beam = verb.equals("faisceau") || verb.equals("beam");
+                String v = fr.lordfinn.craftmaster.camera.CameraList.fold(arg);
+                Boolean on = v.equals("on") || v.equals("oui") ? Boolean.TRUE : v.equals("off") || v.equals("non") ? Boolean.FALSE : null;
+                if (on == null) return (beam ? "Faisceau" : "Halo") + " : on ou off.";
+                spots.forEach(s -> {
+                    if (beam) s.beam = on;
+                    else s.pool = on;
+                });
+            }
             default -> {
-                return "Ordre inconnu « " + w[0] + " » : allume, eteint, couleur, intensite, cone, suivre, vise, fondu, rideau.";
+                return "Ordre inconnu « " + w[0] + " » : allume, eteint, couleur, intensite, cone, suivre, vise, faisceau, halo, fondu, rideau.";
             }
         }
         save();
@@ -300,6 +312,8 @@ public final class Scenography {
                 if (level == null || !level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof SpotlightBlockEntity s)) continue;
                 Spotlights.apply(s, new Spotlights.Settings(p.lit, p.color, p.intensity, p.cone, p.follow == null ? "" : p.follow,
                         null, p.follow == null || p.follow.isEmpty() ? p.yaw : null, p.follow == null || p.follow.isEmpty() ? p.pitch : null), f);
+                if (p.beam != null && p.beam != s.beam()) s.setBeam(p.beam);
+                if (p.pool != null && p.pool != s.pool()) s.setPool(p.pool);
                 n++;
             }
             done.add(n + " projecteur(s)");

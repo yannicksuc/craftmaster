@@ -25,6 +25,16 @@ cfsp nom table1 89 -46 12
 cfsp nom table2 89 -46 -12
 cfsp nom contre1 93 -53 9
 cfsp nom contre2 93 -53 -9
+#  assise : plafond, une par chaise de candidat (faisceau visible, sans halo) ; dos : haut du mur du fond,
+#  contre-jour du trône (faisceau, sans halo) ; galerie3 : au-dessus du tableau du milieu
+cfsp nom assise1 84 -46 12
+cfsp nom assise2 79 -46 12
+cfsp nom assise3 74 -46 0
+cfsp nom assise4 79 -46 -12
+cfsp nom assise5 84 -46 -12
+cfsp nom dos1 94 -46 3
+cfsp nom dos2 94 -46 -3
+cfsp nom galerie3 64 -46 0
 
 # Le rideau de scène
 craftMasterStage curtain set stage 68 -53 0

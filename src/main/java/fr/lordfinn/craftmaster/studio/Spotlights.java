@@ -80,6 +80,12 @@ public final class Spotlights {
         if (lit != null) SpotlightBlock.setLit(s.getLevel(), s.getBlockPos(), s.getBlockState(), lit);
     }
 
+    /** Shows or hides what the clients draw of a spotlight: its beam ({@code beam}) or its pool. */
+    public static void setDrawn(SpotlightBlockEntity s, boolean beam, boolean on) {
+        if (beam) s.setBeam(on);
+        else s.setPool(on);
+    }
+
     private static boolean isAll(String target) {
         String t = target == null ? "" : target.strip().toLowerCase(Locale.ROOT);
         return t.isEmpty() || t.equals(ALL) || t.equals("all") || t.equals("tous") || t.equals("*");

@@ -22,6 +22,8 @@ public final class Look {
         public int color, intensity;
         public float cone, yaw, pitch;
         public String follow = "";
+        /** Beam and pool drawn (null: an older look, left as they are). */
+        public Boolean beam, pool;
     }
 
     public static final String LIGHTS = "lumieres", CURTAINS = "rideaux", PORTRAITS = "tableaux", SCREENS = "ecrans";

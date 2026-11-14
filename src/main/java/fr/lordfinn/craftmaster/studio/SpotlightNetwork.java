@@ -23,7 +23,7 @@ import java.util.List;
  * applies the changes.
  * <pre>
  * client ← Open(json)   {x, y, z, follow: [...rules, online players], names: [...spotlight names]}
- * client → Edit(json)   {x, y, z, what: "lit"|"color"|"intensity"|"cone"|"name"|"follow"|"effect"|"speed"|"turn"|"tilt"|"flip"|"look"|"me", value}
+ * client → Edit(json)   {x, y, z, what: "lit"|"color"|"intensity"|"cone"|"beam"|"pool"|"name"|"follow"|"effect"|"speed"|"turn"|"tilt"|"flip"|"look"|"me", value}
  * </pre>
  */
 public final class SpotlightNetwork {
@@ -101,6 +101,8 @@ public final class SpotlightNetwork {
             case "intensity" -> Spotlights.apply(s, new Spotlights.Settings(null, null, Math.max(0, Math.min(100, v.getAsInt())), null, null, null, null, null), fade);
             case "cone" -> Spotlights.apply(s, new Spotlights.Settings(null, null, null, v.getAsFloat(), null, null, null, null), fade);
             case "name" -> s.setName(v.getAsString());
+            case "beam" -> s.setBeam(v.getAsBoolean());
+            case "pool" -> s.setPool(v.getAsBoolean());
             case "follow" -> {
                 String f = v.getAsString();
                 String rule = SpotlightFollow.isNobody(f) ? "" : SpotlightFollow.parse(f) != null ? SpotlightFollow.parse(f) : f.strip();

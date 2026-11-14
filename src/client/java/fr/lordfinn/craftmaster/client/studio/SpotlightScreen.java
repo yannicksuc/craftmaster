@@ -86,10 +86,10 @@ public class SpotlightScreen extends Screen {
     protected void init() {
         w = Math.min(210, Math.max(176, width / 3));
         labelW = 0;
-        for (String k : new String[]{"name", "lit", "color", "intensity", "cone", "direction", "follow", "effect", "speed"})
+        for (String k : new String[]{"name", "lit", "drawn", "color", "intensity", "cone", "direction", "follow", "effect", "speed"})
             labelW = Math.max(labelW, font.width(t(k)));
         labelW += 10;
-        h = Math.min(height - 16, 250);
+        h = Math.min(height - 16, 266);
         x0 = width - w - 8;
         y0 = Math.max(8, (height - h) / 2);
         SpotlightBlockEntity s = spot();
@@ -120,6 +120,11 @@ public class SpotlightScreen extends Screen {
         // On / off
         g.text(font, t("lit"), lx, y + 3, DIM, false);
         button(g, vx, y, s.lit() ? t("on") : t("off"), s.lit(), mx, my, () -> send("lit", !s.lit()), null);
+        y += 16;
+        // What is drawn: the beam, the pool (lit = shown); both off: it only lights
+        g.text(font, t("drawn"), lx, y + 3, DIM, false);
+        int dx = button(g, vx, y, t("beam"), s.beam(), mx, my, () -> send("beam", !s.beam()), t("beam_tip"));
+        button(g, dx, y, t("pool"), s.pool(), mx, my, () -> send("pool", !s.pool()), t("pool_tip"));
         y += 16;
         // Colour swatches
         g.text(font, t("color"), lx, y + 2, DIM, false);

@@ -65,6 +65,11 @@ public class SpotlightBlockEntity extends BlockEntity {
     /** A light effect drawn by the clients on the intensity ("respiration", "strobe"…; "" none), its speed and phase. */
     private String effect = "";
     private float effectSpeed = 1, effectPhase;
+    /**
+     * What the clients draw: the beam in the air and the pool on the floor. Either can be left out: a spotlight that
+     * only lights (no beam, no pool: the real light alone), or a beam without its round on the floor.
+     */
+    private boolean beam = true, pool = true;
     /** The light blocks this spotlight placed (server), with their level. */
     private final java.util.Map<BlockPos, Integer> lights = new java.util.HashMap<>();
 
@@ -124,6 +129,20 @@ public class SpotlightBlockEntity extends BlockEntity {
     public String effect() { return effect; }
     public float effectSpeed() { return effectSpeed; }
     public float effectPhase() { return effectPhase; }
+    /** Whether the clients draw the beam in the air. */
+    public boolean beam() { return beam; }
+    /** Whether the clients draw the pool (the round of light) where the beam lands. */
+    public boolean pool() { return pool; }
+
+    public void setBeam(boolean beam) {
+        this.beam = beam;
+        changed();
+    }
+
+    public void setPool(boolean pool) {
+        this.pool = pool;
+        changed();
+    }
 
     /** A light effect ("" or "aucun": none), its speed (1 = normal) and its phase (0..1: a chase across a group). */
     public void setEffect(String effect, float speed, float phase) {
@@ -244,8 +263,12 @@ public class SpotlightBlockEntity extends BlockEntity {
     private static final int QUIET = net.minecraft.world.level.block.Block.UPDATE_CLIENTS
             | net.minecraft.world.level.block.Block.UPDATE_KNOWN_SHAPE;
 
-    /** Space between the light blocks laid under the pool and along the beam (blocks). */
-    private static final int POOL_STEP = 3, BEAM_STEP = 4, MAX_LIGHTS = 24;
+    /**
+     * Space between the light blocks laid under the pool and along the beam (blocks). Under the pool every other block,
+     * at the full level: no place in it is more than two steps from one, so the whole pool stays between 13 and 15 for
+     * a spotlight at 100 % (one every 3 blocks at 2 below left patches at 11, the faces of a seated player in the dark).
+     */
+    private static final int POOL_STEP = 2, BEAM_STEP = 4, MAX_POOL_LIGHTS = 52, MAX_LIGHTS = 64;
 
     /**
      * Real light (invisible {@code minecraft:light} blocks), so that what the spotlight shines on is lit by the game
@@ -269,16 +292,20 @@ public class SpotlightBlockEntity extends BlockEntity {
                 double radius = length * Math.tan(Math.toRadians(cone)) * 1.25;
                 net.minecraft.core.Direction face = hit.getDirection();
                 int n = (int) Math.floor(radius / POOL_STEP);
-                for (int u = -n; u <= n; u++) {
-                    for (int v = -n; v <= n; v++) {
-                        if ((u == 0 && v == 0) || Math.hypot(u, v) * POOL_STEP > radius) continue;
-                        BlockPos p = planeOffset(landing, face, u * POOL_STEP, v * POOL_STEP);
-                        for (int k : new int[]{0, 1, -1}) {
-                            BlockPos q = p.relative(face, k);
-                            if (free(server, q) && !free(server, q.relative(face.getOpposite()))) {
-                                put(server, want, q, Math.max(1, full - 2));
-                                break;
-                            }
+                // From the centre outward: a very wide pool runs out of light blocks on its edge, not on one side
+                List<int[]> grid = new java.util.ArrayList<>();
+                for (int u = -n; u <= n; u++)
+                    for (int v = -n; v <= n; v++)
+                        if (!(u == 0 && v == 0) && Math.hypot(u, v) * POOL_STEP <= radius) grid.add(new int[]{u, v});
+                grid.sort(java.util.Comparator.comparingDouble(g -> Math.hypot(g[0], g[1])));
+                for (int[] g : grid) {
+                    if (want.size() >= MAX_POOL_LIGHTS) break;
+                    BlockPos p = planeOffset(landing, face, g[0] * POOL_STEP, g[1] * POOL_STEP);
+                    for (int k : new int[]{0, 1, -1}) {
+                        BlockPos q = p.relative(face, k);
+                        if (free(server, q) && !free(server, q.relative(face.getOpposite()))) {
+                            put(server, want, q, full);
+                            break;
                         }
                     }
                 }
@@ -366,6 +393,8 @@ public class SpotlightBlockEntity extends BlockEntity {
         effect = in.getStringOr("Effect", "");
         effectSpeed = in.getFloatOr("EffectSpeed", 1);
         effectPhase = in.getFloatOr("EffectPhase", 0);
+        beam = !in.getBooleanOr("NoBeam", false);
+        pool = !in.getBooleanOr("NoPool", false);
     }
 
     @Override
@@ -386,6 +415,8 @@ public class SpotlightBlockEntity extends BlockEntity {
             out.putFloat("EffectSpeed", effectSpeed);
             out.putFloat("EffectPhase", effectPhase);
         }
+        if (!beam) out.putBoolean("NoBeam", true);
+        if (!pool) out.putBoolean("NoPool", true);
     }
 
     @Override

@@ -47,6 +47,8 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         float poolLift = 0.015f;
         float yaw, pitch;
         boolean hanging, lit;
+        /** Whether its beam (in the air) and its pool (on the floor) are drawn: either can be switched off. */
+        boolean beam = true, pool = true;
         int color;
         /** 0..1 */
         float intensity;
@@ -146,6 +148,8 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         s.color = ((int) (be.renderColor[0] * 255) << 16) | ((int) (be.renderColor[1] * 255) << 8) | (int) (be.renderColor[2] * 255);
         s.lit = s.intensity > 0.005f;
         s.controlled = ControlView.controllingSpot(be.getBlockPos());
+        s.beam = be.beam();
+        s.pool = be.pool();
         // Each spotlight's pool a little higher or lower than its neighbours': two pools on one ceiling never fight
         s.poolLift = 0.012f + 0.004f * Math.floorMod(be.getBlockPos().hashCode(), 6);
 
@@ -162,10 +166,10 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
                 s.hit = hit.getLocation().subtract(Vec3.atLowerCornerOf(be.getBlockPos()));
                 s.face = hit.getDirection();
                 double[] dir = SpotlightAim.direction(s.yaw, s.pitch);
-                s.cells = PoolCells.of(be, be.getLevel(), hit.getLocation(), s.face, endRadius(s.length, s.cone) * 1.25, dir);
+                if (s.pool) s.cells = PoolCells.of(be, be.getLevel(), hit.getLocation(), s.face, endRadius(s.length, s.cone) * 1.25, dir);
                 s.contact = contact(s.length, endRadius(s.length, s.cone), dir, s.face);
             }
-            s.edges = BeamEdges.of(be, be.getLevel(), pivot, s.yaw, s.pitch, s.cone, BEAM_START, s.length, s.hit != null,
+            if (s.beam) s.edges = BeamEdges.of(be, be.getLevel(), pivot, s.yaw, s.pitch, s.cone, BEAM_START, s.length, s.hit != null,
                     LENS_RADIUS, endRadius(s.length, s.cone), SIDES, OPEN_LENGTH);
         }
     }
@@ -226,19 +230,21 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
                 c.addVertex(p, r, -r, z).setColor(lens).setUv(u1, v1).setLight(full);
                 c.addVertex(p, r, r, z).setColor(lens).setUv(u1, v0).setLight(full);
             });
-            double length = s.length;
-            int color = s.color;
-            float intensity = s.intensity, cone = s.cone;
-            BeamEdges.Edges edges = capped(s.edges, s.contact);
-            float[] eye = eye(s, camera);
-            collector.submitCustomGeometry(poseStack, SpotLightRenderType.light(), (p, c) -> beam(c, p, length, edges, color, intensity, cone, eye));
+            if (s.beam) {
+                double length = s.length;
+                int color = s.color;
+                float intensity = s.intensity, cone = s.cone;
+                BeamEdges.Edges edges = capped(s.edges, s.contact);
+                float[] eye = eye(s, camera);
+                collector.submitCustomGeometry(poseStack, SpotLightRenderType.light(), (p, c) -> beam(c, p, length, edges, color, intensity, cone, eye));
+            }
         }
         poseStack.popPose();
         submitPool(s, poseStack, collector);
     }
 
     private static void submitPool(State s, PoseStack poseStack, SubmitNodeCollector collector) {
-        if (s.lit && s.cells != null) {
+        if (s.lit && s.pool && s.cells != null) {
             PoolCells.Cells cells = s.cells;
             double radius = endRadius(s.length, s.cone);
             int color = s.color;

@@ -65,5 +65,7 @@ et lumières de fin). Lancements automatiques : `/conduite auto`. Pour une manch
 ## Projecteurs (`/cfsp groupe <nom> …`)
 `face1-4` portique de l'avant-scène (2-3 : face du CraftMaster ; 1 et 4 : contre-jour des candidats) · `table1-2`
 plafond près du trône (face des candidats) · `contre1-2` mur du fond (contre-jour du trône) · `rampe1-4` au sol
-devant le rideau · `galerie1-2` au-dessus des tableaux · `poursuite1-2` murs de côté. Points visables :
+devant le rideau · `galerie1-3` au-dessus des tableaux · `poursuite1-2` murs de côté · `assise1-5` plafond, une
+par chaise (de la gauche à la droite du public ; faisceau visible, sans halo : les candidats éclairés entre 13 et 15)
+· `dos1-2` haut du mur du fond, contre-jour du trône (faisceau, sans halo). Points visables :
 `@point:trone`, `@point:table`, `@point:galerie`, `@point:rideau`, `@point:prix`.

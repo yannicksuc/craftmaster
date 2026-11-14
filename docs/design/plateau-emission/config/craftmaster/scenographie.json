@@ -9,12 +9,14 @@
           "z": 9,
           "name": "face1",
           "lit": false,
-          "color": 16773590,
+          "color": 16770756,
           "intensity": 80,
           "cone": 14.0,
           "yaw": -144.16235,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -28,7 +30,9 @@
           "cone": 4.0,
           "yaw": -153.43495,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -37,12 +41,14 @@
           "z": -2,
           "name": "rampe3",
           "lit": true,
-          "color": 14128786,
+          "color": 14030894,
           "intensity": 55,
           "cone": 14.0,
           "yaw": 68.19859,
           "pitch": -28.611586,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -51,12 +57,14 @@
           "z": -6,
           "name": "galerie2",
           "lit": false,
-          "color": 13220095,
+          "color": 9055202,
           "intensity": 40,
           "cone": 10.0,
           "yaw": 4.763642,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -65,12 +73,14 @@
           "z": 3,
           "name": "face2",
           "lit": true,
-          "color": 16761963,
+          "color": 16770756,
           "intensity": 30,
           "cone": 7.0,
           "yaw": -104.03625,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -79,12 +89,14 @@
           "z": 12,
           "name": "table1",
           "lit": true,
-          "color": 16761963,
-          "intensity": 25,
-          "cone": 12.0,
+          "color": 16770756,
+          "intensity": 38,
+          "cone": 16.0,
           "yaw": 144.68878,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -93,12 +105,14 @@
           "z": -3,
           "name": "face3",
           "lit": true,
-          "color": 16761963,
+          "color": 16770756,
           "intensity": 30,
           "cone": 7.0,
           "yaw": -75.96375,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -112,7 +126,9 @@
           "cone": 4.0,
           "yaw": -26.565052,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -121,12 +137,14 @@
           "z": 6,
           "name": "galerie1",
           "lit": false,
-          "color": 13220095,
+          "color": 9055202,
           "intensity": 40,
           "cone": 10.0,
           "yaw": 175.23636,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -135,12 +153,14 @@
           "z": 8,
           "name": "rampe1",
           "lit": true,
-          "color": 14128786,
+          "color": 14030894,
           "intensity": 55,
           "cone": 14.0,
           "yaw": 159.44395,
           "pitch": -24.74259,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -149,12 +169,14 @@
           "z": 2,
           "name": "rampe2",
           "lit": true,
-          "color": 14128786,
+          "color": 14030894,
           "intensity": 55,
           "cone": 14.0,
           "yaw": 111.80141,
           "pitch": -28.611586,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -163,12 +185,14 @@
           "z": 9,
           "name": "contre1",
           "lit": true,
-          "color": 16761963,
+          "color": 16742938,
           "intensity": 40,
           "cone": 5.0,
           "yaw": 142.12502,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -177,12 +201,14 @@
           "z": -8,
           "name": "rampe4",
           "lit": true,
-          "color": 14128786,
+          "color": 14030894,
           "intensity": 55,
           "cone": 14.0,
           "yaw": 20.556046,
           "pitch": -24.74259,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -191,12 +217,14 @@
           "z": -9,
           "name": "face4",
           "lit": false,
-          "color": 16773590,
+          "color": 16770756,
           "intensity": 80,
           "cone": 14.0,
           "yaw": -35.837654,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -205,12 +233,14 @@
           "z": -12,
           "name": "table2",
           "lit": true,
-          "color": 16761963,
-          "intensity": 25,
-          "cone": 12.0,
+          "color": 16770756,
+          "intensity": 38,
+          "cone": 16.0,
           "yaw": 35.311214,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -219,12 +249,142 @@
           "z": -9,
           "name": "contre2",
           "lit": true,
-          "color": 16761963,
+          "color": 16742938,
           "intensity": 40,
           "cone": 5.0,
           "yaw": 37.874985,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": 12,
+          "name": "assise1",
+          "lit": true,
+          "color": 16756832,
+          "intensity": 55,
+          "cone": 6.0,
+          "yaw": 167.471,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": 12,
+          "name": "assise2",
+          "lit": true,
+          "color": 16756832,
+          "intensity": 55,
+          "cone": 6.0,
+          "yaw": -174.289,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 0,
+          "name": "assise3",
+          "lit": true,
+          "color": 16756832,
+          "intensity": 55,
+          "cone": 6.0,
+          "yaw": -90.0,
+          "pitch": 69.018,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": -12,
+          "name": "assise4",
+          "lit": true,
+          "color": 16756832,
+          "intensity": 55,
+          "cone": 6.0,
+          "yaw": -5.711,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": -12,
+          "name": "assise5",
+          "lit": true,
+          "color": 16756832,
+          "intensity": 55,
+          "cone": 6.0,
+          "yaw": 12.529,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": 3,
+          "name": "dos1",
+          "lit": true,
+          "color": 16751150,
+          "intensity": 45,
+          "cone": 5.0,
+          "yaw": 110.556,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": -3,
+          "name": "dos2",
+          "lit": true,
+          "color": 16751150,
+          "intensity": 45,
+          "cone": 5.0,
+          "yaw": 69.444,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 0,
+          "name": "galerie3",
+          "lit": false,
+          "color": 9055202,
+          "intensity": 40,
+          "cone": 10.0,
+          "yaw": -90.0,
+          "pitch": 89.11,
+          "follow": "",
+          "beam": true,
+          "pool": true
         }
       ],
       "curtains": {
@@ -241,12 +401,14 @@
           "z": 9,
           "name": "face1",
           "lit": true,
-          "color": 16773590,
+          "color": 16770756,
           "intensity": 45,
           "cone": 9.0,
           "yaw": -144.16235,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -260,7 +422,9 @@
           "cone": 4.0,
           "yaw": -153.43495,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -269,12 +433,14 @@
           "z": -2,
           "name": "rampe3",
           "lit": true,
-          "color": 16761963,
+          "color": 16742938,
           "intensity": 45,
           "cone": 13.0,
           "yaw": 68.19859,
           "pitch": -28.611586,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -283,12 +449,14 @@
           "z": -6,
           "name": "galerie2",
           "lit": true,
-          "color": 16773590,
+          "color": 16757575,
           "intensity": 55,
           "cone": 10.0,
           "yaw": 4.763642,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -297,12 +465,14 @@
           "z": 3,
           "name": "face2",
           "lit": true,
-          "color": 16773590,
+          "color": 16770756,
           "intensity": 80,
           "cone": 6.0,
           "yaw": -104.03625,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -311,12 +481,14 @@
           "z": 12,
           "name": "table1",
           "lit": true,
-          "color": 16773590,
-          "intensity": 85,
-          "cone": 10.0,
+          "color": 16770756,
+          "intensity": 100,
+          "cone": 16.0,
           "yaw": 144.68878,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -325,12 +497,14 @@
           "z": -3,
           "name": "face3",
           "lit": true,
-          "color": 16773590,
+          "color": 16770756,
           "intensity": 80,
           "cone": 6.0,
           "yaw": -75.96375,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -344,7 +518,9 @@
           "cone": 4.0,
           "yaw": -26.565052,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -353,12 +529,14 @@
           "z": 6,
           "name": "galerie1",
           "lit": true,
-          "color": 16773590,
+          "color": 16757575,
           "intensity": 55,
           "cone": 10.0,
           "yaw": 175.23636,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -367,12 +545,14 @@
           "z": 8,
           "name": "rampe1",
           "lit": true,
-          "color": 16761963,
+          "color": 16742938,
           "intensity": 45,
           "cone": 13.0,
           "yaw": 159.44395,
           "pitch": -24.74259,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -381,12 +561,14 @@
           "z": 2,
           "name": "rampe2",
           "lit": true,
-          "color": 16761963,
+          "color": 16742938,
           "intensity": 45,
           "cone": 13.0,
           "yaw": 111.80141,
           "pitch": -28.611586,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -395,12 +577,14 @@
           "z": 9,
           "name": "contre1",
           "lit": true,
-          "color": 16761963,
+          "color": 16751150,
           "intensity": 45,
           "cone": 5.0,
           "yaw": 142.12502,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -409,12 +593,14 @@
           "z": -8,
           "name": "rampe4",
           "lit": true,
-          "color": 16761963,
+          "color": 16742938,
           "intensity": 45,
           "cone": 13.0,
           "yaw": 20.556046,
           "pitch": -24.74259,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -423,12 +609,14 @@
           "z": -9,
           "name": "face4",
           "lit": true,
-          "color": 16773590,
+          "color": 16770756,
           "intensity": 45,
           "cone": 9.0,
           "yaw": -35.837654,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -437,12 +625,14 @@
           "z": -12,
           "name": "table2",
           "lit": true,
-          "color": 16773590,
-          "intensity": 85,
-          "cone": 10.0,
+          "color": 16770756,
+          "intensity": 100,
+          "cone": 16.0,
           "yaw": 35.311214,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -451,12 +641,142 @@
           "z": -9,
           "name": "contre2",
           "lit": true,
-          "color": 16761963,
+          "color": 16751150,
           "intensity": 45,
           "cone": 5.0,
           "yaw": 37.874985,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": 12,
+          "name": "assise1",
+          "lit": true,
+          "color": 16769200,
+          "intensity": 100,
+          "cone": 6.0,
+          "yaw": 167.471,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": 12,
+          "name": "assise2",
+          "lit": true,
+          "color": 16769200,
+          "intensity": 100,
+          "cone": 6.0,
+          "yaw": -174.289,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 0,
+          "name": "assise3",
+          "lit": true,
+          "color": 16769200,
+          "intensity": 100,
+          "cone": 6.0,
+          "yaw": -90.0,
+          "pitch": 69.018,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": -12,
+          "name": "assise4",
+          "lit": true,
+          "color": 16769200,
+          "intensity": 100,
+          "cone": 6.0,
+          "yaw": -5.711,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": -12,
+          "name": "assise5",
+          "lit": true,
+          "color": 16769200,
+          "intensity": 100,
+          "cone": 6.0,
+          "yaw": 12.529,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": 3,
+          "name": "dos1",
+          "lit": true,
+          "color": 16757575,
+          "intensity": 60,
+          "cone": 5.0,
+          "yaw": 110.556,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": -3,
+          "name": "dos2",
+          "lit": true,
+          "color": 16757575,
+          "intensity": 60,
+          "cone": 5.0,
+          "yaw": 69.444,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 0,
+          "name": "galerie3",
+          "lit": true,
+          "color": 16757575,
+          "intensity": 55,
+          "cone": 10.0,
+          "yaw": -90.0,
+          "pitch": 89.11,
+          "follow": "",
+          "beam": true,
+          "pool": true
         }
       ],
       "curtains": {
@@ -473,12 +793,14 @@
           "z": 9,
           "name": "face1",
           "lit": true,
-          "color": 10330580,
+          "color": 14542591,
           "intensity": 60,
           "cone": 5.0,
           "yaw": -144.16235,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -492,7 +814,9 @@
           "cone": 4.0,
           "yaw": -153.43495,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -501,12 +825,14 @@
           "z": -2,
           "name": "rampe3",
           "lit": true,
-          "color": 12884187,
+          "color": 8007423,
           "intensity": 25,
           "cone": 12.0,
           "yaw": 68.19859,
           "pitch": -28.611586,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -515,12 +841,14 @@
           "z": -6,
           "name": "galerie2",
           "lit": false,
-          "color": 16773590,
+          "color": 2769151,
           "intensity": 55,
           "cone": 10.0,
           "yaw": 4.763642,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -529,12 +857,14 @@
           "z": 3,
           "name": "face2",
           "lit": true,
-          "color": 10279404,
+          "color": 14542591,
           "intensity": 40,
           "cone": 5.0,
           "yaw": -104.03625,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -543,12 +873,14 @@
           "z": 12,
           "name": "table1",
           "lit": true,
-          "color": 10279404,
-          "intensity": 45,
-          "cone": 7.0,
+          "color": 14542591,
+          "intensity": 68,
+          "cone": 16.0,
           "yaw": 144.68878,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -557,12 +889,14 @@
           "z": -3,
           "name": "face3",
           "lit": true,
-          "color": 10279404,
+          "color": 14542591,
           "intensity": 40,
           "cone": 5.0,
           "yaw": -75.96375,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -576,7 +910,9 @@
           "cone": 4.0,
           "yaw": -26.565052,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -585,12 +921,14 @@
           "z": 6,
           "name": "galerie1",
           "lit": false,
-          "color": 16773590,
+          "color": 2769151,
           "intensity": 55,
           "cone": 10.0,
           "yaw": 175.23636,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -599,12 +937,14 @@
           "z": 8,
           "name": "rampe1",
           "lit": true,
-          "color": 12884187,
+          "color": 8007423,
           "intensity": 25,
           "cone": 12.0,
           "yaw": 159.44395,
           "pitch": -24.74259,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -613,12 +953,14 @@
           "z": 2,
           "name": "rampe2",
           "lit": true,
-          "color": 12884187,
+          "color": 8007423,
           "intensity": 25,
           "cone": 12.0,
           "yaw": 111.80141,
           "pitch": -28.611586,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -627,12 +969,14 @@
           "z": 9,
           "name": "contre1",
           "lit": true,
-          "color": 10330580,
+          "color": 2769151,
           "intensity": 70,
           "cone": 4.0,
           "yaw": 142.12502,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -641,12 +985,14 @@
           "z": -8,
           "name": "rampe4",
           "lit": true,
-          "color": 12884187,
+          "color": 8007423,
           "intensity": 25,
           "cone": 12.0,
           "yaw": 20.556046,
           "pitch": -24.74259,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -655,12 +1001,14 @@
           "z": -9,
           "name": "face4",
           "lit": true,
-          "color": 10330580,
+          "color": 14542591,
           "intensity": 60,
           "cone": 5.0,
           "yaw": -35.837654,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -669,12 +1017,14 @@
           "z": -12,
           "name": "table2",
           "lit": true,
-          "color": 10279404,
-          "intensity": 45,
-          "cone": 7.0,
+          "color": 14542591,
+          "intensity": 68,
+          "cone": 16.0,
           "yaw": 35.311214,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -683,12 +1033,142 @@
           "z": -9,
           "name": "contre2",
           "lit": true,
-          "color": 10330580,
+          "color": 2769151,
           "intensity": 70,
           "cone": 4.0,
           "yaw": 37.874985,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": 12,
+          "name": "assise1",
+          "lit": true,
+          "color": 14542591,
+          "intensity": 70,
+          "cone": 5.0,
+          "yaw": 167.471,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": 12,
+          "name": "assise2",
+          "lit": true,
+          "color": 14542591,
+          "intensity": 70,
+          "cone": 5.0,
+          "yaw": -174.289,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 0,
+          "name": "assise3",
+          "lit": true,
+          "color": 14542591,
+          "intensity": 70,
+          "cone": 5.0,
+          "yaw": -90.0,
+          "pitch": 69.018,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": -12,
+          "name": "assise4",
+          "lit": true,
+          "color": 14542591,
+          "intensity": 70,
+          "cone": 5.0,
+          "yaw": -5.711,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": -12,
+          "name": "assise5",
+          "lit": true,
+          "color": 14542591,
+          "intensity": 70,
+          "cone": 5.0,
+          "yaw": 12.529,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": 3,
+          "name": "dos1",
+          "lit": true,
+          "color": 2769151,
+          "intensity": 70,
+          "cone": 4.0,
+          "yaw": 110.556,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": -3,
+          "name": "dos2",
+          "lit": true,
+          "color": 2769151,
+          "intensity": 70,
+          "cone": 4.0,
+          "yaw": 69.444,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 0,
+          "name": "galerie3",
+          "lit": false,
+          "color": 2769151,
+          "intensity": 55,
+          "cone": 10.0,
+          "yaw": -90.0,
+          "pitch": 89.11,
+          "follow": "",
+          "beam": true,
+          "pool": true
         }
       ],
       "curtains": {
@@ -705,12 +1185,14 @@
           "z": 9,
           "name": "face1",
           "lit": false,
-          "color": 10330580,
+          "color": 16777215,
           "intensity": 60,
           "cone": 5.0,
           "yaw": -144.16235,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -724,7 +1206,9 @@
           "cone": 4.0,
           "yaw": -153.43495,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -733,12 +1217,14 @@
           "z": -2,
           "name": "rampe3",
           "lit": true,
-          "color": 16773590,
+          "color": 16723563,
           "intensity": 70,
           "cone": 14.0,
           "yaw": 78.11134,
           "pitch": -26.486519,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -752,7 +1238,9 @@
           "cone": 12.0,
           "yaw": 4.763642,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -761,12 +1249,14 @@
           "z": 3,
           "name": "face2",
           "lit": true,
-          "color": 16773590,
+          "color": 16777215,
           "intensity": 30,
           "cone": 6.0,
           "yaw": -104.03625,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -775,12 +1265,14 @@
           "z": 12,
           "name": "table1",
           "lit": true,
-          "color": 16773590,
-          "intensity": 25,
-          "cone": 10.0,
+          "color": 16777215,
+          "intensity": 38,
+          "cone": 16.0,
           "yaw": 144.68878,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -789,12 +1281,14 @@
           "z": -3,
           "name": "face3",
           "lit": true,
-          "color": 16773590,
+          "color": 16777215,
           "intensity": 30,
           "cone": 6.0,
           "yaw": -75.96375,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -808,7 +1302,9 @@
           "cone": 4.0,
           "yaw": -26.565052,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -822,7 +1318,9 @@
           "cone": 12.0,
           "yaw": 175.23636,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -831,12 +1329,14 @@
           "z": 8,
           "name": "rampe1",
           "lit": true,
-          "color": 16773590,
+          "color": 16723563,
           "intensity": 70,
           "cone": 14.0,
           "yaw": 136.84761,
           "pitch": -28.027899,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -845,12 +1345,14 @@
           "z": 2,
           "name": "rampe2",
           "lit": true,
-          "color": 16773590,
+          "color": 16723563,
           "intensity": 70,
           "cone": 14.0,
           "yaw": 101.88866,
           "pitch": -26.486519,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -859,12 +1361,14 @@
           "z": 9,
           "name": "contre1",
           "lit": true,
-          "color": 10330580,
+          "color": 14684206,
           "intensity": 35,
           "cone": 4.0,
           "yaw": 142.12502,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -873,12 +1377,14 @@
           "z": -8,
           "name": "rampe4",
           "lit": true,
-          "color": 16773590,
+          "color": 16723563,
           "intensity": 70,
           "cone": 14.0,
           "yaw": 43.15239,
           "pitch": -28.027899,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -887,12 +1393,14 @@
           "z": -9,
           "name": "face4",
           "lit": false,
-          "color": 10330580,
+          "color": 16777215,
           "intensity": 60,
           "cone": 5.0,
           "yaw": -35.837654,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -901,12 +1409,14 @@
           "z": -12,
           "name": "table2",
           "lit": true,
-          "color": 16773590,
-          "intensity": 25,
-          "cone": 10.0,
+          "color": 16777215,
+          "intensity": 38,
+          "cone": 16.0,
           "yaw": 35.311214,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -915,12 +1425,142 @@
           "z": -9,
           "name": "contre2",
           "lit": true,
-          "color": 10330580,
+          "color": 14684206,
           "intensity": 35,
           "cone": 4.0,
           "yaw": 37.874985,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": 12,
+          "name": "assise1",
+          "lit": true,
+          "color": 16777215,
+          "intensity": 35,
+          "cone": 6.0,
+          "yaw": 167.471,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": 12,
+          "name": "assise2",
+          "lit": true,
+          "color": 16777215,
+          "intensity": 35,
+          "cone": 6.0,
+          "yaw": -174.289,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 0,
+          "name": "assise3",
+          "lit": true,
+          "color": 16777215,
+          "intensity": 35,
+          "cone": 6.0,
+          "yaw": -90.0,
+          "pitch": 69.018,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": -12,
+          "name": "assise4",
+          "lit": true,
+          "color": 16777215,
+          "intensity": 35,
+          "cone": 6.0,
+          "yaw": -5.711,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": -12,
+          "name": "assise5",
+          "lit": true,
+          "color": 16777215,
+          "intensity": 35,
+          "cone": 6.0,
+          "yaw": 12.529,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": 3,
+          "name": "dos1",
+          "lit": true,
+          "color": 14684206,
+          "intensity": 35,
+          "cone": 4.0,
+          "yaw": 110.556,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": -3,
+          "name": "dos2",
+          "lit": true,
+          "color": 14684206,
+          "intensity": 35,
+          "cone": 4.0,
+          "yaw": 69.444,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 0,
+          "name": "galerie3",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 12.0,
+          "yaw": -90.0,
+          "pitch": 89.11,
+          "follow": "",
+          "beam": true,
+          "pool": true
         }
       ],
       "curtains": {
@@ -937,12 +1577,14 @@
           "z": 9,
           "name": "face1",
           "lit": false,
-          "color": 10330580,
+          "color": 16770756,
           "intensity": 60,
           "cone": 5.0,
           "yaw": -144.16235,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -956,7 +1598,9 @@
           "cone": 4.0,
           "yaw": -153.43495,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -965,12 +1609,14 @@
           "z": -2,
           "name": "rampe3",
           "lit": true,
-          "color": 16767334,
+          "color": 16747520,
           "intensity": 75,
           "cone": 14.0,
           "yaw": 78.11134,
           "pitch": -26.486519,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -979,12 +1625,14 @@
           "z": -6,
           "name": "galerie2",
           "lit": true,
-          "color": 16767334,
+          "color": 16761344,
           "intensity": 100,
           "cone": 12.0,
           "yaw": 4.763642,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -993,12 +1641,14 @@
           "z": 3,
           "name": "face2",
           "lit": true,
-          "color": 16767334,
+          "color": 16770756,
           "intensity": 70,
           "cone": 7.0,
           "yaw": -104.03625,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1007,12 +1657,14 @@
           "z": 12,
           "name": "table1",
           "lit": true,
-          "color": 16773590,
-          "intensity": 60,
-          "cone": 10.0,
+          "color": 16770756,
+          "intensity": 90,
+          "cone": 16.0,
           "yaw": 144.68878,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1021,12 +1673,14 @@
           "z": -3,
           "name": "face3",
           "lit": true,
-          "color": 16767334,
+          "color": 16770756,
           "intensity": 70,
           "cone": 7.0,
           "yaw": -75.96375,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1040,7 +1694,9 @@
           "cone": 4.0,
           "yaw": -26.565052,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1049,12 +1705,14 @@
           "z": 6,
           "name": "galerie1",
           "lit": true,
-          "color": 16767334,
+          "color": 16761344,
           "intensity": 100,
           "cone": 12.0,
           "yaw": 175.23636,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1063,12 +1721,14 @@
           "z": 8,
           "name": "rampe1",
           "lit": true,
-          "color": 16767334,
+          "color": 16747520,
           "intensity": 75,
           "cone": 14.0,
           "yaw": 136.84761,
           "pitch": -28.027899,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1077,12 +1737,14 @@
           "z": 2,
           "name": "rampe2",
           "lit": true,
-          "color": 16767334,
+          "color": 16747520,
           "intensity": 75,
           "cone": 14.0,
           "yaw": 101.88866,
           "pitch": -26.486519,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1091,12 +1753,14 @@
           "z": 9,
           "name": "contre1",
           "lit": true,
-          "color": 16767334,
+          "color": 16756736,
           "intensity": 70,
           "cone": 5.0,
           "yaw": 142.12502,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1105,12 +1769,14 @@
           "z": -8,
           "name": "rampe4",
           "lit": true,
-          "color": 16767334,
+          "color": 16747520,
           "intensity": 75,
           "cone": 14.0,
           "yaw": 43.15239,
           "pitch": -28.027899,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1119,12 +1785,14 @@
           "z": -9,
           "name": "face4",
           "lit": false,
-          "color": 10330580,
+          "color": 16770756,
           "intensity": 60,
           "cone": 5.0,
           "yaw": -35.837654,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1133,12 +1801,14 @@
           "z": -12,
           "name": "table2",
           "lit": true,
-          "color": 16773590,
-          "intensity": 60,
-          "cone": 10.0,
+          "color": 16770756,
+          "intensity": 90,
+          "cone": 16.0,
           "yaw": 35.311214,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1147,12 +1817,142 @@
           "z": -9,
           "name": "contre2",
           "lit": true,
-          "color": 16767334,
+          "color": 16756736,
           "intensity": 70,
           "cone": 5.0,
           "yaw": 37.874985,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": 12,
+          "name": "assise1",
+          "lit": true,
+          "color": 16770756,
+          "intensity": 85,
+          "cone": 6.0,
+          "yaw": 167.471,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": 12,
+          "name": "assise2",
+          "lit": true,
+          "color": 16770756,
+          "intensity": 85,
+          "cone": 6.0,
+          "yaw": -174.289,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 0,
+          "name": "assise3",
+          "lit": true,
+          "color": 16770756,
+          "intensity": 85,
+          "cone": 6.0,
+          "yaw": -90.0,
+          "pitch": 69.018,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": -12,
+          "name": "assise4",
+          "lit": true,
+          "color": 16770756,
+          "intensity": 85,
+          "cone": 6.0,
+          "yaw": -5.711,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": -12,
+          "name": "assise5",
+          "lit": true,
+          "color": 16770756,
+          "intensity": 85,
+          "cone": 6.0,
+          "yaw": 12.529,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": 3,
+          "name": "dos1",
+          "lit": true,
+          "color": 16756736,
+          "intensity": 80,
+          "cone": 5.0,
+          "yaw": 110.556,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": -3,
+          "name": "dos2",
+          "lit": true,
+          "color": 16756736,
+          "intensity": 80,
+          "cone": 5.0,
+          "yaw": 69.444,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 0,
+          "name": "galerie3",
+          "lit": true,
+          "color": 16761344,
+          "intensity": 100,
+          "cone": 12.0,
+          "yaw": -90.0,
+          "pitch": 89.11,
+          "follow": "",
+          "beam": true,
+          "pool": true
         }
       ],
       "curtains": {
@@ -1174,7 +1974,9 @@
           "cone": 14.0,
           "yaw": -144.16235,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1188,7 +1990,9 @@
           "cone": 4.0,
           "yaw": -153.43495,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1202,7 +2006,9 @@
           "cone": 14.0,
           "yaw": 68.19859,
           "pitch": -28.611586,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1216,7 +2022,9 @@
           "cone": 10.0,
           "yaw": 4.763642,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1230,7 +2038,9 @@
           "cone": 9.0,
           "yaw": -104.03625,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1240,11 +2050,13 @@
           "name": "table1",
           "lit": true,
           "color": 16773590,
-          "intensity": 95,
-          "cone": 15.0,
+          "intensity": 100,
+          "cone": 16.0,
           "yaw": 144.68878,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1258,7 +2070,9 @@
           "cone": 9.0,
           "yaw": -75.96375,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1272,7 +2086,9 @@
           "cone": 4.0,
           "yaw": -26.565052,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1286,7 +2102,9 @@
           "cone": 10.0,
           "yaw": 175.23636,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1300,7 +2118,9 @@
           "cone": 14.0,
           "yaw": 159.44395,
           "pitch": -24.74259,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1314,7 +2134,9 @@
           "cone": 14.0,
           "yaw": 111.80141,
           "pitch": -28.611586,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1328,7 +2150,9 @@
           "cone": 8.0,
           "yaw": 125.75389,
           "pitch": 20.837305,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1342,7 +2166,9 @@
           "cone": 14.0,
           "yaw": 20.556046,
           "pitch": -24.74259,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1356,7 +2182,9 @@
           "cone": 14.0,
           "yaw": -35.837654,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1366,11 +2194,13 @@
           "name": "table2",
           "lit": true,
           "color": 16773590,
-          "intensity": 95,
-          "cone": 15.0,
+          "intensity": 100,
+          "cone": 16.0,
           "yaw": 35.311214,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1384,7 +2214,137 @@
           "cone": 8.0,
           "yaw": 54.246113,
           "pitch": 20.837305,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": 12,
+          "name": "assise1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 7.0,
+          "yaw": 167.471,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": 12,
+          "name": "assise2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 7.0,
+          "yaw": -174.289,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 0,
+          "name": "assise3",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 7.0,
+          "yaw": -90.0,
+          "pitch": 69.018,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": -12,
+          "name": "assise4",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 7.0,
+          "yaw": -5.711,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": -12,
+          "name": "assise5",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 100,
+          "cone": 7.0,
+          "yaw": 12.529,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": 3,
+          "name": "dos1",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 70,
+          "cone": 6.0,
+          "yaw": 110.556,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": -3,
+          "name": "dos2",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 70,
+          "cone": 6.0,
+          "yaw": 69.444,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 0,
+          "name": "galerie3",
+          "lit": true,
+          "color": 16773590,
+          "intensity": 50,
+          "cone": 10.0,
+          "yaw": -90.0,
+          "pitch": 89.11,
+          "follow": "",
+          "beam": true,
+          "pool": true
         }
       ],
       "curtains": {
@@ -1406,7 +2366,9 @@
           "cone": 14.0,
           "yaw": -144.16235,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1420,7 +2382,9 @@
           "cone": 4.0,
           "yaw": -153.43495,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1429,12 +2393,14 @@
           "z": -2,
           "name": "rampe3",
           "lit": true,
-          "color": 12884187,
+          "color": 9055202,
           "intensity": 30,
           "cone": 13.0,
           "yaw": 68.19859,
           "pitch": -28.611586,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1443,12 +2409,14 @@
           "z": -6,
           "name": "galerie2",
           "lit": true,
-          "color": 13220095,
+          "color": 3812351,
           "intensity": 30,
           "cone": 10.0,
           "yaw": 4.763642,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1462,7 +2430,9 @@
           "cone": 9.0,
           "yaw": -104.03625,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1472,11 +2442,13 @@
           "name": "table1",
           "lit": false,
           "color": 16773590,
-          "intensity": 95,
-          "cone": 15.0,
+          "intensity": 100,
+          "cone": 16.0,
           "yaw": 144.68878,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1490,7 +2462,9 @@
           "cone": 9.0,
           "yaw": -75.96375,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1504,7 +2478,9 @@
           "cone": 4.0,
           "yaw": -26.565052,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1513,12 +2489,14 @@
           "z": 6,
           "name": "galerie1",
           "lit": true,
-          "color": 13220095,
+          "color": 3812351,
           "intensity": 30,
           "cone": 10.0,
           "yaw": 175.23636,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1527,12 +2505,14 @@
           "z": 8,
           "name": "rampe1",
           "lit": true,
-          "color": 12884187,
+          "color": 9055202,
           "intensity": 30,
           "cone": 13.0,
           "yaw": 159.44395,
           "pitch": -24.74259,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1541,12 +2521,14 @@
           "z": 2,
           "name": "rampe2",
           "lit": true,
-          "color": 12884187,
+          "color": 9055202,
           "intensity": 30,
           "cone": 13.0,
           "yaw": 111.80141,
           "pitch": -28.611586,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1555,12 +2537,14 @@
           "z": 9,
           "name": "contre1",
           "lit": true,
-          "color": 10330580,
+          "color": 2776063,
           "intensity": 30,
           "cone": 6.0,
           "yaw": 142.12502,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1569,12 +2553,14 @@
           "z": -8,
           "name": "rampe4",
           "lit": true,
-          "color": 12884187,
+          "color": 9055202,
           "intensity": 30,
           "cone": 13.0,
           "yaw": 20.556046,
           "pitch": -24.74259,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1588,7 +2574,9 @@
           "cone": 14.0,
           "yaw": -35.837654,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1598,11 +2586,13 @@
           "name": "table2",
           "lit": false,
           "color": 16773590,
-          "intensity": 95,
-          "cone": 15.0,
+          "intensity": 100,
+          "cone": 16.0,
           "yaw": 35.311214,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1611,12 +2601,142 @@
           "z": -9,
           "name": "contre2",
           "lit": true,
-          "color": 10330580,
+          "color": 2776063,
           "intensity": 30,
           "cone": 6.0,
           "yaw": 37.874985,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": 12,
+          "name": "assise1",
+          "lit": false,
+          "color": 16769200,
+          "intensity": 60,
+          "cone": 6.0,
+          "yaw": 167.471,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": 12,
+          "name": "assise2",
+          "lit": false,
+          "color": 16769200,
+          "intensity": 60,
+          "cone": 6.0,
+          "yaw": -174.289,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 0,
+          "name": "assise3",
+          "lit": false,
+          "color": 16769200,
+          "intensity": 60,
+          "cone": 6.0,
+          "yaw": -90.0,
+          "pitch": 69.018,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": -12,
+          "name": "assise4",
+          "lit": false,
+          "color": 16769200,
+          "intensity": 60,
+          "cone": 6.0,
+          "yaw": -5.711,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": -12,
+          "name": "assise5",
+          "lit": false,
+          "color": 16769200,
+          "intensity": 60,
+          "cone": 6.0,
+          "yaw": 12.529,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": 3,
+          "name": "dos1",
+          "lit": true,
+          "color": 2776063,
+          "intensity": 30,
+          "cone": 5.0,
+          "yaw": 110.556,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": -3,
+          "name": "dos2",
+          "lit": true,
+          "color": 2776063,
+          "intensity": 30,
+          "cone": 5.0,
+          "yaw": 69.444,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 0,
+          "name": "galerie3",
+          "lit": true,
+          "color": 3812351,
+          "intensity": 30,
+          "cone": 10.0,
+          "yaw": -90.0,
+          "pitch": 89.11,
+          "follow": "",
+          "beam": true,
+          "pool": true
         }
       ],
       "curtains": {
@@ -1633,12 +2753,14 @@
           "z": 9,
           "name": "face1",
           "lit": false,
-          "color": 16773590,
+          "color": 16770756,
           "intensity": 80,
           "cone": 14.0,
           "yaw": -144.16235,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1652,7 +2774,9 @@
           "cone": 4.0,
           "yaw": -153.43495,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1661,12 +2785,14 @@
           "z": -2,
           "name": "rampe3",
           "lit": true,
-          "color": 14919390,
+          "color": 16732067,
           "intensity": 40,
           "cone": 14.0,
           "yaw": 68.19859,
           "pitch": -28.611586,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1675,12 +2801,14 @@
           "z": -6,
           "name": "galerie2",
           "lit": true,
-          "color": 13220095,
+          "color": 10178047,
           "intensity": 40,
           "cone": 10.0,
           "yaw": 4.763642,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1689,12 +2817,14 @@
           "z": 3,
           "name": "face2",
           "lit": true,
-          "color": 16369108,
+          "color": 16770756,
           "intensity": 35,
           "cone": 8.0,
           "yaw": -104.03625,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1703,12 +2833,14 @@
           "z": 12,
           "name": "table1",
           "lit": true,
-          "color": 13220095,
-          "intensity": 40,
-          "cone": 12.0,
+          "color": 16770756,
+          "intensity": 60,
+          "cone": 16.0,
           "yaw": 144.68878,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1717,12 +2849,14 @@
           "z": -3,
           "name": "face3",
           "lit": true,
-          "color": 16369108,
+          "color": 16770756,
           "intensity": 35,
           "cone": 8.0,
           "yaw": -75.96375,
           "pitch": 43.98223,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1736,7 +2870,9 @@
           "cone": 4.0,
           "yaw": -26.565052,
           "pitch": 21.966795,
-          "follow": "@rang:1"
+          "follow": "@rang:1",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1745,12 +2881,14 @@
           "z": 6,
           "name": "galerie1",
           "lit": true,
-          "color": 13220095,
+          "color": 10178047,
           "intensity": 40,
           "cone": 10.0,
           "yaw": 175.23636,
           "pitch": 45.079365,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1759,12 +2897,14 @@
           "z": 8,
           "name": "rampe1",
           "lit": true,
-          "color": 14919390,
+          "color": 16732067,
           "intensity": 40,
           "cone": 14.0,
           "yaw": 159.44395,
           "pitch": -24.74259,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1773,12 +2913,14 @@
           "z": 2,
           "name": "rampe2",
           "lit": true,
-          "color": 14919390,
+          "color": 16732067,
           "intensity": 40,
           "cone": 14.0,
           "yaw": 111.80141,
           "pitch": -28.611586,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1787,12 +2929,14 @@
           "z": 9,
           "name": "contre1",
           "lit": false,
-          "color": 10330580,
+          "color": 10178047,
           "intensity": 30,
           "cone": 6.0,
           "yaw": 142.12502,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1801,12 +2945,14 @@
           "z": -8,
           "name": "rampe4",
           "lit": true,
-          "color": 14919390,
+          "color": 16732067,
           "intensity": 40,
           "cone": 14.0,
           "yaw": 20.556046,
           "pitch": -24.74259,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1815,12 +2961,14 @@
           "z": -9,
           "name": "face4",
           "lit": false,
-          "color": 16773590,
+          "color": 16770756,
           "intensity": 80,
           "cone": 14.0,
           "yaw": -35.837654,
           "pitch": 48.925114,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1829,12 +2977,14 @@
           "z": -12,
           "name": "table2",
           "lit": true,
-          "color": 13220095,
-          "intensity": 40,
-          "cone": 12.0,
+          "color": 16770756,
+          "intensity": 60,
+          "cone": 16.0,
           "yaw": 35.311214,
           "pitch": 40.898323,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
         },
         {
           "world": "minecraft:overworld",
@@ -1843,12 +2993,142 @@
           "z": -9,
           "name": "contre2",
           "lit": false,
-          "color": 10330580,
+          "color": 10178047,
           "intensity": 30,
           "cone": 6.0,
           "yaw": 37.874985,
           "pitch": 23.941729,
-          "follow": ""
+          "follow": "",
+          "beam": true,
+          "pool": true
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": 12,
+          "name": "assise1",
+          "lit": true,
+          "color": 16770756,
+          "intensity": 40,
+          "cone": 6.0,
+          "yaw": 167.471,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": 12,
+          "name": "assise2",
+          "lit": true,
+          "color": 16770756,
+          "intensity": 40,
+          "cone": 6.0,
+          "yaw": -174.289,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 74,
+          "y": -46,
+          "z": 0,
+          "name": "assise3",
+          "lit": true,
+          "color": 16770756,
+          "intensity": 40,
+          "cone": 6.0,
+          "yaw": -90.0,
+          "pitch": 69.018,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 79,
+          "y": -46,
+          "z": -12,
+          "name": "assise4",
+          "lit": true,
+          "color": 16770756,
+          "intensity": 40,
+          "cone": 6.0,
+          "yaw": -5.711,
+          "pitch": 52.373,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 84,
+          "y": -46,
+          "z": -12,
+          "name": "assise5",
+          "lit": true,
+          "color": 16770756,
+          "intensity": 40,
+          "cone": 6.0,
+          "yaw": 12.529,
+          "pitch": 54.734,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": 3,
+          "name": "dos1",
+          "lit": false,
+          "color": 10178047,
+          "intensity": 30,
+          "cone": 5.0,
+          "yaw": 110.556,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 94,
+          "y": -46,
+          "z": -3,
+          "name": "dos2",
+          "lit": false,
+          "color": 10178047,
+          "intensity": 30,
+          "cone": 5.0,
+          "yaw": 69.444,
+          "pitch": 54.408,
+          "follow": "",
+          "beam": true,
+          "pool": false
+        },
+        {
+          "world": "minecraft:overworld",
+          "x": 64,
+          "y": -46,
+          "z": 0,
+          "name": "galerie3",
+          "lit": true,
+          "color": 10178047,
+          "intensity": 40,
+          "cone": 10.0,
+          "yaw": -90.0,
+          "pitch": 89.11,
+          "follow": "",
+          "beam": true,
+          "pool": true
         }
       ],
       "curtains": {
