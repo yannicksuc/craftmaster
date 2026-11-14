@@ -540,3 +540,23 @@ pendant le travail, à côté de la place de l'icône de Voice Chat. ✔
 
 Tests automatiques : `AgentBridgeTest` (noms entre guillemets, lignes de conduite refusées, adresses masquées) ;
 `tools/voice-regie/tests/test_agent.py` (relais aller-retour, outil inconnu, jeu parti, routage `agent.request`).
+
+## 14. Halos et faisceaux des projecteurs sur le sol (vérifiés en jeu sur 26.2 le 14/11/2026)
+Serveur `:26.2:runServer` (jeu 26401, RCON 26402) + client LordFinn `scripts\dev-client.ps1 -Version 26.2 -Server
+localhost:26401` (pont MCP 26341). Décor : sol de tapis rouge, lit, dalles, planches, marches, mur, six projecteurs
+suspendus (cônes 3 à 12°, inclinaisons 25 à 89°, trois couleurs). « Vidéos » : rafales de captures MCP le long de
+trajets de caméra (`tp` par RCON entre deux captures), regardées en planche-contact.
+
+| Cas | Résultat | |
+|---|---|---|
+| À hauteur d'homme en longeant le lit, halo au pied du lit | halo lisse, faisceau éteint avant le tapis et le lit | ✔ |
+| Dans le faisceau vertical, en montant et en tournant | pas de dents ni de coupure, que l'on soit dedans ou dehors | ✔ |
+| Au ras du tapis (œil à 0,35 bloc) en reculant de 2 à 30 blocs | halo stable à toutes les distances | ✔ |
+| Tour du décor à 32 blocs, en montant | halos et faisceaux propres | ✔ |
+| Travelling de 5 cm par image à 20 blocs, angle rasant, différence image à image | seuls les bords des blocs bougent, aucun grésillement sur les halos | ✔ |
+
+Corrigé : le halo flottait d'un ou deux centièmes de bloc au-dessus du sol, trop peu selon la distance et l'angle
+(il se battait avec le tapis) : il est désormais avancé dans le test de profondeur comme les fissures de bloc
+(`SpotLightRenderType.pool()`). Le faisceau était coupé net par le sol, une marche ou un lit, en dents de scie selon
+le point de vue : chaque facette du cône est tracée jusqu'au bloc qu'elle rencontre et s'éteint juste avant
+(`BeamEdges`). Non vérifié : avec un pack de shaders Iris (le halo garde alors son petit décalage).
