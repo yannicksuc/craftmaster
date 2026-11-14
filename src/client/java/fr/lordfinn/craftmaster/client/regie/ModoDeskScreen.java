@@ -171,14 +171,14 @@ public class ModoDeskScreen extends Screen {
     }
 
     /** Where the labels of the Cameras tab go (set by the layout, read when drawing). */
-    private int directionLabelY, followLabelY;
+    private int directionLabelY, splitLabelY, followLabelY;
 
     private void cameras(int y) {
         JsonObject shot = state.has("shot") ? state.getAsJsonObject("shot") : new JsonObject();
         String kind = shot.has("kind") ? shot.get("kind").getAsString() : "none";
         String onAir = shot.has("camera") ? shot.get("camera").getAsString() : "";
         String followed = shot.has("player") ? shot.get("player").getAsString() : "";
-        // Split screen of two (Ctrl+click): both tiles on air, left then right
+        // Split screen (Ctrl+click adds / removes a shot): every tile on air, the main shot first
         List<String> split = new ArrayList<>();
         if (kind.equals("mosaic") && shot.has("tiles")) for (JsonElement e : shot.getAsJsonArray("tiles")) split.add(e.getAsString());
         // The shots: a preview tile each (5 per row, 16:9), the one on air framed in red
@@ -187,12 +187,14 @@ public class ModoDeskScreen extends Screen {
             JsonObject c = e.getAsJsonObject();
             String key = c.get("key").getAsString();
             String name = c.get("name").getAsString();
-            int side = split.size() == 2 ? split.indexOf(key) : -1;
-            String badge = kind.equals("camera") && key.equals(onAir) ? "● DIRECT" : side == 0 ? "● DIRECT G" : side == 1 ? "● DIRECT D" : "";
+            int place = split.indexOf(key);
+            boolean live = kind.equals("camera") && key.equals(onAir) || place >= 0;
             ShotTile tile = new ShotTile(left + 6 + (i % cols) * (tw + gap), y + (i / cols) * (th + gap), tw, th, key,
-                    c.get("n").getAsInt(), name.isEmpty() ? c.get("role").getAsString() : name, badge,
-                    pair -> run("camera.cut", "camera", key, "pair", pair));
-            tile.setTooltip(Tooltip.create(Component.literal(c.get("lieu").getAsString() + "\n").append(t(side >= 0 ? "unpair.tip" : "pair.tip"))));
+                    c.get("n").getAsInt(), name.isEmpty() ? c.get("role").getAsString() : name, live,
+                    place < 0 ? ShotTile.NO_STAR : place == 0 ? ShotTile.MAIN : ShotTile.STAR,
+                    pair -> run("camera.cut", "camera", key, "pair", pair), () -> run("camera.split", "main", key));
+            tile.setTooltip(Tooltip.create(Component.literal(c.get("lieu").getAsString() + "\n").append(t(place >= 0 ? "unpair.tip" : "pair.tip"))
+                    .append(place > 0 ? Component.literal("\n").append(t("main.tip")) : Component.empty())));
             addRenderableWidget(tile);
             if (++i >= 15) break;
         }
@@ -217,6 +219,17 @@ public class ModoDeskScreen extends Screen {
                     () -> run("camera.transition", "transition", tr)).on(() -> tr.equals(transition)));
             b.setTooltip(Tooltip.create(t("transition.tip")));
             tx += tb + 3;
+        }
+        y += 26;
+        // Layout of the split screens: the one on air now, and the next one
+        splitLabelY = y + 6;
+        String layout = state.has("layout") ? state.get("layout").getAsString() : "cadres";
+        int lx = left + 66, lb = (left + w - 6 - lx - 2 * 3) / 3;
+        for (String l : List.of("cadres", "bord", "principal")) {
+            UiButton b = addRenderableWidget(UiButton.of(lx, y, lb, 20, t("layout." + l), () -> run("camera.split", "layout", l))
+                    .on(() -> l.equals(layout)));
+            b.setTooltip(Tooltip.create(t("layout." + l + ".tip")));
+            lx += lb + 3;
         }
         y += 26;
         followLabelY = y + 6;
@@ -350,6 +363,7 @@ public class ModoDeskScreen extends Screen {
             case SCENE -> drawScene(g);
             case CAMERAS -> {
                 g.text(font, t("direction"), left + 8, directionLabelY, DIM, false);
+                g.text(font, t("split"), left + 8, splitLabelY, DIM, false);
                 if (!array("cast").isEmpty()) g.text(font, t("follow"), left + 8, followLabelY, DIM, false);
                 if (array("cameras").isEmpty()) g.text(font, t("no_cameras"), left + 8, top + 52, DIM, false);
             }

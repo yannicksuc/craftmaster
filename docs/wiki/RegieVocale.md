@@ -35,6 +35,8 @@ besoin de rien).
 | « archive la partie 1 », « crée la saison 5 », « cache le classement » | saisons / parties |
 | « caméra 2 », « plan large », « plan sur le trône », « le podium », « caméra 3 en fondu » | réalisation TV : plan à l'antenne ([Réalisation](Realisation.md)) |
 | « suis Ensuri », « réalisation automatique » | plan qui suit un joueur, réalisation auto |
+| « mets la 3 et la 5 côte à côte », « ajoute la 4 », « ajoute la caméra galerie en petit », « retire la 3 » | écran partagé de plans choisis, 6 au plus ([Régie des modos](RegieModos.md#plusieurs-plans-à-lantenne-écran-partagé)) |
+| « la 2 en principal » / « la 2 en grand », « coupe en deux » / « bord à bord », « mets-les dans des cadres », « repasse en un seul plan » | plan principal, disposition, retour à un seul plan |
 | « générique », « générique de fin », « montre la tâche sur le stream », « montre les scores » | générique, habillage de la diffusion |
 | « la tâche du pont : construisez le pont le plus long… » / « ajoute à la tâche : … » | dicter la tâche ([Tâches](Taches.md)) |
 | « révèle la tâche » / « montre la tâche » / « donne les enveloppes » | révéler, carte à l'écran, enveloppes aux candidats |

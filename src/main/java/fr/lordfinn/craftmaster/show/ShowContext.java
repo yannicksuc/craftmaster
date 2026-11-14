@@ -149,7 +149,9 @@ public final class ShowContext {
             case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_CAMERA -> "camera " + shot.camera();
             case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_FOLLOW -> "follow " + shot.player();
             case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_PATH -> "path " + shot.camera();
-            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_MOSAIC -> "mosaic " + shot.camera();
+            // Split screen: its layout and its cameras, the main shot first ("mosaic principal studio:3,studio:5")
+            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_MOSAIC -> "mosaic " + fr.lordfinn.craftmaster.broadcast.SplitLayouts.of(shot.player())
+                    + " " + String.join(",", shot.tiles().stream().map(fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Tile::camera).toList());
             case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_POV -> "pov " + shot.player();
             case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_FREE -> "free";
             default -> "none";

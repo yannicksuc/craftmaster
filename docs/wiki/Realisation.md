@@ -131,13 +131,14 @@ Chaque caméra a aussi une **clé** unique pour la viser de n'importe où : `stu
 - Changer de lieu garde le numéro s'il est libre là-bas (sinon le premier libre) ; le trépied reste où il est.
 - **Réalisation automatique en manche** : quand un candidat marque, ouvre son enveloppe ou buzze, elle coupe sur
   **la caméra de sa zone la plus proche de lui** (sinon le plan qui le suit), puis revient au plan large de la manche.
-- **Écran partagé** : `/cam mosaic` (« écran partagé », touche **0** du client de diffusion) : jusqu'à 4 salles côte à
+- **Écran partagé** : `/cam mosaic` (« écran partagé », touche **0** du client de diffusion) : jusqu'à 6 salles côte à
   côte, chacune par le plan large de sa zone, avec le nom des candidats. `/cam mosaic off` ou 0 pour revenir. Les
   vignettes se rafraîchissent à tour de rôle (une image sur deux, trois ou quatre) : parfait pour des salles où l'on
   construit, moins pour une course rapide. Connu : sur un terrain plat ouvert, une fine ligne orangée peut
   apparaître à l'horizon des vignettes (rien dans des salles fermées).
-- **Deux plans choisis côte à côte** : Ctrl+clic sur un plan de la régie des modos (en jeu ou sur le site), à côté de
-  celui à l'antenne ([Régie des modos](RegieModos.md#deux-plans-à-lantenne-écran-partagé)).
+- **Plans choisis en écran partagé** (2 à 6) : Ctrl+clic sur les plans de la régie des modos (en jeu ou sur le site),
+  ou à la voix (« mets la 3 et la 5 côte à côte ») ; dispositions cadres, bord à bord ou un principal en grand
+  ([Régie des modos](RegieModos.md#plusieurs-plans-à-lantenne-écran-partagé)).
 - `/cam pov Ensuri` (« vue d'Ensuri ») : à travers les yeux d'un joueur.
 
 ## Le menu d'une caméra (clic droit dessus)

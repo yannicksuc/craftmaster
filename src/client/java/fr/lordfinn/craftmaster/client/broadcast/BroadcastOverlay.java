@@ -132,7 +132,7 @@ public final class BroadcastOverlay {
         float w = g.guiWidth() / k, h = CANVAS_H;
 
         // Split screen: the tiles' pictures over the whole frame (labels below, with the other graphics)
-        List<float[]> tiles = DirectorCamera.shown().kind() == BroadcastNetwork.SHOT_MOSAIC ? mosaicLayout(DirectorCamera.shown().tiles().size(), w, h) : List.of();
+        List<float[]> tiles = DirectorCamera.shown().kind() == BroadcastNetwork.SHOT_MOSAIC ? mosaicLayout(DirectorCamera.shown(), w, h) : List.of();
         if (!tiles.isEmpty()) drawMosaicTiles(g, tiles, k);
 
         // Old frame dissolving, dip to black: under the graphics, which stay steady through the cut
@@ -174,29 +174,9 @@ public final class BroadcastOverlay {
 
     // ---- split screen
 
-    /**
-     * Tile rectangles {x0, y0, x1, y1} in canvas units: two side by side, three or four in a 2 × 2 grid (the third
-     * centred on the second row); each keeps the screen's proportions.
-     */
-    static List<float[]> mosaicLayout(int n, float w, float h) {
-        List<float[]> out = new ArrayList<>();
-        n = Math.min(n, Mosaic.MAX);
-        if (n < 2) return out;
-        float margin = 12, gap = 6;
-        if (n == 2) {
-            float tw = (w - 2 * margin - gap) / 2, th = tw * h / w, y0 = (h - th) / 2;
-            out.add(new float[]{margin, y0, margin + tw, y0 + th});
-            out.add(new float[]{margin + tw + gap, y0, margin + 2 * tw + gap, y0 + th});
-            return out;
-        }
-        float th = (h - 2 * margin - gap) / 2, tw = th * w / h, x0 = (w - 2 * tw - gap) / 2;
-        for (int i = 0; i < n; i++) {
-            int row = i / 2, col = i % 2;
-            float x = n == 3 && i == 2 ? (w - tw) / 2 : x0 + col * (tw + gap);
-            float y = margin + row * (th + gap);
-            out.add(new float[]{x, y, x + tw, y + th});
-        }
-        return out;
+    /** Tile rectangles of the split screen on air (its layout: {@link fr.lordfinn.craftmaster.broadcast.SplitLayouts}). */
+    static List<float[]> mosaicLayout(BroadcastNetwork.Shot shot, float w, float h) {
+        return fr.lordfinn.craftmaster.broadcast.SplitLayouts.layout(shot.player(), Math.min(shot.tiles().size(), Mosaic.MAX), w, h);
     }
 
     /** Velvet background, then every tile's last picture (placeholder while it has none yet). */
@@ -210,7 +190,7 @@ public final class BroadcastOverlay {
         pose.popMatrix();
         for (int i = 0; i < tiles.size(); i++) {
             float[] r = tiles.get(i);
-            if (Mosaic.ready(i)) Mosaic.draw(g, i, r[0] * k, r[1] * k, r[2] * k, r[3] * k);
+            if (Mosaic.ready(i)) Mosaic.draw(g, i, r[0] * k, r[1] * k, r[2] * k, r[3] * k, r[4], r[5], r[6], r[7]);
             else g.fill(Math.round(r[0] * k), Math.round(r[1] * k), Math.round(r[2] * k), Math.round(r[3] * k), 0xFF120306);
         }
     }
