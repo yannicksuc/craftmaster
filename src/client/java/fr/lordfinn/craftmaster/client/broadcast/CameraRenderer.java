@@ -195,12 +195,12 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
             }
             trail(e, p, colour, main, s.trail);
         }
-        // Past both ends of the edited travelling (Axiom on): a pale square of its colour where a next step could go
+        // The dotted path going on past both ends of the edited travelling (Axiom on), drawn like the path itself
         if (gizmos) for (var h : fr.lordfinn.craftmaster.client.studio.TravellingEdit.handles()) {
             fr.lordfinn.craftmaster.camera.CameraPath hp = ShowStateClient.path(h.path());
             if (hp == null || !hp.camera().equals(key) || h.lit()) continue;
-            s.dots.add(new float[]{(float) (h.x() - e.getX()), (float) (h.y() - e.getY()), (float) (h.z() - e.getZ()), 0, 0,
-                    tint(fr.lordfinn.craftmaster.client.studio.TravellingEdit.colourOf(hp), 0x50), 3.6f});
+            s.trail.add(new float[]{(float) (h.x() - e.getX()), (float) (h.y() - e.getY()), (float) (h.z() - e.getZ()),
+                    tint(fr.lordfinn.craftmaster.client.studio.TravellingEdit.colourOf(hp), 0xC0), 1.8f});
         }
         // The ghost of a step about to be added, white
         var preview = fr.lordfinn.craftmaster.client.studio.TravellingEdit.preview();

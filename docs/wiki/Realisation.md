@@ -152,8 +152,8 @@ l'écran, garde la scène en vue :
 - **Édition au gizmo d'Axiom** (Axiom installé et activé) : le même outil que pour une entité d'affichage.
   - **clic gauche sur une étape** : elle prend le gizmo d'Axiom ; les **flèches et plans** la déplacent, l'**anneau
     horizontal** la tourne à gauche / à droite, l'**anneau de côté** vers le haut / le bas ;
-  - aux **deux bouts** du travelling, un **carré pâle** de sa couleur, à la même distance que le tronçon d'à côté
-    (un plan fixe : un de chaque côté) : **clic** = une étape là, au début ou à la fin ;
+  - le trajet en pointillés **continue au-delà des deux bouts** (un plan fixe : de chaque côté) : **clic** sur un de
+    ces points = une étape là, au début ou à la fin ;
   - **clic sur le trajet en pointillés** : une étape à cet endroit (place et visée du trajet, la durée du tronçon
     partagée, le reste du minutage ne bouge pas) ;
   - **clic droit sur une étape** : l'éditeur sur cette étape ; **Suppr** : la retirer (l'étape suivante reprend sa

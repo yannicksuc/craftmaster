@@ -42,13 +42,9 @@ import java.util.Set;
 public final class TravellingGizmos {
 
     private static final TravellingGizmos INSTANCE = new TravellingGizmos();
-    /** How far beside a fixed shot the places for a next step are (blocks). */
-    private static final double NEXT_GAP = 3.0;
-
-    /** The spacing of a next step: the travelling's own, within reason. */
-    private static double gap(double segment) {
-        return Math.max(1.0, Math.min(12.0, segment));
-    }
+    /** The dotted path past each end: this many dots, as far apart as the path's own (blocks). */
+    private static final int NEXT_DOTS = 8;
+    private static final double DOT_SPACING = 0.35;
 
     /** Dev client (DevInput): the left button held, in place of the real one (null: the real one). */
     public static Boolean devLeft;
@@ -197,23 +193,26 @@ public final class TravellingGizmos {
             }
             int n = p.steps().size();
             Vec3 first = stepVec(p, 0), last = stepVec(p, n - 1);
+            // The dotted path goes on past both ends (a fixed shot: to its left and right); a click on one of these dots
+            // adds a step there, at the start or at the end
+            Vec3 after, before;
             if (n == 1) {
-                // A fixed shot: to its left and to its right
                 double yaw = Math.toRadians(TravellingEdit.pose(p, 0).yaw());
-                Vec3 right = new Vec3(-Math.cos(yaw), 0, -Math.sin(yaw)).scale(NEXT_GAP);
-                nextHandles.put(name + "#before", new Handle(name, 0, first.subtract(right)));
-                nextHandles.put(name + "#after", new Handle(name, 1, first.add(right)));
+                after = new Vec3(-Math.cos(yaw), 0, -Math.sin(yaw));
+                before = after.scale(-1);
             } else {
-                // Further along the way it goes, at both ends, as far as the step before it (the same spacing)
-                Vec3 out = last.subtract(stepVec(p, n - 2)), in = first.subtract(stepVec(p, 1));
-                if (out.lengthSqr() > 1e-6) nextHandles.put(name + "#after", new Handle(name, n, last.add(out.normalize().scale(gap(out.length())))));
-                if (in.lengthSqr() > 1e-6) nextHandles.put(name + "#before", new Handle(name, 0, first.add(in.normalize().scale(gap(in.length())))));
+                after = last.subtract(stepVec(p, n - 2));
+                before = first.subtract(stepVec(p, 1));
+            }
+            for (int k = 1; k <= NEXT_DOTS; k++) {
+                if (after.lengthSqr() > 1e-6) nextHandles.put(name + "#after" + k, new Handle(name, n, last.add(after.normalize().scale(k * DOT_SPACING))));
+                if (before.lengthSqr() > 1e-6) nextHandles.put(name + "#before" + k, new Handle(name, 0, first.add(before.normalize().scale(k * DOT_SPACING))));
             }
         }
         handles = nextHandles;
         if (!busy && look != null)
             for (Map.Entry<String, Handle> e : handles.entrySet()) {
-                double along = pick(eye, look, e.getValue().home(), 0.2);
+                double along = pick(eye, look, e.getValue().home(), 0.12);
                 if (along < bestHandle) {
                     bestHandle = along;
                     hoverHandle = e.getKey();
