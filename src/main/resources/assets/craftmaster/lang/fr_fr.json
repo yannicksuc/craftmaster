@@ -1113,6 +1113,5 @@
   "message.craftmaster.pose_renamed": "Pose « %s » renommée « %s »",
   "message.craftmaster.pose_rename_taken": "Impossible de renommer : « %s » est pris ou vide",
   "screen.craftmaster.pose.tool.string": "Ficelle : clique où l'attacher (F) · 0 : retour en automatique",
-  "screen.craftmaster.pose.string_head": "Ficelle · clique où l'attacher",
-  "screen.craftmaster.pose.string_head_auto": "Ficelle (auto) · clique pour l'attacher"
+  "screen.craftmaster.pose.string": "Ficelle"
 }

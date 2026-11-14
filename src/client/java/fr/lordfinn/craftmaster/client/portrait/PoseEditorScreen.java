@@ -608,8 +608,9 @@ public class PoseEditorScreen extends Screen {
 
         // Header: the part being edited and the axis of the wheel / arrows; footer: how to use the mouse
         Component part = group.label().copy().withStyle(ChatFormatting.YELLOW);
+        // String tool on: just its name, like a part's (the tool's tooltip says how it works)
         Component head = placingString
-                ? Component.translatable(editing.attach() == null ? "screen.craftmaster.pose.string_head_auto" : "screen.craftmaster.pose.string_head")
+                ? Component.translatable("screen.craftmaster.pose.string").withStyle(ChatFormatting.YELLOW)
                 : Component.translatable("screen.craftmaster.pose.preview_head", part, wheelAxis.name());
         g.text(font, head, px0 + 4, py0 + 4, 0xFFFFFFFF);
         Component help = Component.translatable("screen.craftmaster.pose.help_short").withStyle(ChatFormatting.GRAY);
