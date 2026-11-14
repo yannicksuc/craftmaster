@@ -313,9 +313,10 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         // portraitOrigin puts right under the hook (and the centre of gravity right under the knot)
         float knotY = (float) -s.hangLength;
         // The runner takes the light under the ceiling; the string the brighter of that and the frame's
-        int hookLight = s.highlighted ? light : s.hookLight;
-        int stringLight = LightCoordsUtil.pack(Math.max(LightCoordsUtil.block(light), LightCoordsUtil.block(hookLight)),
-                Math.max(LightCoordsUtil.sky(light), LightCoordsUtil.sky(hookLight)));
+        // Never pitch black: on a dark stage a string lit by nothing read as a black line (some lit, some not)
+        int hookLight = s.highlighted ? light : atLeast(s.hookLight, MIN_RIG_LIGHT);
+        int stringLight = atLeast(LightCoordsUtil.pack(Math.max(LightCoordsUtil.block(light), LightCoordsUtil.block(hookLight)),
+                Math.max(LightCoordsUtil.sky(light), LightCoordsUtil.sky(hookLight))), MIN_RIG_LIGHT);
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(FRAME_TEXTURE), (p, c) -> {
             hook(c, p, hookLight);
             string(c, p, knotY, stringLight);
@@ -541,6 +542,13 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         vertex(c, p, x1, y0, z1, u1, vs, w, light, 1, 0, 0); vertex(c, p, x1, y0, z0, u0, vs, w, light, 1, 0, 0);
     }
 
+    /** Block light the hook and the string never go under (they stay readable on a dark stage). */
+    private static final int MIN_RIG_LIGHT = 9;
+
+    private static int atLeast(int packed, int block) {
+        return LightCoordsUtil.pack(Math.max(LightCoordsUtil.block(packed), block), LightCoordsUtil.sky(packed));
+    }
+
     /** Two crossed strips, half a pixel wide, straight down from the runner to the knot (x = z = 0). */
     private static void string(VertexConsumer c, PoseStack.Pose p, float knotY, int light) {
         float top = -2 / 16f, w = 0.25f / 16f;
@@ -548,7 +556,9 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         float u0 = 120, u1 = 121, v0 = 0, v1 = 16;
         for (int side = 0; side < 2; side++) {
             float dx = side == 0 ? w : 0, dz = side == 0 ? 0 : w;
-            float nx = dz / w, nz = dx / w;
+            // The normal of the face as wound (a→b along the strip, then down): the x strip faces -z, the z strip +x.
+            // It was flipped on the x strip: shaders lit it from behind, black from some angles
+            float nx = dz / w, nz = -dx / w;
             // Both faces, so the string shows from every side
             vertex(c, p, -dx, top, -dz, u0, v0, col, light, nx, 0, nz);
             vertex(c, p, dx, top, dz, u1, v0, col, light, nx, 0, nz);
