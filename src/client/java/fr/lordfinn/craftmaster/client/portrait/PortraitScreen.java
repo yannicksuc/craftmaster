@@ -6,8 +6,10 @@ import fr.lordfinn.craftmaster.portrait.PortraitNetwork;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.CycleButton;
+import fr.lordfinn.craftmaster.client.ui.Theme;
+import fr.lordfinn.craftmaster.client.ui.Ui;
+import fr.lordfinn.craftmaster.client.ui.UiButton;
+import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.input.KeyEvent;
@@ -25,12 +27,11 @@ import java.util.Locale;
  */
 public class PortraitScreen extends Screen {
 
-    private static final int PANEL = 0xD0101018, BORDER = 0xFFFFC23D, LABEL = 0xFFBFBFCF;
+    private static final int LABEL = Theme.TEXT_DIM;
 
     private final PortraitEntity portrait;
     private EditBox season, rankOrPlayer, displayName, skinUrl, hang, turn, windowDepth, windowSize;
-    private CycleButton<Boolean> followsRank, window;
-    private CycleButton<String> pose;
+    private UiButton followsRank;
     private Component error;
     private int left, top;
 
@@ -89,17 +90,14 @@ public class PortraitScreen extends Screen {
     private void keep() {
         if (season == null) return;
         seasonV = season.getValue();
-        if (followsRank.getValue()) rankV = rankOrPlayer.getValue();
+        if (rankMode) rankV = rankOrPlayer.getValue();
         else playerV = rankOrPlayer.getValue();
-        rankMode = followsRank.getValue();
         nameV = displayName.getValue();
         urlV = skinUrl.getValue();
         hangV = hang.getValue();
         turnV = turn.getValue();
-        windowV = window.getValue();
         depthV = windowDepth.getValue();
         sizeV = windowSize.getValue();
-        if (!poseChosen) poseV = pose.getValue();
         poseChosen = false;
     }
 
@@ -118,17 +116,18 @@ public class PortraitScreen extends Screen {
         season = box(x, y, 40, seasonV, "season");
         tip(season, "season_tip");
         y += step;
-        followsRank = addRenderableWidget(CycleButton.booleanBuilder(Component.translatable("screen.craftmaster.portrait.by_rank"),
-                Component.translatable("screen.craftmaster.portrait.by_player"), rankMode).displayOnlyValue()
-                .create(left + 8, y, 80, 20, Component.empty(), (b, v) -> {
-                    if (v) {
-                        playerV = rankOrPlayer.getValue();
-                        rankOrPlayer.setValue(rankV);
-                    } else {
-                        rankV = rankOrPlayer.getValue();
-                        rankOrPlayer.setValue(playerV);
-                    }
-                }));
+        // Follows a rank, or a fixed player: a click switches (the field keeps what each one had)
+        followsRank = addRenderableWidget(UiButton.of(left + 8, y, 80, 20, rankLabel(), () -> {
+            if (rankMode) {
+                rankV = rankOrPlayer.getValue();
+                rankOrPlayer.setValue(playerV == null ? "" : playerV);
+            } else {
+                playerV = rankOrPlayer.getValue();
+                rankOrPlayer.setValue(rankV);
+            }
+            rankMode = !rankMode;
+            followsRank.setMessage(rankLabel());
+        }));
         followsRank.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.portrait.follow_tip")));
         rankOrPlayer = box(x, y, w, rankMode ? rankV : playerV, "follow");
         tip(rankOrPlayer, "follow_tip");
@@ -142,43 +141,65 @@ public class PortraitScreen extends Screen {
         // A pose renamed meanwhile (from the gallery): its new name
         if (!PoseLibraries.client().has(poseV) && PoseLibraries.client().has(PoseLibraries.client().resolve(poseV)))
             poseV = PoseLibraries.client().resolve(poseV);
-        List<String> names = new ArrayList<>(PoseLibraries.client().names());
-        if (!names.contains(poseV)) names.add(0, poseV);
-        pose = addRenderableWidget(CycleButton.<String>builder(Component::literal, poseV).withValues(names).displayOnlyValue()
-                .withTooltip(v -> Tooltip.create(Component.translatable("screen.craftmaster.portrait.pose_tip")))
-                .create(x, y, w - 46, 20, Component.empty(), (b, v) -> PortraitClient.setPreview(portrait.getId(), PoseLibraries.client().get(v))));
-        addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.portrait.edit_pose"), b -> {
+        // The pose: picked in the gallery (shown live on the portrait), or edited
+        String shownPose = font.width(poseV) <= w - 52 ? poseV : font.plainSubstrByWidth(poseV, w - 52 - font.width("…")) + "…";
+        UiButton pose = addRenderableWidget(UiButton.of(x, y, w - 46, 20, Component.literal(shownPose), () -> {
+            keep();
+            minecraft.gui.setScreen(new PoseGalleryScreen(this, poseV, skin(), windowLook(), chosen -> {
+                poseV = chosen;
+                poseChosen = true;
+                PortraitClient.setPreview(portrait.getId(), PoseLibraries.client().get(chosen));
+                rebuildWidgets();
+            }));
+        }));
+        pose.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.portrait.pose_tip")));
+        addRenderableWidget(UiButton.of(x + w - 44, y, 44, 20, Component.translatable("screen.craftmaster.portrait.edit_pose"), () -> {
             keep();
             minecraft.gui.setScreen(new PoseEditorScreen(portrait, this));
-        }).bounds(x + w - 44, y, 44, 20).tooltip(Tooltip.create(Component.translatable("screen.craftmaster.portrait.edit_pose_tip"))).build());
+        })).setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.portrait.edit_pose_tip")));
         y += step;
         hang = box(x, y, 50, hangV, "hang");
         tip(hang, "hang_tip");
         // Exact angle from the wall direction (degrees), and "face me" from the look of the player editing
         turn = box(x + 80, y, 30, turnV, "turn");
         tip(turn, "turn_tip");
-        addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.portrait.face_me"), b -> {
+        addRenderableWidget(UiButton.of(x + 112, y, 18, 20, Component.translatable("screen.craftmaster.portrait.face_me"), () -> {
             var me = minecraft.player;
             if (me == null) return;
             float t = net.minecraft.util.Mth.wrapDegrees(me.getYRot() + 180 - portrait.getFacing().toYRot());
             // Beyond ±90° the wall direction would be the wrong one: the server picks the nearest facing
             turn.setValue(String.valueOf(Math.round(t)));
-        }).bounds(x + 112, y, 18, 20).tooltip(Tooltip.create(Component.translatable("screen.craftmaster.portrait.face_me_tip"))).build());
+        })).setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.portrait.face_me_tip")));
         y += step;
         // Window look: on / off, depth of the room behind the opening (px), its size (% of the opening)
-        window = addRenderableWidget(CycleButton.onOffBuilder(windowV).displayOnlyValue()
-                .withTooltip(v -> Tooltip.create(Component.translatable("screen.craftmaster.portrait.window_tip")))
-                .create(x, y, 42, 20, Component.translatable("screen.craftmaster.portrait.window")));
+        UiButton[] windowButton = new UiButton[1];
+        UiButton window = addRenderableWidget(UiButton.of(x, y, 42, 20, windowLabel(), () -> {
+            windowV = !windowV;
+            windowButton[0].setMessage(windowLabel());
+        }).on(() -> windowV));
+        windowButton[0] = window;
+        window.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.portrait.window_tip")));
         windowDepth = box(x + 46, y, 40, depthV, "window_depth");
         tip(windowDepth, "window_depth");
         windowSize = box(x + 90, y, 40, sizeV, "window_size");
         tip(windowSize, "window_size");
         y += step + 8;
-        addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.portrait.save"), b -> save())
-                .bounds(left + 8, y, 105, 20).build());
-        addRenderableWidget(Button.builder(Component.translatable("gui.cancel"), b -> onClose())
-                .bounds(left + 117, y, 105, 20).build());
+        addRenderableWidget(UiButton.of(left + 8, y, 105, 20, Component.translatable("screen.craftmaster.portrait.save"), this::save));
+        addRenderableWidget(UiButton.of(left + 117, y, 105, 20, Component.translatable("gui.cancel"), this::onClose));
         PortraitClient.setPreview(portrait.getId(), PoseLibraries.client().get(poseV));
+    }
+
+    private Component rankLabel() {
+        return Component.translatable(rankMode ? "screen.craftmaster.portrait.by_rank" : "screen.craftmaster.portrait.by_player");
+    }
+
+    private Component windowLabel() {
+        return Component.translatable(windowV ? "options.on" : "options.off");
+    }
+
+    /** The skin the portrait shows (for the gallery's previews). */
+    private PortraitSkins.Skin skin() {
+        return portrait.anonymous() ? PortraitSkins.defaultSkin() : PortraitSkins.resolve(portrait.shownPlayer(), portrait.skinUrl());
     }
 
     private static void tip(EditBox box, String key) {
@@ -188,7 +209,7 @@ public class PortraitScreen extends Screen {
     /** Enter saves (outside the text boxes' own use of it), like the other forms. */
     @Override
     public boolean keyPressed(KeyEvent e) {
-        if (e.isConfirmation() && !(getFocused() instanceof CycleButton<?>) && !(getFocused() instanceof Button)) {
+        if (e.isConfirmation() && !(getFocused() instanceof AbstractButton)) {
             save();
             return true;
         }
@@ -218,7 +239,7 @@ public class PortraitScreen extends Screen {
         }
         int rank = 0;
         String player = "";
-        if (followsRank.getValue()) {
+        if (rankMode) {
             try {
                 rank = Integer.parseInt(rankOrPlayer.getValue().trim());
             } catch (NumberFormatException e) {
@@ -274,7 +295,7 @@ public class PortraitScreen extends Screen {
             return;
         }
         ClientPlayNetworking.send(new PortraitNetwork.Update(portrait.getId(), s, rank, player, displayName.getValue().trim(), url,
-                pose.getValue(), h, window.getValue(), depth, size, tr));
+                poseV, h, windowV, depth, size, tr));
         onClose();
     }
 
@@ -297,9 +318,7 @@ public class PortraitScreen extends Screen {
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
         int w = 232, h = 232;
-        g.fill(left, top, left + w, top + h, PANEL);
-        g.outline(left, top, w, h, BORDER);
-        g.text(font, Component.translatable("screen.craftmaster.portrait").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), left + 8, top + 8, 0xFFFFFFFF);
+        Ui.panel(g, font, left, top, w, h, Component.translatable("screen.craftmaster.portrait"));
         int y = top + 28, step = 22;
         g.text(font, Component.translatable("screen.craftmaster.portrait.season"), left + 8, y, LABEL);
         y += step * 2;

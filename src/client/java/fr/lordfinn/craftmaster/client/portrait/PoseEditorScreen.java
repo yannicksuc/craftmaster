@@ -1,5 +1,13 @@
 package fr.lordfinn.craftmaster.client.portrait;
 
+import net.minecraft.client.Minecraft;
+
+import fr.lordfinn.craftmaster.client.ui.Theme;
+
+import fr.lordfinn.craftmaster.client.ui.UiButton;
+
+import fr.lordfinn.craftmaster.client.ui.Ui;
+
 import com.mojang.blaze3d.platform.InputConstants;
 import fr.lordfinn.craftmaster.client.compat.ClientCompat;
 import fr.lordfinn.craftmaster.portrait.Pose;
@@ -78,7 +86,7 @@ public class PoseEditorScreen extends Screen {
     private Group group = Group.FIGURE;
     private String name;
     private EditBox nameBox;
-    private Button save, delete, undoButton, redoButton;
+    private UiButton save, delete, undoButton, redoButton;
     private final List<ValueSlider> sliders = new ArrayList<>();
     private int left, top;
 
@@ -204,15 +212,13 @@ public class PoseEditorScreen extends Screen {
         PortraitClient.setPreview(portrait.getId(), editing);
         sliders.clear();
 
-        // Part buttons, 4 per row, with their number key; the selected one is greyed out
+        // Part buttons, 4 per row, with their number key; the selected one is lit
         Group[] groups = Group.values();
         for (int i = 0; i < groups.length; i++) {
             Group g = groups[i];
-            Button b = addRenderableWidget(Button.builder(g.label(), x -> select(g))
-                    .bounds(left + 1 + (i % 4) * 58, top + 18 + (i / 4) * 22, 56, 20)
-                    .tooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.pick_tip", g.label(), String.valueOf(i + 1))))
-                    .build());
-            b.active = g != group;
+            UiButton b = addRenderableWidget(UiButton.of(left + 2 + (i % 4) * 57, top + 21 + (i / 4) * 22, 56, 20, g.label(), () -> select(g))
+                    .on(() -> group == g));
+            b.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.pick_tip", g.label(), String.valueOf(i + 1))));
         }
 
         // Sliders of the selected group, two columns
@@ -236,10 +242,13 @@ public class PoseEditorScreen extends Screen {
                 return editing.withRotation(part, new Rotation(r.x(), r.y(), v));
             });
             if (part.hideable()) {
-                addRenderableWidget(CycleButton.booleanBuilder(Component.translatable("screen.craftmaster.pose.shown"),
-                                Component.translatable("screen.craftmaster.pose.hidden"), !editing.isHidden(part)).displayOnlyValue()
-                        .withTooltip(v -> Tooltip.create(Component.translatable("screen.craftmaster.pose.hide_tip")))
-                        .create(cx1, cy + 22, sw, 20, Component.empty(), (b, v) -> changed(editing.withHidden(part, !v), null)));
+                UiButton shown = addRenderableWidget(UiButton.of(cx1, cy + 22, sw, 20,
+                        Component.translatable(editing.isHidden(part) ? "screen.craftmaster.pose.hidden" : "screen.craftmaster.pose.shown"),
+                        () -> {
+                            changed(editing.withHidden(part, !editing.isHidden(part)), null);
+                            rebuildWidgets();
+                        }).on(() -> editing.isHidden(part)));
+                shown.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.hide_tip")));
             } else {
                 slider(cx1, cy + 22, sw, "scale", 0.5, 2.5, 0.05, () -> editing.scale(), v -> editing.withScale(v));
                 slider(cx0, cy + 44, sw, "offset_x", -24, 24, 0.5, () -> editing.offsetX(), v -> editing.withOffset(v, editing.offsetY(), editing.offsetZ()));
@@ -256,22 +265,21 @@ public class PoseEditorScreen extends Screen {
         nameBox.setValue(name);
         nameBox.setResponder(v -> updateButtons());
         addRenderableWidget(nameBox);
-        save = addRenderableWidget(Button.builder(Component.empty(), b -> save()).bounds(left + 132, y, 98, 20)
-                .tooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.save_tip"))).build());
+        save = addRenderableWidget(UiButton.of(left + 132, y, 98, 20, Component.empty(), this::save));
+        save.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.save_tip")));
         y += 22;
-        delete = addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.pose.delete"), b -> delete())
-                .bounds(left + 2, y, 74, 20).build());
+        delete = addRenderableWidget(UiButton.of(left + 2, y, 74, 20, Component.translatable("screen.craftmaster.pose.delete"), this::delete));
         // The library as a gallery of previews: a click starts from that pose
-        Button gallery = addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.pose.gallery_open"), b -> {
+        UiButton gallery = addRenderableWidget(UiButton.of(left + 78, y, 152, 20, Component.translatable("screen.craftmaster.pose.gallery_open"), () -> {
             name = nameBox.getValue();
             minecraft.gui.setScreen(new PoseGalleryScreen(this, name, skin(), windowLook(), this::startFrom));
-        }).bounds(left + 78, y, 152, 20).tooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.load_tip"))).build());
+        }));
+        gallery.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.load_tip")));
         gallery.active = !PoseLibraries.client().names().isEmpty();
         y += 22;
-        addRenderableWidget(Button.builder(Component.translatable("screen.craftmaster.pose.use"), b -> use())
-                .bounds(left + 2, y, 113, 20).tooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.use_tip"))).build());
-        addRenderableWidget(Button.builder(Component.translatable("gui.done"), b -> onClose())
-                .bounds(left + 117, y, 113, 20).build());
+        addRenderableWidget(UiButton.of(left + 2, y, 113, 20, Component.translatable("screen.craftmaster.pose.use"), this::use))
+                .setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.use_tip")));
+        addRenderableWidget(UiButton.of(left + 117, y, 113, 20, Component.translatable("gui.done"), this::onClose));
 
         // Toolbar under the preview
         int tx = px0 + 2, ty = py0 + ph - TOOL - 2;
@@ -279,18 +287,17 @@ public class PoseEditorScreen extends Screen {
         undoButton = tool(tx, ty, "←", "undo", this::undo);
         redoButton = tool(tx += TOOL + 1, ty, "→", "redo", this::redo);
         tool(tx += TOOL + 1, ty, "↔", "mirror", this::mirror);
-        Button copy = tool(tx += TOOL + 1, ty, "»", "copy_side", this::copySide);
+        UiButton copy = tool(tx += TOOL + 1, ty, "»", "copy_side", this::copySide);
         copy.active = group.part != null && PoseEditing.sided(group.part);
         tool(tx += TOOL + 1, ty, "0", "reset", this::resetPart);
         boolean hidden = group.part != null && editing.isHidden(group.part);
-        Button hide = tool(tx += TOOL + 1, ty, hidden ? "○" : "•", "hide", this::toggleHidden);
+        UiButton hide = tool(tx += TOOL + 1, ty, hidden ? "○" : "•", "hide", this::toggleHidden);
         hide.active = group.part != null && group.part.hideable();
         tool(tx += TOOL + 1, ty, "⌂", "view", this::resetView);
-        Button string = tool(tx += TOOL + 1, ty, "⚓", "string", () -> {
+        tool(tx += TOOL + 1, ty, "⚓", "string", () -> {
             placingString = !placingString;
             rebuildWidgets();
-        });
-        if (placingString) string.setMessage(Component.literal("⚓").withStyle(ChatFormatting.YELLOW));
+        }).on(() -> placingString);
         updateButtons();
     }
 
@@ -301,9 +308,10 @@ public class PoseEditorScreen extends Screen {
                 v -> changed(set.apply(v), historyKey))));
     }
 
-    private Button tool(int x, int y, String symbol, String key, Runnable action) {
-        return addRenderableWidget(Button.builder(Component.literal(symbol), b -> action.run()).bounds(x, y, TOOL, TOOL)
-                .tooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.tool." + key))).build());
+    private UiButton tool(int x, int y, String symbol, String key, Runnable action) {
+        UiButton b = addRenderableWidget(UiButton.of(x, y, TOOL, TOOL, Component.literal(symbol), action));
+        b.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.tool." + key)));
+        return b;
     }
 
     private void resetView() {
@@ -571,19 +579,14 @@ public class PoseEditorScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
-        g.fill(left, top, left + W, top + H, PANEL);
-        g.outline(left, top, W, H, BORDER);
-        g.text(font, Component.translatable("screen.craftmaster.pose_editor").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD),
-                left + 4, top + 5, 0xFFFFFFFF);
-        g.text(font, group.label().copy().withStyle(ChatFormatting.YELLOW), left + 120, top + 5, 0xFFFFFFFF);
+        Ui.panel(g, font, left, top, W, H, Component.translatable("screen.craftmaster.pose_editor"));
         extractPreview(g, mouseX, mouseY);
         super.extractRenderState(g, mouseX, mouseY, partial);
     }
 
     private void extractPreview(GuiGraphicsExtractor g, int mouseX, int mouseY) {
         int boxH = ph - TOOLBAR;
-        g.fill(px0, py0, px0 + pw, py0 + ph, PREVIEW_BG);
-        g.outline(px0, py0, pw, ph, BORDER);
+        Ui.panel(g, font, px0, py0, pw, ph, null);
         PoseHitTest.View view = view();
         hover = drag == Drag.NONE && inPreview(mouseX, mouseY) ? PoseHitTest.pick(editing, view, mouseX, mouseY, slimSkin()) : null;
 
@@ -622,7 +625,7 @@ public class PoseEditorScreen extends Screen {
             g.setTooltipForNextFrame(font, lines, java.util.Optional.empty(), mouseX, mouseY);
         } else if (hover != null && drag == Drag.NONE) {
             Component what = hover.frame() ? Group.FRAME.label() : Group.of(hover.part()).label();
-            fr.lordfinn.craftmaster.client.ui.Ui.tooltip(g, font, Component.translatable("screen.craftmaster.pose.hover", what), mouseX, mouseY);
+            Ui.tooltip(g, font, Component.translatable("screen.craftmaster.pose.hover", what), mouseX, mouseY);
         }
     }
 
@@ -674,6 +677,19 @@ public class PoseEditorScreen extends Screen {
         @Override
         protected void applyValue() {
             onChange.accept(current());
+        }
+
+        /** In the kit's colours: a velvet button, the value as a golden bar along its bottom, a white handle. */
+        @Override
+        public void extractWidgetRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
+            int x = getX(), y = getY(), w = getWidth(), h = getHeight();
+            Ui.button(g, Minecraft.getInstance().font, x, y, w, h, Component.empty(), false, isHoveredOrFocused(), active);
+            int b0 = x + 3, b1 = x + w - 3, by = y + h - 4;
+            int knob = b0 + (int) Math.round((b1 - b0) * value);
+            g.fill(b0, by, b1, by + 2, 0x60FFFFFF);
+            g.fill(b0, by, knob, by + 2, Theme.GOLD);
+            g.fill(knob - 1, by - 2, knob + 1, by + 3, 0xFFFFFFFF);
+            g.centeredText(Minecraft.getInstance().font, getMessage(), x + w / 2, y + (h - 8) / 2 - 1, Theme.TEXT);
         }
     }
 }
