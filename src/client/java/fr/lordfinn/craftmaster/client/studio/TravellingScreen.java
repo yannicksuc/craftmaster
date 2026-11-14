@@ -107,6 +107,16 @@ public class TravellingScreen extends Screen {
         if (ClientPlayNetworking.canSend(TravellingNetwork.Edit.TYPE)) ClientPlayNetworking.send(new TravellingNetwork.Edit(o.toString()));
     }
 
+    /** The camera's menu again (its travellings are listed there). */
+    private void backToCamera() {
+        JsonObject o = new JsonObject();
+        o.addProperty("key", camera());
+        o.addProperty("what", "open");
+        o.addProperty("value", true);
+        if (ClientPlayNetworking.canSend(fr.lordfinn.craftmaster.camera.CameraNetwork.Edit.TYPE))
+            ClientPlayNetworking.send(new fr.lordfinn.craftmaster.camera.CameraNetwork.Edit(o.toString()));
+    }
+
     private void setField(String field, Object value) {
         send("set", "index", selected, "field", field, "value", value);
     }
@@ -151,9 +161,9 @@ public class TravellingScreen extends Screen {
             tooltips(g, mx, my);
             return;
         }
-        // The travelling: its name (click: rename), ✕ delete (twice); the other travellings are in the camera menu
-        int x = lx;
-        String nm = font.plainSubstrByWidth(path(), w - 120);
+        // ◀ back to the camera's menu, the travelling's name (click: rename), ✕ delete (twice)
+        int x = button(g, lx, y, t("back"), false, mx, my, this::backToCamera, null);
+        String nm = font.plainSubstrByWidth(path(), w - 120 - (x - lx));
         boolean nh = mx >= x && mx < x + font.width(nm) + 6 && my >= y && my < y + 14;
         g.text(font, nm, x + 3, y + 3, nh ? Theme.TITLE : GOLD, false);
         hits.add(new Hit(x, y, x + font.width(nm) + 6, y + 14, () -> startText(path(), s -> send("rename", "value", s)), null, null, t("rename")));

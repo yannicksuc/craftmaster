@@ -1086,5 +1086,8 @@
   "screen.craftmaster.travelling.aim_entity": "suit une entité",
   "screen.craftmaster.travelling.entity": "Entité",
   "screen.craftmaster.travelling.entity_tip": "Un nom ou un sélecteur, comme dans les commandes\n(@n[type=sheep], @p, @e[tag=star,limit=1])\nTab : compléter",
-  "screen.craftmaster.travelling.entity_none": "aucune trouvée pour l'instant"
+  "screen.craftmaster.travelling.entity_none": "aucune trouvée pour l'instant",
+  "overlay.craftmaster.travelling.hover_step": "Étape %s · clic gauche : la déplacer · clic droit : ses réglages",
+  "overlay.craftmaster.travelling.hover_camera": "Étape %s (sur la caméra) · clic gauche : la déplacer · clic droit : menu de la caméra",
+  "screen.craftmaster.travelling.back": "◀ Caméra"
 }

@@ -120,6 +120,10 @@ public final class CameraNetwork {
                 if (s != null) fr.lordfinn.craftmaster.broadcast.Director.cut(server, s, -1);
                 return false;
             }
+            // Back to the camera's menu (from its travelling editor)
+            case "open" -> {
+                return true;
+            }
             // Looks where the player looks, staying in place
             case "look" -> Cameras.update(server, key, s -> s.withRotation(player.getYRot(), player.getXRot()));
             case "angle" -> {

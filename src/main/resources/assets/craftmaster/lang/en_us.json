@@ -1086,5 +1086,8 @@
   "screen.craftmaster.travelling.aim_entity": "tracks an entity",
   "screen.craftmaster.travelling.entity": "Entity",
   "screen.craftmaster.travelling.entity_tip": "A name or a selector, as in commands\n(@n[type=sheep], @p, @e[tag=star,limit=1])\nTab: complete",
-  "screen.craftmaster.travelling.entity_none": "none found right now"
+  "screen.craftmaster.travelling.entity_none": "none found right now",
+  "overlay.craftmaster.travelling.hover_step": "Step %s · left click: move it · right click: its settings",
+  "overlay.craftmaster.travelling.hover_camera": "Step %s (at the camera) · left click: move it · right click: the camera's menu",
+  "screen.craftmaster.travelling.back": "◀ Camera"
 }

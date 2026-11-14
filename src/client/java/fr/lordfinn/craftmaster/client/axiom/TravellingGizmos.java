@@ -231,7 +231,16 @@ public final class TravellingGizmos {
             }
         if (hoverHandle != null && bestHandle <= bestStep) hoverCube = null;
         else hoverHandle = null;
-        if (hoverCube != null) TravellingEdit.hover(hoverCube);
+        if (hoverCube != null) {
+            TravellingEdit.hover(hoverCube);
+            // A step right at its camera: the right click is the camera's
+            CameraPath hp = ShowStateClient.path(hoverCube.path());
+            CameraEntity hc = hp == null ? null : camera(mc, hp.camera());
+            CameraPath.Pose hv = hp == null ? null : TravellingEdit.pose(hp, hoverCube.index());
+            boolean atCamera = hc != null && hv != null && hc.lens().distanceToSqr(hv.x(), hv.y(), hv.z()) < 0.09;
+            ScreenRenderHook.setOverlayText(Component.translatable(atCamera ? "overlay.craftmaster.travelling.hover_camera" : "overlay.craftmaster.travelling.hover_step",
+                    hoverCube.index() + 1));
+        }
         // A square under the crosshair: the ghost of the step a click would add
         for (Map.Entry<String, Handle> e : handles.entrySet()) {
             Handle h = e.getValue();
