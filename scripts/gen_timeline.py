@@ -108,6 +108,7 @@ LANG = {
     "screen.craftmaster.spotlight.nobody": ("nobody (fixed)", "personne (fixe)"),
     "screen.craftmaster.spotlight.effect": ("Effect", "Effet"),
     "screen.craftmaster.spotlight.speed": ("Speed", "Vitesse"),
+    "screen.craftmaster.spotlight.angle_tip": ("Click to type it: horizontal vertical (e.g. 35 20), Enter", "Clic pour le taper : horizontal vertical (ex. 35 20), Entrée"),
     "screen.craftmaster.spotlight.hint": ("Wheel on a value · click outside: close", "Molette sur une valeur · clic dehors : fermer"),
     # The players' publish announcement (Show.announcePublished)
     "show.craftmaster.published.you": ("Scores published, what changed for you:", "Scores publiés, ce qui change pour toi :"),

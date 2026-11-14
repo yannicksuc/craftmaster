@@ -997,5 +997,6 @@
   "screen.craftmaster.spotlight.nobody": "nobody (fixed)",
   "screen.craftmaster.spotlight.effect": "Effect",
   "screen.craftmaster.spotlight.speed": "Speed",
-  "screen.craftmaster.spotlight.hint": "Wheel on a value · click outside: close"
+  "screen.craftmaster.spotlight.hint": "Wheel on a value · click outside: close",
+  "screen.craftmaster.spotlight.angle_tip": "Click to type it: horizontal vertical (e.g. 35 20), Enter"
 }

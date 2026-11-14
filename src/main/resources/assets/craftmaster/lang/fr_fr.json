@@ -997,5 +997,6 @@
   "screen.craftmaster.spotlight.nobody": "personne (fixe)",
   "screen.craftmaster.spotlight.effect": "Effet",
   "screen.craftmaster.spotlight.speed": "Vitesse",
-  "screen.craftmaster.spotlight.hint": "Molette sur une valeur · clic dehors : fermer"
+  "screen.craftmaster.spotlight.hint": "Molette sur une valeur · clic dehors : fermer",
+  "screen.craftmaster.spotlight.angle_tip": "Clic pour le taper : horizontal vertical (ex. 35 20), Entrée"
 }

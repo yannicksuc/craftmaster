@@ -37,6 +37,8 @@ public class SpotlightScreen extends Screen {
     private final BlockPos pos;
     private final List<String> follow = new ArrayList<>();
     private EditBox nameBox;
+    /** Typing the aim: "horizontal vertical" in degrees (null: not typing). */
+    private EditBox angleBox;
     private int x0, y0, w, h, labelW = 50;
 
     private record Hit(int x0, int y0, int x1, int y1, Runnable click, Consumer<Double> wheel, Component tip) {}
@@ -142,7 +144,20 @@ public class SpotlightScreen extends Screen {
         // Direction
         g.text(font, t("direction"), lx, y + 3, DIM, false);
         String dir = s.follow().isEmpty() ? Math.round(s.yaw()) + "° / " + Math.round(s.pitch()) + "°" : t("follows_now").getString();
-        g.text(font, dir, vx, y + 3, TEXT, false);
+        if (angleBox == null) {
+            boolean dh = mx >= vx && mx < vr && my >= y && my < y + 12;
+            if (dh) g.fill(vx - 2, y, vr, y + 12, 0x30FFFFFF);
+            g.text(font, dir, vx, y + 3, dh ? GOLD : TEXT, false);
+            int ay = y;
+            hits.add(new Hit(vx - 2, y, vr, y + 12, () -> {
+                angleBox = new EditBox(font, vx - 2, ay, vr - vx + 2, 12, Component.empty());
+                angleBox.setMaxLength(24);
+                angleBox.setValue(Math.round(s.yaw()) + " " + Math.round(s.pitch()));
+                addRenderableWidget(angleBox);
+                setFocused(angleBox);
+                angleBox.setFocused(true);
+            }, null, t("angle_tip")));
+        }
         y += 13;
         int bx = vx;
         bx = button(g, bx, y, Component.literal("◀"), false, mx, my, () -> send("turn", -15), t("turn_left"));
@@ -242,6 +257,7 @@ public class SpotlightScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent e, boolean doubleClick) {
+        if (angleBox != null && !angleBox.isMouseOver(e.x(), e.y())) applyAngle();
         if (super.mouseClicked(e, doubleClick)) return true;
         if (e.button() != InputConstants.MOUSE_BUTTON_LEFT) return false;
         for (Hit hh : List.copyOf(hits))
@@ -290,6 +306,17 @@ public class SpotlightScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyEvent e) {
+        if (angleBox != null && angleBox.isFocused()) {
+            if (e.key() == InputConstants.KEY_RETURN || e.key() == InputConstants.KEY_NUMPADENTER) {
+                applyAngle();
+                return true;
+            }
+            if (e.key() == InputConstants.KEY_ESCAPE) {
+                closeAngle();
+                return true;
+            }
+            return super.keyPressed(e);
+        }
         if (nameBox.isFocused() && (e.key() == InputConstants.KEY_RETURN || e.key() == InputConstants.KEY_NUMPADENTER)) {
             send("name", nameBox.getValue().strip());
             nameBox.setFocused(false);
@@ -297,6 +324,28 @@ public class SpotlightScreen extends Screen {
             return true;
         }
         return super.keyPressed(e);
+    }
+
+    /** "35 20", "35/20", "35°, -10°" → horizontal, vertical (degrees); sent as the spotlight's exact aim. */
+    private void applyAngle() {
+        String[] n = angleBox.getValue().replace("°", " ").replace("/", " ").replace(";", " ").replace(",", " ").trim().split("\s+");
+        try {
+            if (n.length == 2) {
+                JsonObject a = new JsonObject();
+                a.addProperty("yaw", Float.parseFloat(n[0]));
+                a.addProperty("pitch", Math.max(-90, Math.min(90, Float.parseFloat(n[1]))));
+                send("angle", a);
+            }
+        } catch (NumberFormatException ignored) {
+        }
+        closeAngle();
+    }
+
+    private void closeAngle() {
+        if (angleBox == null) return;
+        removeWidget(angleBox);
+        angleBox = null;
+        setFocused(null);
     }
 
     @Override
