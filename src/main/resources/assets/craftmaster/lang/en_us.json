@@ -1125,5 +1125,11 @@
   "message.craftmaster.feed_off": "Back to your view",
   "message.craftmaster.feed_forced": "Everyone follows the show",
   "message.craftmaster.feed_released": "Back to your view",
-  "message.craftmaster.feed_forced_key": "Everyone follows the show now: back to your choice afterwards"
+  "message.craftmaster.feed_forced_key": "Everyone follows the show now: back to your choice afterwards",
+  "screen.craftmaster.modo_desk.direction": "Directing",
+  "screen.craftmaster.modo_desk.auto.tip": "The shots change by themselves (points, intros, reveal…)",
+  "screen.craftmaster.modo_desk.voice_on": "Voice: on",
+  "screen.craftmaster.modo_desk.voice_off": "Voice: off",
+  "screen.craftmaster.modo_desk.voice.tip": "Auto also cuts to whoever speaks (voice chat)",
+  "screen.craftmaster.regie.no_preview": "no preview yet"
 }

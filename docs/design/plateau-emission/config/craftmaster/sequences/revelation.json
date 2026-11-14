@@ -14,6 +14,17 @@
       ]
     },
     {
+      "type": "rideau",
+      "cible": "stage",
+      "cles": [
+        {
+          "t": 0.1,
+          "fondu": 0,
+          "ouvert": false
+        }
+      ]
+    },
+    {
       "type": "lumiere",
       "cible": "rampe",
       "cles": [

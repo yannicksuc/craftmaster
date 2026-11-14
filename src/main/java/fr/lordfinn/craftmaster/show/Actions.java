@@ -149,7 +149,7 @@ public final class Actions {
             "result.set", "result.dq", "result.remove", "results.clear", "results.config", "results.apply",
             "stopwatch.start", "stopwatch.stop", "stopwatch.reset", "buzzer.reset",
             // TV direction (chantier E): no data change, played by broadcast.Director
-            "camera.cut", "camera.follow", "camera.auto", "camera.transition", "broadcast.lowerthird", "broadcast.task",
+            "camera.cut", "camera.follow", "camera.auto", "camera.voice", "camera.transition", "broadcast.lowerthird", "broadcast.task",
             "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop",
             "task.set", "task.clear", "task.reveal", "task.hide", "task.show", "envelope.give", "task.reveal_more",
             // Studio set (chantier F)

@@ -105,6 +105,11 @@ public final class DevInput {
                     else if (a.length > 1) fr.lordfinn.craftmaster.client.axiom.TravellingGizmos.devAction(a[1]);
                     continue;
                 }
+                // "regie": the moderators' director, as with its key
+                if (line.strip().equals("regie")) {
+                    fr.lordfinn.craftmaster.client.regie.ModoDeskClient.open(mc);
+                    continue;
+                }
                 // "attack": a hit on what the crosshair aims at (logged)
                 if (line.strip().equals("attack") && mc.player != null && mc.gameMode != null) {
                     CraftMaster.LOG.info("[DevInput] aim: {}", mc.hitResult instanceof net.minecraft.world.phys.EntityHitResult e ? e.getEntity() : mc.hitResult == null ? null : mc.hitResult.getType());

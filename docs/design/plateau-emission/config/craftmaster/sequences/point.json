@@ -1,7 +1,7 @@
 {
   "duree": 3,
   "boucle": false,
-  "description": "Un point : pulsation dorée courte sur la table",
+  "description": "Couche (par-dessus l'état en cours) : un point, pulsation dorée courte sur la table",
   "pistes": [
     {
       "type": "lumiere",

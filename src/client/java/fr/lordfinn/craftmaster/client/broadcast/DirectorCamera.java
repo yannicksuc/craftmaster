@@ -250,6 +250,12 @@ public final class DirectorCamera {
         return lastPose;
     }
 
+    /** Camera {@code spot}'s plain view (no breathing), for its preview. */
+    static Pose still(CameraSpot spot) {
+        CameraMotion.View v = CameraMotion.view(spot, 0);
+        return new Pose(new Vec3(v.x(), v.y(), v.z()), v.yaw(), v.pitch(), spot.fov());
+    }
+
     private static Pose camera(Minecraft mc, CameraSpot spot, double seconds) {
         if (spot == null || !spot.world().equals(ShowStateClient.world(mc))) return null;
         CameraMotion.View v = CameraMotion.view(spot, seconds);

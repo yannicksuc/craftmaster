@@ -24,6 +24,8 @@ public abstract class GameRendererMixin {
         if (Broadcast.active()) fr.lordfinn.craftmaster.client.broadcast.Mosaic.afterLevel();
         // In-game clip: the world picture, without the interface
         fr.lordfinn.craftmaster.client.media.Clips.afterLevel();
+        // A director's preview: the camera's picture aside, the normal one back
+        fr.lordfinn.craftmaster.client.broadcast.ThumbCapture.afterLevel();
     }
 
     /** Videos of the studio screens: WaterMedia's OpenGL work and the newest pictures, before anything is drawn. */

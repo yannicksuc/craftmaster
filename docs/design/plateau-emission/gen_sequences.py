@@ -15,6 +15,9 @@ Projecteurs (numérotés de la gauche à la droite du public) :
   galerie1-2 au-dessus de la galerie (x 64) : les tableaux
   poursuite1-2 murs de côté (z ±13) : poursuites
 Points : @point:trone, @point:table, @point:galerie, @point:rideau, @point:prix.
+Chaque grande section (ouverture, annonce, jugement, prix, épreuve au studio, départ / retour d'épreuve, révélation,
+podium, fin) part d'un état complet : une ambiance qui règle les 16 projecteurs ET le rideau, rien de l'état d'avant
+n'est gardé ; seules les couches (point, rideau-chenillard) se posent par-dessus.
 Principes (recherche scénographie TV) : peu d'états de base solides, effets posés par-dessus ; visages éclairés de
 face + contre-jour pour détacher du fond ; blanc chaud pour la discussion, bleu froid pour la tension ; fondus 2-3 s
 entre états de discussion, ~1 s vers la tension, coupure franche pour une révélation, 3-5 s pour revenir.
@@ -47,12 +50,13 @@ def on(couleur, intensite, cone, vise, **kw):
 OFF = dict(allume=False)
 
 
-def state(name, description, spots, fade=0.0):
-    """A base state: every spotlight set at t=0 (unnamed ones off)."""
+def state(name, description, spots, curtain_open, fade=0.0):
+    """A base state: every spotlight set at t=0 (unnamed ones off) and the stage curtain: a whole room, nothing kept."""
     pistes = []
     for s in ALL:
         v = spots.get(s, OFF)
         pistes.append(light(s, key(0, fade, **v)))
+    pistes.append({"type": "rideau", "cible": "stage", "cles": [key(0, 0, ouvert=curtain_open)]})
     return name, {"duree": 1, "boucle": False, "description": description, "pistes": pistes}
 
 
@@ -75,7 +79,7 @@ STATES = [
         **same(TABLE, on("ambre", 25, 12, "@point:table")),
         **same(CONTRE, on("ambre", 40, 5, "@point:trone")),
         **same(RAMPE, on("rouge", 55, 14, "@point:rideau", effet="respiration", vitesse=0.4)),
-    }),
+    }, False),
     # L'état de travail : visages en blanc chaud, contre-jours, rideau doux
     state("etat-discussion", "DISCUSSION : l'état de travail, visages en blanc chaud, contre-jours, rideau doux", {
         **same(FACES_TRONE, on("chaud", 80, 6, "@point:trone")),
@@ -84,7 +88,7 @@ STATES = [
         **same(CONTRE, on("ambre", 45, 5, "@point:trone")),
         **same(RAMPE, on("ambre", 45, 13, "@point:rideau")),
         **same(GALERIE, on("chaud", 55, 10, "@point:galerie")),
-    }),
+    }, True),
     # Tension (jugement serré, dernier point, avant une annonce) : bleu froid, salle basse, contre-jours forts
     state("etat-tension", "TENSION : bleu froid, salle basse, contre-jours forts", {
         **same(FACES_TRONE, on("bleu_clair", 40, 5, "@point:trone")),
@@ -92,7 +96,7 @@ STATES = [
         **same(CONTRE, on("bleu", 70, 4, "@point:trone")),
         **same(FACES_COTE, on("bleu", 60, 5, "@point:table")),
         **same(RAMPE, on("violet", 25, 12, "@point:rideau")),
-    }),
+    }, True),
     # Révélation : la galerie (le classement) en blanc franc, la salle s'efface
     state("etat-revelation", "RÉVÉLATION : la galerie en blanc franc, la salle s'efface", {
         **same(GALERIE, on("blanc", 100, 12, "@point:galerie")),
@@ -100,7 +104,7 @@ STATES = [
         **same(FACES_TRONE, on("chaud", 30, 6, "@point:trone")),
         **same(TABLE, on("chaud", 25, 10, "@point:table")),
         **same(CONTRE, on("bleu", 35, 4, "@point:trone")),
-    }),
+    }, True),
     # Vainqueur : de l'or, les poursuites sur le premier
     state("etat-vainqueur", "VAINQUEUR : or partout, poursuites sur le premier", {
         **same(GALERIE, on("or", 100, 12, "@point:galerie")),
@@ -109,7 +113,7 @@ STATES = [
         **same(TABLE, on("chaud", 60, 10, "@point:table")),
         **same(CONTRE, on("or", 70, 5, "@point:trone")),
         **same(POURSUITE, on("or", 100, 4, "@point:table", suit="@rang:1", effet="respiration", vitesse=0.6)),
-    }),
+    }, True),
     # Épreuve en direct au studio : clair et neutre, tout est lisible, contre-jours renforcés
     state("etat-studio", "ÉPREUVE AU STUDIO : clair et neutre, tout est lisible", {
         **same(FACES_TRONE, on("blanc", 75, 9, "@point:trone")),
@@ -118,20 +122,20 @@ STATES = [
         **same(CONTRE, on("blanc", 70, 8, "@point:table")),
         **same(RAMPE, on("blanc", 50, 14, "@point:rideau")),
         **same(GALERIE, on("blanc", 50, 10, "@point:galerie")),
-    }),
+    }, True),
     # Pendant une épreuve ailleurs : le plateau attend, en veille
     state("etat-attente", "ATTENTE : les candidats sont ailleurs, le plateau en veille", {
         **same(CONTRE, on("bleu", 30, 6, "@point:trone", effet="respiration", vitesse=0.3)),
         **same(RAMPE, on("violet", 30, 13, "@point:rideau", effet="respiration", vitesse=0.3)),
         **same(GALERIE, on("lavande", 30, 10, "@point:galerie")),
-    }),
+    }, False),
     # Pause : doux et coloré
     state("etat-pause", "PAUSE : doux et coloré, on revient vite", {
         **same(TABLE, on("lavande", 40, 12, "@point:table")),
         **same(FACES_TRONE, on("rose", 35, 8, "@point:trone")),
         **same(RAMPE, on("magenta", 40, 14, "@point:rideau", effet="chenillard", vitesse=0.5)),
         **same(GALERIE, on("lavande", 40, 10, "@point:galerie")),
-    }),
+    }, False),
 ]
 
 
@@ -185,7 +189,7 @@ TIMELINES = {
     # Un point donné : une petite pulsation dorée sur les visages, puis retour
     "point": {
         "duree": 3, "boucle": False,
-        "description": "Un point : pulsation dorée courte sur la table",
+        "description": "Couche (par-dessus l'état en cours) : un point, pulsation dorée courte sur la table",
         "pistes": [
             light("table", key(0, 0.2, couleur="or", intensite=100, effet="pulse", vitesse=2),
                   key(1.6, 0.8, couleur="chaud", intensite=85, effet="aucun")),
@@ -197,6 +201,8 @@ TIMELINES = {
         "description": "Révélation : TENSION, rideau qui frissonne pendant le roulement, puis la galerie en blanc franc et une poursuite sur chaque nom",
         "pistes": [
             {"type": "commande", "cles": [cmd(0, "ambiance tension 1")]},
+            # The reveal closes the curtain itself (and opens it at the end): the ambiance must not reopen it
+            {"type": "rideau", "cible": "stage", "cles": [key(0.1, 0, ouvert=False)]},
             light("rampe", key(0.5, 0.5, **on("bleu", 45, 13, "@point:rideau", effet="chenillard", vitesse=2)),
                   key(6.8, 0, allume=False)),
             light("contre", key(3, 0.3, effet="pulse", vitesse=1.5), key(6.8, 0, effet="aucun")),
@@ -211,12 +217,12 @@ TIMELINES = {
         "duree": 12, "boucle": False,
         "description": "Podium : coupure franche en or, poursuites sur le premier, travelling sur la galerie, puis VAINQUEUR",
         "pistes": [
-            light("tout", key(0, 0, couleur="or", intensite=100)),
-            light("face", key(0, 0, effet="strobe", vitesse=1.5), key(2, 0.5, effet="aucun")),
+            {"type": "commande", "cles": [cmd(0, "ambiance vainqueur 0")]},
+            light("face", key(0.05, 0, effet="strobe", vitesse=1.5), key(2, 0.5, effet="aucun")),
             light("poursuite", key(0.2, 0.3, **on("or", 100, 4, "@point:table", suit="@rang:1", effet="respiration", vitesse=0.6))),
             light("galerie", key(0, 0, **on("or", 100, 12, "@point:galerie"))),
             {"type": "camera", "cible": "", "cles": [cam(0, "camera:studio:8", "flash"), cam(3, "travelling:galerie", "enchaine")]},
-            {"type": "commande", "cles": [cmd(2.5, "ambiance vainqueur 2")]},
+
         ],
     },
     # Une épreuve commence ailleurs : le plateau passe en veille
@@ -251,8 +257,9 @@ TIMELINES = {
     # Les prix : la lumière sur les socles du fond
     "prix": {
         "duree": 5, "boucle": False,
-        "description": "Les prix : poursuites sur les socles du fond, plan des prix",
+        "description": "Les prix : DISCUSSION, poursuites sur les socles du fond, plan des prix",
         "pistes": [
+            {"type": "commande", "cles": [cmd(0, "ambiance discussion 1")]},
             light("poursuite", key(0, 1, **on("or", 90, 6, "@point:prix", effet="respiration", vitesse=0.5))),
             light("contre", key(0, 1, couleur="or", intensite=70)),
             {"type": "camera", "cible": "", "cles": [cam(0.5, "camera:studio:14", "enchaine")]},
@@ -271,7 +278,7 @@ TIMELINES = {
     # Un chenillard en boucle sur le rideau, à poser par-dessus n'importe quel état (attente, générique)
     "rideau-chenillard": {
         "duree": 8, "boucle": True,
-        "description": "Couche : chenillard ambre en boucle sur le rideau",
+        "description": "Couche (par-dessus l'état en cours) : chenillard ambre en boucle sur le rideau",
         "pistes": [light("rampe", key(0, 1, **on("ambre", 55, 13, "@point:rideau", effet="chenillard", vitesse=1.2)))],
     },
 }

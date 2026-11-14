@@ -55,7 +55,7 @@ montrent). Règle la scène comme tu la veux, puis :
 
 | Commande | Effet |
 |---|---|
-| `/ambiance enregistrer <nom> [parties] [fondu]` | enregistre la scène actuelle ; parties : `tout` (défaut), ou `lumieres`, `rideaux`, `tableaux`, `ecrans` séparées par des virgules (`lumieres,rideaux`) |
+| `/ambiance enregistrer <nom> [parties] [fondu]` | enregistre la scène actuelle ; parties : `tout` (défaut), ou `lumieres`, `rideaux`, `tableaux`, `ecrans` reliées par des + (`lumieres+rideaux`) |
 | `/ambiance lancer <nom> [fondu]` | rejoue l'ambiance : les projecteurs tournent et changent en fondu, les tableaux montent ou descendent, les rideaux s'ouvrent ou se ferment, les télés changent |
 | `/ambiance` | la liste, cliquable (clic : la lancer ; « mettre à jour » : la remplacer par la scène actuelle) |
 | `/ambiance noir [fondu]` | tous les projecteurs s'éteignent |

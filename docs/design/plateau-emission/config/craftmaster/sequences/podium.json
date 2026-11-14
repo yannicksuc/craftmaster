@@ -4,14 +4,12 @@
   "description": "Podium : coupure franche en or, poursuites sur le premier, travelling sur la galerie, puis VAINQUEUR",
   "pistes": [
     {
-      "type": "lumiere",
-      "cible": "tout",
+      "type": "commande",
       "cles": [
         {
           "t": 0,
           "fondu": 0,
-          "couleur": "or",
-          "intensite": 100
+          "commande": "ambiance vainqueur 0"
         }
       ]
     },
@@ -20,7 +18,7 @@
       "cible": "face",
       "cles": [
         {
-          "t": 0,
+          "t": 0.05,
           "fondu": 0,
           "effet": "strobe",
           "vitesse": 1.5
@@ -81,16 +79,6 @@
           "fondu": 0,
           "plan": "travelling:galerie",
           "transition": "enchaine"
-        }
-      ]
-    },
-    {
-      "type": "commande",
-      "cles": [
-        {
-          "t": 2.5,
-          "fondu": 0,
-          "commande": "ambiance vainqueur 2"
         }
       ]
     }

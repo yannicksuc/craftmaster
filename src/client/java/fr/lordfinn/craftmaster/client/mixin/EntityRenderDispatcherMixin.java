@@ -26,7 +26,8 @@ public abstract class EntityRenderDispatcherMixin {
     /*private <E extends Entity> void craftmaster$hideOffAir(E entity, Frustum frustum, double x, double y, double z,
     *///?}
                                                           CallbackInfoReturnable<Boolean> cir) {
-        boolean feed = fr.lordfinn.craftmaster.client.broadcast.ShowFeedClient.active();
+        boolean feed = fr.lordfinn.craftmaster.client.broadcast.ShowFeedClient.active()
+                || fr.lordfinn.craftmaster.client.broadcast.ThumbCapture.capturing();
         if (!Broadcast.active() && !feed) return;
         // The show's feed on a player's screen: like the broadcast, but the player is in the picture
         if (entity instanceof CameraEntity || (!feed && entity == Minecraft.getInstance().player)

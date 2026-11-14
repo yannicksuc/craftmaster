@@ -67,6 +67,11 @@ public final class ModoState {
             o.add("shot", shot);
             o.addProperty("auto", show.auto());
             o.addProperty("focus", show.focus());
+            // The transition the cuts take, and whether the automatic direction follows who speaks
+            int tr = fr.lordfinn.craftmaster.broadcast.Director.defaultTransition();
+            o.addProperty("transition", tr == BroadcastNetwork.FADE ? "fondu" : tr == BroadcastNetwork.CROSSFADE ? "enchaine"
+                    : tr == BroadcastNetwork.CUT ? "coupe" : fr.lordfinn.craftmaster.broadcast.BroadcastActions.transitionName(tr));
+            o.addProperty("voice", fr.lordfinn.craftmaster.broadcast.Director.voiceCuts());
         }
         if (cam) {
             // Stage: looks and cue lists to play in one click (stage/)

@@ -1,7 +1,7 @@
 {
   "duree": 8,
   "boucle": true,
-  "description": "Couche : chenillard ambre en boucle sur le rideau",
+  "description": "Couche (par-dessus l'état en cours) : chenillard ambre en boucle sur le rideau",
   "pistes": [
     {
       "type": "lumiere",

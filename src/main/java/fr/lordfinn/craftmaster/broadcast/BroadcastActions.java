@@ -36,7 +36,7 @@ public final class BroadcastActions {
 
     public static final List<String> TYPES = List.of("camera.cut", "camera.follow", "camera.auto", "camera.transition",
             "broadcast.lowerthird", "broadcast.task", "broadcast.scores", "broadcast.letterbox", "show.intro", "show.outro", "show.stop",
-            "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu");
+            "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu", "camera.voice");
 
     public static boolean handles(String type) {
         return TYPES.contains(type);
@@ -83,7 +83,7 @@ public final class BroadcastActions {
                 String zone = str(a, "zone");
                 if (zone != null) out.put("zone", zone);
             }
-            case "camera.auto" -> out.put("enabled", bool(a, "enabled", true));
+            case "camera.auto", "camera.voice" -> out.put("enabled", bool(a, "enabled", true));
             case "camera.transition" -> transition(a, out, true);
             case "broadcast.lowerthird" -> {
                 String player = str(a, "player"), text = str(a, "text");

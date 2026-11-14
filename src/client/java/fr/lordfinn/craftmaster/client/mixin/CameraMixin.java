@@ -34,6 +34,15 @@ public abstract class CameraMixin {
     @Inject(method = "update", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;alignWithEntity(F)V", shift = At.Shift.AFTER))
     private void craftmaster$directorShot(DeltaTracker delta, CallbackInfo ci) {
         craftmaster$pose = null;
+        // A preview for the directors being taken this frame (put back before the interface is drawn)
+        DirectorCamera.Pose still = fr.lordfinn.craftmaster.client.broadcast.ThumbCapture.framePose();
+        if (still != null) {
+            craftmaster$pose = still;
+            detached = true;
+            setPosition(still.position());
+            setRotation(still.yaw(), still.pitch());
+            return;
+        }
         // An organiser looking through a camera or a spotlight to frame it (studio/ControlView)
         DirectorCamera.Pose control = fr.lordfinn.craftmaster.client.studio.ControlView.pose(delta.getGameTimeDeltaPartialTick(true));
         if (control != null) {

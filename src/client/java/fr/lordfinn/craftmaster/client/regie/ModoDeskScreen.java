@@ -1,5 +1,7 @@
 package fr.lordfinn.craftmaster.client.regie;
 
+import fr.lordfinn.craftmaster.client.ui.UiButton;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -137,7 +139,7 @@ public class ModoDeskScreen extends Screen {
     @Override
     protected void init() {
         w = Math.min(440, width - 16);
-        h = Math.min(250, height - 16);
+        h = Math.min(280, height - 16);
         left = (width - w) / 2;
         top = (height - h) / 2;
         // Tabs
@@ -168,38 +170,51 @@ public class ModoDeskScreen extends Screen {
         return b;
     }
 
+    /** Where the labels of the Cameras tab go (set by the layout, read when drawing). */
+    private int directionLabelY, followLabelY;
+
     private void cameras(int y) {
         JsonObject shot = state.has("shot") ? state.getAsJsonObject("shot") : new JsonObject();
         String kind = shot.has("kind") ? shot.get("kind").getAsString() : "none";
         String onAir = shot.has("camera") ? shot.get("camera").getAsString() : "";
         String followed = shot.has("player") ? shot.get("player").getAsString() : "";
-        int cols = 4, bw = (w - 12 - (cols - 1) * 3) / cols, i = 0;
+        // The shots: a preview tile each (5 per row, 16:9), the one on air framed in red
+        int cols = 5, gap = 3, tw = (w - 12 - (cols - 1) * gap) / cols, th = tw * 9 / 16, i = 0;
         for (JsonElement e : array("cameras")) {
             JsonObject c = e.getAsJsonObject();
             String key = c.get("key").getAsString();
             String name = c.get("name").getAsString();
-            String label = c.get("n").getAsInt() + " " + (name.isEmpty() ? c.get("role").getAsString() : name);
             boolean live = kind.equals("camera") && key.equals(onAir);
-            Component text = live ? Component.literal("● " + label).withStyle(ChatFormatting.RED) : Component.literal(label);
-            Button b = button(text, left + 6 + (i % cols) * (bw + 3), y + (i / cols) * 23, bw, () -> run("camera.cut", "camera", key));
-            b.setTooltip(Tooltip.create(Component.literal(c.get("lieu").getAsString())));
-            if (++i >= 16) break;
+            ShotTile tile = new ShotTile(left + 6 + (i % cols) * (tw + gap), y + (i / cols) * (th + gap), tw, th, key,
+                    c.get("n").getAsInt(), name.isEmpty() ? c.get("role").getAsString() : name, live, () -> run("camera.cut", "camera", key));
+            tile.setTooltip(Tooltip.create(Component.literal(c.get("lieu").getAsString())));
+            addRenderableWidget(tile);
+            if (++i >= 15) break;
         }
         if (i == 0) i = cols;
-        y += ((i + cols - 1) / cols) * 23 + 6;
+        y += ((i + cols - 1) / cols) * (th + gap) + 4;
+        // How the shots change: a switch and a choice, set apart from the shots
+        directionLabelY = y + 6;
         boolean auto = state.has("auto") && state.get("auto").getAsBoolean();
-        // One row of five, as wide as the panel allows
-        int b5 = (w - 12 - 4 * 3) / 5;
-        button(auto ? t("auto_on").copy().withStyle(ChatFormatting.GREEN) : t("auto_off"), left + 6, y, b5,
-                () -> run("camera.auto", "enabled", !auto));
-        button(t("wide"), left + 6 + (b5 + 3), y, b5, () -> run("camera.cut", "camera", "large"));
-        int tx = left + 6 + 2 * (b5 + 3);
+        boolean voice = state.has("voice") && state.get("voice").getAsBoolean();
+        String transition = state.has("transition") ? state.get("transition").getAsString() : "coupe";
+        int x = left + 66, bw = 62;
+        UiButton a = addRenderableWidget(UiButton.of(x, y, bw, 20, t(auto ? "auto_on" : "auto_off"),
+                () -> run("camera.auto", "enabled", !auto)).on(() -> auto));
+        a.setTooltip(Tooltip.create(t("auto.tip")));
+        UiButton v = addRenderableWidget(UiButton.of(x + bw + 3, y, bw, 20, t(voice ? "voice_on" : "voice_off"),
+                () -> run("camera.voice", "enabled", !voice)).on(() -> voice));
+        v.setTooltip(Tooltip.create(t("voice.tip")));
+        int tx = x + 2 * (bw + 3) + 8;
+        int tb = (left + w - 6 - tx - 2 * 3) / 3;
         for (String tr : List.of("coupe", "fondu", "enchaine")) {
-            Button b = button(t("transition." + tr), tx, y, b5, () -> run("camera.transition", "transition", tr));
+            UiButton b = addRenderableWidget(UiButton.of(tx, y, tb, 20, t("transition." + tr),
+                    () -> run("camera.transition", "transition", tr)).on(() -> tr.equals(transition)));
             b.setTooltip(Tooltip.create(t("transition.tip")));
-            tx += b5 + 3;
+            tx += tb + 3;
         }
-        y += 28;
+        y += 26;
+        followLabelY = y + 6;
         // Follow / POV of a contestant
         JsonArray cast = array("cast");
         int pw = Math.max(60, Math.min(100, (w - 70) / Math.max(1, Math.min(4, cast.size()))));
@@ -212,8 +227,8 @@ public class ModoDeskScreen extends Screen {
                 if (row >= 2) break;
             }
             boolean live = (kind.equals("follow") || kind.equals("pov")) && p.equals(followed);
-            Component text = live ? Component.literal("● " + p).withStyle(ChatFormatting.RED) : Component.literal(p);
-            Button b = button(text, px, y + row * 23, pw - 3, () -> run("camera.follow", "player", p));
+            UiButton b = addRenderableWidget(UiButton.of(px, y + row * 23, pw - 3, 20, Component.literal(p),
+                    () -> run("camera.follow", "player", p)).on(() -> live));
             b.setTooltip(Tooltip.create(t("follow.tip")));
             px += pw;
         }
@@ -329,11 +344,8 @@ public class ModoDeskScreen extends Screen {
             case JOURNAL -> drawJournal(g);
             case SCENE -> drawScene(g);
             case CAMERAS -> {
-                JsonArray cast = array("cast");
-                if (!cast.isEmpty()) {
-                    int y = top + 46 + ((Math.max(1, Math.min(16, array("cameras").size())) + 3) / 4) * 23 + 6 + 28;
-                    g.text(font, t("follow"), left + 8, y + 6, DIM, false);
-                }
+                g.text(font, t("direction"), left + 8, directionLabelY, DIM, false);
+                if (!array("cast").isEmpty()) g.text(font, t("follow"), left + 8, followLabelY, DIM, false);
                 if (array("cameras").isEmpty()) g.text(font, t("no_cameras"), left + 8, top + 52, DIM, false);
             }
         }

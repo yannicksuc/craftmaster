@@ -665,6 +665,11 @@ public final class Director {
                 sync(server);
                 lines.add("Réalisation automatique " + (auto ? "activée." : "désactivée."));
             }
+            case "camera.voice" -> {
+                voiceCuts = (Boolean) a.get("enabled");
+                sync(server);
+                lines.add("Réalisation automatique sur qui parle : " + (voiceCuts ? "oui." : "non."));
+            }
             case "camera.transition" -> {
                 defaultTransition = (Integer) a.get("transition");
                 lines.add("Transition par défaut : " + BroadcastActions.transitionName(defaultTransition) + ".");

@@ -1,8 +1,18 @@
 {
   "duree": 5,
   "boucle": false,
-  "description": "Les prix : poursuites sur les socles du fond, plan des prix",
+  "description": "Les prix : DISCUSSION, poursuites sur les socles du fond, plan des prix",
   "pistes": [
+    {
+      "type": "commande",
+      "cles": [
+        {
+          "t": 0,
+          "fondu": 0,
+          "commande": "ambiance discussion 1"
+        }
+      ]
+    },
     {
       "type": "lumiere",
       "cible": "poursuite",
