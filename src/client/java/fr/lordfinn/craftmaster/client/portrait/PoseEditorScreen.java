@@ -16,6 +16,7 @@ import fr.lordfinn.craftmaster.portrait.Pose.Rotation;
 import fr.lordfinn.craftmaster.portrait.PoseEditing;
 import fr.lordfinn.craftmaster.portrait.PoseHistory;
 import fr.lordfinn.craftmaster.portrait.PoseHitTest;
+import fr.lordfinn.craftmaster.portrait.PortraitGeometry;
 import fr.lordfinn.craftmaster.portrait.PoseLibraries;
 import fr.lordfinn.craftmaster.portrait.PortraitEntity;
 import fr.lordfinn.craftmaster.portrait.PortraitNetwork;
@@ -77,7 +78,7 @@ public class PoseEditorScreen extends Screen {
         }
     }
 
-    private enum Drag { NONE, PART, FRAME, MOVE, ORBIT, PAN }
+    private enum Drag { NONE, PART, FRAME, MOVE, ORBIT, PAN, STRING }
 
     private final PortraitEntity portrait;
     private final PortraitScreen parent;
@@ -97,8 +98,8 @@ public class PoseEditorScreen extends Screen {
     private double panX, panY;
     private PoseEditing.Axis wheelAxis = PoseEditing.Axis.X;
     private Drag drag = Drag.NONE;
-    /** The string tool is on: a click on the figure or the frame ties the string there. */
-    private boolean placingString;
+    /** The string is selected (clicked): 0 / R puts its knot back to automatic; hovered: shown in gold. */
+    private boolean stringSelected, stringHovered;
     private PoseHitTest.Hit hover;
 
     public PoseEditorScreen(PortraitEntity portrait, PortraitScreen parent) {
@@ -158,6 +159,7 @@ public class PoseEditorScreen extends Screen {
     }
 
     private void select(Group g) {
+        stringSelected = false;
         if (g == group) return;
         group = g;
         history.seal();
@@ -174,7 +176,7 @@ public class PoseEditorScreen extends Screen {
     }
 
     private void resetPart() {
-        if (placingString) {
+        if (stringSelected) {
             // Back to the computed knot, above the centre of gravity
             changed(editing.withAttach(null), null);
             return;
@@ -294,10 +296,6 @@ public class PoseEditorScreen extends Screen {
         UiButton hide = tool(tx += TOOL + 1, ty, hidden ? "○" : "•", "hide", this::toggleHidden);
         hide.active = group.part != null && group.part.hideable();
         tool(tx += TOOL + 1, ty, "⌂", "view", this::resetView);
-        tool(tx += TOOL + 1, ty, "⚓", "string", () -> {
-            placingString = !placingString;
-            rebuildWidgets();
-        }).on(() -> placingString);
         updateButtons();
     }
 
@@ -370,14 +368,14 @@ public class PoseEditorScreen extends Screen {
             return true;
         }
         if (e.button() != InputConstants.MOUSE_BUTTON_LEFT) return false;
-        if (placingString) {
-            // The string is tied where the click lands (figure or frame); a click on nothing turns the view
-            Pose.Attach at = PoseHitTest.pickAttach(editing, view(), e.x(), e.y(), slimSkin(), windowLook()[0] == 1);
-            history.seal();
-            if (at != null) changed(editing.withAttach(at), null);
-            else drag = Drag.ORBIT;
+        history.seal();
+        // The string, like a part: clicked, it is selected; dragged, its knot slides over what is under the mouse
+        if (onString(e.x(), e.y())) {
+            stringSelected = true;
+            drag = Drag.STRING;
             return true;
         }
+        stringSelected = false;
         PoseHitTest.Hit hit = PoseHitTest.pick(editing, view(), e.x(), e.y(), slimSkin(), windowLook()[0] == 1);
         history.seal();
         if (e.hasControlDown() && hit != null && !hit.frame()) {
@@ -403,6 +401,10 @@ public class PoseEditorScreen extends Screen {
             case PAN -> {
                 panX += dx;
                 panY += dy;
+            }
+            case STRING -> {
+                Pose.Attach at = PoseHitTest.pickAttach(editing, view(), e.x(), e.y(), slimSkin(), windowLook()[0] == 1);
+                if (at != null) changed(editing.withAttach(at), "drag:string");
             }
             case MOVE -> {
                 double s = view().scale();
@@ -477,10 +479,6 @@ public class PoseEditorScreen extends Screen {
             case 'c' -> copySide();
             case 'r' -> resetPart();
             case 'h' -> toggleHidden();
-            case 'f' -> {
-                placingString = !placingString;
-                rebuildWidgets();
-            }
             case 'x' -> wheelAxis = PoseEditing.Axis.X;
             case 'y' -> wheelAxis = PoseEditing.Axis.Y;
             case 'z' -> wheelAxis = PoseEditing.Axis.Z;
@@ -595,8 +593,9 @@ public class PoseEditorScreen extends Screen {
         int boxH = ph - TOOLBAR;
         Ui.panel(g, font, px0, py0, pw, ph, null);
         PoseHitTest.View view = view();
-        // No part under the mouse while the string tool is on: a click ties the string, it edits nothing
-        hover = drag == Drag.NONE && !placingString && inPreview(mouseX, mouseY)
+        // The string first (thin, drawn over the rest), then the part or the frame under the mouse
+        stringHovered = drag == Drag.NONE && inPreview(mouseX, mouseY) && onString(mouseX, mouseY);
+        hover = drag == Drag.NONE && !stringHovered && inPreview(mouseX, mouseY)
                 ? PoseHitTest.pick(editing, view, mouseX, mouseY, slimSkin(), windowLook()[0] == 1) : null;
 
         PortraitRenderer.State s = PortraitRenderer.previewState(editing, skin());
@@ -615,13 +614,13 @@ public class PoseEditorScreen extends Screen {
         // the middle button (in blocks of the picture)
         float blocks = (float) (view.scale() * 16);
         s.view = new Matrix4f().translate((float) (panX / blocks), (float) (panY / blocks), 0).mul(previewMatrix(view));
-        s.stringPlacing = placingString;
+        s.stringPlacing = stringSelected || stringHovered || drag == Drag.STRING;
         g.entity(s, blocks, new Vector3f(0, 0, 0), new Quaternionf(), null, px0 + 1, py0 + 1, px0 + pw - 1, py0 + boxH);
 
         // Header: the part being edited and the axis of the wheel / arrows; footer: how to use the mouse
         Component part = group.label().copy().withStyle(ChatFormatting.YELLOW);
-        // String tool on: just its name, like a part's (the tool's tooltip says how it works)
-        Component head = placingString
+        // The string selected: its name, like a part's
+        Component head = stringSelected
                 ? Component.translatable("screen.craftmaster.pose.string").withStyle(ChatFormatting.YELLOW)
                 : Component.translatable("screen.craftmaster.pose.preview_head", part, wheelAxis.name());
         g.text(font, head, px0 + 4, py0 + 4, 0xFFFFFFFF);
@@ -632,11 +631,27 @@ public class PoseEditorScreen extends Screen {
             List<Component> lines = new ArrayList<>();
             for (int i = 1; i <= 9; i++) lines.add(Component.translatable("screen.craftmaster.pose.help." + i));
             g.setTooltipForNextFrame(font, lines, java.util.Optional.empty(), mouseX, mouseY);
+        } else if (stringHovered) {
+            Ui.tooltip(g, font, Component.translatable("screen.craftmaster.pose.string_hover"), mouseX, mouseY);
         } else if (hover != null && drag == Drag.NONE) {
             Component what = hover.frame() ? Group.FRAME.label() : Group.of(hover.part()).label();
             Ui.tooltip(g, font, Component.translatable("screen.craftmaster.pose.hover", what), mouseX, mouseY);
         }
     }
+
+    /** Is (mx, my) on the string as drawn in the preview: its knot, or the cord going up from it (GUI pixels)? */
+    private boolean onString(double mx, double my) {
+        PoseHitTest.View v = view();
+        org.joml.Vector3d knot = PortraitGeometry.hangPoint(editing, windowLook()[0] == 1);
+        double[] a = v.project(knot), b = v.project(new org.joml.Vector3d(knot).add(0, STRING_SHOWN, 0));
+        double dx = b[0] - a[0], dy = b[1] - a[1], len2 = dx * dx + dy * dy;
+        double t = len2 < 1e-9 ? 0 : Math.max(0, Math.min(1, ((mx - a[0]) * dx + (my - a[1]) * dy) / len2));
+        double px = a[0] + dx * t - mx, py = a[1] + dy * t - my;
+        return px * px + py * py <= 16;
+    }
+
+    /** How much of the string the preview draws above its knot (portrait pixels, see PortraitRenderer). */
+    private static final double STRING_SHOWN = 40;
 
     /**
      * Portrait space → the picture: the view's turntable, then the GUI's axes (y down in the picture), pixels

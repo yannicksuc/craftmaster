@@ -372,13 +372,13 @@
   "screen.craftmaster.pose.tool.view": "Turn the preview back to the front (Home)",
   "screen.craftmaster.pose.preview_head": "%s · axis: %s",
   "screen.craftmaster.pose.help_short": "[?]",
-  "screen.craftmaster.pose.help.1": "Click a part (or the frame) to edit it",
+  "screen.craftmaster.pose.help.1": "Click a part, the frame or the string to edit it (drag the string: tie it elsewhere)",
   "screen.craftmaster.pose.help.2": "Drag it: turn it (Shift: the third axis)",
   "screen.craftmaster.pose.help.3": "Ctrl + drag: move the whole figure",
   "screen.craftmaster.pose.help.4": "Right drag / drag the background: turn the view · middle drag: slide it",
   "screen.craftmaster.pose.help.5": "Arrows or Ctrl + wheel: 1° on the axis shown (Shift: 5°), X Y Z: choose it",
   "screen.craftmaster.pose.help.6": "Wheel: zoom, Home: front view, centred",
-  "screen.craftmaster.pose.help.7": "1-8: pick a part, R: reset it, H: hide it",
+  "screen.craftmaster.pose.help.7": "1-8: pick a part, R: reset it (the string: automatic), H: hide it",
   "screen.craftmaster.pose.help.8": "M: mirror the pose, C: copy a limb to the other side",
   "screen.craftmaster.pose.help.9": "Ctrl+Z: undo, Ctrl+Y: redo",
   "screen.craftmaster.pose.hover": "%s: click to edit, drag to turn",
@@ -1112,6 +1112,6 @@
   "screen.craftmaster.pose.rename.taken": "« %s » is already the name of another pose.",
   "message.craftmaster.pose_renamed": "Pose « %s » renamed « %s »",
   "message.craftmaster.pose_rename_taken": "Cannot rename: « %s » is taken or empty",
-  "screen.craftmaster.pose.tool.string": "String: click where to tie it (F) · 0: back to automatic",
-  "screen.craftmaster.pose.string": "String"
+  "screen.craftmaster.pose.string": "String",
+  "screen.craftmaster.pose.string_hover": "String: drag it to tie it elsewhere"
 }

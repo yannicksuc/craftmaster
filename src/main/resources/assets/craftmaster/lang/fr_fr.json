@@ -372,13 +372,13 @@
   "screen.craftmaster.pose.tool.view": "Remettre l'aperçu de face (Origine)",
   "screen.craftmaster.pose.preview_head": "%s · axe : %s",
   "screen.craftmaster.pose.help_short": "[?]",
-  "screen.craftmaster.pose.help.1": "Clic sur une partie (ou le cadre) pour l'éditer",
+  "screen.craftmaster.pose.help.1": "Clic sur une partie, le cadre ou la ficelle pour l'éditer (tirer la ficelle : l'attacher ailleurs)",
   "screen.craftmaster.pose.help.2": "La tirer : la tourner (Maj : le troisième axe)",
   "screen.craftmaster.pose.help.3": "Ctrl + tirer : déplacer tout le personnage",
   "screen.craftmaster.pose.help.4": "Clic droit tiré / tirer le fond : tourner la vue · clic molette tiré : la déplacer",
   "screen.craftmaster.pose.help.5": "Flèches ou Ctrl + molette : 1° sur l'axe affiché (Maj : 5°), X Y Z : le choisir",
   "screen.craftmaster.pose.help.6": "Molette : zoom, Origine : vue de face, recentrée",
-  "screen.craftmaster.pose.help.7": "1-8 : choisir une partie, R : la remettre droite, H : la cacher",
+  "screen.craftmaster.pose.help.7": "1-8 : choisir une partie, R : la remettre droite (la ficelle : en auto), H : la cacher",
   "screen.craftmaster.pose.help.8": "M : miroir de la pose, C : copier un membre de l'autre côté",
   "screen.craftmaster.pose.help.9": "Ctrl+Z : annuler, Ctrl+Y : refaire",
   "screen.craftmaster.pose.hover": "%s : clic pour l'éditer, tirer pour la tourner",
@@ -1112,6 +1112,6 @@
   "screen.craftmaster.pose.rename.taken": "« %s » est déjà le nom d'une autre pose.",
   "message.craftmaster.pose_renamed": "Pose « %s » renommée « %s »",
   "message.craftmaster.pose_rename_taken": "Impossible de renommer : « %s » est pris ou vide",
-  "screen.craftmaster.pose.tool.string": "Ficelle : clique où l'attacher (F) · 0 : retour en automatique",
-  "screen.craftmaster.pose.string": "Ficelle"
+  "screen.craftmaster.pose.string": "Ficelle",
+  "screen.craftmaster.pose.string_hover": "Ficelle : la tirer pour l'attacher ailleurs"
 }

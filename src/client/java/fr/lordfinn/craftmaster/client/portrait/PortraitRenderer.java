@@ -87,7 +87,7 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         /** Parts drawn tinted: the one being edited and the one under the mouse (null = none; frame: see below). */
         Part selected, hovered;
         boolean frameSelected, frameHovered;
-        /** The string tool is on: the knot is shown bigger, in gold. */
+        /** The string is hovered, selected or dragged in the editor: its knot is shown bigger. */
         boolean stringPlacing;
         /** Portrait space → preview view space (the editor's turntable). */
         Matrix4f view = new Matrix4f();
@@ -293,7 +293,7 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
             int stringLight = s.lightCoords;
             poseStack.pushPose();
             poseStack.translate(knot.x, knot.y + up, knot.z);
-            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(FRAME_TEXTURE), (p, c) -> string(c, p, -up, stringLight));
+            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutCull(FRAME_TEXTURE), (p, c) -> string(c, p, -up, stringLight));
             poseStack.popPose();
             poseStack.pushPose();
             poseStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
@@ -319,10 +319,10 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         int hookLight = s.highlighted ? light : atLeast(s.hookLight, MIN_RIG_LIGHT);
         int stringLight = atLeast(LightCoordsUtil.pack(Math.max(LightCoordsUtil.block(light), LightCoordsUtil.block(hookLight)),
                 Math.max(LightCoordsUtil.sky(light), LightCoordsUtil.sky(hookLight))), MIN_RIG_LIGHT);
-        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(FRAME_TEXTURE), (p, c) -> {
-            hook(c, p, hookLight);
-            string(c, p, knotY, stringLight);
-        });
+        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(FRAME_TEXTURE), (p, c) -> hook(c, p, hookLight));
+        // The string's two faces sit at the same place: back faces culled, or they fight for the pixel (a string
+        // black or flickering from some angles, under shaders above all)
+        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutCull(FRAME_TEXTURE), (p, c) -> string(c, p, knotY, stringLight));
 
         poseStack.translate(origin.x, origin.y, origin.z);
         poseStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
@@ -355,7 +355,7 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         boolean seeInside = window && PortraitClipper.cameraInFront(frameToCamera, canvasFront);
         if (window) {
             // The canvas reduced to a thin plate at the very back of the frame: white seen from behind
-            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(FRAME_TEXTURE), (p, c) -> backPlate(c, p, light));
+            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutCull(FRAME_TEXTURE), (p, c) -> backPlate(c, p, light));
         }
         if (seeInside) {
             // The room behind the opening (velvet back and walls), flattened onto the canvas plane like the figure:
@@ -437,7 +437,7 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
             Matrix4f frameToCamera = new Matrix4f(poseStack.last().pose());
             float canvasFront = (float) PortraitGeometry.CANVAS_FRONT;
             float hw = (float) PortraitGeometry.OPEN_HW, hh = (float) PortraitGeometry.OPEN_HH;
-            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(FRAME_TEXTURE), (p, c) -> backPlate(c, p, light));
+            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutCull(FRAME_TEXTURE), (p, c) -> backPlate(c, p, light));
             if (PortraitClipper.facesViewer(frameToCamera)) {
                 float depth = (float) Math.max(s.windowDepth, -(PortraitGeometry.figureBackZ(pose, true) - canvasFront) + 1);
                 float scale = s.windowSize / 100f;
@@ -608,13 +608,17 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         }
     }
 
-    /** Window look: the thin plate closing the frame at the back (white behind, velvet in front). */
+    /**
+     * Window look: the thin plate closing the frame at the back (white behind, velvet in front), drawn with back
+     * faces culled: each side shows one face only (0.1 px apart, the two flickered against each other). Wound
+     * counter-clockwise as seen from the side each face shows.
+     */
     private static void backPlate(VertexConsumer c, PoseStack.Pose p, int light) {
         float hw = (float) PortraitGeometry.OPEN_HW, hh = (float) PortraitGeometry.OPEN_HH;
         float back = (float) PortraitGeometry.CANVAS_BACK, front = back + 0.1f;
         int w = 0xFFFFFFFF;
-        quad(c, p, hw, hh, back, -hw, hh, back, -hw, -hh, back, hw, -hh, back, 64, 0, 68, 4, w, light, 0, 0, -1);
-        quad(c, p, -hw, hh, front, hw, hh, front, hw, -hh, front, -hw, -hh, front, 21, 11, 35, 31, w, light, 0, 0, 1);
+        quad(c, p, -hw, hh, back, hw, hh, back, hw, -hh, back, -hw, -hh, back, 64, 0, 68, 4, w, light, 0, 0, -1);
+        quad(c, p, hw, hh, front, -hw, hh, front, -hw, -hh, front, hw, -hh, front, 21, 11, 35, 31, w, light, 0, 0, 1);
     }
 
     /**
