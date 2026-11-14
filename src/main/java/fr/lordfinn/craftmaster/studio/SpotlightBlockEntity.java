@@ -62,6 +62,9 @@ public class SpotlightBlockEntity extends BlockEntity {
     private float cone = DEFAULT_CONE;
     /** How long the clients take to reach new colour / intensity / cone / aim settings (ticks; 0 = their usual pace). */
     private int fade;
+    /** A light effect drawn by the clients on the intensity ("respiration", "strobe"…; "" none), its speed and phase. */
+    private String effect = "";
+    private float effectSpeed = 1, effectPhase;
     /** The light block this spotlight placed (server), or null. */
     private BlockPos light;
 
@@ -112,6 +115,18 @@ public class SpotlightBlockEntity extends BlockEntity {
     public int intensity() { return intensity; }
     public float cone() { return cone; }
     public int fade() { return fade; }
+    public String effect() { return effect; }
+    public float effectSpeed() { return effectSpeed; }
+    public float effectPhase() { return effectPhase; }
+
+    /** A light effect ("" or "aucun": none), its speed (1 = normal) and its phase (0..1: a chase across a group). */
+    public void setEffect(String effect, float speed, float phase) {
+        String e = effect == null || effect.equals("aucun") ? "" : effect;
+        this.effect = e;
+        this.effectSpeed = Math.max(0.05f, Math.min(10, speed));
+        this.effectPhase = phase - (float) Math.floor(phase);
+        changed();
+    }
 
     public boolean hanging() {
         return getBlockState().getValue(SpotlightBlock.HANGING);
@@ -268,6 +283,9 @@ public class SpotlightBlockEntity extends BlockEntity {
         cone = Math.max(MIN_CONE, Math.min(MAX_CONE, in.getFloatOr("Cone", DEFAULT_CONE)));
         fade = Math.max(0, Math.min(MAX_FADE, in.getIntOr("Fade", 0)));
         light = in.read("Light", BlockPos.CODEC).orElse(null);
+        effect = in.getStringOr("Effect", "");
+        effectSpeed = in.getFloatOr("EffectSpeed", 1);
+        effectPhase = in.getFloatOr("EffectPhase", 0);
     }
 
     @Override
@@ -283,6 +301,11 @@ public class SpotlightBlockEntity extends BlockEntity {
         out.putFloat("Cone", cone);
         out.putInt("Fade", fade);
         if (light != null) out.store("Light", BlockPos.CODEC, light);
+        if (!effect.isEmpty()) {
+            out.putString("Effect", effect);
+            out.putFloat("EffectSpeed", effectSpeed);
+            out.putFloat("EffectPhase", effectPhase);
+        }
     }
 
     @Override

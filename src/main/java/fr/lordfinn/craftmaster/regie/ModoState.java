@@ -75,6 +75,10 @@ public final class ModoState {
             o.add("looks", looks);
             JsonArray cues = new JsonArray();
             fr.lordfinn.craftmaster.stage.Scenography.book().cues.keySet().forEach(cues::add);
+            // Timelines play through the same button (cue.play finds a timeline by its name)
+            fr.lordfinn.craftmaster.stage.Scenography.book().sequences.keySet().forEach(k -> {
+                if (!fr.lordfinn.craftmaster.stage.Scenography.book().cues.containsKey(k)) cues.add(k);
+            });
             o.add("cues", cues);
             o.addProperty("cueStatus", fr.lordfinn.craftmaster.stage.Cues.status());
             o.addProperty("spotlights", fr.lordfinn.craftmaster.studio.SpotlightBlockEntity.loaded().size());

@@ -64,6 +64,14 @@ public final class Scenography {
             if (book.cues == null) book.cues = new LinkedHashMap<>();
             if (book.auto == null) book.auto = new LinkedHashMap<>();
             if (book.rounds == null) book.rounds = new LinkedHashMap<>();
+            if (book.sequences == null) book.sequences = new LinkedHashMap<>();
+            book.sequences.values().removeIf(java.util.Objects::isNull);
+            book.sequences.values().forEach(Sequence::clean);
+            if (book.plateau == null) book.plateau = new Look.Plateau();
+            if (book.plateau.points == null) book.plateau.points = new LinkedHashMap<>();
+            if (book.plateau.scene == null || book.plateau.scene.isBlank()) book.plateau.scene = "scene";
+            if (book.plateau.publicZone == null || book.plateau.publicZone.isBlank()) book.plateau.publicZone = "public";
+            if (book.plateau.maitre == null) book.plateau.maitre = "";
         } catch (Exception e) {
             CraftMaster.LOG.error("[Scénographie] {} illisible, mis de côté", f, e);
             try {

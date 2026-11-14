@@ -1,5 +1,7 @@
 package fr.lordfinn.craftmaster.client.studio;
 
+import net.minecraft.client.Minecraft;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -113,7 +115,9 @@ public class SpotlightRenderer implements BlockEntityRenderer<SpotlightBlockEnti
         be.renderNanos = now;
         s.yaw = be.renderYaw;
         s.pitch = be.renderPitch;
-        s.intensity = be.renderIntensity;
+        // Light effects (breath, pulse, strobe…) on top, in step on every client (world time)
+        double seconds = be.getLevel() == null ? 0 : (be.getLevel().getGameTime() + Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false)) / 20.0;
+        s.intensity = be.renderIntensity * fr.lordfinn.craftmaster.studio.SpotlightEffects.factor(be.effect(), be.effectSpeed(), be.effectPhase(), seconds);
         s.cone = be.renderCone;
         s.color = ((int) (be.renderColor[0] * 255) << 16) | ((int) (be.renderColor[1] * 255) << 8) | (int) (be.renderColor[2] * 255);
         s.lit = s.intensity > 0.005f;

@@ -92,6 +92,9 @@ public final class CraftMaster implements ModInitializer {
         // Stage looks and cue lists (docs/wiki/Scenographie.md)
         ServerLifecycleEvents.SERVER_STARTED.register(server -> fr.lordfinn.craftmaster.stage.Scenography.load());
         fr.lordfinn.craftmaster.stage.Cues.register();
+        fr.lordfinn.craftmaster.stage.Sequencer.register();
+        fr.lordfinn.craftmaster.stage.TimelineNetwork.register();
+        CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.stage.TimelineCommands.register(dispatcher));
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.stage.StageCommands.register(dispatcher));
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             FabricLoader fl = FabricLoader.getInstance();

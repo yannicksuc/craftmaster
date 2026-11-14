@@ -94,12 +94,132 @@ Exemple, une ouverture de manche :
 /conduite auto lancement ouverture
 ```
 
-## 4. Tableaux suspendus et télés
+## 4. Les séquences : la timeline de scène
+Une séquence est une **timeline** : des **pistes** (une par chose à piloter) et des **keypoints** dans le temps. Un
+keypoint ne dit que ce qui change, avec un **fondu** (le temps que prend le changement). On voit la scène en direct
+pendant qu'on règle.
+
+### L'éditeur en jeu
+`/sequence editer <nom>` (la crée au besoin) ouvre l'éditeur **en bas de l'écran** : la scène reste visible au-dessus.
+
+- **À gauche, les pistes** : *Lumière* (un groupe de projecteurs : `tout`, `face`, `contre gauche`…), *Rideau* (un
+  rideau nommé ou `tout`), *Tableaux* (la galerie d'une saison, ou `tout`), *Écran* (une télé nommée), *Commande*.
+  Clic ou molette sur la cible : passer à la suivante ; clic droit : la taper. **M** : muette, **✕** : retirer.
+  Les boutons du bas ajoutent une piste.
+- **Au milieu, la timeline** : la règle des secondes, la **tête de lecture** (cliquer ou glisser sur la règle : la
+  scène se met dans l'état de cet instant), les keypoints (losanges à la couleur de la lumière), la barre de fondu
+  derrière chacun, l'éventail d'une vague ou d'une cascade.
+- **À droite, les réglages** du keypoint choisi : temps, fondu, et selon la piste allumé, couleur, intensité, cône,
+  suit, vise, effet, vitesse, vague / ouvert / ficelle, cascade / ce que montre l'écran / la commande. Molette ou
+  glisser sur une valeur pour la changer (Maj : plus vite), clic droit : « — » = inchangé.
+
+| Geste | Effet |
+|---|---|
+| Double-clic sur une ligne | un keypoint là, qui reprend l'état de la piste à cet instant (on ne change que ce qui doit changer) |
+| Clic / Maj+clic | choisir un keypoint / en ajouter à la sélection |
+| Glisser un keypoint | le déplacer (au quart de seconde ; Ctrl : libre) |
+| Espace | lire depuis la tête de lecture / arrêter |
+| Suppr, clic droit sur un keypoint | le retirer |
+| Ctrl+C / Ctrl+V / Ctrl+D / Ctrl+A | copier / coller à la tête de lecture / dupliquer juste après / toute la piste |
+| Ctrl+Z / Ctrl+Y | défaire / refaire |
+| ← → | déplacer la sélection (ou la tête de lecture) d'un quart de seconde, Maj : une seconde |
+| ↑ ↓ | piste précédente / suivante |
+| Molette / Ctrl+molette | faire défiler / zoomer |
+
+Boutons : **● Capturer** (la scène telle que tu l'as réglée à la main, `/cfsp…`, dans le keypoint choisi ou un
+nouveau), **Miroir** (la piste pour l'autre côté : `gauche ↔ droite`, `cour ↔ jardin`, `g ↔ d` dans le nom ; sinon
+ses angles en miroir), **Inverser** (la sélection, ou toute la séquence, jouée à l'envers), **Dupliquer**,
+**Boucle**, la durée (molette ou clic), ◀ ▶ pour passer d'une séquence à l'autre, **+** pour en créer une, le nom
+(clic) pour la renommer. Tout s'enregistre tout seul.
+
+### Les cibles de poursuite (« suit »)
+| Cible | Suit |
+|---|---|
+| `@maitre` | le CraftMaster (`/plateau maitre <pseudo>`, LordFinn par défaut) |
+| `@rang:1`, `@rang:2`… | le joueur à ce rang du classement de la saison active ; `@dernier` : le dernier |
+| `@hasard` | un candidat au hasard (tiré une fois, gardé tant qu'il est là) |
+| `@public` | quelqu'un du public au hasard (zone `public`, sinon un joueur qui n'est ni candidat ni le maître) |
+| `@scene`, `@moment`, `@candidat`, `@proche`, `@zone:<nom>` | comme plus haut ; ou un pseudo |
+
+« Vise » pointe un endroit fixe : `@centre` (le centre de la scène), `@point:<nom>`, ou `x y z`.
+
+### Effets de lumière
+`respiration` (lente), `pulse` (battement), `strobe` (flashs), `scintille` (flamme), `chenillard` (les projecteurs
+du groupe s'allument tour à tour, de gauche à droite). `vitesse` : 1 = normal. Les effets suivent l'heure du monde :
+tous les joueurs et la diffusion voient la même chose.
+
+### Vagues et cascades
+`vague` (lumière) : les projecteurs du groupe prennent le changement **l'un après l'autre**, de la gauche à la
+droite du public, étalé sur ce nombre de secondes. `cascade` (tableaux) : un tableau après l'autre, ce nombre de
+secondes d'écart.
+
+### Le plateau
+| Commande | Effet |
+|---|---|
+| `/plateau` | où en est le plateau |
+| `/plateau devant` | dans le public, en regardant la scène : donne la gauche et la droite (miroirs, vagues) |
+| `/plateau point <nom>` | un point visable là où tu es (`centre` : le centre de la scène ; sans lui, le centre de la zone `scene`) |
+| `/plateau maitre <pseudo>` · `scene <zone>` · `public <zone>` | le CraftMaster, la zone de la scène, celle du public |
+
+### Les commandes
+| Commande | Effet |
+|---|---|
+| `/sequence` | la liste, cliquable (▶ : lancer ; nom : éditer) |
+| `/sequence lancer <nom> [depuis]` · `stop [nom]` · `statut` | plusieurs séquences peuvent jouer en même temps (un chenillard en boucle sous une révélation) |
+| `/sequence creer <nom> [secondes]` · `dupliquer` · `renommer` · `supprimer` | |
+| `/sequence miroir <nom>` · `inverser <nom>` · `etirer <nom> <facteur>` · `boucle <nom> <true\|false>` | les outils sur toute la séquence |
+| `/sequence importer [nom]` · `exporter <nom>` | fichiers `config/craftmaster/sequences/<nom>.json` |
+
+Une séquence se lance aussi comme une conduite : `/conduite auto revelation <séquence>`, `/conduite manche …`, une
+ligne `sequence <nom>` dans une conduite, le bouton de la régie des modos, la voix (« lance la conduite … »), le
+Stream Deck (`/stage/cue?name=…`). « Stop » arrête conduites et séquences.
+
+### Écrire une séquence à la main (ou par une IA)
+Un fichier `config/craftmaster/sequences/<nom>.json`, puis `/sequence importer <nom>`. Clés en français ; un champ
+absent = inchangé. Une IA peut en écrire une à partir d'une phrase comme « révélation dramatique : noir, roulement,
+poursuite or sur le premier, vague de faces en ambre ».
+
+```json
+{
+  "duree": 14,
+  "boucle": false,
+  "description": "Révélation du vainqueur",
+  "pistes": [
+    {"type": "lumiere", "cible": "tout", "cles": [
+      {"t": 0, "allume": false, "fondu": 1.5}
+    ]},
+    {"type": "lumiere", "cible": "face", "cles": [
+      {"t": 2, "allume": true, "couleur": "bleu", "intensite": 30, "cone": 12, "vise": "@centre", "effet": "chenillard", "vitesse": 1.5, "fondu": 1},
+      {"t": 9, "couleur": "ambre", "intensite": 100, "effet": "aucun", "vague": 1.2, "fondu": 0.5}
+    ]},
+    {"type": "lumiere", "cible": "poursuite", "cles": [
+      {"t": 8, "allume": true, "suit": "@rang:1", "couleur": "or", "intensite": 100, "cone": 4, "effet": "respiration", "fondu": 0.3}
+    ]},
+    {"type": "rideau", "cible": "fond", "cles": [{"t": 8, "ouvert": true}]},
+    {"type": "tableaux", "cible": "1", "cles": [{"t": 9, "hauteur": 3, "fondu": 4, "cascade": 0.3}]},
+    {"type": "ecran", "cible": "geant", "cles": [{"t": 9, "montre": "clip dernier"}]},
+    {"type": "commande", "cles": [
+      {"t": 7.5, "commande": "playsound minecraft:block.note_block.snare master @a ~ ~ ~ 1 0.8"},
+      {"t": 8, "commande": "title @a title {\"text\":\"Vainqueur !\",\"color\":\"gold\"}"}
+    ]}
+  ]
+}
+```
+
+| Piste | Champs d'un keypoint (en plus de `t` et `fondu`) |
+|---|---|
+| `lumiere` | `allume`, `couleur` (nom ou `#RRVVBB`), `intensite` 0-100, `cone` 1-30, `suit`, `vise`, `horizontal` + `vertical`, `effet`, `vitesse`, `vague` |
+| `rideau` | `ouvert` |
+| `tableaux` | `hauteur` (ficelle, blocs), `cascade` |
+| `ecran` | `montre` : ce que prend `/cmtele <écran>` (`clip dernier`, `lien <url>`, `chat`, `off`) |
+| `commande` | `commande` : une ligne de conduite (commande sans `/`, `ambiance x`, `noir 2`…) |
+
+## 5. Tableaux suspendus et télés
 - Monter / descendre les tableaux : `/cfpt hoist <saison> <blocs> [secondes]` ([Tableaux](Tableaux.md)) ; une
   ambiance retient leur hauteur.
 - Télés nommées (`/cmtele nommer <nom>`) : une ambiance retient ce qu'elles montrent ([Clips](Clips.md)).
 
-## 5. À la voix, au Stream Deck, à la régie des modos
+## 6. À la voix, au Stream Deck, à la régie des modos
 - Voix : « noir », « noir en 3 secondes », « ambiance plateau », « passe en ambiance révélation en 5 secondes »,
   « lance la conduite ouverture », « stop la conduite », « la face en rouge en 3 secondes », « baisse le contre à
   40 % », « ouvre le cône de la face », « la poursuite sur qui est sur scène ».
@@ -109,5 +229,5 @@ Exemple, une ouverture de manche :
   couleurs pour tous les projecteurs et la poursuite (sur scène, le moment, candidat, proche, fixes). Il faut le droit
   « camera ».
 
-Fichier : `config/craftmaster/scenographie.json` (ambiances, conduites, lancements automatiques), sauvegardé à chaque
+Fichier : `config/craftmaster/scenographie.json` (ambiances, conduites, séquences, plateau, lancements automatiques), sauvegardé à chaque
 changement.

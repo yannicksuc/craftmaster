@@ -12,6 +12,11 @@ parties archivées comprises). Égalité : l'ordre des joueurs de la saison (ord
 - Les **organisateurs** voient le direct : l'écran affiche « · scores en direct » et, à côté d'un total qui n'est pas
   encore publié, « +3 non publié » ; l'infobulle donne le total publié. `/cfst` dit combien de joueurs ont des
   points non publiés.
+- **Un joueur de la saison sans aucun point compte pour 0** : il est classé (dernier, ex aequo avec les autres à 0),
+  en direct tout de suite, et dans le classement publié dès la première publication.
+- **À la publication**, chaque joueur reçoit dans le chat ce qui change pour lui depuis la publication d'avant : les
+  épreuves dont le score a bougé (« Le Tas de terre : +3 (4 → 7) »), son total et son rang (▲ / ▼). Rien de détaillé
+  pendant qu'une saison est cachée (la révélation garde la surprise).
 - Une nouvelle saison n'a rien de publié : les joueurs voient un classement vide jusqu'à la première publication.
   Les saisons venues de l'ancien format sont publiées à la conversion (rien ne change pour les joueurs).
 

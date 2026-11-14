@@ -71,5 +71,40 @@ public final class Look {
         public Map<String, String> auto = new LinkedHashMap<>();
         /** Round id → cue list played when that round starts (instead of the "lancement" one). */
         public Map<String, String> rounds = new LinkedHashMap<>();
+        /** Timelines ({@link Sequence}), by name. */
+        public Map<String, Sequence> sequences = new LinkedHashMap<>();
+        /** Where the stage is, which way the audience looks, its named points: for aiming, mirrors and waves. */
+        public Plateau plateau = new Plateau();
+    }
+
+    /**
+     * The stage's plan. The stage itself is the trial zone {@link #scene} ("scene"), the audience the zone
+     * {@link #publicZone} ("public"); {@link #devant} is the direction the audience looks toward the stage (a yaw,
+     * set by standing in the audience: /plateau devant), which gives left and right for mirrors and waves.
+     */
+    public static final class Plateau {
+        public String scene = "scene";
+        @com.google.gson.annotations.SerializedName("public")
+        public String publicZone = "public";
+        /** Yaw of the audience's gaze toward the stage (degrees, Minecraft's); null: not set (south). */
+        public Float devant;
+        /** The show's master (CraftMaster), followed by "@maitre"; empty: LordFinn. */
+        public String maitre = "";
+        /** Named places spotlights can aim at ("@point:trone"). */
+        public Map<String, Point> points = new LinkedHashMap<>();
+    }
+
+    public static final class Point {
+        public String world;
+        public double x, y, z;
+
+        public Point() {}
+
+        public Point(String world, double x, double y, double z) {
+            this.world = world;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
     }
 }

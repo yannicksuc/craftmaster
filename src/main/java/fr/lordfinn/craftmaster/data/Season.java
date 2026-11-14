@@ -154,15 +154,26 @@ public final class Season {
     public List<CraftMasterData.Entry> liveRanking() {
         List<CraftMasterData.Entry> out = new ArrayList<>();
         for (String p : scoredPlayers()) out.add(new CraftMasterData.Entry(p, total(p)));
+        addUnscoredCast(out);
         out.sort((a, b) -> Integer.compare(b.total(), a.total()));
         return out;
     }
 
-    /** Published ranking (empty before the first publish). */
+    /** The season's players who have no score yet count, with 0 points (archived ones do not). */
+    private void addUnscoredCast(List<CraftMasterData.Entry> out) {
+        java.util.Set<String> in = new java.util.HashSet<>();
+        for (CraftMasterData.Entry e : out) in.add(e.player().toLowerCase(java.util.Locale.ROOT));
+        players.forEach((name, pl) -> {
+            if (!pl.archived && in.add(name.toLowerCase(java.util.Locale.ROOT))) out.add(new CraftMasterData.Entry(name, 0));
+        });
+    }
+
+    /** Published ranking (empty before the first publish; then the season's players without points at 0). */
     public List<CraftMasterData.Entry> publishedRanking() {
         List<CraftMasterData.Entry> out = new ArrayList<>();
         if (published == null) return out;
         for (String p : published.scores().keySet()) out.add(new CraftMasterData.Entry(p, published.total(p)));
+        addUnscoredCast(out);
         out.sort((a, b) -> Integer.compare(b.total(), a.total()));
         return out;
     }
@@ -205,8 +216,12 @@ public final class Season {
         return out;
     }
 
+    /** What was published before the last publish (not saved): what changed, for the players' announcement. */
+    public transient Published previousPublished;
+
     /** Copies the live scores to the published ones. */
     public void publish(long now) {
+        previousPublished = published;
         published = new Published(now, labelledScores());
     }
 

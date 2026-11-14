@@ -20,6 +20,7 @@ import java.util.Locale;
  * (the test tooling has no GUI click). The file is consumed once per tick, one command per line, GUI coordinates:
  * <pre>
  * click x y [button] [mods]     press (button 0 left, 1 right), mods: 1 Shift, 2 Ctrl, 4 Alt (added)
+ * dclick x y [button] [mods]    the same, as the second press of a double-click
  * drag x y dx dy [button] [mods]
  * release x y [button]
  * scroll x y amount
@@ -138,6 +139,8 @@ public final class DevInput {
         switch (a[0].toLowerCase(Locale.ROOT)) {
             case "click" -> s.mouseClicked(new MouseButtonEvent(Double.parseDouble(a[1]), Double.parseDouble(a[2]),
                     new MouseButtonInfo(button(a, 3), mods(a, 4))), false);
+            case "dclick" -> s.mouseClicked(new MouseButtonEvent(Double.parseDouble(a[1]), Double.parseDouble(a[2]),
+                    new MouseButtonInfo(button(a, 3), mods(a, 4))), true);
             case "drag" -> s.mouseDragged(new MouseButtonEvent(Double.parseDouble(a[1]), Double.parseDouble(a[2]),
                     new MouseButtonInfo(button(a, 5), mods(a, 6))), Double.parseDouble(a[3]), Double.parseDouble(a[4]));
             case "release" -> s.mouseReleased(new MouseButtonEvent(Double.parseDouble(a[1]), Double.parseDouble(a[2]),

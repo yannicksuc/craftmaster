@@ -87,6 +87,8 @@ public final class Cues {
 
     public static String play(MinecraftServer server, String name) {
         List<String> lines = Scenography.book().cues.get(Scenography.key(name));
+        // A timeline by that name (and no cue list): the automatic moments and voice orders play it too
+        if (lines == null && Sequencer.exists(name)) return Sequencer.play(server, name, 0);
         if (lines == null) {
             // A look played as a one-line cue list: "lance l'ambiance plateau" and "lance la conduite plateau" both work
             if (Scenography.book().looks.containsKey(Scenography.key(name))) return Scenography.playLook(server, name, null);
@@ -168,8 +170,12 @@ public final class Cues {
                 Scenography.blackout(server, number(rest, 1));
                 return 0;
             }
-            case "conduite", "sequence" -> {
+            case "conduite" -> {
                 play(server, rest);
+                return 0;
+            }
+            case "sequence", "timeline" -> {
+                Sequencer.play(server, rest, 0);
                 return 0;
             }
             default -> {
@@ -249,8 +255,8 @@ public final class Cues {
             Scenography.save();
             return "Plus de conduite automatique au moment « " + e + " ».";
         }
-        if (!Scenography.book().cues.containsKey(k) && !Scenography.book().looks.containsKey(k))
-            return "Ni conduite ni ambiance « " + k + " ».";
+        if (!Scenography.book().cues.containsKey(k) && !Scenography.book().looks.containsKey(k) && !Sequencer.exists(k))
+            return "Ni conduite, ni ambiance, ni séquence « " + k + " ».";
         Scenography.book().auto.put(e, k);
         Scenography.save();
         return "Au moment « " + e + " », « " + k + " » se lancera toute seule.";
@@ -264,8 +270,8 @@ public final class Cues {
             Scenography.save();
             return "« " + mancheName + " » n'a plus de conduite à elle.";
         }
-        if (!Scenography.book().cues.containsKey(k) && !Scenography.book().looks.containsKey(k))
-            return "Ni conduite ni ambiance « " + k + " ».";
+        if (!Scenography.book().cues.containsKey(k) && !Scenography.book().looks.containsKey(k) && !Sequencer.exists(k))
+            return "Ni conduite, ni ambiance, ni séquence « " + k + " ».";
         Scenography.book().rounds.put(mancheId, k);
         Scenography.save();
         return "Au lancement de « " + mancheName + " », « " + k + " » se lancera toute seule.";

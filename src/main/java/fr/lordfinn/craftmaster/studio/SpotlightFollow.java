@@ -32,8 +32,10 @@ public final class SpotlightFollow {
     private SpotlightFollow() {}
 
     public static final String NEAREST = "@proche", CONTESTANT = "@candidat", ZONE = "@zone:", STAGE = "@scene", MOMENT = "@moment";
+    /** The show's master, a rank of the season's ranking, the last one, a contestant at random, someone of the audience. */
+    public static final String MASTER = "@maitre", RANK = "@rang:", LAST = "@dernier", RANDOM = "@hasard", AUDIENCE = "@public";
     /** The rules offered to commands and the voice control. */
-    public static final List<String> RULES = List.of(NEAREST, CONTESTANT, STAGE, MOMENT, ZONE);
+    public static final List<String> RULES = List.of(NEAREST, CONTESTANT, STAGE, MOMENT, MASTER, RANK + "1", LAST, RANDOM, AUDIENCE, ZONE);
     /** How long "the moment" lasts (ms). */
     private static final long MOMENT_MS = 60_000;
 
@@ -59,7 +61,17 @@ public final class SpotlightFollow {
         if (s == null) return null;
         String k = fr.lordfinn.craftmaster.camera.CameraList.fold(s.strip()).replaceAll("^@", "");
         if (k.startsWith("zone:") || k.startsWith("zone ")) return k.length() > 5 ? ZONE + Zone.normalizeName(k.substring(5).strip()) : null;
+        // "rang:2", "rang 2", "2e", "premier", "deuxième"…
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("^(?:rang[: ]?|n°?|numero )?([0-9]+)(?:er|e|eme|ieme)?$").matcher(k);
+        if (m.matches()) return RANK + Integer.parseInt(m.group(1));
         return switch (k) {
+            case "maitre", "craftmaster", "master", "animateur", "presentateur" -> MASTER;
+            case "premier", "1er", "vainqueur", "gagnant", "leader" -> RANK + 1;
+            case "deuxieme", "second" -> RANK + 2;
+            case "troisieme" -> RANK + 3;
+            case "dernier", "last" -> LAST;
+            case "hasard", "aleatoire", "random", "candidat au hasard" -> RANDOM;
+            case "public", "spectateur", "spectateurs", "audience", "quelqu'un du public" -> AUDIENCE;
             case "proche", "plus proche", "nearest", "auto" -> NEAREST;
             case "candidat", "candidats", "contestant" -> CONTESTANT;
             case "scene", "plateau", "stage", "sur scene" -> STAGE;
@@ -79,7 +91,12 @@ public final class SpotlightFollow {
         if (follow == null || follow.isEmpty()) return "personne";
         if (!isRule(follow)) return follow;
         if (follow.startsWith(ZONE)) return "qui est dans la zone « " + follow.substring(ZONE.length()) + " »";
+        if (follow.startsWith(RANK)) return "le " + follow.substring(RANK.length()) + (follow.endsWith(":1") ? "er" : "e") + " du classement";
         return switch (follow) {
+            case MASTER -> "le CraftMaster";
+            case LAST -> "le dernier du classement";
+            case RANDOM -> "un candidat au hasard";
+            case AUDIENCE -> "quelqu'un du public au hasard";
             case NEAREST -> "le joueur le plus proche";
             case CONTESTANT -> "le candidat le plus proche";
             case STAGE -> "qui est sur scène (zone « scene »)";
@@ -99,26 +116,65 @@ public final class SpotlightFollow {
             ServerPlayer p = server.getPlayerList().getPlayerByName(momentPlayer);
             return p != null && p.level() == level ? p.getGameProfile().name() : "";
         }
+        // One named player: the master, a rank of the live ranking
+        String named = null;
+        if (rule.equals(MASTER)) named = master();
+        else if (rule.startsWith(RANK) || rule.equals(LAST)) named = ranked(rule);
+        if (named != null) {
+            ServerPlayer p = named.isEmpty() ? null : server.getPlayerList().getPlayerByName(named);
+            return p != null && p.level() == level && p.position().distanceTo(pivot) <= SpotlightBlockEntity.FOLLOW_RANGE ? p.getGameProfile().name() : "";
+        }
         List<ServerPlayer> candidates = new ArrayList<>();
-        Set<String> cast = rule.equals(CONTESTANT) ? contestants() : null;
+        Set<String> cast = rule.equals(CONTESTANT) || rule.equals(RANDOM) ? contestants() : null;
+        Set<String> notCast = rule.equals(AUDIENCE) ? contestants() : null;
+        var plateau = fr.lordfinn.craftmaster.stage.Scenography.book().plateau;
         Zone zone = null;
         if (rule.startsWith(ZONE) || rule.equals(STAGE)) {
-            zone = TrialZones.zones().get(rule.equals(STAGE) ? "scene" : rule.substring(ZONE.length()));
+            zone = TrialZones.zones().get(rule.equals(STAGE) ? plateau.scene : rule.substring(ZONE.length()));
             if (zone == null) return "";
         }
+        // The audience: its zone when there is one, else anyone who is not a contestant nor the master
+        if (rule.equals(AUDIENCE)) zone = TrialZones.zones().get(plateau.publicZone);
         String world = level.dimension().identifier().toString();
         for (ServerPlayer p : level.players()) {
             if (p.gameMode() == GameType.SPECTATOR) continue;
             if (p.position().distanceTo(pivot) > SpotlightBlockEntity.FOLLOW_RANGE) continue;
             if (cast != null && !cast.contains(p.getGameProfile().name().toLowerCase(Locale.ROOT))) continue;
+            if (notCast != null && (notCast.contains(p.getGameProfile().name().toLowerCase(Locale.ROOT))
+                    || p.getGameProfile().name().equalsIgnoreCase(master()))) continue;
             if (zone != null && !zone.contains(world, p.getX(), p.getY(), p.getZ())) continue;
             candidates.add(p);
         }
         for (ServerPlayer p : candidates) if (p.getGameProfile().name().equalsIgnoreCase(current)) return p.getGameProfile().name();
+        // At random: picked once, then kept while they still match (above)
+        if (rule.equals(RANDOM) || rule.equals(AUDIENCE))
+            return candidates.isEmpty() ? "" : candidates.get(java.util.concurrent.ThreadLocalRandom.current().nextInt(candidates.size())).getGameProfile().name();
         ServerPlayer best = null;
         for (ServerPlayer p : candidates)
             if (best == null || p.position().distanceToSqr(pivot) < best.position().distanceToSqr(pivot)) best = p;
         return best == null ? "" : best.getGameProfile().name();
+    }
+
+    /** The show's master: the plateau's setting, LordFinn by default. */
+    public static String master() {
+        String m = fr.lordfinn.craftmaster.stage.Scenography.book().plateau.maitre;
+        return m == null || m.isBlank() ? "LordFinn" : m.strip();
+    }
+
+    /** The player at a rank ("@rang:2") or the last one of the active season's live ranking; "" if none. */
+    static String ranked(String rule) {
+        var data = CraftMaster.data();
+        Season s = data == null ? null : data.activeSeason();
+        if (s == null) return "";
+        List<fr.lordfinn.craftmaster.data.CraftMasterData.Entry> r = data.ranking(s.id, false);
+        if (r.isEmpty()) return "";
+        if (rule.equals(LAST)) return r.getLast().player();
+        try {
+            int n = Integer.parseInt(rule.substring(RANK.length()));
+            return n >= 1 && n <= r.size() ? r.get(n - 1).player() : "";
+        } catch (NumberFormatException e) {
+            return "";
+        }
     }
 
     private static Set<String> contestants() {

@@ -149,7 +149,7 @@ public final class ActionExecutor {
                 fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onTimerStopped(server);
             }
             case Actions.Published p -> {
-                Show.announcePublished(server);
+                Show.announcePublished(server, p.season());
                 ShowEvents.onPublished(server, p.season());
             }
             case Actions.RevealStarted r -> {
@@ -194,7 +194,12 @@ public final class ActionExecutor {
                     yield fr.lordfinn.craftmaster.stage.Scenography.saveLook(server, o.name(), parts, o.fade());
                 }
                 case "cue.play" -> fr.lordfinn.craftmaster.stage.Cues.play(server, o.name());
-                case "cue.stop" -> fr.lordfinn.craftmaster.stage.Cues.stop();
+                // Stops the cue list and the timelines (the "Stop" button stops whatever drives the stage)
+                case "cue.stop" -> {
+                    String cue = fr.lordfinn.craftmaster.stage.Cues.stop();
+                    String seqs = fr.lordfinn.craftmaster.stage.Sequencer.stop(null);
+                    yield seqs.startsWith("Aucune") ? cue : cue.startsWith("Aucune") ? seqs : cue + " " + seqs;
+                }
                 default -> fr.lordfinn.craftmaster.stage.Scenography.blackout(server, o.fade() == null ? 1 : o.fade());
             });
             // Studio screens (media/): a clip, a Twitch link or live, a picture, the test card

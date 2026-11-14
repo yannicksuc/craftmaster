@@ -144,9 +144,46 @@ public final class Show {
 
     /** Everyone hears the ranking was updated. */
     public static void announcePublished(MinecraftServer server) {
+        announcePublished(server, -1);
+    }
+
+    /**
+     * "Scores published" for everyone; each player of the season also gets, in the chat, what changed for them:
+     * the rounds whose score moved (+3: 4 → 7), their total and their rank (▲ / ▼). Nothing detailed while the
+     * season is hidden (it would spoil the reveal).
+     */
+    public static void announcePublished(MinecraftServer server, int season) {
+        var data = fr.lordfinn.craftmaster.CraftMaster.data();
+        fr.lordfinn.craftmaster.data.Season s = data == null || season < 0 ? null : data.season(season);
+        java.util.Map<String, fr.lordfinn.craftmaster.data.PublishDiff.Change> diff = null;
+        if (s != null && !s.hidden && s.published != null) {
+            java.util.Set<String> cast = new java.util.LinkedHashSet<>();
+            s.players.forEach((n, pl) -> {
+                if (!pl.archived) cast.add(n);
+            });
+            diff = fr.lordfinn.craftmaster.data.PublishDiff.diff(s.previousPublished == null ? null : s.previousPublished.scores(), s.published.scores(), cast);
+        }
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
             p.sendOverlayMessage(Component.translatable("show.craftmaster.published").withStyle(ChatFormatting.GOLD));
             sound(p, SoundEvents.NOTE_BLOCK_CHIME, 0.8f, 1.4f);
+            fr.lordfinn.craftmaster.data.PublishDiff.Change c = diff == null ? null : fr.lordfinn.craftmaster.data.PublishDiff.of(diff, p.getGameProfile().name());
+            if (c == null || !c.changed()) continue;
+            net.minecraft.network.chat.MutableComponent msg = Component.translatable("show.craftmaster.published.you").withStyle(ChatFormatting.GOLD);
+            for (fr.lordfinn.craftmaster.data.PublishDiff.Round r : c.rounds()) {
+                int d = r.delta();
+                msg.append(Component.literal("\n  " + r.label() + " : ").withStyle(ChatFormatting.GRAY))
+                        .append(Component.literal((d > 0 ? "+" : "") + d).withStyle(d > 0 ? ChatFormatting.GREEN : ChatFormatting.RED))
+                        .append(Component.literal(" (" + r.from() + " → " + r.to() + ")").withStyle(ChatFormatting.DARK_GRAY));
+            }
+            int d = c.delta();
+            msg.append(Component.literal("\n  ").append(Component.translatable("show.craftmaster.published.total", c.totalAfter())).withStyle(ChatFormatting.WHITE));
+            if (d != 0) msg.append(Component.literal(" (" + (d > 0 ? "+" : "") + d + ")").withStyle(d > 0 ? ChatFormatting.GREEN : ChatFormatting.RED));
+            msg.append(Component.literal(" · #" + c.rankAfter()).withStyle(ChatFormatting.YELLOW));
+            if (c.rankBefore() > 0 && c.rankBefore() != c.rankAfter()) {
+                int up = c.rankBefore() - c.rankAfter();
+                msg.append(Component.literal(up > 0 ? " ▲" + up : " ▼" + (-up)).withStyle(up > 0 ? ChatFormatting.GREEN : ChatFormatting.RED));
+            }
+            p.sendSystemMessage(msg);
         }
     }
 

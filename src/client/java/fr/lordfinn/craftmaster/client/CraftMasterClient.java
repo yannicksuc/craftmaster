@@ -42,6 +42,7 @@ public final class CraftMasterClient implements ClientModInitializer {
         VoiceRegie.init();
         // Moderators' director (key ;): orders checked by the server, never shown on the broadcast
         fr.lordfinn.craftmaster.client.regie.ModoDeskClient.init();
+        fr.lordfinn.craftmaster.client.stage.TimelineClient.init();
         // Chantier H: task props, results sheet, drawing boards, plinth
         fr.lordfinn.craftmaster.client.trial.TrialClient.init();
         fr.lordfinn.craftmaster.client.wardrobe.WardrobeClient.init();

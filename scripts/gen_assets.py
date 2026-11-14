@@ -2005,6 +2005,9 @@ gen_tablet.generate(sys.modules[__name__])
 # --- garage door motor (garage/): scripts/gen_garage.py
 import gen_garage  # noqa: E402
 gen_garage.generate(sys.modules[__name__])
+# --- stage timeline editor and the publish announcement: scripts/gen_timeline.py
+import gen_timeline  # noqa: E402
+gen_timeline.generate(sys.modules[__name__])
 
 if SOUNDS:
     write_json(os.path.join(A, "sounds.json"), SOUNDS)
