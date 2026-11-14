@@ -7,12 +7,14 @@ import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 //? if >=26.3 {
 import com.mojang.renderpearl.api.pipeline.BlendFunction;
+import com.mojang.renderpearl.api.pipeline.BlendFactor;
 import com.mojang.renderpearl.api.pipeline.ColorTargetState;
 import com.mojang.renderpearl.api.pipeline.DepthStencilState;
 import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 //?} else {
 /*import com.mojang.blaze3d.PrimitiveTopology;
+import com.mojang.blaze3d.platform.BlendFactor;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
@@ -44,11 +46,16 @@ final class SpotLightRenderType {
      * own bias, 1 × slope + 10 units). A fixed lift off the surface was not enough: depth precision falls with distance
      * and grazing angles, and the pool flickered with the floor depending on where it was seen from.
      */
+    /** floor + light × (1 − floor), alpha untouched. */
+    private static final BlendFunction POOL_BLEND = new BlendFunction(BlendFactor.ONE_MINUS_DST_COLOR, BlendFactor.ONE, BlendFactor.ZERO, BlendFactor.ONE);
+
     private static final RenderPipeline POOL_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
             .withLocation(CraftMaster.id("pipeline/spot_pool"))
             .withVertexShader("core/rendertype_lightning")
             .withFragmentShader("core/rendertype_lightning")
-            .withColorTargetState(new ColorTargetState(BlendFunction.LIGHTNING))
+            // "Screen" blend, the colour premultiplied by its strength (PoolCells): one pool on a dark floor looks as
+            // with plain addition, but overlapping pools no longer add up to a blinding white floor (1 − (1−a)(1−b))
+            .withColorTargetState(new ColorTargetState(POOL_BLEND))
             .withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
             .withPrimitiveTopology(PrimitiveTopology.QUADS)
             .withDepthStencilState(new DepthStencilState(DepthStencilState.DEFAULT.depthTest(), false, 1.0f, 10.0f))
@@ -123,10 +130,11 @@ final class SpotLightRenderType {
             /*RenderSetup.builder(PIPELINE).setOutputTarget(OutputTarget.WEATHER_TARGET).sortOnUpload().createRenderSetup());
             *///?}
 
+    /** Drawn in the main target: the pool blends with the floor, which is there (not in the weather target of "Fabulous"). */
     static final RenderType POOL = RenderType.create("craftmaster_spot_pool",
             //? if >=26.3 {
             RenderSetup.builder(POOL_PIPELINE).sortOnUpload().createRenderSetup());
             //?} else {
-            /*RenderSetup.builder(POOL_PIPELINE).setOutputTarget(OutputTarget.WEATHER_TARGET).sortOnUpload().createRenderSetup());
+            /*RenderSetup.builder(POOL_PIPELINE).sortOnUpload().createRenderSetup());
             *///?}
 }

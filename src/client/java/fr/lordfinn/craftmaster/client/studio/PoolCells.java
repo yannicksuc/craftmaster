@@ -148,7 +148,9 @@ final class PoolCells {
     static void draw(VertexConsumer out, PoseStack.Pose p, Cells s, int rgb, float strength, float lift) {
         float[] xyz = new float[3];
         double step = CELL / s.sub();
-        int inner = Math.round(120 * strength);
+        // Without a shader pack, "screen" blend (SpotLightRenderType.POOL_BLEND). Under one, blended toward the light's
+        // colour: kept a bit lower, so that several pools on the same spot do not turn the floor white.
+        int inner = Math.round((SpotLightRenderType.textured ? 90 : 115) * strength);
         if (inner <= 0) return;
         for (int i = 0; i < s.cellB().length; i++) {
             double h = s.height()[i];
@@ -186,7 +188,10 @@ final class PoolCells {
         xyz[s.a()] = (float) (along - coord(s.origin(), s.a()));
         xyz[s.b()] = (float) (pb - coord(s.origin(), s.b()));
         xyz[s.c()] = (float) (pc - coord(s.origin(), s.c()));
-        Geo.light(out, p, xyz[0], xyz[1], xyz[2], Geo.argb(alpha, rgb));
+        // Screen blend: the strength goes into the colour itself (premultiplied)
+        int argb = SpotLightRenderType.textured ? Geo.argb(alpha, rgb)
+                : 0xFF000000 | (((rgb >> 16 & 255) * alpha / 255) << 16) | (((rgb >> 8 & 255) * alpha / 255) << 8) | ((rgb & 255) * alpha / 255);
+        Geo.light(out, p, xyz[0], xyz[1], xyz[2], argb);
     }
 
     private static int coord(BlockPos pos, int axis) {
