@@ -372,13 +372,13 @@ public class PoseEditorScreen extends Screen {
         if (e.button() != InputConstants.MOUSE_BUTTON_LEFT) return false;
         if (placingString) {
             // The string is tied where the click lands (figure or frame); a click on nothing turns the view
-            Pose.Attach at = PoseHitTest.pickAttach(editing, view(), e.x(), e.y(), slimSkin());
+            Pose.Attach at = PoseHitTest.pickAttach(editing, view(), e.x(), e.y(), slimSkin(), windowLook()[0] == 1);
             history.seal();
             if (at != null) changed(editing.withAttach(at), null);
             else drag = Drag.ORBIT;
             return true;
         }
-        PoseHitTest.Hit hit = PoseHitTest.pick(editing, view(), e.x(), e.y(), slimSkin());
+        PoseHitTest.Hit hit = PoseHitTest.pick(editing, view(), e.x(), e.y(), slimSkin(), windowLook()[0] == 1);
         history.seal();
         if (e.hasControlDown() && hit != null && !hit.frame()) {
             drag = Drag.MOVE;
@@ -588,7 +588,9 @@ public class PoseEditorScreen extends Screen {
         int boxH = ph - TOOLBAR;
         Ui.panel(g, font, px0, py0, pw, ph, null);
         PoseHitTest.View view = view();
-        hover = drag == Drag.NONE && inPreview(mouseX, mouseY) ? PoseHitTest.pick(editing, view, mouseX, mouseY, slimSkin()) : null;
+        // No part under the mouse while the string tool is on: a click ties the string, it edits nothing
+        hover = drag == Drag.NONE && !placingString && inPreview(mouseX, mouseY)
+                ? PoseHitTest.pick(editing, view, mouseX, mouseY, slimSkin(), windowLook()[0] == 1) : null;
 
         PortraitRenderer.State s = PortraitRenderer.previewState(editing, skin());
         // The window look as the portrait has it (or as its settings screen has it, not saved yet)

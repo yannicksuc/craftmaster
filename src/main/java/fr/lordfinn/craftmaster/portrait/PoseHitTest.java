@@ -4,6 +4,8 @@ import fr.lordfinn.craftmaster.portrait.Pose.Part;
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
 
+import java.util.List;
+
 /**
  * What the mouse points at on the pose editor's 3D preview: a part of the figure or the frame. The preview is an
  * orthographic view of portrait space ({@link PortraitGeometry}) turned by {@link View}; the same view is used to
@@ -43,11 +45,25 @@ public final class PoseHitTest {
         }
     }
 
-    /**
-     * The part under the screen point (sx, sy), the nearest to the viewer; the frame only when no part of the
-     * figure is there (the figure is what one edits most). Hidden parts cannot be hit. Null: nothing there.
-     */
     public static Hit pick(Pose pose, View view, double sx, double sy, boolean slim) {
+        return pick(pose, view, sx, sy, slim, false);
+    }
+
+    /**
+     * The frame's pieces that stop the mouse: the canvas too, except with the window look seen from the front
+     * (one sees through the opening into the room); from behind, its back plate hides everything.
+     */
+    private static List<PortraitGeometry.Box> frameBoxes(Pose pose, View view, boolean window) {
+        if (!window) return PortraitGeometry.FRAME_BOXES;
+        Vector3d facing = view.rotation().transformDirection(PortraitGeometry.frameMatrix(pose).transformDirection(new Vector3d(0, 0, 1)));
+        return facing.z > 0 ? PortraitGeometry.MOULDINGS : PortraitGeometry.FRAME_BOXES;
+    }
+
+    /**
+     * What is drawn under the screen point (sx, sy): the part or the frame nearest to the viewer, so a leg behind
+     * the canvas is not picked through it. Hidden parts cannot be hit. Null: nothing there.
+     */
+    public static Hit pick(Pose pose, View view, double sx, double sy, boolean slim, boolean window) {
         // The ray, in view space: from far in front of the screen point straight into the screen
         Matrix4d toPortrait = view.rotation().invert();
         Vector3d origin = toPortrait.transformPosition(new Vector3d((sx - view.cx()) / view.scale(), -(sy - view.cy()) / view.scale(), 1e4));
@@ -58,9 +74,8 @@ public final class PoseHitTest {
             double t = rayBox(PortraitGeometry.partMatrix(pose, p), PortraitGeometry.partBox(p, slim), origin, dir);
             if (t >= 0 && (best == null || 1e4 - t > best.depth())) best = new Hit(p, 1e4 - t);
         }
-        if (best != null) return best;
         Matrix4d frame = PortraitGeometry.frameMatrix(pose);
-        for (PortraitGeometry.Box b : PortraitGeometry.FRAME_BOXES) {
+        for (PortraitGeometry.Box b : frameBoxes(pose, view, window)) {
             double t = rayBox(frame, b, origin, dir);
             if (t >= 0 && (best == null || 1e4 - t > best.depth())) best = new Hit(null, 1e4 - t);
         }
@@ -71,7 +86,9 @@ public final class PoseHitTest {
      * The point under (sx, sy) on the nearest visible surface, figure and frame alike (where to tie the string), in
      * the space of what was hit: a part's own space, or frame space. Null: nothing there.
      */
-    public static Pose.Attach pickAttach(Pose pose, View view, double sx, double sy, boolean slim) {
+    public static Pose.Attach pickAttach(Pose pose, View view, double sx, double sy, boolean slim, boolean window) {
+        // Seen from the front with the window look, the canvas plane is open: the frame pieces are only the mouldings
+        // (and a part in the room is skipped above); from behind, the back plate catches the click
         Matrix4d toPortrait = view.rotation().invert();
         Vector3d origin = toPortrait.transformPosition(new Vector3d((sx - view.cx()) / view.scale(), -(sy - view.cy()) / view.scale(), 1e4));
         Vector3d dir = toPortrait.transformDirection(new Vector3d(0, 0, -1));
@@ -82,13 +99,17 @@ public final class PoseHitTest {
             Matrix4d m = PortraitGeometry.partMatrix(pose, p);
             double t = rayBox(m, PortraitGeometry.partBox(p, slim), origin, dir);
             if (t >= 0 && t < bestT) {
+                Vector3d at = new Vector3d(dir).mul(t).add(origin);
+                // Window look: what is behind the canvas plane is an illusion in the room, the string cannot reach it
+                if (window && new Matrix4d(PortraitGeometry.frameMatrix(pose)).invert().transformPosition(new Vector3d(at)).z
+                        < PortraitGeometry.CANVAS_FRONT - 1e-3) continue;
                 bestT = t;
-                Vector3d local = new Matrix4d(m).invert().transformPosition(new Vector3d(dir).mul(t).add(origin));
+                Vector3d local = new Matrix4d(m).invert().transformPosition(at);
                 best = new Pose.Attach(p, round(local.x), round(local.y), round(local.z));
             }
         }
         Matrix4d frame = PortraitGeometry.frameMatrix(pose);
-        for (PortraitGeometry.Box b : PortraitGeometry.FRAME_BOXES) {
+        for (PortraitGeometry.Box b : frameBoxes(pose, view, window)) {
             double t = rayBox(frame, b, origin, dir);
             if (t >= 0 && t < bestT) {
                 bestT = t;

@@ -248,6 +248,31 @@ class PoseEditingTest {
     }
 
     @Test
+    void aPartBehindTheCanvasIsNotPickedThroughIt() {
+        // Seen from behind, the canvas hides the figure: the frame is what is under the mouse
+        PoseHitTest.View back = new PoseHitTest.View(180, 0, 4, 0, 0);
+        double[] centre = back.project(new Vector3d(0, -6, 0));
+        PoseHitTest.Hit hit = PoseHitTest.pick(Pose.NEUTRAL, back, centre[0], centre[1], false);
+        assertNotNull(hit);
+        assertTrue(hit.frame());
+        // Window look from behind: its back plate hides the figure too
+        PoseHitTest.Hit plate = PoseHitTest.pick(Pose.NEUTRAL, back, centre[0], centre[1], false, true);
+        assertNotNull(plate);
+        assertTrue(plate.frame());
+        // Window look from the front: the figure deep in the room is seen through the opening, and picked
+        Pose deep = Pose.NEUTRAL.withOffset(0, -10, -8);
+        double[] c = FRONT.project(PortraitGeometry.partMatrix(deep, Part.BODY).transformPosition(PortraitGeometry.partBox(Part.BODY, false).center()));
+        PoseHitTest.Hit inRoom = PoseHitTest.pick(deep, FRONT, c[0], c[1], false, true);
+        assertNotNull(inRoom);
+        assertEquals(Part.BODY, inRoom.part());
+        // The string cannot be tied to it: it is an illusion behind the canvas plane (nothing, or the frame)
+        Pose.Attach knot = PoseHitTest.pickAttach(deep, FRONT, c[0], c[1], false, true);
+        assertTrue(knot == null || knot.onFrame());
+        // Without the window look the canvas is in front of it
+        assertTrue(PoseHitTest.pick(deep, FRONT, c[0], c[1], false, false).frame());
+    }
+
+    @Test
     void frameOnlyWhereThereIsNoFigure() {
         // A corner of the frame
         double[] corner = FRONT.project(new Vector3d(-PortraitGeometry.HW + 1, PortraitGeometry.HH - 1, 0));
