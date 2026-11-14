@@ -69,7 +69,7 @@ public class PoseEditorScreen extends Screen {
         }
     }
 
-    private enum Drag { NONE, PART, FRAME, MOVE, ORBIT }
+    private enum Drag { NONE, PART, FRAME, MOVE, ORBIT, PAN }
 
     private final PortraitEntity portrait;
     private final PortraitScreen parent;
@@ -85,6 +85,8 @@ public class PoseEditorScreen extends Screen {
     // Preview: its box, the view (turntable), the axis the wheel and arrows turn, the gesture in progress
     private int px0, py0, pw, ph;
     private double yaw = 25, pitch = 12, zoom = 1;
+    /** The view slid with the middle button (GUI pixels). */
+    private double panX, panY;
     private PoseEditing.Axis wheelAxis = PoseEditing.Axis.X;
     private Drag drag = Drag.NONE;
     /** The string tool is on: a click on the figure or the frame ties the string there. */
@@ -308,6 +310,7 @@ public class PoseEditorScreen extends Screen {
         yaw = 25;
         pitch = 12;
         zoom = 1;
+        panX = panY = 0;
     }
 
     private void updateButtons() {
@@ -327,7 +330,7 @@ public class PoseEditorScreen extends Screen {
     PoseHitTest.View view() {
         int boxH = ph - TOOLBAR;
         double scale = Math.min(pw / 34.0, boxH / 40.0) * zoom;
-        return new PoseHitTest.View(yaw, pitch, scale, px0 + pw / 2.0, py0 + boxH / 2.0);
+        return new PoseHitTest.View(yaw, pitch, scale, px0 + pw / 2.0 + panX, py0 + boxH / 2.0 + panY);
     }
 
     private boolean inPreview(double x, double y) {
@@ -351,6 +354,11 @@ public class PoseEditorScreen extends Screen {
         setFocused(null);
         if (e.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
             drag = Drag.ORBIT;
+            return true;
+        }
+        // Middle button: slide the view
+        if (e.button() == InputConstants.MOUSE_BUTTON_MIDDLE) {
+            drag = Drag.PAN;
             return true;
         }
         if (e.button() != InputConstants.MOUSE_BUTTON_LEFT) return false;
@@ -383,6 +391,10 @@ public class PoseEditorScreen extends Screen {
                 PoseHitTest.View v = view().turned(dx * 0.8, dy * 0.8);
                 yaw = v.yaw();
                 pitch = v.pitch();
+            }
+            case PAN -> {
+                panX += dx;
+                panY += dy;
             }
             case MOVE -> {
                 double s = view().scale();
@@ -587,10 +599,11 @@ public class PoseEditorScreen extends Screen {
             s.hovered = hover.part();
             s.frameHovered = hover.frame();
         }
-        s.view = previewMatrix(view);
-        s.stringPlacing = placingString;
-        // Drawn with the portrait's own renderer (same model, skin, cape and frame), at the view's scale
+        // Drawn with the portrait's own renderer (same model, skin, cape and frame), at the view's scale, slid by
+        // the middle button (in blocks of the picture)
         float blocks = (float) (view.scale() * 16);
+        s.view = new Matrix4f().translate((float) (panX / blocks), (float) (panY / blocks), 0).mul(previewMatrix(view));
+        s.stringPlacing = placingString;
         g.entity(s, blocks, new Vector3f(0, 0, 0), new Quaternionf(), null, px0 + 1, py0 + 1, px0 + pw - 1, py0 + boxH);
 
         // Header: the part being edited and the axis of the wheel / arrows; footer: how to use the mouse

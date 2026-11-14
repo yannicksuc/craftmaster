@@ -173,6 +173,8 @@ LANG = {
     "screen.craftmaster.pose.tool.string": ("String: click where to tie it (F) · 0: back to automatic", "Ficelle : clique où l'attacher (F) · 0 : retour en automatique"),
     "screen.craftmaster.pose.string_head": ("String · click where to tie it", "Ficelle · clique où l'attacher"),
     "screen.craftmaster.pose.string_head_auto": ("String (automatic) · click to tie it", "Ficelle (auto) · clique pour l'attacher"),
+    "screen.craftmaster.pose.help.4": ("Right drag / drag the background: turn the view · middle drag: slide it", "Clic droit tiré / tirer le fond : tourner la vue · clic molette tiré : la déplacer"),
+    "screen.craftmaster.pose.help.6": ("Ctrl + wheel: zoom, Home: front view, centred", "Ctrl + molette : zoom, Origine : vue de face, recentrée"),
     "screen.craftmaster.kit.title": ("Camera %s · its travellings", "Caméra %s · ses travellings"),
     "screen.craftmaster.kit.question": ("%s travelling(s) came with this camera. Where do they go?", "%s travelling(s) reviennent avec cette caméra. Où les mettre ?"),
     "screen.craftmaster.kit.relative": ("Follow the camera", "Suivre la caméra"),
