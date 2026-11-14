@@ -51,8 +51,11 @@ public final class PoseEditing {
         for (Part p : Part.values()) r.put(opposite(p), mirrored(pose.rotation(p)));
         Set<Part> hidden = EnumSet.noneOf(Part.class);
         for (Part p : pose.hidden()) hidden.add(opposite(p));
+        // The string's knot too: on the other limb, the other side of the frame
+        Pose.Attach a = pose.attach();
+        Pose.Attach m = a == null ? null : new Pose.Attach(a.part() == null ? null : opposite(a.part()), clean(-a.x()), a.y(), a.z());
         return new Pose(r, hidden, clean(-pose.offsetX()), pose.offsetY(), pose.offsetZ(), pose.scale(),
-                pose.framePitch(), clean(-pose.frameRoll()));
+                pose.framePitch(), clean(-pose.frameRoll()), m);
     }
 
     /** Gives the other limb the mirror of {@code part}'s rotation (and visibility): a symmetric pose. */

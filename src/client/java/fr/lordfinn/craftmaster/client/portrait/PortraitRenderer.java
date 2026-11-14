@@ -87,6 +87,8 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
         /** Parts drawn tinted: the one being edited and the one under the mouse (null = none; frame: see below). */
         Part selected, hovered;
         boolean frameSelected, frameHovered;
+        /** The string tool is on: the knot is shown bigger, in gold. */
+        boolean stringPlacing;
         /** Portrait space → preview view space (the editor's turntable). */
         Matrix4f view = new Matrix4f();
 
@@ -465,6 +467,14 @@ public class PortraitRenderer extends EntityRenderer<PortraitEntity, PortraitRen
                 submitTinted(cape, poseStack, collector, RenderTypes.entityCutout(skin.cape()), light, tint);
             poseStack.popPose();
         }
+        // The string, straight up from its knot (chosen in the editor, or computed)
+        Vector3d knot = PortraitGeometry.hangPoint(pose, s.window);
+        float kx = (float) knot.x, ky = (float) knot.y, kz = (float) knot.z;
+        float knotSize = s.stringPlacing ? 0.9f : 0.45f;
+        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(FRAME_TEXTURE), (p, c) -> {
+            box(c, p, kx - 0.2f, ky, kz - 0.2f, kx + 0.2f, ky + 40, kz + 0.2f, 120, 0, 121, 16, light);
+            box(c, p, kx - knotSize, ky - knotSize, kz - knotSize, kx + knotSize, ky + knotSize, kz + knotSize, 120, 0, 121, 16, light);
+        });
         poseStack.popPose();
     }
 

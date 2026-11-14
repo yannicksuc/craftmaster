@@ -87,6 +87,8 @@ public class PoseEditorScreen extends Screen {
     private double yaw = 25, pitch = 12, zoom = 1;
     private PoseEditing.Axis wheelAxis = PoseEditing.Axis.X;
     private Drag drag = Drag.NONE;
+    /** The string tool is on: a click on the figure or the frame ties the string there. */
+    private boolean placingString;
     private PoseHitTest.Hit hover;
 
     public PoseEditorScreen(PortraitEntity portrait, PortraitScreen parent) {
@@ -162,6 +164,11 @@ public class PoseEditorScreen extends Screen {
     }
 
     private void resetPart() {
+        if (placingString) {
+            // Back to the computed knot, above the centre of gravity
+            changed(editing.withAttach(null), null);
+            return;
+        }
         changed(group == Group.FRAME ? PoseEditing.resetFrame(editing) : PoseEditing.reset(editing, group.part), null);
     }
 
@@ -277,6 +284,11 @@ public class PoseEditorScreen extends Screen {
         Button hide = tool(tx += TOOL + 1, ty, hidden ? "○" : "•", "hide", this::toggleHidden);
         hide.active = group.part != null && group.part.hideable();
         tool(tx += TOOL + 1, ty, "⌂", "view", this::resetView);
+        Button string = tool(tx += TOOL + 1, ty, "⚓", "string", () -> {
+            placingString = !placingString;
+            rebuildWidgets();
+        });
+        if (placingString) string.setMessage(Component.literal("⚓").withStyle(ChatFormatting.YELLOW));
         updateButtons();
     }
 
@@ -342,6 +354,14 @@ public class PoseEditorScreen extends Screen {
             return true;
         }
         if (e.button() != InputConstants.MOUSE_BUTTON_LEFT) return false;
+        if (placingString) {
+            // The string is tied where the click lands (figure or frame); a click on nothing turns the view
+            Pose.Attach at = PoseHitTest.pickAttach(editing, view(), e.x(), e.y(), slimSkin());
+            history.seal();
+            if (at != null) changed(editing.withAttach(at), null);
+            else drag = Drag.ORBIT;
+            return true;
+        }
         PoseHitTest.Hit hit = PoseHitTest.pick(editing, view(), e.x(), e.y(), slimSkin());
         history.seal();
         if (e.hasControlDown() && hit != null && !hit.frame()) {
@@ -430,6 +450,10 @@ public class PoseEditorScreen extends Screen {
             case 'c' -> copySide();
             case 'r' -> resetPart();
             case 'h' -> toggleHidden();
+            case 'f' -> {
+                placingString = !placingString;
+                rebuildWidgets();
+            }
             case 'x' -> wheelAxis = PoseEditing.Axis.X;
             case 'y' -> wheelAxis = PoseEditing.Axis.Y;
             case 'z' -> wheelAxis = PoseEditing.Axis.Z;
@@ -564,13 +588,17 @@ public class PoseEditorScreen extends Screen {
             s.frameHovered = hover.frame();
         }
         s.view = previewMatrix(view);
+        s.stringPlacing = placingString;
         // Drawn with the portrait's own renderer (same model, skin, cape and frame), at the view's scale
         float blocks = (float) (view.scale() * 16);
         g.entity(s, blocks, new Vector3f(0, 0, 0), new Quaternionf(), null, px0 + 1, py0 + 1, px0 + pw - 1, py0 + boxH);
 
         // Header: the part being edited and the axis of the wheel / arrows; footer: how to use the mouse
         Component part = group.label().copy().withStyle(ChatFormatting.YELLOW);
-        g.text(font, Component.translatable("screen.craftmaster.pose.preview_head", part, wheelAxis.name()), px0 + 4, py0 + 4, 0xFFFFFFFF);
+        Component head = placingString
+                ? Component.translatable(editing.attach() == null ? "screen.craftmaster.pose.string_head_auto" : "screen.craftmaster.pose.string_head")
+                : Component.translatable("screen.craftmaster.pose.preview_head", part, wheelAxis.name());
+        g.text(font, head, px0 + 4, py0 + 4, 0xFFFFFFFF);
         Component help = Component.translatable("screen.craftmaster.pose.help_short").withStyle(ChatFormatting.GRAY);
         int hx = px0 + pw - 4 - font.width(help);
         g.text(font, help, hx, py0 + 4, HINT);

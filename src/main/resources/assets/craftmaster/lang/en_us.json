@@ -1111,5 +1111,8 @@
   "screen.craftmaster.pose.rename.line_worn": "New name for « %s » (%s portrait(s) around wear it, they keep it):",
   "screen.craftmaster.pose.rename.taken": "« %s » is already the name of another pose.",
   "message.craftmaster.pose_renamed": "Pose « %s » renamed « %s »",
-  "message.craftmaster.pose_rename_taken": "Cannot rename: « %s » is taken or empty"
+  "message.craftmaster.pose_rename_taken": "Cannot rename: « %s » is taken or empty",
+  "screen.craftmaster.pose.tool.string": "String: click where to tie it (F) · 0: back to automatic",
+  "screen.craftmaster.pose.string_head": "String · click where to tie it",
+  "screen.craftmaster.pose.string_head_auto": "String (automatic) · click to tie it"
 }

@@ -179,6 +179,26 @@ class PortraitGeometryTest {
     }
 
     @Test
+    void chosenKnotHangsThePortraitFromIt() {
+        Pose p = PoseLibrary.presets().get("salut").withAttach(new Pose.Attach(Part.RIGHT_ARM, -1, 10, 0));
+        // Saved and read back
+        assertEquals(p, Pose.fromJson(p.toJson()));
+        // The knot is that point of the arm, as posed, and it is right under the hook
+        Vector3d knot = PortraitGeometry.hangPoint(p, false);
+        Vector3d expected = PortraitGeometry.partMatrix(p, Part.RIGHT_ARM).transformPosition(new Vector3d(-1, 10, 0));
+        assertEquals(0, knot.distance(expected), EPS);
+        Vector3d origin = PortraitGeometry.portraitOrigin(p, false, 3);
+        assertEquals(0, origin.x + knot.x / 16, EPS);
+        assertEquals(-3, origin.y + knot.y / 16, EPS);
+        // On the frame, and mirrored onto the other arm
+        Pose f = Pose.NEUTRAL.withAttach(new Pose.Attach(null, 4, 12, 0));
+        assertEquals(4, PortraitGeometry.hangPoint(f, false).x, EPS);
+        assertEquals(Part.LEFT_ARM, PoseEditing.mirror(p).attach().part());
+        // No knot chosen: computed as before
+        assertNull(Pose.fromJson(Pose.NEUTRAL.toJson()).attach());
+    }
+
+    @Test
     void stringIsVerticalAboveTheCentreOfGravity() {
         for (Pose p : PoseLibrary.presets().values()) {
             for (boolean window : new boolean[]{false, true}) {

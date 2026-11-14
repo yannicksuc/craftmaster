@@ -255,9 +255,12 @@ public final class PortraitGeometry {
     /**
      * Where the string is tied: on the top face of the top moulding, right above the centre of gravity (same x
      * and z), so the string hangs perfectly vertical and the portrait straight under it. When the centre of
-     * gravity is beyond the moulding (an arm stretched far out), the knot goes to the nearest point of it.
+     * gravity is beyond the moulding (an arm stretched far out), the knot goes to the nearest point of it. A knot
+     * chosen in the editor ({@link Pose#attach()}) wins: the portrait then hangs from it as it is posed.
      */
     public static Vector3d hangPoint(Pose pose, boolean window) {
+        Vector3d chosen = attachPoint(pose);
+        if (chosen != null) return chosen;
         Vector3d cog = centreOfGravity(pose, window);
         Matrix4d f = frameMatrix(pose);
         // Top face of the frame: f · (t, HH, s), t in [-HW, HW], s in [-HD, HD]; x and z are linear in (t, s)
@@ -271,6 +274,14 @@ public final class PortraitGeometry {
         t = Math.max(-HW, Math.min(HW, t));
         s = Math.max(-HD, Math.min(HD, s));
         return f.transformPosition(new Vector3d(t, HH, s));
+    }
+
+    /** The knot chosen in the editor, in portrait space, or null when it is computed. */
+    public static Vector3d attachPoint(Pose pose) {
+        Pose.Attach a = pose.attach();
+        if (a == null) return null;
+        Matrix4d m = a.onFrame() ? frameMatrix(pose) : partMatrix(pose, a.part());
+        return m.transformPosition(new Vector3d(a.x(), a.y(), a.z()));
     }
 
     public static Vector3d hangPoint(Pose pose) {

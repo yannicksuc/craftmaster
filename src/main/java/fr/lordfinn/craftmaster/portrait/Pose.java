@@ -23,10 +23,27 @@ import java.util.Set;
  * viewer's right, y up, z toward the viewer). {@code scale} enlarges the figure around its feet (a bust fills the
  * frame better at 1.6). {@code framePitch} leans the frame forward (positive: its top comes toward the viewer),
  * {@code frameRoll} turns it in its own plane (positive: counter-clockwise as seen from the front). Hidden parts
- * are not drawn and do not weigh in the centre of gravity.
+ * are not drawn and do not weigh in the centre of gravity. {@code attach} is where the string is tied, chosen in
+ * the editor (null: computed, above the centre of gravity, see PortraitGeometry#hangPoint).
  */
 public record Pose(Map<Part, Rotation> rotations, Set<Part> hidden,
-                   double offsetX, double offsetY, double offsetZ, double scale, double framePitch, double frameRoll) {
+                   double offsetX, double offsetY, double offsetZ, double scale, double framePitch, double frameRoll,
+                   Attach attach) {
+
+    /**
+     * Where the string is tied: a point of a part of the figure (in that part's own space, the coordinates of its
+     * cube, so it follows the part when it turns) or of the frame ({@code part} null, frame space).
+     */
+    public record Attach(Part part, double x, double y, double z) {
+        public boolean onFrame() {
+            return part == null;
+        }
+    }
+
+    public Pose(Map<Part, Rotation> rotations, Set<Part> hidden,
+                double offsetX, double offsetY, double offsetZ, double scale, double framePitch, double frameRoll) {
+        this(rotations, hidden, offsetX, offsetY, offsetZ, scale, framePitch, frameRoll, null);
+    }
 
     /** The figure's parts, with their key in poses.json. */
     public enum Part {
@@ -83,32 +100,38 @@ public record Pose(Map<Part, Rotation> rotations, Set<Part> hidden,
     public Pose withRotation(Part part, Rotation rotation) {
         EnumMap<Part, Rotation> r = new EnumMap<>(rotations);
         r.put(part, rotation);
-        return new Pose(r, hidden, offsetX, offsetY, offsetZ, scale, framePitch, frameRoll);
+        return new Pose(r, hidden, offsetX, offsetY, offsetZ, scale, framePitch, frameRoll, attach);
     }
 
     public Pose withHidden(Part part, boolean hide) {
         EnumSet<Part> h = hidden.isEmpty() ? EnumSet.noneOf(Part.class) : EnumSet.copyOf(hidden);
         if (hide) h.add(part);
         else h.remove(part);
-        return new Pose(rotations, h, offsetX, offsetY, offsetZ, scale, framePitch, frameRoll);
+        return new Pose(rotations, h, offsetX, offsetY, offsetZ, scale, framePitch, frameRoll, attach);
     }
 
     public Pose withOffset(double x, double y, double z) {
-        return new Pose(rotations, hidden, x, y, z, scale, framePitch, frameRoll);
+        return new Pose(rotations, hidden, x, y, z, scale, framePitch, frameRoll, attach);
     }
 
     public Pose withScale(double s) {
-        return new Pose(rotations, hidden, offsetX, offsetY, offsetZ, s, framePitch, frameRoll);
+        return new Pose(rotations, hidden, offsetX, offsetY, offsetZ, s, framePitch, frameRoll, attach);
     }
 
     public Pose withFrame(double pitch, double roll) {
-        return new Pose(rotations, hidden, offsetX, offsetY, offsetZ, scale, pitch, roll);
+        return new Pose(rotations, hidden, offsetX, offsetY, offsetZ, scale, pitch, roll, attach);
+    }
+
+    /** The string tied there (null: computed). */
+    public Pose withAttach(Attach a) {
+        return new Pose(rotations, hidden, offsetX, offsetY, offsetZ, scale, framePitch, frameRoll, a);
     }
 
     // ---------------------------------------------------------------- JSON
 
     /**
-     * <pre>{"offset": [0, -10, 2], "scale": 1.6, "frame": [pitch, roll], "head": [x, y, z], ..., "hidden": ["rightLeg"]}</pre>
+     * <pre>{"offset": [0, -10, 2], "scale": 1.6, "frame": [pitch, roll], "head": [x, y, z], ..., "hidden": ["rightLeg"],
+     * "string": {"on": "rightArm" | "frame", "at": [x, y, z]}}</pre>
      * Parts without rotation and default values are left out.
      */
     public JsonObject toJson() {
@@ -124,6 +147,12 @@ public record Pose(Map<Part, Rotation> rotations, Set<Part> hidden,
             JsonArray h = new JsonArray();
             for (Part p : Part.values()) if (hidden.contains(p)) h.add(p.key);
             o.add("hidden", h);
+        }
+        if (attach != null) {
+            JsonObject st = new JsonObject();
+            st.addProperty("on", attach.onFrame() ? "frame" : attach.part().key);
+            st.add("at", array(attach.x(), attach.y(), attach.z()));
+            o.add("string", st);
         }
         return o;
     }
@@ -147,7 +176,14 @@ public record Pose(Map<Part, Rotation> rotations, Set<Part> hidden,
                 if (p != null && p.hideable()) hidden.add(p);
             }
         }
-        return new Pose(rot, hidden, offset[0], offset[1], offset[2], scale, frame[0], frame[1]);
+        Attach attach = null;
+        if (o.get("string") instanceof JsonObject st && st.get("on") instanceof JsonPrimitive on) {
+            double[] at = numbers(st.get("at"), 3, null);
+            Part part = Part.byKey(on.getAsString());
+            if (at != null && (part != null && part != Part.FIGURE || on.getAsString().equals("frame")))
+                attach = new Attach(part, at[0], at[1], at[2]);
+        }
+        return new Pose(rot, hidden, offset[0], offset[1], offset[2], scale, frame[0], frame[1], attach);
     }
 
     private static JsonPrimitive number(double v) {

@@ -68,6 +68,43 @@ public final class PoseHitTest {
     }
 
     /**
+     * The point under (sx, sy) on the nearest visible surface, figure and frame alike (where to tie the string), in
+     * the space of what was hit: a part's own space, or frame space. Null: nothing there.
+     */
+    public static Pose.Attach pickAttach(Pose pose, View view, double sx, double sy, boolean slim) {
+        Matrix4d toPortrait = view.rotation().invert();
+        Vector3d origin = toPortrait.transformPosition(new Vector3d((sx - view.cx()) / view.scale(), -(sy - view.cy()) / view.scale(), 1e4));
+        Vector3d dir = toPortrait.transformDirection(new Vector3d(0, 0, -1));
+        double bestT = Double.MAX_VALUE;
+        Pose.Attach best = null;
+        for (Part p : PortraitGeometry.BODY_PARTS) {
+            if (pose.isHidden(p)) continue;
+            Matrix4d m = PortraitGeometry.partMatrix(pose, p);
+            double t = rayBox(m, PortraitGeometry.partBox(p, slim), origin, dir);
+            if (t >= 0 && t < bestT) {
+                bestT = t;
+                Vector3d local = new Matrix4d(m).invert().transformPosition(new Vector3d(dir).mul(t).add(origin));
+                best = new Pose.Attach(p, round(local.x), round(local.y), round(local.z));
+            }
+        }
+        Matrix4d frame = PortraitGeometry.frameMatrix(pose);
+        for (PortraitGeometry.Box b : PortraitGeometry.FRAME_BOXES) {
+            double t = rayBox(frame, b, origin, dir);
+            if (t >= 0 && t < bestT) {
+                bestT = t;
+                Vector3d local = new Matrix4d(frame).invert().transformPosition(new Vector3d(dir).mul(t).add(origin));
+                best = new Pose.Attach(null, round(local.x), round(local.y), round(local.z));
+            }
+        }
+        return best;
+    }
+
+    /** To a hundredth of a pixel: poses.json stays readable. */
+    private static double round(double v) {
+        return Math.round(v * 100) / 100.0;
+    }
+
+    /**
      * Distance along the ray (portrait space, {@code dir} of length 1) to a box given in its own space mapped by
      * {@code m}, or −1 if the ray misses it.
      */

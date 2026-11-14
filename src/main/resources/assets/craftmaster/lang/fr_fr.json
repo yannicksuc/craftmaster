@@ -1111,5 +1111,8 @@
   "screen.craftmaster.pose.rename.line_worn": "Nouveau nom pour « %s » (%s tableau(x) autour la portent, ils la gardent) :",
   "screen.craftmaster.pose.rename.taken": "« %s » est déjà le nom d'une autre pose.",
   "message.craftmaster.pose_renamed": "Pose « %s » renommée « %s »",
-  "message.craftmaster.pose_rename_taken": "Impossible de renommer : « %s » est pris ou vide"
+  "message.craftmaster.pose_rename_taken": "Impossible de renommer : « %s » est pris ou vide",
+  "screen.craftmaster.pose.tool.string": "Ficelle : clique où l'attacher (F) · 0 : retour en automatique",
+  "screen.craftmaster.pose.string_head": "Ficelle · clique où l'attacher",
+  "screen.craftmaster.pose.string_head_auto": "Ficelle (auto) · clique pour l'attacher"
 }
