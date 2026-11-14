@@ -24,7 +24,23 @@ public final class SplitLayouts {
     /** At most 6 shots: each tile is drawn every n frames (10 fps at 60 with 6), and smaller tiles stop reading well. */
     public static final int MAX = 6;
 
+    /**
+     * A tile that follows a player instead of showing a placed camera: its key is {@code "follow:<player>"} (the
+     * broadcast game frames them like a follow shot); every other key is a camera key.
+     */
+    public static final String FOLLOW = "follow:";
+
     private SplitLayouts() {}
+
+    /** The tile key of a follow shot on {@code player}. */
+    public static String followKey(String player) {
+        return FOLLOW + player;
+    }
+
+    /** The player a tile key follows, or null for a camera key. */
+    public static String followed(String key) {
+        return key != null && key.startsWith(FOLLOW) && key.length() > FOLLOW.length() ? key.substring(FOLLOW.length()) : null;
+    }
 
     /** The layout a word means (French and English, with or without accents), or null. */
     public static String parse(String s) {

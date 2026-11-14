@@ -68,6 +68,14 @@ class SplitLayoutsTest {
     }
 
     @Test
+    void followTilesHaveTheirOwnKeys() {
+        assertEquals("follow:Ensuri", SplitLayouts.followKey("Ensuri"));
+        assertEquals("Ensuri", SplitLayouts.followed("follow:Ensuri"));
+        assertNull(SplitLayouts.followed("studio:2"));
+        assertNull(SplitLayouts.followed("follow:"));
+    }
+
+    @Test
     void splitActionIsChecked() {
         Map<String, Object> a = BroadcastActions.validate("camera.split", Map.of("cameras", "3, 5", "layout", "bord à bord"));
         assertEquals(List.of("3", "5"), a.get("cameras"));

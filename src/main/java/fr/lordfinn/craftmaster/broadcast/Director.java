@@ -413,21 +413,58 @@ public final class Director {
      */
     public static boolean split(MinecraftServer server, List<CameraSpot> spots, String layout, int transition, String effect, Source source,
                                 List<String> lines) {
-        List<CameraSpot> list = new ArrayList<>();
-        for (CameraSpot s : spots) if (s != null && list.stream().noneMatch(o -> o.key().equals(s.key()))) list.add(s);
-        if (list.size() > SplitLayouts.MAX) list = list.subList(0, SplitLayouts.MAX);
+        List<Tile> tiles = new ArrayList<>();
+        for (CameraSpot s : spots) if (s != null) tiles.add(new Tile(s.key(), s.name().isEmpty() ? s.role() : s.name()));
+        return splitTiles(server, tiles, layout, transition, effect, source, lines);
+    }
+
+    /**
+     * Like {@link #split}, with tiles: a camera key, or {@link SplitLayouts#followKey} ({@code "follow:<player>"}) for a
+     * tile that follows a player (the broadcast game frames it as a follow shot). The main tile first; 2 to
+     * {@link SplitLayouts#MAX} (duplicates, unknown cameras and players not connected are left out); a single one is a
+     * plain cut (camera) or follow shot. Labels: the tile's own, else the camera's name or the player's name.
+     */
+    public static boolean splitTiles(MinecraftServer server, List<Tile> tiles, String layout, int transition, String effect, Source source,
+                                     List<String> lines) {
+        List<Tile> list = new ArrayList<>();
+        List<String> names = new ArrayList<>();
+        for (Tile t : tiles) {
+            if (t == null || list.size() == SplitLayouts.MAX || list.stream().anyMatch(o -> o.camera().equals(t.camera()))) continue;
+            String player = SplitLayouts.followed(t.camera());
+            if (player != null) {
+                ServerPlayer p = findPlayer(server, player);
+                if (p == null) continue;
+                String who = p.getGameProfile().name();
+                list.add(new Tile(SplitLayouts.followKey(who), t.label().isEmpty() ? who : t.label()));
+                names.add("suivi de " + who);
+            } else {
+                CameraSpot s = Cameras.list().get(t.camera());
+                if (s == null) continue;
+                list.add(new Tile(s.key(), !t.label().isEmpty() ? t.label() : s.name().isEmpty() ? s.role() : s.name()));
+                names.add(s.label());
+            }
+        }
         if (list.isEmpty()) return false;
         if (list.size() == 1) {
-            take(server, ShotRequest.camera(list.getFirst(), transition, effect, source));
-            lines.add("À l'antenne : caméra " + list.getFirst().label() + withEffect(effect) + ".");
+            String player = SplitLayouts.followed(list.getFirst().camera());
+            if (player != null) take(server, ShotRequest.follow(player, transition, effect, source));
+            else take(server, ShotRequest.camera(Cameras.list().get(list.getFirst().camera()), transition, effect, source));
+            lines.add("À l'antenne : " + (player != null ? "on suit " + player : "caméra " + names.getFirst()) + withEffect(effect) + ".");
             return true;
         }
         String l = layout == null ? splitLayout : SplitLayouts.of(layout);
-        List<Tile> tiles = new ArrayList<>();
-        for (CameraSpot s : list) tiles.add(new Tile(s.key(), s.name().isEmpty() ? s.role() : s.name()));
-        take(server, new ShotRequest(BroadcastNetwork.SHOT_MOSAIC, list.getFirst().lieu(), l, transition, effect, tiles, source));
-        lines.add("À l'antenne : écran partagé en " + SplitLayouts.label(l) + " — " + String.join(", ", list.stream().map(CameraSpot::label).toList())
-                + (l.equals(SplitLayouts.MAIN) ? " (principal : " + list.getFirst().label() + ")" : "") + withEffect(effect) + ".");
+        // The lieu of the shot: the first camera's (follow tiles only: the focus')
+        String lieu = focusLieu();
+        for (Tile t : list) {
+            CameraSpot s = SplitLayouts.followed(t.camera()) == null ? Cameras.list().get(t.camera()) : null;
+            if (s != null) {
+                lieu = s.lieu();
+                break;
+            }
+        }
+        take(server, new ShotRequest(BroadcastNetwork.SHOT_MOSAIC, lieu == null ? "" : lieu, l, transition, effect, list, source));
+        lines.add("À l'antenne : écran partagé en " + SplitLayouts.label(l) + " — " + String.join(", ", names)
+                + (l.equals(SplitLayouts.MAIN) ? " (principal : " + names.getFirst() + ")" : "") + withEffect(effect) + ".");
         return true;
     }
 
@@ -445,6 +482,19 @@ public final class Director {
         return true;
     }
 
+    /** The tile key a reference means: a camera (number, name, key) or "follow:<player>"; null (and a line) if none. */
+    private static String tileKey(MinecraftServer server, String ref, List<String> lines) {
+        String player = SplitLayouts.followed(ref);
+        if (player != null) {
+            ServerPlayer p = findPlayer(server, player);
+            if (p == null) lines.add("⚠ " + player + " n'est pas connecté : impossible de le suivre.");
+            return p == null ? null : SplitLayouts.followKey(p.getGameProfile().name());
+        }
+        CameraSpot s = resolve(server, ref);
+        if (s == null) lines.add("⚠ Aucune caméra « " + ref + " » dans " + focusName() + ".");
+        return s == null ? null : s.key();
+    }
+
     /** {@code camera.split} (fields checked by {@link BroadcastActions}). */
     private static void splitAction(MinecraftServer server, Map<String, Object> a, int transition, String effect, List<String> lines) {
         if (a.get("layout") instanceof String l) {
@@ -457,35 +507,29 @@ public final class Director {
             onlyLayout = false;
             keys.clear();
             for (Object r : refs) {
-                CameraSpot s = resolve(server, String.valueOf(r));
-                if (s == null) {
-                    lines.add("⚠ Aucune caméra « " + r + " » dans " + focusName() + ".");
-                    return;
-                }
-                if (!keys.contains(s.key())) keys.add(s.key());
+                String k = tileKey(server, String.valueOf(r), lines);
+                if (k == null) return;
+                if (!keys.contains(k)) keys.add(k);
             }
         }
         for (String field : List.of("remove", "add", "main")) {
             if (!(a.get(field) instanceof String ref)) continue;
             onlyLayout = false;
-            CameraSpot s = resolve(server, ref);
-            if (s == null) {
-                lines.add("⚠ Aucune caméra « " + ref + " » dans " + focusName() + ".");
-                return;
-            }
+            String k = tileKey(server, ref, lines);
+            if (k == null) return;
             switch (field) {
-                case "remove" -> keys.remove(s.key());
+                case "remove" -> keys.remove(k);
                 case "add" -> {
-                    if (keys.contains(s.key())) continue;
+                    if (keys.contains(k)) continue;
                     if (keys.size() >= SplitLayouts.MAX) {
                         lines.add("⚠ " + SplitLayouts.MAX + " plans au plus dans l'écran partagé : retires-en un d'abord.");
                         return;
                     }
-                    keys.add(s.key());
+                    keys.add(k);
                 }
                 default -> {
-                    keys.remove(s.key());
-                    keys.addFirst(s.key());
+                    keys.remove(k);
+                    keys.addFirst(k);
                 }
             }
         }
@@ -498,12 +542,9 @@ public final class Director {
             lines.add("Écran partagé : « " + SplitLayouts.label(splitLayout) + " » pour le prochain.");
             return;
         }
-        List<CameraSpot> spots = new ArrayList<>();
-        for (String k : keys) {
-            CameraSpot s = Cameras.list().get(k);
-            if (s != null) spots.add(s);
-        }
-        if (!split(server, spots, null, transition, effect, Source.MANUAL, lines))
+        List<Tile> tiles = new ArrayList<>();
+        for (String k : keys) tiles.add(new Tile(k, ""));
+        if (!splitTiles(server, tiles, null, transition, effect, Source.MANUAL, lines))
             lines.add("⚠ Aucune caméra à l'antenne : choisis d'abord un plan.");
     }
 

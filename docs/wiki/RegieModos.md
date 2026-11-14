@@ -71,7 +71,10 @@ Actions (Stream Deck, voix, régie IA, réalisation auto) : `camera.cut` avec `p
 `camera.split` — `cameras` (toutes, la principale d'abord : `"3,5"` ou une liste), `add`, `remove`, `main`, `layout`
 (`cadres`, `bord`, `principal`), `enabled: false` (un seul plan). Côté Java, `Director.split(server, caméras,
 disposition, transition, effet, source, lignes)` met une liste de caméras à l'antenne (la réalisation automatique s'en
-sert avec `Source.AUTO`) et `Director.onAirCameras()` dit lesquelles y sont. Sur un plan qui suit un candidat ou un
+sert avec `Source.AUTO`) et `Director.onAirCameras()` dit lesquelles y sont. `Director.splitTiles(…)` fait de même avec
+des tuiles, dont des tuiles qui **suivent un joueur** (clé `follow:<joueur>`, aussi acceptée par `camera.split` :
+`{add: "follow:Ensuri"}`) ; leur rendu dans la diffusion vient avec la branche du suivi cinématique (en attendant,
+la tuile reste vide). Sur un plan qui suit un candidat ou un
 trajet, Ctrl+clic fait une coupe normale.
 
 Limite connue : pendant un écran partagé, le jeu de diffusion se place au milieu des caméras (dans la dimension de la
