@@ -19,7 +19,8 @@ import java.util.function.Consumer;
 
 /**
  * The pose library as a gallery: every saved pose drawn in its frame (the portrait's skin and window look), its
- * name under it. A click starts the editor from that pose, the pencil of a card renames it; the wheel scrolls.
+ * name under it. A click starts the editor from that pose; the pencil of a card renames it, its cross deletes it
+ * (asked first); the wheel scrolls.
  */
 public class PoseGalleryScreen extends Screen {
 
@@ -67,6 +68,12 @@ public class PoseGalleryScreen extends Screen {
     private boolean onPen(int i, double mx, double my) {
         int[] c = card(i);
         return c != null && Ui.inside(mx, my, c[0] + CARD_W - PEN - 2, c[1] + 2, PEN, PEN);
+    }
+
+    /** The cross, left of the pencil: delete. */
+    private boolean onCross(int i, double mx, double my) {
+        int[] c = card(i);
+        return c != null && Ui.inside(mx, my, c[0] + CARD_W - 2 * PEN - 4, c[1] + 2, PEN, PEN);
     }
 
     @Override
@@ -130,9 +137,11 @@ public class PoseGalleryScreen extends Screen {
             g.centeredText(font, Component.literal(shown), cx + CARD_W / 2, cy + CARD_H - NAME_H + 1, isCurrent ? Theme.GOLD : Theme.TEXT);
             if (i == hovered) {
                 // Rename: a pencil in the corner of the card under the mouse
-                boolean on = onPen(i, mx, my);
+                boolean on = onPen(i, mx, my), off = onCross(i, mx, my);
                 Ui.button(g, font, cx + CARD_W - PEN - 2, cy + 2, PEN, PEN, Component.literal("✎"), false, on, true);
+                Ui.button(g, font, cx + CARD_W - 2 * PEN - 4, cy + 2, PEN, PEN, Component.literal("✕"), false, off, true);
                 if (on) tip = Component.translatable("screen.craftmaster.pose.rename.tip");
+                else if (off) tip = Component.translatable("screen.craftmaster.pose.delete");
             }
         }
         if (maxScroll() > 0) {
@@ -166,6 +175,10 @@ public class PoseGalleryScreen extends Screen {
             String name = poses.get(i).getKey();
             if (onPen(i, e.x(), e.y())) {
                 minecraft.gui.setScreen(new PoseRenameScreen(this, name));
+                return true;
+            }
+            if (onCross(i, e.x(), e.y())) {
+                minecraft.gui.setScreen(new PoseDeleteScreen(this, name));
                 return true;
             }
             minecraft.gui.setScreen(back);

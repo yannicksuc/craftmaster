@@ -105,6 +105,11 @@ public final class DevInput {
                     else if (a.length > 1) fr.lordfinn.craftmaster.client.axiom.TravellingGizmos.devAction(a[1]);
                     continue;
                 }
+                // "pickdata": Ctrl + middle click on the entity aimed at
+                if (line.strip().equals("pickdata") && mc.crosshairPickEntity != null && mc.getConnection() != null) {
+                    mc.getConnection().send(new net.minecraft.network.protocol.game.ServerboundPickItemFromEntityPacket(mc.crosshairPickEntity.getId(), true));
+                    continue;
+                }
                 if (line.strip().startsWith("look ") && mc.player != null) {
                     String[] a = line.strip().split("\s+");
                     mc.player.setYRot(Float.parseFloat(a[1]));

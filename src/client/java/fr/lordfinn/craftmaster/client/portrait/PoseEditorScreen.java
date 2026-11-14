@@ -46,7 +46,7 @@ import java.util.function.DoubleSupplier;
  * In-game pose editor (organisers). On the right, a 3D preview of the portrait: click a part of the body (or the
  * frame) to pick it, drag it to turn it, Ctrl + drag to move the whole figure, right drag (or drag the background)
  * to turn the view, the wheel for fine steps. On the left, the same values as sliders, the parts as buttons, and
- * the library (save, overwrite, delete, start from). Undo / redo, mirror, symmetric copy, reset, hide, all with
+ * the library (the gallery: start from, rename, delete; saving is asked when the pose is used or the editor left). Undo / redo, mirror, symmetric copy, reset, hide, all with
  * keyboard shortcuts (shown in the tooltips). The portrait in the world shows the pose live; saved poses go to
  * the server's poses.json and to every player.
  */
@@ -86,8 +86,7 @@ public class PoseEditorScreen extends Screen {
     private Pose editing;
     private Group group = Group.FIGURE;
     private String name;
-    private EditBox nameBox;
-    private UiButton save, delete, undoButton, redoButton;
+    private UiButton undoButton, redoButton;
     private final List<ValueSlider> sliders = new ArrayList<>();
     private int left, top;
 
@@ -122,7 +121,6 @@ public class PoseEditorScreen extends Screen {
 
     @Override
     protected void rebuildWidgets() {
-        if (nameBox != null) name = nameBox.getValue();
         super.rebuildWidgets();
     }
 
@@ -260,20 +258,9 @@ public class PoseEditorScreen extends Screen {
             }
         }
 
-        // Name, save / overwrite, delete
-        int y = top + 160;
-        nameBox = new EditBox(font, left + 2, y, 128, 20, Component.translatable("screen.craftmaster.pose.name"));
-        nameBox.setMaxLength(40);
-        nameBox.setValue(name);
-        nameBox.setResponder(v -> updateButtons());
-        addRenderableWidget(nameBox);
-        save = addRenderableWidget(UiButton.of(left + 132, y, 98, 20, Component.empty(), this::save));
-        save.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.save_tip")));
-        y += 22;
-        delete = addRenderableWidget(UiButton.of(left + 2, y, 74, 20, Component.translatable("screen.craftmaster.pose.delete"), this::delete));
-        // The library as a gallery of previews: a click starts from that pose
-        UiButton gallery = addRenderableWidget(UiButton.of(left + 78, y, 152, 20, Component.translatable("screen.craftmaster.pose.gallery_open"), () -> {
-            name = nameBox.getValue();
+        // The gallery (start from a pose, rename, delete); use (saves first if changed, asked), cancel (asks if changed)
+        int y = top + 182;
+        UiButton gallery = addRenderableWidget(UiButton.of(left + 126, y, 104, 20, Component.translatable("screen.craftmaster.pose.gallery_open"), () -> {
             minecraft.gui.setScreen(new PoseGalleryScreen(this, name, skin(), windowLook(), this::startFrom));
         }));
         gallery.setTooltip(Tooltip.create(Component.translatable("screen.craftmaster.pose.load_tip")));
@@ -320,12 +307,6 @@ public class PoseEditorScreen extends Screen {
     }
 
     private void updateButtons() {
-        if (nameBox == null || save == null) return;
-        String n = Pose.normalizeName(nameBox.getValue());
-        boolean exists = PoseLibraries.client().has(n);
-        save.setMessage(Component.translatable(exists ? "screen.craftmaster.pose.overwrite" : "screen.craftmaster.pose.save_new"));
-        save.active = !n.isEmpty();
-        delete.active = exists;
         if (undoButton != null) undoButton.active = history.canUndo();
         if (redoButton != null) redoButton.active = history.canRedo();
     }
@@ -456,7 +437,7 @@ public class PoseEditorScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyEvent e) {
-        if (nameBox != null && nameBox.isFocused() || getFocused() instanceof AbstractSliderButton) return super.keyPressed(e);
+        if (getFocused() instanceof AbstractSliderButton) return super.keyPressed(e);
         // Letters by what the key types (Ctrl+Z is Ctrl+Z on an AZERTY keyboard too), digits and arrows by place
         int letter = ClientCompat.shortcutKey(e), key = e.key();
         boolean ctrl = e.hasControlDown(), shift = e.hasShiftDown();
@@ -501,7 +482,6 @@ public class PoseEditorScreen extends Screen {
         changed(p, null);
         name = v;
         rebuildWidgets();
-        nameBox.setValue(v);
     }
 
     /** The window look as the portrait has it (or as its settings screen has it, not saved yet). */
@@ -509,40 +489,32 @@ public class PoseEditorScreen extends Screen {
         return parent != null ? parent.windowLook() : new int[]{portrait.window() ? 1 : 0, portrait.windowDepth(), portrait.windowSize()};
     }
 
-    private void save() {
-        saveThen(null);
+    /** The pose differs from the library's one of that name (or there is none): there is something to save. */
+    private boolean unsaved() {
+        String n = Pose.normalizeName(name);
+        return n.isEmpty() || !PoseLibraries.client().has(n) || !PoseLibraries.client().get(n).equals(editing);
     }
 
     /**
-     * Saves the pose, then runs {@code after}. Over an existing, different pose it asks first (the name can still
-     * be changed there, to keep the old one).
+     * Saves the pose if it changed, then runs {@code after}: asked first, the name still editable (another name
+     * makes a new pose and leaves the old one alone). Unchanged: {@code after} at once.
      */
     private void saveThen(Runnable after) {
-        String n = Pose.normalizeName(nameBox.getValue());
-        if (n.isEmpty()) return;
-        Pose existing = PoseLibraries.client().has(n) ? PoseLibraries.client().get(n) : null;
-        if (existing != null && !existing.equals(editing)) {
-            name = nameBox.getValue();
-            minecraft.gui.setScreen(new PoseSaveScreen(this, n, chosen -> {
-                send(chosen);
-                if (after != null) after.run();
-            }));
+        if (!unsaved()) {
+            after.run();
             return;
         }
-        send(n);
-        if (after != null) after.run();
+        minecraft.gui.setScreen(new PoseSaveScreen(this, Pose.normalizeName(name), chosen -> {
+            send(chosen);
+            after.run();
+        }, null));
     }
 
     private void send(String n) {
         name = n;
-        if (nameBox != null) nameBox.setValue(n);
         ClientPlayNetworking.send(new PortraitNetwork.SavePose(n, editing.toJson().toString()));
     }
 
-    private void delete() {
-        String n = Pose.normalizeName(nameBox.getValue());
-        if (PoseLibraries.client().has(n)) ClientPlayNetworking.send(new PortraitNetwork.DeletePose(n));
-    }
 
     /** Saves the pose and gives it to the portrait (through its settings screen when opened from there). */
     private void use() {
@@ -558,11 +530,23 @@ public class PoseEditorScreen extends Screen {
             ClientPlayNetworking.send(new PortraitNetwork.Update(p.getId(), p.season(), p.followsRank() ? p.rank() : 0,
                     p.fixedPlayer(), p.displayName(), p.skinUrl(), name, p.hangSetting(), p.window(), p.windowDepth(), p.windowSize(), p.turn()));
         }
-        onClose();
+        leave();
     }
 
+    /** Cancel / Escape: changes not saved are asked about (save, leave them, or stay). */
     @Override
     public void onClose() {
+        if (!unsaved()) {
+            leave();
+            return;
+        }
+        minecraft.gui.setScreen(new PoseSaveScreen(this, Pose.normalizeName(name), chosen -> {
+            send(chosen);
+            leave();
+        }, this::leave));
+    }
+
+    private void leave() {
         minecraft.gui.setScreen(parent);
     }
 
@@ -585,6 +569,10 @@ public class PoseEditorScreen extends Screen {
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
         Ui.panel(g, font, left, top, W, H, Component.translatable("screen.craftmaster.pose_editor"));
+        // The pose's name, left of the gallery button; a star while it has changes not saved
+        String shown = (name.isEmpty() ? "?" : name) + (unsaved() ? " *" : "");
+        if (font.width(shown) > 116) shown = font.plainSubstrByWidth(shown, 116 - font.width("…")) + "…";
+        g.text(font, shown, left + 6, top + 188, Theme.GOLD, false);
         extractPreview(g, mouseX, mouseY);
         super.extractRenderState(g, mouseX, mouseY, partial);
     }

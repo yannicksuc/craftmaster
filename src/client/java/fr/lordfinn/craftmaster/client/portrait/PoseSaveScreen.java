@@ -17,24 +17,30 @@ import com.mojang.blaze3d.platform.InputConstants;
 import java.util.function.Consumer;
 
 /**
- * Saving over an existing pose: asked first, with the name still editable — another name saves a new pose and
- * leaves the old one (and the portraits wearing it) alone.
+ * Saving a changed pose: asked first, with the name still editable — another name saves a new pose and leaves the
+ * old one (and the portraits wearing it) alone. Leaving the editor, a third choice drops the changes.
  */
 public class PoseSaveScreen extends Screen {
 
     private final Screen back;
     private final String original;
     private final Consumer<String> save;
+    /** Leaving the editor: drops the changes (null: only saving is asked). */
+    private final Runnable discard;
     private EditBox nameBox;
     private UiButton confirm;
     private int x0, y0, w, h;
 
-    /** @param save called with the name to save under, back on {@code back} */
-    public PoseSaveScreen(Screen back, String name, Consumer<String> save) {
-        super(Component.translatable("screen.craftmaster.pose.confirm.title"));
+    /**
+     * @param save    called with the name to save under, back on {@code back}
+     * @param discard leaving the editor: called to drop the changes (null: no such choice)
+     */
+    public PoseSaveScreen(Screen back, String name, Consumer<String> save, Runnable discard) {
+        super(Component.translatable(discard != null ? "screen.craftmaster.pose.confirm.title_leave" : "screen.craftmaster.pose.confirm.title_new"));
         this.back = back;
         this.original = name;
         this.save = save;
+        this.discard = discard;
     }
 
     private static Component t(String key, Object... args) {
@@ -66,9 +72,21 @@ public class PoseSaveScreen extends Screen {
         nameBox.setValue(value);
         nameBox.setResponder(v -> updateConfirm());
         addRenderableWidget(nameBox);
-        int bw = (w - 20) / 2, by = y0 + h - 28;
-        confirm = addRenderableWidget(UiButton.of(x0 + 6, by, bw, 20, Component.empty(), this::confirm));
-        addRenderableWidget(UiButton.of(x0 + 14 + bw, by, bw, 20, Component.translatable("gui.cancel"), this::onClose));
+        int by = y0 + h - 28;
+        if (discard == null) {
+            int bw = (w - 20) / 2;
+            confirm = addRenderableWidget(UiButton.of(x0 + 6, by, bw, 20, Component.empty(), this::confirm));
+            addRenderableWidget(UiButton.of(x0 + 14 + bw, by, bw, 20, Component.translatable("gui.cancel"), this::onClose));
+        } else {
+            // Save / don't save / back to the editor
+            int bw = (w - 24) / 3;
+            confirm = addRenderableWidget(UiButton.of(x0 + 6, by, bw, 20, Component.empty(), this::confirm));
+            addRenderableWidget(UiButton.of(x0 + 12 + bw, by, bw, 20, t("discard"), () -> {
+                minecraft.gui.setScreen(back);
+                discard.run();
+            }));
+            addRenderableWidget(UiButton.of(x0 + 18 + 2 * bw, by, bw, 20, t("back"), this::onClose));
+        }
         setInitialFocus(nameBox);
         updateConfirm();
     }
@@ -93,7 +111,7 @@ public class PoseSaveScreen extends Screen {
     public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float partial) {
         String n = typed();
         boolean exists = PoseLibraries.client().has(n);
-        Ui.panel(g, font, x0, y0, w, h, exists || n.isEmpty() ? getTitle() : t("title_new"));
+        Ui.panel(g, font, x0, y0, w, h, discard != null ? getTitle() : exists ? t("title") : t("title_new"));
         Component line;
         if (!exists) line = t("new_name", n, original);
         else {
