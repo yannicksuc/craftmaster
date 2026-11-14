@@ -153,7 +153,8 @@ l'écran, garde la scène en vue :
   - **clic gauche sur une étape** : elle prend le gizmo d'Axiom ; les **flèches et plans** la déplacent, l'**anneau
     horizontal** la tourne à gauche / à droite, l'**anneau de côté** vers le haut / le bas ;
   - **un point de plus** au-delà de chaque bout du trajet (un plan fixe : un de chaque côté) : **clic** dessus = une
-    étape là, au début ou à la fin ;
+    étape là, au début ou à la fin. Une caméra **sans travelling** a aussi un point de chaque côté : un clic crée son
+    premier travelling (la caméra et ce point) ;
   - **clic sur le trajet en pointillés** : une étape à cet endroit (place et visée du trajet, la durée du tronçon
     partagée, le reste du minutage ne bouge pas) ;
   - **clic droit sur une étape** : l'éditeur sur cette étape ; **Suppr** : la retirer (l'étape suivante reprend sa

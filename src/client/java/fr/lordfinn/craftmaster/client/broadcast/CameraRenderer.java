@@ -197,16 +197,16 @@ public class CameraRenderer extends EntityRenderer<CameraEntity, CameraRenderer.
         }
         // The dotted path going on past both ends of the edited travelling (Axiom on), drawn like the path itself
         if (gizmos) for (var h : fr.lordfinn.craftmaster.client.studio.TravellingEdit.handles()) {
-            fr.lordfinn.craftmaster.camera.CameraPath hp = ShowStateClient.path(h.path());
-            if (hp == null || !hp.camera().equals(key) || h.lit()) continue;
-            s.trail.add(new float[]{(float) (h.x() - e.getX()), (float) (h.y() - e.getY()), (float) (h.z() - e.getZ()),
-                    tint(fr.lordfinn.craftmaster.client.studio.TravellingEdit.colourOf(hp), 0xC0), 1.8f});
+            if (!h.camera().equals(key) || h.lit()) continue;
+            // A camera without a travelling: the colour its first one will have
+            int colour = h.path() == null ? fr.lordfinn.craftmaster.client.studio.TravellingEdit.colour(0)
+                    : fr.lordfinn.craftmaster.client.studio.TravellingEdit.colourOf(h.path());
+            s.trail.add(new float[]{(float) (h.x() - e.getX()), (float) (h.y() - e.getY()), (float) (h.z() - e.getZ()), tint(colour, 0xC0), 1.8f});
         }
         // The ghost of a step about to be added, white
         var preview = fr.lordfinn.craftmaster.client.studio.TravellingEdit.preview();
         if (preview != null) {
-            fr.lordfinn.craftmaster.camera.CameraPath pp = ShowStateClient.path(preview.path());
-            if (pp != null && pp.camera().equals(key)) {
+            if (preview.camera().equals(key)) {
                 var v = preview.pose();
                 s.stepGhosts.add(new float[]{(float) (v.x() - e.getX()), (float) (v.y() - e.getY()), (float) (v.z() - e.getZ()), v.yaw(), v.pitch(),
                         tint(0xFFFFFFFF, 0xC0), 2.2f});

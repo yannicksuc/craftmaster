@@ -162,8 +162,19 @@ public final class TravellingNetwork {
                 String n = base + "-1";
                 for (int i = 2; CameraPaths.get(n) != null; i++) n = base + "-" + i;
                 CameraPath.Step first = new CameraPath.Step(cam.x(), cam.y(), cam.z(), cam.yaw(), cam.pitch(), cam.fov(), 0, 0, null);
-                CameraPaths.put(server, new CameraPath(n, cam.lieu(), cam.world(), List.of(first), key));
+                List<CameraPath.Step> steps = new ArrayList<>(List.of(first));
+                // Started from a dot beside the camera (Axiom's tools): a second step there, before or after the camera
+                if (o.has("x")) {
+                    CameraPath.Step there = new CameraPath.Step(o.get("x").getAsDouble(), o.get("y").getAsDouble(), o.get("z").getAsDouble(),
+                            o.get("yaw").getAsFloat(), Math.max(-90, Math.min(90, o.get("pitch").getAsFloat())), cam.fov(), CameraPath.DEFAULT_TRAVEL, 0, null);
+                    if (index == 0) {
+                        steps.set(0, first.withTravel(CameraPath.DEFAULT_TRAVEL));
+                        steps.add(0, there.withTravel(0));
+                    } else steps.add(there);
+                }
+                CameraPaths.put(server, new CameraPath(n, cam.lieu(), cam.world(), steps, key));
                 name = n;
+                if (o.has("quiet") && o.get("quiet").getAsBoolean()) return;
             }
             case "rename" -> {
                 CameraPath p = CameraPaths.get(name);

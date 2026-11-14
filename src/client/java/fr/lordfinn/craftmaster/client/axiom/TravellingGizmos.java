@@ -42,8 +42,7 @@ import java.util.Set;
 public final class TravellingGizmos {
 
     private static final TravellingGizmos INSTANCE = new TravellingGizmos();
-    /** Past each end of the path: one dot, as far as the path's own dots are apart (blocks). */
-    private static final int NEXT_DOTS = 1;
+    /** How far past an end of the path (or beside a camera) the dot for a next step is (blocks). */
     private static final double DOT_SPACING = 0.45;
 
     /** Dev client (DevInput): the left button held, in place of the real one (null: the real one). */
@@ -84,7 +83,7 @@ public final class TravellingGizmos {
     }
 
     /** A place for a next step, at an end of {@code path}: a click adds a step there, at {@code index}. */
-    private record Handle(String path, int index, Vec3 home) {}
+    private record Handle(String camera, String path, int index, Vec3 home, CameraPath.Pose aim) {}
 
     /** A point of a path under the crosshair. */
     private record TrailHit(CameraPath path, double t, CameraPath.Pose pose) {}
@@ -111,9 +110,14 @@ public final class TravellingGizmos {
         TravellingEdit.hover(null);
         Minecraft mc = Minecraft.getInstance();
         // Looking through a camera / a step: no gizmo or "+" in front of the lens
-        Set<String> edited = mc.player == null || !AxiomClient.isAxiomActive() || fr.lordfinn.craftmaster.client.studio.ControlView.active()
-                ? Set.of() : TravellingMarkers.editedPaths(mc);
-        active = !edited.isEmpty();
+        boolean on = mc.player != null && AxiomClient.isAxiomActive() && !fr.lordfinn.craftmaster.client.studio.ControlView.active();
+        Set<String> edited = on ? TravellingMarkers.editedPaths(mc) : Set.of();
+        // Cameras showing their ghost that have no travelling yet: a dot on each side starts one
+        java.util.List<CameraEntity> bare = new java.util.ArrayList<>();
+        if (on && mc.level != null && !fr.lordfinn.craftmaster.client.broadcast.Broadcast.active() && fr.lordfinn.craftmaster.client.regie.VoiceRegie.isAdmin())
+            for (var e : mc.level.entitiesForRendering())
+                if (e instanceof CameraEntity c && c.showsGhost() && CameraPath.ofCamera(ShowStateClient.allPaths(), c.cameraKey()).isEmpty()) bare.add(c);
+        active = !edited.isEmpty() || !bare.isEmpty();
         if (!active) {
             clear();
             return;
@@ -204,10 +208,16 @@ public final class TravellingGizmos {
                 after = last.subtract(stepVec(p, n - 2));
                 before = first.subtract(stepVec(p, 1));
             }
-            for (int k = 1; k <= NEXT_DOTS; k++) {
-                if (after.lengthSqr() > 1e-6) nextHandles.put(name + "#after" + k, new Handle(name, n, last.add(after.normalize().scale(k * DOT_SPACING))));
-                if (before.lengthSqr() > 1e-6) nextHandles.put(name + "#before" + k, new Handle(name, 0, first.add(before.normalize().scale(k * DOT_SPACING))));
-            }
+            if (after.lengthSqr() > 1e-6) nextHandles.put(name + "#after", new Handle(p.camera(), name, n, last.add(after.normalize().scale(DOT_SPACING)), aimFor(p, n)));
+            if (before.lengthSqr() > 1e-6) nextHandles.put(name + "#before", new Handle(p.camera(), name, 0, first.add(before.normalize().scale(DOT_SPACING)), aimFor(p, 0)));
+        }
+        for (CameraEntity c : bare) {
+            Vec3 lens = c.lens();
+            double yaw = Math.toRadians(c.lensYaw());
+            Vec3 right = new Vec3(-Math.cos(yaw), 0, -Math.sin(yaw)).scale(DOT_SPACING);
+            CameraPath.Pose aim = new CameraPath.Pose(lens.x, lens.y, lens.z, c.lensYaw(), c.lensPitch(), 0);
+            nextHandles.put(c.cameraKey() + "#new-before", new Handle(c.cameraKey(), null, 0, lens.subtract(right), aim));
+            nextHandles.put(c.cameraKey() + "#new-after", new Handle(c.cameraKey(), null, 1, lens.add(right), aim));
         }
         handles = nextHandles;
         if (!busy && look != null)
@@ -225,19 +235,15 @@ public final class TravellingGizmos {
         for (Map.Entry<String, Handle> e : handles.entrySet()) {
             Handle h = e.getValue();
             boolean lit = e.getKey().equals(hoverHandle);
-            dots.add(new TravellingEdit.HandleDot(h.path(), h.home().x, h.home().y, h.home().z, lit));
-            if (lit) {
-                CameraPath p = ShowStateClient.path(h.path());
-                CameraPath.Pose aim = aimFor(p, h.index());
-                preview = new TravellingEdit.Preview(h.path(), new CameraPath.Pose(h.home().x, h.home().y, h.home().z, aim.yaw(), aim.pitch(), aim.fov()));
-            }
+            dots.add(new TravellingEdit.HandleDot(h.camera(), h.path(), h.home().x, h.home().y, h.home().z, lit));
+            if (lit) preview = new TravellingEdit.Preview(h.camera(), new CameraPath.Pose(h.home().x, h.home().y, h.home().z, h.aim().yaw(), h.aim().pitch(), h.aim().fov()));
         }
         TravellingEdit.handles(dots);
 
         // The dotted path under the crosshair (nothing else hovered or held): the step a click would add
         if (preview == null && hoverHandle == null && hoverCube == null && !busy && look != null) {
             hoverTrail = trailHit(edited, eye, look);
-            if (hoverTrail != null) preview = new TravellingEdit.Preview(hoverTrail.path.name(), hoverTrail.pose);
+            if (hoverTrail != null) preview = new TravellingEdit.Preview(hoverTrail.path.camera(), hoverTrail.pose);
         }
         TravellingEdit.preview(preview);
     }
@@ -281,10 +287,17 @@ public final class TravellingGizmos {
 
     /** A step where a pale square is, at its end of the travelling, looking the way its neighbour looks. */
     private void addAt(Handle h) {
+        CameraPath.Pose pose = new CameraPath.Pose(h.home().x, h.home().y, h.home().z, h.aim().yaw(), h.aim().pitch(), h.aim().fov());
+        if (h.path() == null) {
+            // No travelling yet: one starting at the camera, with this step beside it
+            JsonObject o = TravellingEdit.poseJson(h.index(), pose);
+            JsonObject send = new JsonObject();
+            o.entrySet().forEach(en -> send.add(en.getKey(), en.getValue()));
+            TravellingEdit.send(h.camera(), null, "create", send);
+            return;
+        }
         CameraPath p = ShowStateClient.path(h.path());
         if (p == null) return;
-        CameraPath.Pose aim = aimFor(p, h.index());
-        CameraPath.Pose pose = new CameraPath.Pose(h.home().x, h.home().y, h.home().z, aim.yaw(), aim.pitch(), aim.fov());
         TravellingEdit.send(p.camera(), p.name(), "insertAt", TravellingEdit.poseJson(h.index(), pose));
         TravellingEdit.select(p.name(), h.index());
         TravellingEdit.drag(p.name(), h.index(), pose);

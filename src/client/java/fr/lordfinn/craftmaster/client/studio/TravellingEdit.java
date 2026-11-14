@@ -33,11 +33,11 @@ public final class TravellingEdit {
         }
     }
 
-    /** The ghost of a step about to be added (a "+" being dragged, a point of the path under the crosshair). */
-    public record Preview(String path, CameraPath.Pose pose) {}
+    /** The ghost of a step about to be added, beside camera {@code camera} (a dot past an end, a point of the path). */
+    public record Preview(String camera, CameraPath.Pose pose) {}
 
     /** A "+" drawn in the world (TravellingGizmos): of travelling {@code path}, hovered or held. */
-    public record HandleDot(String path, double x, double y, double z, boolean lit) {}
+    public record HandleDot(String camera, String path, double x, double y, double z, boolean lit) {}
 
     private static StepRef selected, hovered;
     private static List<HandleDot> handles = List.of();
@@ -227,7 +227,7 @@ public final class TravellingEdit {
     public static void send(String key, String path, String action, JsonObject extra) {
         JsonObject o = extra == null ? new JsonObject() : extra;
         o.addProperty("camera", key);
-        o.addProperty("path", path);
+        if (path != null) o.addProperty("path", path);
         o.addProperty("action", action);
         if (ClientPlayNetworking.canSend(TravellingNetwork.Edit.TYPE)) ClientPlayNetworking.send(new TravellingNetwork.Edit(o.toString()));
     }
