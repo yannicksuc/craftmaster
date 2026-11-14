@@ -130,19 +130,18 @@ Chaque caméra a aussi une **clé** unique pour la viser de n'importe où : `stu
 
 ## Le menu d'une caméra (clic droit dessus)
 Nom, rôle, zoom (glisser ou molette, clic droit : celui du spectateur), mouvement, **visible / cachée** (cachée :
-personne ne la voit, sauf les organisateurs qui tiennent une caméra ou le clap), direction (clic : la taper, ou
-« Là où je regarde »), **Prendre le contrôle** (on voit ce qu'elle voit, la souris cadre ; clic ou Maj : garder,
+personne ne la voit, sauf les organisateurs qui tiennent une caméra ou le clap), direction (clic : la taper), **Prendre le contrôle** (on voit ce qu'elle voit, la souris cadre ; clic ou Maj : garder,
 Échap : annuler ; même chose pour un projecteur depuis son menu), **À l'antenne**, et ses **travellings**.
 
 ### Les travellings d'une caméra
 Une caméra a autant de travellings qu'on veut (« + Nouveau travelling » dans son menu). L'éditeur, sur le côté de
 l'écran, garde la scène en vue :
-- **Étapes** : chacune est un cadre. Place-toi, regarde, « + Étape ici » (ou « Insérer ici », « Place de la caméra »,
-  ou le **clap**). Un travelling peut partir de n'importe où ; une seule étape = un **plan fixe**.
+- **Étapes** : chacune est un cadre. Elles s'ajoutent, se déplacent, se tournent et se retirent **dans le monde**
+  (voir plus bas) ; l'éditeur ne garde que ce que le monde ne montre pas. Un travelling peut partir de n'importe où ;
+  une seule étape = un **plan fixe**.
 - **Réglages d'une étape** : durée pour y arriver, pause, **transition** (douce, vitesse constante, démarrage doux,
   arrivée douce, **coupe**), zoom, **visée** (son propre angle, un **joueur suivi** où qu'il aille, ou un **point**
-  du plateau qu'elle fixe), angle tapé ou « Là où je regarde », **Prendre le contrôle** depuis l'étape, « Refaire
-  ici », « Y aller », monter / descendre, retirer.
+  du plateau qu'elle fixe), angle tapé, **Prendre le contrôle** depuis l'étape.
 - **Dans le monde** : avec le fantôme activé (ou le clap en main), chaque étape est un **point** ; en le visant il
   devient une caméra fantôme (sa place et sa direction), un **clic droit** ouvre l'éditeur sur cette étape. Une
   caméra fantôme parcourt le travelling en boucle. « Fantôme : oui / non » dans l'éditeur.

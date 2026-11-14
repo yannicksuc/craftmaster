@@ -77,7 +77,7 @@ public class CameraScreen extends Screen {
     @Override
     protected void init() {
         w = Math.min(220, Math.max(184, width / 3));
-        h = Math.min(height - 12, 196 + 26 + 15 * Math.min(5, cam.has("paths") ? cam.getAsJsonArray("paths").size() : 0) + 26);
+        h = Math.min(height - 12, 182 + 26 + 15 * Math.min(5, cam.has("paths") ? cam.getAsJsonArray("paths").size() : 0) + 26);
         x0 = width - w - 8;
         y0 = Math.max(8, (height - h) / 2);
         labelW = 0;
@@ -152,8 +152,6 @@ public class CameraScreen extends Screen {
                 angleBox.setFocused(true);
             }, null, null, t("angle_tip")));
         }
-        y += 14;
-        button(g, vx, y, t("look"), false, mx, my, () -> send("look", true), t("look_tip"));
         y += 18;
         // The two big actions
         int half = (w - 16) / 2;

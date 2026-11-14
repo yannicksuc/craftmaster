@@ -150,22 +150,18 @@ public class TravellingScreen extends Screen {
             tooltips(g, mx, my);
             return;
         }
-        // The travelling: ◀ name ▶ (click the name: rename), + new, ✕ delete (twice)
+        // The travelling: its name (click: rename), ✕ delete (twice); the other travellings are in the camera menu
         int x = lx;
-        x = button(g, x, y, Component.literal("◀"), false, mx, my, () -> switchPath(-1), t("prev"));
         String nm = font.plainSubstrByWidth(path(), w - 120);
         boolean nh = mx >= x && mx < x + font.width(nm) + 6 && my >= y && my < y + 14;
         g.text(font, nm, x + 3, y + 3, nh ? Theme.TITLE : GOLD, false);
         hits.add(new Hit(x, y, x + font.width(nm) + 6, y + 14, () -> startText(path(), s -> send("rename", "value", s)), null, null, t("rename")));
         x += font.width(nm) + 8;
-        x = button(g, x, y, Component.literal("▶"), false, mx, my, () -> switchPath(1), t("next"));
         int rx = vr - font.width(deleteArmed ? t("delete_sure") : Component.literal("✕")) - 10;
         button(g, rx, y, deleteArmed ? t("delete_sure") : Component.literal("✕"), deleteArmed, mx, my, () -> {
             if (deleteArmed) send("delete");
             else deleteArmed = true;
         }, t("delete"));
-        rx -= font.width(Component.literal("+")) + 12;
-        button(g, rx, y, Component.literal("+"), false, mx, my, () -> send("create"), t("create_tip"));
         y += 17;
         // Actions
         String length = CameraPath.seconds(Math.round(data.get("duration").getAsDouble() * 10) / 10.0);
@@ -175,8 +171,7 @@ public class TravellingScreen extends Screen {
         x = lx;
         x = button(g, x, y, t("preview"), false, mx, my, () -> send("preview"), t("preview_tip"));
         x = button(g, x, y, t("air"), false, mx, my, () -> send("air"), t("air_tip"));
-        x = button(g, x, y, ghost ? t("ghost_on") : t("ghost_off"), ghost, mx, my, () -> send("ghost", "value", !ghost), t("ghost_tip"));
-        button(g, x, y, t("marker"), false, mx, my, () -> send("marker"), t("marker_tip"));
+        button(g, x, y, ghost ? t("ghost_on") : t("ghost_off"), ghost, mx, my, () -> send("ghost", "value", !ghost), t("ghost_tip"));
         y += 18;
         // Steps
         g.text(font, t("steps"), lx, y + 1, DIM, false);
@@ -197,16 +192,8 @@ public class TravellingScreen extends Screen {
             int index = i;
             hits.add(new Hit(lx, ry, vr, ry + ROW, () -> selected = index, null, d -> listScroll = Math.max(0, listScroll - (int) Math.signum(d)), null));
         }
-        y = listTop + listH + 4;
-        x = lx;
-        x = button(g, x, y, t("add_here"), false, mx, my, () -> send("addHere"), t("add_here_tip"));
-        x = button(g, x, y, t("insert_here"), false, mx, my, () -> send("insertHere", "index", selected), t("insert_here_tip"));
-        if (x + font.width(t("from_camera")) + 10 > vr) {
-            x = lx;
-            y += 16;
-        }
-        button(g, x, y, t("from_camera"), false, mx, my, () -> send("fromCamera", "index", selected), t("from_camera_tip"));
-        y += 19;
+        // Added, moved, turned and removed in the world (Axiom's gizmo): here, only what the world cannot show
+        y = listTop + listH + 6;
         // The selected step
         if (selected < steps.size()) {
             JsonObject s = steps.get(selected).getAsJsonObject();
@@ -255,31 +242,12 @@ public class TravellingScreen extends Screen {
                 }), null, null, t("angle_tip")));
                 y += 13;
             }
-            // Like a camera: look through the step and frame it, or "where I look"
-            x = lx;
+            // Like a camera: look through the step and frame it
             JsonObject st = s;
             int sel = selected;
-            x = button(g, x, y, t("control"), false, mx, my, () -> ControlView.startStep(camera(), path(), sel,
+            button(g, lx, y, t("control"), false, mx, my, () -> ControlView.startStep(camera(), path(), sel,
                     new net.minecraft.world.phys.Vec3(st.get("x").getAsDouble(), st.get("y").getAsDouble(), st.get("z").getAsDouble()),
                     st.get("yaw").getAsFloat(), st.get("pitch").getAsFloat(), st.get("fov").getAsFloat()), t("control_tip"));
-            button(g, x, y, t("look_here"), false, mx, my, () -> send("lookHere", "index", selected, "select", selected), t("look_here_tip"));
-            y += 16;
-            x = lx;
-            x = button(g, x, y, t("redo_here"), false, mx, my, () -> send("replaceHere", "index", selected), t("redo_here_tip"));
-            x = button(g, x, y, t("go"), false, mx, my, () -> send("goTo", "index", selected), t("go_tip"));
-            if (x + 60 > vr) {
-                x = lx;
-                y += 16;
-            }
-            x = button(g, x, y, Component.literal("↑"), false, mx, my, () -> {
-                send("move", "index", selected, "value", -1);
-                selected = Math.max(0, selected - 1);
-            }, t("up"));
-            x = button(g, x, y, Component.literal("↓"), false, mx, my, () -> {
-                send("move", "index", selected, "value", 1);
-                selected = Math.min(steps.size() - 1, selected + 1);
-            }, t("down"));
-            if (steps.size() > 1) button(g, x, y, Component.literal("✕"), false, mx, my, () -> send("remove", "index", selected), t("remove"));
             y += 16;
         }
         g.disableScissor();
@@ -321,19 +289,6 @@ public class TravellingScreen extends Screen {
         if (!target.isEmpty()) b.append(", ").append(target.matches("-?[0-9.]+ -?[0-9.]+ -?[0-9.]+") ? t("looks").getString() : t("tracks", target).getString());
         if (s.get("fov").getAsFloat() > 0) b.append(", ").append(Math.round(s.get("fov").getAsFloat())).append("°");
         return b.toString();
-    }
-
-    private void switchPath(int dir) {
-        JsonArray paths = data.getAsJsonArray("paths");
-        if (paths.isEmpty()) return;
-        int i = 0;
-        for (int k = 0; k < paths.size(); k++) if (paths.get(k).getAsString().equals(path())) i = k;
-        String next = paths.get(((i + dir) % paths.size() + paths.size()) % paths.size()).getAsString();
-        JsonObject o = new JsonObject();
-        o.addProperty("camera", camera());
-        o.addProperty("path", next);
-        o.addProperty("action", "open");
-        if (ClientPlayNetworking.canSend(TravellingNetwork.Edit.TYPE)) ClientPlayNetworking.send(new TravellingNetwork.Edit(o.toString()));
     }
 
     private void footer(GuiGraphicsExtractor g) {
