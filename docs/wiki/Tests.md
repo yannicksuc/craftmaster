@@ -645,6 +645,10 @@ Régie vocale : `test_offline.py` (« on va aller voir Ensuri pour voir comment 
 en « principal » : LordFinn suivi en grand avec ses cadrages, les caméras 1 et 3 en petit ✔ ; [follow:LordFinn, 2]
 « bord à bord » ✔. Pas vérifié en jeu : l'écran partagé automatique des zones d'une manche et « on va voir » en
 manche (il faut deux candidats dans deux zones : un seul joueur sur le serveur de dev).
+Suivre à la main reste à l'antenne (régie du site « Suivre un candidat ») : auto en marche, `/cam follow LordFinn`
+puis `/tv spotlight Joueur2` : l'image reste sur LordFinn ✔ ; `/cam wide` (un autre plan choisi) puis le même
+projecteur : coupe sur Joueur2 comme avant ✔. Pas vérifié : la voix (pas de micro sur le serveur de test).
+
 Changements plus vifs (retour de LordFinn « trop lent à changer ») : `/cam follow @maitre`, puis
 `/plateau maitre Joueur2` et retour à LordFinn : coupe sèche sur le nouveau dès l'image suivante (avant : jusqu'à 1 s
 puis un fondu enchaîné), et le synthé « Joueur2 » ne reste plus sur LordFinn ✔. `SpeakerCutsTest` : une voix passe à

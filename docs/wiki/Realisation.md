@@ -101,7 +101,10 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   occupée (sa caméra qui voit le mieux, sinon une tuile qui suit son joueur), disposition tirée au sort parmi celles
   qui vont (deux : bord à bord ou cadres ; plus : cadres ou un en grand) ; seulement si toutes les tuiles sont dans
   la même dimension et assez proches pour que le jeu de diffusion les voie toutes (distance de vue du serveur). Une coupe à la main lui laisse l'antenne 20 s ; un point, une mise en
-  lumière, la révélation passent avant. Seuls ceux qu'une caméra cadre comptent (pas les modos ni les spectateurs).
+  lumière, la révélation passent avant. **Suivre un joueur à la main** (le bouton du candidat dans la régie du site,
+  `/cam follow Ensuri`, « suis Ensuri ») reste sur lui comme « reste sur Ensuri » : ni la voix, ni les points, ni les
+  silences, ni le début d'une manche ne coupent ailleurs, jusqu'à ce qu'on choisisse un autre plan ou qu'on repasse en
+  auto (la révélation, elle, reprend l'antenne). Seuls ceux qu'une caméra cadre comptent (pas les modos ni les spectateurs).
   `/cam auto voix on|off` (oui par défaut), `/cam auto voix` : où on en est. Rien n'est enregistré : seulement qui
   émet, et quand.
 - Le joueur caméra en **spectateur** est déplacé tout seul près du plan (4 blocs sous l'objectif) pour que le
@@ -155,7 +158,7 @@ Jamais deux fois le même d'affilée.
 | Dit | Commande | Effet |
 |---|---|---|
 | « on va voir Ensuri », « et maintenant allons voir comment ça se passe chez Ensuri » | `/cam voir Ensuri` | une caméra posée qui le voit bien (tirée au sort, selon sa place dans l'image), sinon le plan qui le suit ; en manche, une fois sur trois environ, lui en grand et les autres zones en petit dessous ; l'auto continue ensuite |
-| « reste sur Ensuri » · « tu peux lâcher Ensuri » | `/cam rester Ensuri` · `off` | rien ne coupe ailleurs (qui parle, points, mise en lumière d'un autre) |
+| « reste sur Ensuri » · « tu peux lâcher Ensuri » | `/cam rester Ensuri` · `off` | rien ne coupe ailleurs (qui parle, points, mise en lumière, début de manche) jusqu'au prochain plan choisi à la main ; suivre un joueur à la main fait pareil |
 | « plus large » · « plus serré » · « cadrage normal » | `/cam cadrage large\|serre\|auto` | cadrages plus loin / plus près, caméras qui le montrent plus petit / plus grand |
 | « évite la caméra 3 » · « tu peux reprendre la caméra 3 » | `/cam eviter 3` · `off` | l'auto ne la prend plus (si elle est à l'antenne, on passe ailleurs) |
 | « repasse en auto » | `/cam auto on` | plus de joueur retenu, cadrage normal (les caméras évitées le restent) |

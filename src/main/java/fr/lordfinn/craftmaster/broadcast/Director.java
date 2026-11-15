@@ -327,6 +327,9 @@ public final class Director {
         if (r.source() == Source.MANUAL) {
             autoRevertAt = -1;
             lastManualTick = server.getTickCount();
+            // The operator picked another shot: the player held (« reste sur », a follow chosen by hand) is let go
+            if (held() && !(r.kind() == BroadcastNetwork.SHOT_FOLLOW && r.player().equalsIgnoreCase(FollowPrefs.stay())))
+                FollowPrefs.stay(server, "");
         }
         int transition = r.transition() < 0 ? defaultTransition : r.transition();
         shot = new Shot(r.kind(), r.camera(), r.player(), transition, ++serial, r.effect(), r.tiles());
@@ -335,6 +338,14 @@ public final class Director {
         if (r.kind() == BroadcastNetwork.SHOT_PATH) fr.lordfinn.craftmaster.camera.PathRecording.hide(r.camera());
         sync(server);
         return true;
+    }
+
+    /**
+     * A player is held on air (« reste sur Ensuri », or a follow the operator chose): the automatic direction does not
+     * cut away until the operator takes another shot or turns it back on.
+     */
+    static boolean held() {
+        return !FollowPrefs.stay().isEmpty();
     }
 
     /** Puts camera {@code spot} on air ({@code transition} -1 = the default one). */
@@ -695,14 +706,14 @@ public final class Director {
             lieuOverride = null;
             zoneSel = null;
             sync(server);
-            if (auto && !sequenceRunning() && !revealHold) {
+            if (auto && !sequenceRunning() && !revealHold && !held()) {
                 CameraSpot onAir = shot.kind() == BroadcastNetwork.SHOT_CAMERA ? Cameras.list().get(shot.camera()) : null;
                 if (onAir == null || !onAir.lieu().equals(phase)) wide(server, BroadcastNetwork.CROSSFADE);
             }
         }
         if (autoRevertAt >= 0 && now >= autoRevertAt) {
             autoRevertAt = -1;
-            if (auto && !sequenceRunning()) wide(server, BroadcastNetwork.CROSSFADE);
+            if (auto && !sequenceRunning() && !held()) wide(server, BroadcastNetwork.CROSSFADE);
         }
         if (revealHold && !Reveal.running()) {
             revealHold = false;
@@ -831,6 +842,9 @@ public final class Director {
                 String zone = Lieux.zoneOf(server, who, focusLieu());
                 if (zone != null && !zone.equals(focus())) setFocus(server, null, CameraSpot.zoneOf(zone));
                 take(server, ShotRequest.follow(who, transition, effect, Source.MANUAL));
+                // Chosen by hand: the air stays on them until another shot is picked (the voice, the scores, the
+                // silences no longer cut away)
+                FollowPrefs.stay(server, who);
                 lines.add("À l'antenne : on suit " + who + withEffect(effect) + (zone != null ? " (zone " + CameraSpot.zoneOf(zone) + ")" : "") + ".");
             }
             case "camera.pov" -> {
@@ -1278,8 +1292,8 @@ public final class Director {
 
         /** The close shot on a player: a camera of their zone in the round, else following them. */
         private static void closeOn(MinecraftServer server, String player) {
-            // « Reste sur Ensuri »: no cut to someone else
-            if (!FollowPrefs.stay().isEmpty() && !FollowPrefs.stay().equalsIgnoreCase(player)) return;
+            // « Reste sur Ensuri »: the follow on them stays as it is
+            if (held()) return;
             List<CameraSpot> cams = Lieux.camerasFor(server, player, phaseLieu());
             if (!cams.isEmpty()) take(server, ShotRequest.camera(cams.getFirst(), BroadcastNetwork.CUT, "", Source.AUTO));
             else take(server, ShotRequest.follow(player, BroadcastNetwork.CUT, "", Source.AUTO));
@@ -1288,7 +1302,7 @@ public final class Director {
         @Override
         public void onScoreGiven(MinecraftServer server, int season, String player, int delta, String manche) {
             cue(server, new ShowCue(Cues.POINTS, (delta > 0 ? "+" : "") + delta, manche, player, 70));
-            if (!active() || revealHold || delta <= 0) return;
+            if (!active() || revealHold || delta <= 0 || held()) return;
             if (server.getPlayerList().getPlayerByName(player) == null) return;
             closeOn(server, player);
             autoRevertAt = server.getTickCount() + AUTO_SCORE_TICKS;
@@ -1296,7 +1310,7 @@ public final class Director {
 
         @Override
         public void onSpotlight(MinecraftServer server, String player, String reason) {
-            if (!active() || revealHold) return;
+            if (!active() || revealHold || held()) return;
             ServerPlayer p = findPlayer(server, player);
             if (p == null) return;
             String name = p.getGameProfile().name();
@@ -1318,7 +1332,7 @@ public final class Director {
 
         @Override
         public void onMancheStarted(MinecraftServer server, int season, int number, String name) {
-            if (!active()) return;
+            if (!active() || held()) return;
             autoRevertAt = -1;
             wide(server, BroadcastNetwork.CROSSFADE);
         }
@@ -1328,6 +1342,8 @@ public final class Director {
             if (!active()) return;
             autoRevertAt = -1;
             revealHold = true;
+            // The results: the podium takes the air, a player held is let go
+            FollowPrefs.stay(server, "");
             CameraSpot podium = Cameras.list().group(CameraSpot.STUDIO).withRole(CameraSpot.PODIUM);
             if (podium != null) take(server, ShotRequest.camera(podium, BroadcastNetwork.CROSSFADE, "", Source.AUTO));
             else wide(server, BroadcastNetwork.CROSSFADE);
