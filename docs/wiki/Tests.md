@@ -647,7 +647,7 @@ en « principal » : LordFinn suivi en grand avec ses cadrages, les caméras 1 e
 manche (il faut deux candidats dans deux zones : un seul joueur sur le serveur de dev).
 Suivre à la main reste à l'antenne (régie du site « Suivre un candidat ») : auto en marche, `/cam follow LordFinn`
 puis `/tv spotlight Joueur2` : l'image reste sur LordFinn ✔ ; `/cam wide` (un autre plan choisi) puis le même
-projecteur : coupe sur Joueur2 comme avant ✔. Pas vérifié : la voix (pas de micro sur le serveur de test).
+projecteur : coupe sur Joueur2 comme avant ✔. Fin du maintien : `/cam follow LordFinn` (sans chat vocal) encore suivi à 18 s, plan d'ensemble (caméra 1) à 22 s ✔ ; `camera.follow` avec `hold: true` (la régie du site) toujours suivi 25 s après ✔, puis `camera.stay` `enabled: false` (désélection) : plan d'ensemble ✔. Pas vérifié : la voix (pas de micro sur le serveur de test).
 
 Changements plus vifs (retour de LordFinn « trop lent à changer ») : `/cam follow @maitre`, puis
 `/plateau maitre Joueur2` et retour à LordFinn : coupe sèche sur le nouveau dès l'image suivante (avant : jusqu'à 1 s

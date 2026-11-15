@@ -348,6 +348,27 @@ public final class Director {
         return !FollowPrefs.stay().isEmpty();
     }
 
+    /** A hold that is not the site régie's ends after this long without hearing the held player (ms). */
+    static final long HOLD_SILENCE_MS = 20_000;
+    /** The hold was set from the site's régie: until the operator lets go, no silence limit. */
+    private static boolean holdOpen;
+    /** When the held player was last heard (or the hold set). */
+    private static long holdHeardAt;
+
+    /** Holds the air on {@code who}; {@code open} = until let go (the site's régie), else ends after a silence. */
+    static void hold(MinecraftServer server, String who, boolean open) {
+        FollowPrefs.stay(server, who);
+        holdOpen = open;
+        holdHeardAt = System.currentTimeMillis();
+    }
+
+    /** The end of a hold: back to the automatic direction's global shot when the held player was on air. */
+    static void release(MinecraftServer server) {
+        boolean wasOn = held() && shot.kind() == BroadcastNetwork.SHOT_FOLLOW && shot.player().equalsIgnoreCase(FollowPrefs.stay());
+        FollowPrefs.stay(server, "");
+        if (wasOn && !sequenceRunning() && !revealHold) AutoDirection.mostPlayers(server, BroadcastNetwork.CROSSFADE);
+    }
+
     /** Puts camera {@code spot} on air ({@code transition} -1 = the default one). */
     public static void cut(MinecraftServer server, CameraSpot spot, int transition) {
         take(server, ShotRequest.camera(spot, transition, "", Source.SEQUENCE));
@@ -686,6 +707,16 @@ public final class Director {
         Credits.tick(server);
         MancheIntros.tick(server);
         long now = server.getTickCount();
+        // A hold that is not the régie's: the held player silent for a while (or gone) → back to the global shot
+        if (held() && !holdOpen && now % 10 == 0) {
+            long ms = System.currentTimeMillis();
+            ServerPlayer h = findPlayer(server, FollowPrefs.stay());
+            if (h != null && Speaking.available() && Speaking.talking(h.getUUID(), ms)) holdHeardAt = ms;
+            if (h == null || ms - holdHeardAt > HOLD_SILENCE_MS) {
+                if (auto) release(server);
+                else FollowPrefs.stay(server, "");
+            }
+        }
         // A follow shot by rule: who matches now (another cut ended it), checked four times a second and cut to at once
         if (!followRule.isEmpty() && now % 5 == 0) {
             if (shot.serial() != followRuleSerial || shot.kind() != BroadcastNetwork.SHOT_FOLLOW) followRule = "";
@@ -843,8 +874,8 @@ public final class Director {
                 if (zone != null && !zone.equals(focus())) setFocus(server, null, CameraSpot.zoneOf(zone));
                 take(server, ShotRequest.follow(who, transition, effect, Source.MANUAL));
                 // Chosen by hand: the air stays on them until another shot is picked (the voice, the scores, the
-                // silences no longer cut away)
-                FollowPrefs.stay(server, who);
+                // silences no longer cut away) — from the site's régie until let go, else until they fall silent
+                hold(server, who, Boolean.TRUE.equals(a.get("hold")));
                 lines.add("À l'antenne : on suit " + who + withEffect(effect) + (zone != null ? " (zone " + CameraSpot.zoneOf(zone) + ")" : "") + ".");
             }
             case "camera.pov" -> {
@@ -914,7 +945,7 @@ public final class Director {
             }
             case "camera.stay" -> {
                 if (Boolean.FALSE.equals(a.get("enabled")) || a.get("player") == null) {
-                    FollowPrefs.stay(server, "");
+                    release(server);
                     lines.add("La réalisation ne reste plus sur un joueur.");
                     return;
                 }
@@ -925,7 +956,7 @@ public final class Director {
                     return;
                 }
                 String who = p.getGameProfile().name();
-                FollowPrefs.stay(server, who);
+                hold(server, who, Boolean.TRUE.equals(a.get("hold")));
                 take(server, ShotRequest.follow(who, BroadcastNetwork.CUT, "", Source.MANUAL));
                 lines.add("On reste sur " + who + " (« repasse en auto » pour reprendre).");
             }

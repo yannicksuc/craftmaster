@@ -17,7 +17,9 @@ import java.util.Map;
  *                                                in the focus; or elsewhere: "studio:2", "ensuri:1", "caméra 2 du studio";
  *                                                pair true (Ctrl+click in the directors' grids) = side by side with the
  *                                                camera on air (split screen of two), or back to one if it is one of the two
- * camera.follow     {player | rule, transition?, effect?}  follow shot on a player (in a round: selects their zone too),
+ * camera.follow     {player | rule, transition?, effect?, hold?}  follow shot on a player (in a round: selects their zone too),
+ *                                                held on air (hold true, the site's régie: until camera.stay off or another
+ *                                                shot; else until another shot or 20 s without hearing them),
  *                                                or by rule, the follow-spots' ones (@moment, @candidat, @scene, @maitre,
  *                                                @rang:1, @dernier, @hasard, @public, @proche, @zone:x): picked again while on air
  * camera.pov        {player, transition?, effect?}  through a player's eyes
@@ -32,7 +34,8 @@ import java.util.Map;
  * camera.lieu       {camera, lieu, zone?}        moves a camera to the studio or a round (and a zone of it)
  * camera.auto       {enabled}                   automatic direction on / off (on: also ends camera.stay and camera.framing)
  * camera.goto       {player}                    « on va voir Ensuri » : a placed camera that sees them well, else following them
- * camera.stay       {player?, enabled?}         the automatic direction stays on a player (enabled false / no player = stop)
+ * camera.stay       {player?, enabled?, hold?}  the automatic direction stays on a player (enabled false / no player = stop,
+ *                                                back to the global shot); without hold, ends after 20 s without hearing them
  * camera.framing    {size}                      automatic framing: wider | tighter | auto
  * camera.avoid      {camera, enabled?}          the automatic choices never take this camera (enabled false = they may again)
  * camera.transition {transition}                default transition: coupe | fondu | enchaine
@@ -76,6 +79,7 @@ public final class BroadcastActions {
                 } else out.put("player", required(a, "player"));
                 transition(a, out, false);
                 effect(a, out);
+                if (bool(a, "hold", false)) out.put("hold", true);
             }
             case "camera.pov" -> {
                 out.put("player", required(a, "player"));
@@ -134,6 +138,7 @@ public final class BroadcastActions {
                 boolean on = a.get("enabled") == null ? player != null : bool(a, "enabled", false);
                 out.put("enabled", on);
                 if (on) out.put("player", required(a, "player"));
+                if (on && bool(a, "hold", false)) out.put("hold", true);
             }
             case "camera.framing" -> out.put("size", framingSize(required(a, "size")));
             case "camera.avoid" -> {
