@@ -645,6 +645,11 @@ Régie vocale : `test_offline.py` (« on va aller voir Ensuri pour voir comment 
 en « principal » : LordFinn suivi en grand avec ses cadrages, les caméras 1 et 3 en petit ✔ ; [follow:LordFinn, 2]
 « bord à bord » ✔. Pas vérifié en jeu : l'écran partagé automatique des zones d'une manche et « on va voir » en
 manche (il faut deux candidats dans deux zones : un seul joueur sur le serveur de dev).
+Changements plus vifs (retour de LordFinn « trop lent à changer ») : `/cam follow @maitre`, puis
+`/plateau maitre Joueur2` et retour à LordFinn : coupe sèche sur le nouveau dès l'image suivante (avant : jusqu'à 1 s
+puis un fondu enchaîné), et le synthé « Joueur2 » ne reste plus sur LordFinn ✔. `SpeakerCutsTest` : une voix passe à
+l'antenne après ½ s, une toux de 0,35 s ne coupe pas, un plan tient 2 s (3 s en groupe). Pas vérifié en vrai micro.
+
 Suivi commun caméras / projecteurs : `/cam follow @maitre` suit LordFinn, cadré sans retard en courant (gros plan
 tenu en marchant) ✔ ; projecteur suspendu en poursuite, LordFinn marche 3 s dans un sens puis dans l'autre de nuit,
 vu par la caméra 2 : la flaque reste centrée sous ses pieds (avant, elle traînait derrière) ✔ ; poursuite

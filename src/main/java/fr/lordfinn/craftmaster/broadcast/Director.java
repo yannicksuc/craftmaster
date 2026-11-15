@@ -675,14 +675,14 @@ public final class Director {
         Credits.tick(server);
         MancheIntros.tick(server);
         long now = server.getTickCount();
-        // A follow shot by rule: who matches now (another cut ended it)
-        if (!followRule.isEmpty() && now % 20 == 0) {
+        // A follow shot by rule: who matches now (another cut ended it), checked four times a second and cut to at once
+        if (!followRule.isEmpty() && now % 5 == 0) {
             if (shot.serial() != followRuleSerial || shot.kind() != BroadcastNetwork.SHOT_FOLLOW) followRule = "";
             else {
                 String picked = pickByRule(server, followRule, shot.player());
                 if (!picked.isEmpty() && !picked.equalsIgnoreCase(shot.player())) {
                     String rule = followRule;
-                    take(server, ShotRequest.follow(picked, BroadcastNetwork.CROSSFADE, "", Source.SEQUENCE));
+                    take(server, ShotRequest.follow(picked, BroadcastNetwork.CUT, "", Source.SEQUENCE));
                     followRule = rule;
                     followRuleSerial = serial;
                 }

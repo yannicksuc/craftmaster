@@ -30,7 +30,7 @@ class SpeakerCutsTest {
     void aShortSoundDoesNotCut() {
         SpeakerCuts c = new SpeakerCuts();
         long[] t = {0};
-        assertTrue(run(c, t, 600, "Ensuri").isEmpty());
+        assertTrue(run(c, t, 350, "Ensuri").isEmpty());   // a cough, a « oui »
         assertTrue(run(c, t, 2000).isEmpty());
     }
 
@@ -76,9 +76,23 @@ class SpeakerCutsTest {
     void aShotIsHeldBeforeTheNext() {
         SpeakerCuts c = new SpeakerCuts();
         long[] t = {0};
-        run(c, t, 1200, "Ensuri");            // on Ensuri at ~0.9 s
-        List<Decision> d = run(c, t, 1500, "Cyllu");  // Cyllu counts at ~2.1 s, but Ensuri's shot holds until 4.4 s
+        run(c, t, 1200, "Ensuri");            // on Ensuri at ~0.5 s
+        List<Decision> d = run(c, t, 1000, "Cyllu");  // Cyllu counts at ~1.7 s, but Ensuri's shot holds until 2.5 s
         assertTrue(d.isEmpty(), "no cut during the hold: " + d);
+    }
+
+    @Test
+    void aNewSpeakerIsTakenQuickly() {
+        // A voice is on air half a second after it starts
+        SpeakerCuts c = new SpeakerCuts();
+        long[] t = {0};
+        List<Decision> first = run(c, t, 700, "Ensuri");
+        assertEquals(new Decision(Kind.SOLO, List.of("Ensuri")), first.getFirst());
+        // and someone who starts talking after the hold gets the shot within a second, a long silence later
+        run(c, t, 8000);
+        run(c, t, 3000);
+        List<Decision> next = run(c, t, 1000, "Cyllu");
+        assertEquals(new Decision(Kind.SOLO, List.of("Cyllu")), next.getFirst());
     }
 
     @Test

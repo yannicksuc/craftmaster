@@ -93,8 +93,9 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   parle, avec le même choix que « on va voir » : une caméra posée qui le voit bien (plus il prend de place dans
   l'image, plus elle a de chances, jamais collé à l'objectif ni caché par un bloc), sinon le plan qui le suit ; son
   nom ne s'affiche que la première fois (ou après 3 min sans l'avoir montré), pas à chaque aller-retour. Sans clignoter : une voix
-  ne compte qu'après ~1 s (une toux, un « oui » ne coupent pas), un plan tient au moins 3,5 s, un échange à deux ou
-  plusieurs passe sur une caméra qui les voit tous au lieu du ping-pong, et après 6 s de silence on passe sur la
+  ne compte qu'après ½ s (une toux, un « oui » ne coupent pas), un plan tient au moins 2 s (3 s pour un plan de
+  groupe), toujours en coupe sèche, un échange à deux ou
+  plusieurs passe sur une caméra qui les voit tous au lieu du ping-pong, et après 5 s de silence on passe sur la
   caméra qui voit le plus de joueurs (sinon le plan large). **En manche**, si les candidats sont dans des zones
   différentes et qu'aucune caméra n'en voit deux, le silence passe en **écran partagé** : une tuile par zone
   occupée (sa caméra qui voit le mieux, sinon une tuile qui suit son joueur), disposition tirée au sort parmi celles
@@ -141,7 +142,8 @@ Jamais deux fois le même d'affilée.
   vise un peu devant, là où il va), lui laisse de la place devant quand il traverse l'image, et accepte les mêmes
   règles que les poursuites : `/cam follow @moment` (le joueur du moment), `@candidat`, `@scene`, `@maitre`,
   `@rang:1` (« suis le premier du classement »), `@dernier`, `@hasard`, `@public`, `@proche`, `@zone:<nom>` ;
-  le joueur est repris chaque seconde tant que le plan est à l'antenne (il reste sur lui tant qu'il correspond).
+  le joueur est revu quatre fois par seconde tant que le plan est à l'antenne (il reste sur lui tant qu'il
+  correspond) et, s'il change, la caméra coupe sur le nouveau au lieu d'un fondu.
   Dans l'autre sens, une poursuite `@antenne` éclaire le joueur que montre la réalisation.
 - Les mêmes cadrages servent aux replays, aux plans « suivi » des intros de manche et aux **tuiles qui suivent un
   joueur** dans un écran partagé (`follow:<joueur>` à la place d'une caméra : chaque tuile a ses propres cadrages,

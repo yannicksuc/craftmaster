@@ -23,7 +23,7 @@ import java.util.Set;
  */
 public final class SpeakerCuts {
 
-    public static final long GAP = 450, MIN_TALK = 900, MIN_HOLD = 3500, GROUP_HOLD = 5000, GROUP_WINDOW = 7000, SILENCE = 6000;
+    public static final long GAP = 450, MIN_TALK = 500, MIN_HOLD = 2000, GROUP_HOLD = 3000, GROUP_WINDOW = 6000, SILENCE = 5000;
 
     public enum Kind { NONE, SOLO, GROUP, WIDE }
 
