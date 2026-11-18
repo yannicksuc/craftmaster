@@ -211,6 +211,7 @@ public final class Arenas {
         }
         Pickups.forget(a.name);
         Drawing.forget(a.name);
+        DrawingImages.clear(a.name);
         GroundEnd.forget();
         Finish.reset();
         return n;

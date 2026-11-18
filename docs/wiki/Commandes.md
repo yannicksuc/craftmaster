@@ -166,8 +166,9 @@ Une zone de référence copiée pour chaque candidat, remise à zéro, réappari
 | `/craftMasterArene kit <nom> [vide]` | | Le kit = les objets de ton inventaire / aucun |
 | `/craftMasterArene champ <nom> [encre]` | | Champ à dessiner entre les deux points du mètre ruban |
 | `/craftMasterArene manche <nom> <manche>` | | Lie l'arène à sa manche |
-| `/craftMasterArene option <nom> chronoLettre\|panneauxSuite\|murs\|inventaireVide\|solFin\|alphabet <true\|false>` · `chronoSuite <s>` | | Réglages (voir la page) |
+| `/craftMasterArene option <nom> chronoLettre\|panneauxSuite\|murs\|inventaireVide\|solFin\|alphabet\|aveugle <true\|false>` · `chronoSuite <s>` | | Réglages (voir la page) |
 | `/craftMasterArene panneaux <nom> [verrouiller]` | | Les panneaux de chaque copie (et les verrouiller) |
+| `/craftMasterArene jury <nom> [tous\|<joueur>\|suivant\|precedent] [écran]` | | Images des dessins sur l'écran « jury » : toutes, ou une en grand ; boutons dans le chat |
 | `/craftMasterArene comparer <nom> [noter]` | | Chaque copie comparée bloc à bloc à la référence ; `noter` l'écrit sur la feuille |
 | `/craftMasterArene fleurs <nom>` · `animal <nom>` | | Installe le chemin des fleurs de Jeremy / le champ de l'épreuve Animal devant toi |
 | `/craftMasterArene retirer <nom> <joueur>` · `supprimer <nom>` | | Oublie une copie / l'arène (les blocs restent) |

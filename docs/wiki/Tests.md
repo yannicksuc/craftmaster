@@ -700,3 +700,9 @@ Serveur de dev 26.2 (monde `plateau`), client LordFinn piloté par MCP Fabric, c
   le panneau sort de l'image ✔. La souris du candidat est simulée (`hover x y` de `dev-input.txt`, et `inventory`
   ouvre son inventaire). Pas vérifié : la fluidité avec une vraie souris (même chemin, 20 envois par seconde au
   plus, lissage côté diffusion).
+- **Animal à l'aveugle et écran du jury** (18/11/2026) : `option animal aveugle true`, bannière rouge, une boucle et
+  un zigzag en marchant, bannière verte : le sol reste blanc ✔, « Ton dessin est enregistré » ✔, l'image
+  `dessins/animal/LordFinn.png` montre le chemin lissé ✔, boutons [Tous] [LordFinn] [◀] [▶] chez l'organisateur ✔.
+  Écran du studio de 12 × 7 nommé « jury » : `/cfar jury animal tous` (5 dessins, dont 4 copies pour l'essai) : la
+  planche avec les noms ✔ ; `… Cyllu` : son dessin en grand, « CYLLU » au-dessus ✔ ; `… suivant` passe au suivant ✔.
+  Pas vérifié : un vrai dessin de plusieurs candidats en même temps (un seul joueur en dev).

@@ -32,6 +32,7 @@ public final class CraftMasterClient implements ClientModInitializer {
         PortraitClient.init();
         // Studio set (chantier F)
         fr.lordfinn.craftmaster.client.studio.StudioClient.init();
+        fr.lordfinn.craftmaster.client.studio.ServerImagesClient.init();
         CurtainClient.init();
         // Garage doors: the panel sliding up into the lintel, the camouflaged motor
         net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry.register(fr.lordfinn.craftmaster.garage.GarageDoors.MOTOR_BE,

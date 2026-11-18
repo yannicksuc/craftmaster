@@ -65,8 +65,25 @@ et ciré (les candidats ne peuvent pas le changer).
 ### Champ à dessiner en marchant
 `/cfar champ <nom> [bloc d'encre]` : le sol entre les deux points du mètre ruban (le bloc du premier point est le
 « papier », l'encre est le béton noir par défaut). Le candidat **plante sa bannière rouge** dans le champ : le dessin
-commence ; chaque bloc où il marche devient noir ; **sa bannière verte** le termine. La fin du chrono arrête tous
-les dessins. Il faut être en **survie** (pour planter les bannières et toucher le sol).
+commence ; **sa bannière verte** le termine. La fin du chrono arrête tous les dessins. Il faut être en **survie**
+(pour planter les bannières et toucher le sol).
+- **À l'aveugle** (`/cfar option <nom> aveugle true`, réglé d'office par `/cfar animal`) : rien ne se voit pendant
+  qu'il marche, son chemin est seulement enregistré (un saut ou une sortie du champ lève le crayon).
+- Sinon : chaque bloc où il marche devient noir.
+- Dans les deux cas, à la fin, son chemin devient une **image** (vue de dessus, nord en haut, trait d'encre lissé sur
+  papier), gardée dans `config/craftmaster/dessins/<arène>/<joueur>.png`. `/cfar reset` les efface.
+
+### Écran du jury
+Les images sont faites par le serveur et arrivent dans les jeux par leur connexion, comme les photos de CrazyPhone
+(pas de site web, adresse `cmimg://…`), sur les **écrans du studio** : n'importe quelle taille, jusqu'à l'écran
+géant.
+1. Un écran du studio dans la salle principale, agrandi (`/image size 12 7` en le regardant), nommé « jury »
+   (`/cmtele nommer jury`). Plusieurs écrans du même nom montrent la même chose.
+2. `/cfar jury <arène> tous` : tous les dessins côte à côte, le nom de chacun dessous. `/cfar jury <arène>
+   <joueur>` : son dessin en grand, son nom au-dessus. `suivant` / `precedent` : le dessin d'après / d'avant.
+3. Pour changer en direct en parlant : la ligne de boutons dans le chat **[Tous] [Ensuri] [Cyllu]… [◀] [▶]**, un clic
+   par changement. Elle arrive à chaque dessin terminé et après chaque `/cfar jury` (`/cfar jury <arène>` seul la
+   redonne). Un autre écran : `/cfar jury <arène> tous <nom de l'écran>`.
 
 ### Objet marqué (« la pomme »)
 Objet en main : `/cftr marquer <but>`. Le manger termine l'essai de celui qui le mange (seulement cet objet-là : une
@@ -125,13 +142,14 @@ part, ailleurs dans la salle.
 > Votre tâche commence maintenant.
 
 1. Debout devant l'emplacement : `/cfar animal <nom>` pose un champ blanc de 21 × 21, un panneau à l'entrée, et crée
-   l'arène : champ à dessiner, kit bannière rouge + bannière verte, panneaux verrouillés et chrono de 10 min à la
-   révélation de la suite.
+   l'arène : champ à dessiner **à l'aveugle**, kit bannière rouge + bannière verte, panneaux verrouillés et chrono de
+   10 min à la révélation de la suite.
 2. La manche, sa tâche avec la seconde partie entre `[secret]…[/secret]`, `/cfre kind note`, `/cfar manche`.
 3. `/cfar copier`, lancer, `/cfar placer` (en **survie**).
 4. Chacun écrit son animal sur son panneau. Quand tout le monde a écrit : « révèle la suite » ou `/tache suite` :
    panneaux verrouillés (les animaux arrivent dans ton chat), chrono de 10 min.
-5. Le jury : `/cfar tp <nom> <joueur> dessus`, puis la note sur la feuille.
+5. Le jury : `/cfar jury <nom> tous` sur l'écran « jury » de la salle principale, puis chaque dessin en grand avec
+   les boutons du chat ; la note sur la feuille.
 
 ### La pomme
 > Mangez la pomme. Le plus rapide l'emporte. Votre tâche commence maintenant.

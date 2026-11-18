@@ -38,6 +38,7 @@ public final class Trials {
         ServerTickEvents.END_SERVER_TICK.register(fr.lordfinn.craftmaster.trial.kit.Drawing::tick);
         ServerTickEvents.END_SERVER_TICK.register(fr.lordfinn.craftmaster.trial.kit.GroundEnd::tick);
         fr.lordfinn.craftmaster.trial.kit.InventoryCam.register();
+        fr.lordfinn.craftmaster.media.ServerImages.register();
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             TrialProps.clear(server);
             Judging.reset();

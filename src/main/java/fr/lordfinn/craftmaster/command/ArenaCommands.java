@@ -78,7 +78,16 @@ public final class ArenaCommands {
         out.add("tous");
         return out;
     });
-    private static final SuggestionProvider<CommandSourceStack> OPTIONS = list(c -> List.of("chronoLettre", "panneauxSuite", "murs", "inventaireVide", "solFin", "alphabet"));
+    private static final SuggestionProvider<CommandSourceStack> OPTIONS = list(c -> List.of("chronoLettre", "panneauxSuite", "murs", "inventaireVide", "solFin", "alphabet", "aveugle"));
+    private static final SuggestionProvider<CommandSourceStack> JURY = list(c -> {
+        List<String> out = new ArrayList<>(List.of("tous", "suivant", "precedent"));
+        try {
+            Arena a = Arenas.get(c.getArgument("arene", String.class));
+            if (a != null) out.addAll(fr.lordfinn.craftmaster.trial.kit.DrawingImages.names(a.name));
+        } catch (IllegalArgumentException ignored) {
+        }
+        return out;
+    });
 
     private static String str(CommandContext<CommandSourceStack> c, String n) {
         return c.getArgument(n, String.class);
@@ -222,6 +231,9 @@ public final class ArenaCommands {
                         .then(literal("verrouiller").executes(c -> signs(c, true)))))
                 .then(literal("comparer").then(argument("arene", word()).suggests(ARENAS).executes(c -> compare(c, false))
                         .then(literal("noter").executes(c -> compare(c, true)))))
+                .then(literal("jury").then(argument("arene", word()).suggests(ARENAS).executes(c -> jury(c, null, fr.lordfinn.craftmaster.trial.kit.JuryScreen.DEFAULT_SCREEN))
+                        .then(argument("quoi", word()).suggests(JURY).executes(c -> jury(c, str(c, "quoi"), fr.lordfinn.craftmaster.trial.kit.JuryScreen.DEFAULT_SCREEN))
+                                .then(argument("ecran", word()).executes(c -> jury(c, str(c, "quoi"), str(c, "ecran")))))))
                 .then(literal("fleurs").then(argument("arene", word()).executes(ArenaCommands::installFlowers)))
                 .then(literal("animal").then(argument("arene", word()).executes(ArenaCommands::installAnimal)));
     }
@@ -237,7 +249,7 @@ public final class ArenaCommands {
             if (a.chronoLettre) opts.add("chrono à la lettre");
             if (a.chronoSuite > 0) opts.add("chrono " + a.chronoSuite + " s à la suite");
             if (a.panneauxSuite) opts.add("panneaux verrouillés à la suite");
-            if (a.field != null) opts.add("champ à dessiner");
+            if (a.field != null) opts.add(a.field.blind ? "champ à dessiner à l'aveugle" : "champ à dessiner");
             if (a.solFin) opts.add(a.alphabet ? "fin au sol, inventaire alphabétique" : "fin au sol");
             if (!a.kit.isEmpty()) opts.add("kit de " + a.kit.size());
             say(c, Component.literal(" " + a.name).withStyle(ChatFormatting.YELLOW)
@@ -332,12 +344,19 @@ public final class ArenaCommands {
             case "murs" -> a.walls = on;
             case "inventairevide" -> a.clearInventory = on;
             case "solfin" -> a.solFin = on;
+            case "aveugle" -> {
+                if (a.field == null) {
+                    fail(c, "« " + a.name + " » n'a pas de champ à dessiner (/cfar champ).");
+                    return 0;
+                }
+                a.field.blind = on;
+            }
             case "alphabet" -> {
                 a.alphabet = on;
                 if (on) a.solFin = true;
             }
             default -> {
-                fail(c, "Option inconnue : chronoLettre, panneauxSuite, murs, inventaireVide, solFin, alphabet (ou chronoSuite <secondes>).");
+                fail(c, "Option inconnue : chronoLettre, panneauxSuite, murs, inventaireVide, solFin, alphabet, aveugle (ou chronoSuite <secondes>).");
                 return 0;
             }
         }
@@ -383,6 +402,22 @@ public final class ArenaCommands {
             say(c, Component.literal(" [noter sur la feuille]").withStyle(st -> st.withColor(ChatFormatting.GREEN)
                     .withClickEvent(new ClickEvent.RunCommand("/cfar comparer " + a.name + " noter"))));
         }
+        return 1;
+    }
+
+    /** The jury's screen: all the drawings, or one in big; then the buttons to switch it from the chat. */
+    private static int jury(CommandContext<CommandSourceStack> c, String what, String screen) {
+        Arena a = arena(c);
+        if (a == null) return 0;
+        if (what != null) {
+            try {
+                ok(c, fr.lordfinn.craftmaster.trial.kit.JuryScreen.show(c.getSource().getServer(), a, what, screen));
+            } catch (Exception e) {
+                fail(c, e.getMessage());
+                return 0;
+            }
+        }
+        say(c, Component.literal("Écran du jury : ").withStyle(ChatFormatting.GOLD).append(fr.lordfinn.craftmaster.trial.kit.JuryScreen.buttons(a.name)));
         return 1;
     }
 
@@ -480,6 +515,7 @@ public final class ArenaCommands {
         f.z0 = Math.min(f0.getZ(), f1.getZ());
         f.z1 = Math.max(f0.getZ(), f1.getZ());
         f.y = start.getY();
+        f.blind = true; // LordFinn: nothing shows while they walk, the picture comes at the end
         ar.field = f;
         ar.hasSpawn = true;
         ar.sx = p.getX();

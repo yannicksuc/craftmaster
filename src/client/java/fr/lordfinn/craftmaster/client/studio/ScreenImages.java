@@ -110,6 +110,16 @@ public final class ScreenImages {
         } catch (IOException ignored) {
             // Unreadable cache: download again
         }
+        if (url.startsWith(fr.lordfinn.craftmaster.media.ServerImages.SCHEME)) {
+            // A picture made by the server (walked drawings, jury board): through the game's connection
+            byte[] data = ServerImagesClient.fetch(url);
+            try {
+                Files.createDirectories(file.getParent());
+                Files.write(file, data);
+            } catch (IOException ignored) {
+            }
+            return data;
+        }
         HttpRequest req = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(20))
                 .header("User-Agent", "CraftMaster-StudioScreen/1.0 (Minecraft mod; image screens)").header("Accept", "image/*").GET().build();
         HttpResponse<InputStream> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofInputStream());

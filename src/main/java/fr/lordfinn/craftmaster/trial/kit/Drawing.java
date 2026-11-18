@@ -19,9 +19,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Drawing by walking in a field ({@link Arena#field}): between the red banner (start) and the green one (end), each
- * floor block the player walks on turns to ink. The blocks are the drawing: the jury looks from above. The round's
- * timer ending stops every drawing.
+ * Drawing by walking in a field ({@link Arena#field}): between the red banner (start) and the green one (end), the
+ * player's path is recorded. In a <b>blind</b> field ({@link Arena.Field#blind}) nothing shows while they walk; else
+ * each floor block walked on turns to ink. Either way the path becomes a picture at the end ({@link DrawingImages}),
+ * for the jury's screen. The round's timer ending stops every drawing.
  */
 public final class Drawing {
 
@@ -29,8 +30,15 @@ public final class Drawing {
 
     private record Key(String arena, String player) {}
 
-    /** Drawings in progress → number of blocks inked. */
-    private static final Map<Key, int[]> DRAWING = new HashMap<>();
+    /** A drawing in progress: the path walked, in blocks from the field's corner (NaN, NaN = the pen lifted). */
+    static final class Trace {
+        final java.util.List<float[]> points = new java.util.ArrayList<>();
+        int steps;
+        float lastX = Float.NaN, lastZ = Float.NaN;
+    }
+
+    /** Drawings in progress. */
+    private static final Map<Key, Trace> DRAWING = new HashMap<>();
     /** Finished drawings (a red banner does not start them again before the reset). */
     private static final Set<Key> DONE = new HashSet<>();
     private static boolean timerWasRunning;
@@ -46,9 +54,11 @@ public final class Drawing {
             return;
         }
         if (DRAWING.containsKey(k)) return;
-        DRAWING.put(k, new int[1]);
+        DRAWING.put(k, new Trace());
+        boolean blind = o.arena().field != null && o.arena().field.blind;
         Show.title(p, Component.literal("Dessin commencé").withStyle(ChatFormatting.RED, ChatFormatting.BOLD),
-                Component.literal("Marche pour dessiner ; bannière verte pour finir").withStyle(ChatFormatting.GRAY), 3, 40, 10);
+                Component.literal(blind ? "Marche pour dessiner (tu ne vois rien) ; bannière verte pour finir"
+                        : "Marche pour dessiner ; bannière verte pour finir").withStyle(ChatFormatting.GRAY), 3, 40, 10);
         Show.sound(p, SoundEvents.NOTE_BLOCK_PLING, 1f, 1.2f);
         String name = Arenas.playerName(p);
         Finish.tellOrganisers(p.level().getServer(), p, Component.literal("✎ ").withStyle(ChatFormatting.GOLD).append(Finish.name(name))
@@ -57,20 +67,23 @@ public final class Drawing {
 
     static void stop(ServerPlayer p, Arenas.Owner o, boolean timeUp) {
         Key k = key(o, p);
-        int[] n = DRAWING.remove(k);
+        Trace n = DRAWING.remove(k);
         if (n == null) {
             if (!timeUp && !DONE.contains(k))
                 p.sendOverlayMessage(Component.literal("Plante d'abord la bannière rouge pour commencer").withStyle(ChatFormatting.YELLOW));
             return;
         }
         DONE.add(k);
-        finished(p.level().getServer(), p, Arenas.playerName(p), n[0], timeUp);
+        finished(p.level().getServer(), p, Arenas.playerName(p), o.arena(), n, timeUp);
     }
 
-    private static void finished(MinecraftServer server, ServerPlayer p, String name, int blocks, boolean timeUp) {
+    private static void finished(MinecraftServer server, ServerPlayer p, String name, Arena arena, Trace trace, boolean timeUp) {
+        int blocks = trace.steps;
+        DrawingImages.save(server, arena, name, trace);
         if (p != null) {
             Show.title(p, Component.literal(timeUp ? "Temps écoulé" : "Dessin terminé").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD),
-                    Component.literal(blocks + " blocs tracés").withStyle(ChatFormatting.GRAY), 3, 40, 10);
+                    Component.literal(arena.field != null && arena.field.blind ? "Ton dessin est enregistré" : blocks + " blocs tracés")
+                            .withStyle(ChatFormatting.GRAY), 3, 40, 10);
             Show.sound(p, SoundEvents.NOTE_BLOCK_CHIME, 1f, 1f);
         }
         Finish.tellOrganisers(server, p, Component.literal("✎ ").withStyle(ChatFormatting.GOLD).append(Finish.name(name))
@@ -89,26 +102,54 @@ public final class Drawing {
         boolean timeUp = timerWasRunning && !running;
         timerWasRunning = running;
         if (DRAWING.isEmpty()) return;
-        for (Iterator<Map.Entry<Key, int[]>> it = DRAWING.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<Key, int[]> e = it.next();
+        for (Iterator<Map.Entry<Key, Trace>> it = DRAWING.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Key, Trace> e = it.next();
             ServerPlayer p = null;
             for (ServerPlayer q : server.getPlayerList().getPlayers()) if (Arenas.playerName(q).equalsIgnoreCase(e.getKey().player)) p = q;
+            Arena arena = Arenas.get(e.getKey().arena);
             if (timeUp) {
                 it.remove();
                 DONE.add(e.getKey());
-                finished(server, p, p != null ? Arenas.playerName(p) : e.getKey().player, e.getValue()[0], true);
+                if (arena != null) finished(server, p, p != null ? Arenas.playerName(p) : e.getKey().player, arena, e.getValue(), true);
                 continue;
             }
-            if (p == null || !p.onGround() || p.isSpectator()) continue;
+            Trace t = e.getValue();
+            if (p == null || !p.onGround() || p.isSpectator()) {
+                lift(t);
+                continue;
+            }
             BlockPos below = BlockPos.containing(p.getX(), p.getY() - 0.2, p.getZ());
             Arenas.Owner o = Arenas.ownerAt(p.level(), below);
-            if (o == null || !o.arena().name.equalsIgnoreCase(e.getKey().arena) || !Arenas.mayUse(p, o) || !Arenas.inField(o, below, true)) continue;
+            if (o == null || !o.arena().name.equalsIgnoreCase(e.getKey().arena) || !Arenas.mayUse(p, o) || !Arenas.inField(o, below, true)) {
+                lift(t);
+                continue;
+            }
             Arena.Field f = o.arena().field;
+            int[] off = o.offset();
+            float fx = (float) (p.getX() - f.x0 - (off == null ? 0 : off[0])), fz = (float) (p.getZ() - f.z0 - (off == null ? 0 : off[2]));
+            // A point every 0.15 block of walk (standing still adds nothing)
+            if (Float.isNaN(t.lastX) || Math.hypot(fx - t.lastX, fz - t.lastZ) >= 0.15) {
+                t.points.add(new float[]{fx, fz});
+                t.lastX = fx;
+                t.lastZ = fz;
+            }
+            if (f.blind) {
+                t.steps = t.points.size();
+                continue;
+            }
             ServerLevel level = (ServerLevel) p.level();
             BlockState paper = Arenas.block(f.paper, Blocks.CONCRETE.white().defaultBlockState());
             if (level.getBlockState(below).getBlock() != paper.getBlock()) continue;
             level.setBlock(below, Arenas.block(f.ink, Blocks.CONCRETE.black().defaultBlockState()), Block.UPDATE_CLIENTS);
-            e.getValue()[0]++;
+            t.steps++;
         }
+    }
+
+    /** Leaving the floor (a jump, out of the field): the next point starts a new stroke. */
+    private static void lift(Trace t) {
+        if (Float.isNaN(t.lastX)) return;
+        t.points.add(new float[]{Float.NaN, Float.NaN});
+        t.lastX = Float.NaN;
+        t.lastZ = Float.NaN;
     }
 }
