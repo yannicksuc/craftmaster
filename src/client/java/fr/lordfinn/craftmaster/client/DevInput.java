@@ -31,6 +31,7 @@ import java.util.Locale;
  * screenshot                     saves the picture to screenshots/ like F2 (any screen, no world needed)
  * hover x y                      screens that follow the mouse read this position instead ("hover" alone: the real one)
  * slowmo factor                  animations that ask {@link #timeScale} run this many times slower (1 = normal)
+ * chat TEXT                     opens the chat with TEXT typed (spaces as _): the command suggestions show
  * open CLASS                    opens that screen (no-argument constructor), e.g. another mod's menu
  * use seconds                    holds the "use" key in the world that long, then lets go (charge a throw, a bow…)
  * camera first|back|front        the point of view, as F5 cycles it (see the player's own model)
@@ -116,6 +117,11 @@ public final class DevInput {
                 // "regie": the moderators' director, as with its key
                 if (line.strip().equals("regie")) {
                     fr.lordfinn.craftmaster.client.regie.ModoDeskClient.open(mc);
+                    continue;
+                }
+                // "chat TEXT": the chat opened with TEXT typed (the command suggestions show, Tab completes)
+                if (line.strip().startsWith("chat ")) {
+                    mc.gui.setScreen(new net.minecraft.client.gui.screens.ChatScreen(line.strip().substring(5).replace('_', ' '), false));
                     continue;
                 }
                 // "open <class>": opens a screen built with its no-argument constructor (another mod's menu, e.g.

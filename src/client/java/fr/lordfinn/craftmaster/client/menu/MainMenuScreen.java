@@ -204,7 +204,7 @@ public class MainMenuScreen extends Screen {
                 b.toggle("Vider inv.", "L'inventaire des candidats est vidé avant le kit", bool(a, "inventaireVide"),
                         v -> MenuClient.command("arene option " + n + " inventaireVide " + v));
             });
-            r.row(Component.empty(), b -> {
+            r.row(Component.literal(" "), b -> {
                 b.toggle("Sol = fin", "Toucher le sol hors de la copie termine l'essai et verrouille l'inventaire", bool(a, "solFin"),
                         v -> MenuClient.command("arene option " + n + " solFin " + v));
                 b.toggle("Alphabet", "Le score est la plus longue suite alphabétique de l'inventaire (avec Sol = fin)", bool(a, "alphabet"),
@@ -260,7 +260,7 @@ public class MainMenuScreen extends Screen {
             String next = "toujours".equals(mode) ? "epreuves" : "epreuves".equals(mode) ? "jamais" : "toujours";
             b.button("Inventaire : " + (mode == null ? "?" : mode), "Caméra d'inventaire des viewers : " + str(obj(s(), "inventoryCam"), "resume")
                     + ". Clic : " + next, () -> MenuClient.command("tv inventaire " + next));
-            b.button("Scores", "Bandeau des scores à l'écran", () -> MenuClient.command("tv scores show"));
+            b.button("Scores", "Bandeau des scores à l'écran", () -> MenuClient.command("tv scores"));
             b.button("Tâche", "La carte de la tâche à l'écran", () -> MenuClient.command("tv tache"));
             b.button("Stop", "Arrête l'habillage en cours (intro, générique)", () -> MenuClient.command("tv stop"));
         });

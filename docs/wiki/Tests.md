@@ -706,3 +706,19 @@ Serveur de dev 26.2 (monde `plateau`), client LordFinn piloté par MCP Fabric, c
   Écran du studio de 12 × 7 nommé « jury » : `/cm arene jury animal tous` (5 dessins, dont 4 copies pour l'essai) : la
   planche avec les noms ✔ ; `… Cyllu` : son dessin en grand, « CYLLU » au-dessus ✔ ; `… suivant` passe au suivant ✔.
   Pas vérifié : un vrai dessin de plusieurs candidats en même temps (un seul joueur en dev).
+
+## Refonte des commandes (/cm), menu N, debug — 18/11/2026
+Serveur `:26.2:runServer` + client `scripts\dev-client.ps1 -Version 26.2`, RCON et MCP Fabric :
+- `/cm` : 36 groupes, 129 anciennes racines retirées (journal `[Commandes]`) ; `/cm aide <groupe>` liste l'arbre ✔.
+- Anciens noms traduits par RCON (26 essayés : `cfma list` → `/cm manche liste`, `cfcu toggle x y z` →
+  `/cm plateau rideau bloc basculer`, `regieia confirmer` → `/cm ia confirmer`…) ✔ ; en jeu, ligne grise « Nouveau
+  nom : … » puis la commande ✔ ; `craftMasterAddTask` → « Commande supprimée : utilise /cm manche creer » ✔.
+- Chaque commande des touches Stream Deck et des boutons du menu vérifiée par `execute if entity … run cm …` (analyse
+  sans exécution) : aucune erreur ✔.
+- Tab : `/cm arene option fleurs ` propose les 9 options dont `aveugle` et `cameraInventaire` ✔.
+- Menu N : six onglets, option d'arène cochée en direct (l'état revient du serveur) ✔, molette, infobulles.
+- Debug : HUD en haut à gauche et particules de l'arène (référence, copie, départ) chez l'organisateur seul ✔.
+- API Stream Deck `/cm?c=` depuis curl et `StreamTools/craftmaster.mjs` ✔.
+- Nouvelle ligne `chat TEXTE` de `dev-input.txt` (le chat ouvert avec ce texte, pour voir les propositions de Tab).
+Non testé : la régie IA réelle avec des lignes `/cm …`, un jeu en mode diffusion avec le debug allumé, le serveur de
+production.
