@@ -693,3 +693,10 @@ Serveur de dev 26.2 (monde `plateau`), client LordFinn piloté par MCP Fabric, c
   ici : le téléchargement de la langue (le serveur de dev n'a pas Internet ; fichier fr_fr déposé à la main depuis
   le cache du jeu) ; les clics refusés dans l'écran d'inventaire (même verrou que le lâcher).
 - Panneau d'indice : `/cftr panneau Indice :|1 = A, 2 = B…|Un mot par fleur` écrit et cire le panneau visé ✔.
+- **Caméra d'inventaire** : deux jeux, LordFinn (candidat) et Joueur2 en diffusion (`/diffusion on`, `/cam follow
+  LordFinn`). LordFinn ouvre son inventaire : le panneau « Inventaire · LordFinn » glisse à droite de l'image avec
+  ses objets ✔ ; souris sur une case : la case s'éclaire, la flèche est dessus ✔ ; il prend les carottes : la case se
+  vide, les carottes suivent la flèche, « Carotte » écrit dessous ✔ ; il les pose ailleurs : elles y sont ✔ ; il ferme :
+  le panneau sort de l'image ✔. La souris du candidat est simulée (`hover x y` de `dev-input.txt`, et `inventory`
+  ouvre son inventaire). Pas vérifié : la fluidité avec une vraie souris (même chemin, 20 envois par seconde au
+  plus, lissage côté diffusion).

@@ -94,6 +94,12 @@ public final class DevInput {
                     net.minecraft.client.Screenshot.grab(mc, false);
                     continue;
                 }
+                if (line.strip().equalsIgnoreCase("inventory") && mc.player != null) {
+                    // Opens the player's inventory, as with E (the show's inventory camera)
+                    mc.gui.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player));
+                    screen = mc.gui.screen();
+                    continue;
+                }
                 if (line.strip().toLowerCase(Locale.ROOT).startsWith("hover")) {
                     String[] a = line.strip().split("\\s+");
                     hover = a.length > 2 ? new double[]{Double.parseDouble(a[1]), Double.parseDouble(a[2])} : null;

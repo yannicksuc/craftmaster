@@ -133,6 +133,7 @@ public final class Broadcast {
         ClientTickEvents.START_CLIENT_TICK.register(Broadcast::tick);
         ClientCommandRegistrationCallback.EVENT.register((d, ctx) -> registerCommands(d));
         ShowFeedClient.init();
+        InventoryCamClient.init();
         ThumbCapture.register();
         fr.lordfinn.craftmaster.client.regie.RegieThumbs.register();
     }

@@ -176,9 +176,17 @@ même chose sans copier (le premier qui la mange termine). `/cfre kind temps`.
    ensemble sur la plateforme, réapparition là).
 5. Chacun saute quand il veut : au premier bloc touché, sa tâche s'arrête (en privé) et sa suite est notée.
 
-Pas encore fait : voir l'inventaire d'un candidat en direct dans le flux de l'émission (ce qu'il ouvre, ce qu'il
-déplace, l'objet tenu au curseur). Ça demande un affichage côté jeu de diffusion, donc une mise à jour du mod chez
-le client OBS : à décider à part.
+### Caméra d'inventaire (pour les viewers)
+Quand le candidat **à l'antenne** (suivi par la caméra ou vu par ses yeux) ouvre son inventaire, le jeu de diffusion
+(F8) et le flux de l'émission (F7) le montrent dans un panneau aux couleurs de l'émission, qui glisse depuis le bord
+droit de l'image et repart quand il le ferme :
+- les objets, en direct, comme ils les déplace ;
+- la case sous sa souris, éclairée ;
+- la flèche de sa souris, lissée, et **l'objet qu'il tient au curseur** qui la suit ;
+- sous la grille, le nom de l'objet tenu (sinon celui de la case survolée).
+Marche avec tout écran qui montre l'inventaire (inventaire, coffre, établi…). Les autres candidats ne reçoivent rien :
+seuls les jeux de diffusion et les organisateurs. Il faut la version du mod qui a cette caméra **chez les candidats**
+(leur jeu dit quand l'écran s'ouvre et où est la souris) **et sur le jeu de diffusion** (qui la dessine).
 
 ## Commandes
 Voir [Commandes](Commandes.md#arènes-dépreuve-admin).

@@ -2,7 +2,7 @@
   "required": true,
   "package": "fr.lordfinn.craftmaster.client.mixin",
   "compatibilityLevel": "JAVA_21",
-  "client": ["CameraMixin", "EntityRenderDispatcherMixin", "AvatarRendererNameTagMixin", "GameRendererMixin", "GuiGraphicsExtractorAccessor", "HandsRendererMixin",
+  "client": ["CameraMixin", "EntityRenderDispatcherMixin", "AvatarRendererNameTagMixin", "GameRendererMixin", "GuiGraphicsExtractorAccessor", "ContainerScreenAccessor", "HandsRendererMixin",
     "MouseHandlerMixin", "ToastManagerMixin", "SectionOcclusionGraphMixin",
     "FxGameRendererMixin", "FxPostChainMixin", "FxCameraMixin", "FxTimelapseClockMixin", "FxTimelapseCloudsMixin", "PostChainAccessor", "PostPassAccessor", "HudInvoker", "DevWindowMixin", "BossHealthOverlayMixin", "GuiSetScreenMixin", "MinecraftPickMixin", "SoundEngineListenerMixin", "ClientLevelSoundDelayMixin"],
   "injectors": { "defaultRequire": 1 }

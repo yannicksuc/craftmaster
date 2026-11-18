@@ -37,6 +37,7 @@ public final class Trials {
                 fr.lordfinn.craftmaster.trial.kit.Pickups.onUse(player, level, hand, entity));
         ServerTickEvents.END_SERVER_TICK.register(fr.lordfinn.craftmaster.trial.kit.Drawing::tick);
         ServerTickEvents.END_SERVER_TICK.register(fr.lordfinn.craftmaster.trial.kit.GroundEnd::tick);
+        fr.lordfinn.craftmaster.trial.kit.InventoryCam.register();
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             TrialProps.clear(server);
             Judging.reset();
