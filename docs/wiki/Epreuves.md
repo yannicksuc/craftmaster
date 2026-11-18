@@ -7,6 +7,8 @@ dessiner, socle d'exposition, objets nommés). Tout est dans l'onglet créatif C
 Les petits objets qu'on pose, ramasse et lance (canards en plastique, balles, sachets, ballons, œuf fragile,
 minigolf) et les récipients qui comptent ou mesurent (seau, poubelle et tasse-cibles, verre gradué) ont leur page :
 [Objets à manipuler](Objets.md).
+Un parcours copié pour chaque joueur, les objets à mot de passe, le vase qui se remplit, le dessin en marchant, la
+comparaison d'un village à sa référence et l'inventaire alphabétique : [Arènes d'épreuve](Arenes.md).
 
 « Candidats » = les joueurs (non archivés) de la **saison active**. « Organisateurs » = permission
 `craftmaster:admin` ou opérateur.

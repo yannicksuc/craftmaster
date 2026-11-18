@@ -1,0 +1,184 @@
+# Arènes d'épreuve : un parcours par joueur, mots de passe, vase, dessin au sol, village à refaire, inventaire alphabétique
+
+Des briques communes pour monter vite une épreuve, toutes côté serveur et avec des visuels du jeu de base
+(entités d'affichage, dialogues du jeu, blocs et panneaux) : **rien à installer chez les joueurs**. Elles servent
+aux cinq épreuves de LordFinn décrites plus bas, et chacune peut resservir seule.
+
+« Candidats » = les joueurs de la saison active ; « organisateurs » = permission `craftmaster:admin` ou opérateur.
+
+## 1. Les briques
+
+### Arène : une zone de référence copiée pour chaque joueur
+Une **arène** est une boîte construite une fois (la **référence**), copiée côte à côte (vers les X croissants) pour
+chaque candidat : chacun joue seul dans **sa** copie.
+- `/cfar creer <nom>` : la boîte entre les deux derniers points du **mètre ruban** (deux coins opposés, sol compris :
+  pour un village sur bedrock, descendre jusqu'à la bedrock).
+- `/cfar spawn <nom>` (debout dans la référence) : point de départ, le même dans chaque copie.
+- `/cfar copier <nom> [joueurs|tous]` : une copie par candidat (sans liste : ceux de la saison), construite à
+  l'identique : **blocs, contenu des coffres, tonneaux et étagères, cadres, golem, fleurs posées**… Chaque copie est
+  entourée d'un mur et d'un plafond de **barrières** (personne ne sort ni n'atteint le voisin ; `/cfar option <nom>
+  murs false` pour s'en passer).
+- `/cfar placer <nom> [joueurs]` : chacun au départ de sa copie, **réapparition fixée là**, avec le **kit**
+  (`/cfar kit <nom>` = les objets de ton inventaire ; `kit <nom> vide` ; `option <nom> inventaireVide true` vide
+  d'abord leur inventaire).
+- `/cfar reset <nom>` : toutes les copies refaites comme la référence (objets cachés compris), prêtes à rejouer.
+- `/cfar tp <nom> <joueur> [dessus]` : aller voir une copie (au-dessus, en vol, pour juger un dessin).
+- `/cfar retirer <nom> <joueur>` · `supprimer <nom>` · `liste`. Tout est gardé dans `config/craftmaster/arenas.json`.
+
+La **réapparition** suit aussi les points de TP des manches : un candidat téléporté au lancement d'une manche
+réapparaît là s'il meurt (pour toutes les épreuves).
+
+### Lien avec la manche
+`/cfar manche <nom> <manche>` lie l'arène à sa manche, puis :
+- `option <nom> chronoLettre true` : le **chrono de chaque candidat part quand il ouvre sa lettre** ;
+- `option <nom> chronoSuite <secondes>` : quand l'organisateur révèle la **partie cachée** de la tâche
+  (`/tache suite`, voix « révèle la suite »), le chrono de la manche part avec cette durée ;
+- `option <nom> panneauxSuite true` : à cette révélation, les **panneaux** de chaque copie sont verrouillés (plus moyen
+  de les changer) et leur texte arrive chez les organisateurs (« Ensuri : girafe ») ; `/cfar panneaux <nom>
+  [verrouiller]` les lit (et les verrouille) à la main.
+
+### Fin d'un essai, en privé
+Quand un candidat finit (vase plein, pomme mangée, sol touché), son chrono s'arrête et son temps s'écrit sur la
+feuille de la manche. **Seuls lui, les organisateurs et les spectateurs le savent** : les autres candidats ne voient
+ni titre, ni barre, ni son. Lui voit « Terminé ! » et son temps. Sans manche en cours, le chrono s'arrête quand même
+(temps dans le journal). Dans le chat des organisateurs, **chaque candidat a sa couleur**.
+
+### Objet à mot de passe
+Un objet posé à plat sur le sol (n'importe lequel : une fleur…), avec un numéro au-dessus si voulu. Un clic ouvre la
+fenêtre de saisie du jeu (« Fleur n°3 — Mot de passe ») ; le bon mot le donne (il disparaît du sol). Un mauvais
+mot : « ✗ « xyz » : mauvais mot de passe » et la fenêtre se rouvre aussitôt, **sans attente**. Le candidat et les
+organisateurs voient **avec quel mot** il l'a eu (« ✿ Fleur n°3 prise avec « chat » »).
+Poser : objet en main, viser le sol, `/cftr motdepasse initiale C [nom]` (un mot qui commence par C, 3 lettres au
+moins, chacun **une seule fois par candidat**, accents ignorés), `motdepasse mot sesame [nom]` (exactement ce mot)
+ou `motdepasse libre`. Les mots refusés et leur raison sont dans `/cftr log`.
+
+### Vase qui montre ses fleurs
+Viser le pot : `/cftr vase <nombre>`. Un objet pris avec un mot de passe, en main, clic sur le vase : il apparaît
+dans le bouquet (vraies fleurs du jeu, en spirale, de plus en plus larges), « ✿ 12 / 26 ». Plein : fin de l'essai,
+et un golem de fer à côté tend une fleur. Main vide : où il en est. Seul le candidat de la copie peut le remplir,
+et seulement avec les fleurs de son parcours.
+
+### Panneau d'indice
+Viser un panneau : `/cftr panneau Indice :|1 = A, 2 = B…|Un mot par fleur` (« | » = ligne suivante). Il est écrit
+et ciré (les candidats ne peuvent pas le changer).
+
+### Champ à dessiner en marchant
+`/cfar champ <nom> [bloc d'encre]` : le sol entre les deux points du mètre ruban (le bloc du premier point est le
+« papier », l'encre est le béton noir par défaut). Le candidat **plante sa bannière rouge** dans le champ : le dessin
+commence ; chaque bloc où il marche devient noir ; **sa bannière verte** le termine. La fin du chrono arrête tous
+les dessins. Il faut être en **survie** (pour planter les bannières et toucher le sol).
+
+### Objet marqué (« la pomme »)
+Objet en main : `/cftr marquer <but>`. Le manger termine l'essai de celui qui le mange (seulement cet objet-là : une
+autre pomme ne fait rien).
+
+### Fin au sol et inventaire alphabétique
+`option <nom> solFin true` : une fois sorti de la boîte de l'arène (la plateforme de départ), un candidat qui se tient
+**sur un bloc** termine sa tâche. Ne comptent pas : être dans l'eau ou la lave, dans une toile d'araignée, sur une
+monture, en vol plané. Le candidat doit être passé par la plateforme pendant la manche (quelqu'un qui attend au sol
+avant le départ n'est pas « terminé »). Ensuite son **inventaire est verrouillé** : aucun clic ne le change, il ne
+peut rien lâcher ni changer de main, ni ouvrir un coffre.
+`option <nom> alphabet true` : en plus, le score est la **plus longue suite rangée par ordre alphabétique** :
+- dans le **sens de lecture** de l'écran d'inventaire : les trois rangées du sac de gauche à droite et de haut en
+  bas, puis la barre d'objets (la rangée du bas) ; casques, armures et seconde main ne comptent pas ;
+- les cases vides sont sautées, deux objets du même nom se suivent ;
+- avec les **noms que voit ce joueur, dans la langue de son jeu**, objets renommés compris, selon l'ordre
+  alphabétique de cette langue (majuscules et accents ignorés) ;
+- un objet **dans un bundle** à la fin : les organisateurs ont l'alerte avec **[disqualifier]**.
+La suite est notée sur la feuille (nombre, le plus grand gagne) et détaillée chez les organisateurs (« Ensuri (fr_fr)
+: Carotte ≤ Diamant ≤ Flèche… »).
+
+Les langues : le serveur n'a que l'anglais. Il télécharge une fois le fichier de la langue d'un candidat depuis le
+serveur public des ressources de Mojang (dès qu'il est sur la plateforme) et le garde dans
+`config/craftmaster/lang/<langue>.json` ; les noms des objets des mods viennent des fichiers de langue des mods.
+Si le serveur n'a pas accès à Internet, les noms restent en anglais (le chat le dit) : on peut aussi déposer le
+fichier à la main dans ce dossier (il est dans `assets/objects` d'un jeu installé).
+
+### Canal vocal commun
+`/cftr vocal commun` : tous les candidats et les organisateurs dans un même groupe de Simple Voice Chat (pour
+annoncer un rebondissement à tous). `/cftr vocal fin` le ferme, et `/cftr chrono <secondes>` aussi : il lance le
+chrono de la manche en cours **et** rend à chacun le vocal de proximité.
+
+## 2. Les cinq épreuves
+
+### Les fleurs de Jeremy
+> Cueillez les 26 fleurs du chemin et mettez-les toutes dans le vase de Jeremy. Le plus rapide l'emporte. Votre
+> tâche commence maintenant.
+
+Un chemin par joueur. 26 fleurs posées au sol, numérotées 1 à 26 ; le mot de passe de la fleur n est un mot qui
+commence par la n-ième lettre (1 = A, 2 = B…). La fenêtre n'explique pas la règle : l'indice est sur un panneau à
+part, ailleurs dans la salle.
+1. Debout au début du chemin, regard dans le sens du chemin : `/cfar fleurs <nom>` pose une bande d'herbe, un chemin,
+   les 26 fleurs, le vase et le golem Jeremy, et crée l'arène (chrono à l'ouverture de la lettre).
+2. `/craftMasterManche create "Fleurs de Jeremy"`, la tâche (`/tache edit`), `/cfre kind temps`,
+   `/cfar manche <nom> "Fleurs de Jeremy"`.
+3. Le panneau d'indice : `/cftr panneau …`.
+4. `/cfar copier <nom>`, lancer la manche, `/cfar placer <nom>`, les enveloppes.
+5. Chacun : la lettre ouverte lance son chrono, la 26e fleur dans le vase l'arrête (temps sur la feuille).
+   Rejouer : `/cfar reset <nom>`.
+
+### Animal
+> Choisissez un animal original et écrivez son nom sur votre panneau. Votre tâche commence maintenant.
+>
+> [partie cachée] Dessinez cet animal en marchant dans votre champ. Plantez la bannière rouge pour commencer le
+> dessin, la verte pour le finir. L'animal le plus beau et le plus ressemblant l'emporte. Vous avez 10 minutes.
+> Votre tâche commence maintenant.
+
+1. Debout devant l'emplacement : `/cfar animal <nom>` pose un champ blanc de 21 × 21, un panneau à l'entrée, et crée
+   l'arène : champ à dessiner, kit bannière rouge + bannière verte, panneaux verrouillés et chrono de 10 min à la
+   révélation de la suite.
+2. La manche, sa tâche avec la seconde partie entre `[secret]…[/secret]`, `/cfre kind note`, `/cfar manche`.
+3. `/cfar copier`, lancer, `/cfar placer` (en **survie**).
+4. Chacun écrit son animal sur son panneau. Quand tout le monde a écrit : « révèle la suite » ou `/tache suite` :
+   panneaux verrouillés (les animaux arrivent dans ton chat), chrono de 10 min.
+5. Le jury : `/cfar tp <nom> <joueur> dessus`, puis la note sur la feuille.
+
+### La pomme
+> Mangez la pomme. Le plus rapide l'emporte. Votre tâche commence maintenant.
+
+Une salle façon escape game, construite par LordFinn. La pomme de l'épreuve : une pomme en main, `/cftr marquer
+pomme`, à cacher dans la salle. Une salle par joueur : `/cfar creer`, `/cfar spawn`, `option chronoLettre true`,
+`/cfar manche`, `/cfar copier` (la pomme marquée est copiée dans chaque salle avec le reste). Une salle commune : la
+même chose sans copier (le premier qui la mange termine). `/cfre kind temps`.
+
+### Le village
+> Mettez le plus de bordel possible dans votre village. Vous avez 5 minutes. Votre tâche commence maintenant.
+>
+> [partie cachée] Reconstruisez votre village au bloc près. Le village le plus fidèle l'emporte. Vous avez
+> 10 minutes. Votre tâche commence maintenant.
+
+1. Dans une carte vide : le village de référence, peu profond, sur bedrock. Les objets cachés (pelle, pioche et hache
+   enchantées, TNT, seaux de lave et d'eau, briquet…) dans des tonneaux, coffres, cadres et étagères ; un des outils
+   bien à portée et visible sans être évident ; une plaque de pression qui fait sauter une TNT près du départ.
+2. `/cfar creer village` (mètre ruban jusqu'à la bedrock), `/cfar spawn village`, `/cfar copier village` : un village
+   par candidat, murs de barrières autour. La manche : chrono de 300 s au départ de la lettre, `/cfar manche village
+   <manche>`. Candidats en **survie**.
+3. Fin des 5 minutes : `/cftr vocal commun`, tu annonces la suite, `/tache suite <manche>` (la lettre se complète).
+4. Quand tu veux : `/cftr chrono 600` (chrono de 10 min, vocal commun fermé).
+5. À la fin : `/cfar comparer village` : pour chacun, la part des blocs identiques à la référence (le contenu des
+   coffres, tonneaux, étagères et cadres ne compte pas ; la bedrock et les barrières non plus) ;
+   **[noter sur la feuille]** l'écrit (le plus grand gagne). Rejouer : `/cfar reset village` (villages et objets
+   cachés remis).
+
+### L'inventaire alphabétique
+> Mettez votre jeu dans la langue de votre choix. Rangez votre inventaire par ordre alphabétique, dans le sens de la
+> lecture. À la fin, aucun objet ne doit être dans un bundle. Votre tâche s'arrête quand vous touchez le sol :
+> ensuite, vous ne pouvez plus toucher à votre inventaire. La plus longue suite bien rangée l'emporte. Votre tâche
+> commence maintenant.
+
+1. Une carte normale, bordure du monde de 500 × 500, une rivière ; une petite plateforme à y 320 ; au sol, cochons,
+   dromadaires et chevaux sellés, un happy ghast harnaché.
+2. `/cfar creer inventaire` autour de la plateforme (elle seule), `/cfar spawn inventaire`, `/cfar option
+   inventaire alphabet true`, `option inventaire murs false`, `option inventaire inventaireVide true`.
+3. Le kit : les objets à ranger, un seau d'eau, une fusée de durée 3 (`firework_rocket[fireworks={flight_duration:3}]`),
+   un bateau, dans ton inventaire, puis `/cfar kit inventaire`.
+4. La manche (`/cfre kind nombre`), `/cfar manche inventaire <manche>`, lancer, `/cfar placer inventaire` (tous
+   ensemble sur la plateforme, réapparition là).
+5. Chacun saute quand il veut : au premier bloc touché, sa tâche s'arrête (en privé) et sa suite est notée.
+
+Pas encore fait : voir l'inventaire d'un candidat en direct dans le flux de l'émission (ce qu'il ouvre, ce qu'il
+déplace, l'objet tenu au curseur). Ça demande un affichage côté jeu de diffusion, donc une mise à jour du mod chez
+le client OBS : à décider à part.
+
+## Commandes
+Voir [Commandes](Commandes.md#arènes-dépreuve-admin).

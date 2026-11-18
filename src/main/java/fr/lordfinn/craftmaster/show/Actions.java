@@ -70,12 +70,13 @@ public final class Actions {
     // ---- chantier H: judging (results sheet, stopwatches, buzzers)
 
     /** A value was written on a results sheet (or a disqualification): announced to everyone. */
-    public record ResultRecorded(String player, String text, boolean dq, String manche) implements Effect {}
+    /** {@code quiet}: told to the player, the spectators and the organisers only, not to the other contestants. */
+    public record ResultRecorded(String player, String text, boolean dq, String manche, boolean quiet) implements Effect {}
 
     public record StopwatchStarted(String player) implements Effect {}
 
     /** {@code ms}: the time measured (also written on the sheet when recorded). */
-    public record StopwatchStopped(String player, long ms) implements Effect {}
+    public record StopwatchStopped(String player, long ms, boolean quiet) implements Effect {}
 
     /** {@code player} null = every stopwatch. */
     public record StopwatchReset(String player) implements Effect {}
@@ -1251,7 +1252,7 @@ public final class Actions {
             r.set(player, value);
             String text = r.format(r.entries.get(player).value());
             line("✎ " + player + " : " + text + " (" + sh.found().manche().name + ")");
-            effects.add(new ResultRecorded(player, text, false, sh.found().manche().name));
+            effects.add(new ResultRecorded(player, text, false, sh.found().manche().name, Boolean.TRUE.equals(bool(a, "private"))));
         }
 
         private void resultDq(Map<String, Object> a) {
@@ -1263,7 +1264,7 @@ public final class Actions {
             if (!on && (e == null || !e.dq())) throw new Invalid(player + " n'est pas disqualifié dans « " + sh.found().manche().name + " ».");
             sh.sheet().disqualify(player, on);
             line((on ? "✖ " + player + " est disqualifié" : "✔ " + player + " n'est plus disqualifié") + " (" + sh.found().manche().name + ")");
-            effects.add(new ResultRecorded(player, on ? "disqualifié" : "réintégré", on, sh.found().manche().name));
+            effects.add(new ResultRecorded(player, on ? "disqualifié" : "réintégré", on, sh.found().manche().name, false));
         }
 
         private void resultRemove(Map<String, Object> a) {
@@ -1360,7 +1361,7 @@ public final class Actions {
             String known = Stopwatch.SHARED.find(player);
             long ms = known == null ? -1 : Stopwatch.SHARED.peek(known, System.currentTimeMillis());
             if (ms < 0) throw new Invalid("le chrono de " + player + " ne tourne pas.");
-            effects.add(new StopwatchStopped(known, ms));
+            effects.add(new StopwatchStopped(known, ms, Boolean.TRUE.equals(bool(a, "private"))));
             Boolean record = bool(a, "record");
             if (record == null || record) {
                 Map<String, Object> set = new LinkedHashMap<>(a);

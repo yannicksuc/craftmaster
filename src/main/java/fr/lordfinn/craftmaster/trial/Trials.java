@@ -24,7 +24,19 @@ public final class Trials {
         TrialContent.register();
         TrialNetwork.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> TrialCommands.register(dispatcher));
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> TrialZones.load());
+        CommandRegistrationCallback.EVENT.register((dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.ArenaCommands.register(dispatcher));
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            TrialZones.load();
+            fr.lordfinn.craftmaster.trial.kit.Arenas.load();
+        });
+        fr.lordfinn.craftmaster.trial.kit.Arenas.register();
+        // The trial kit: banners of a drawing field, password-locked pickups and vases (vanilla entities)
+        UseBlockCallback.EVENT.register(fr.lordfinn.craftmaster.trial.kit.Arenas::onUseBlock);
+        UseEntityCallback.EVENT.register((player, level, hand, entity, hit) -> fr.lordfinn.craftmaster.trial.kit.Pickups.onUse(player, level, hand, entity));
+        net.fabricmc.fabric.api.event.player.AttackEntityCallback.EVENT.register((player, level, hand, entity, hit) ->
+                fr.lordfinn.craftmaster.trial.kit.Pickups.onUse(player, level, hand, entity));
+        ServerTickEvents.END_SERVER_TICK.register(fr.lordfinn.craftmaster.trial.kit.Drawing::tick);
+        ServerTickEvents.END_SERVER_TICK.register(fr.lordfinn.craftmaster.trial.kit.GroundEnd::tick);
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             TrialProps.clear(server);
             Judging.reset();

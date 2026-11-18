@@ -91,6 +91,8 @@ public final class Show {
                 ServerLevel level = Busts.level(server, spot.world());
                 if (level == null) continue;
                 p.teleportTo(level, spot.x(), spot.y(), spot.z(), Set.of(), spot.yaw(), spot.pitch(), true);
+                // Respawn where the round put them (a death during a trial brings them back to its start)
+                fr.lordfinn.craftmaster.trial.kit.Arenas.setRespawn(p, level, spot.x(), spot.y(), spot.z(), spot.yaw());
                 moved++;
             }
         }

@@ -140,10 +140,37 @@ l'exécuteur des actions : **annulable** et identique à la voix.
 | `/craftMasterZone create <nom> [<de> <à>]` | cfzo | Zone d'épreuve (sans coordonnées : les deux derniers points du mètre ruban) |
 | `/craftMasterZone players <nom> <joueurs…\|all>` · `enable <nom> <true\|false>` · `show` · `remove` · `list` | | Réglages des zones |
 | `/craftMasterTrial log` · `reset` · `prop` | cftr | Journal (boutons, buzzers, premiers, sorties de zone) / remise à zéro / réglages de l'objet regardé |
+| `/craftMasterTrial motdepasse initiale <lettre>\|mot <mot>\|libre [nom]` | | Pose l'objet tenu à plat sur le sol visé, verrouillé par un mot de passe ([Arènes](Arenes.md)) |
+| `/craftMasterTrial vase <nombre>` | | Le pot visé devient un vase qui montre les objets pris avec un mot de passe ; plein = fin de l'essai |
+| `/craftMasterTrial marquer <but>` | | L'objet tenu devient l'objet de l'épreuve : le manger termine l'essai (« la pomme ») |
+| `/craftMasterTrial panneau <texte>` | | Écrit le panneau visé (« \| » = ligne suivante) et le cire |
+| `/craftMasterTrial vocal commun\|fin` | | Candidats et organisateurs dans un même canal de Simple Voice Chat / retour au vocal de proximité |
+| `/craftMasterTrial chrono <secondes>` | | Lance le chrono de la manche en cours maintenant (ferme le canal vocal commun) |
 | `/craftMasterBoard size <l> <h>` · `clear` · `lock <true\|false>` · `text <texte>` | cfbd | Tableau à dessin regardé (`\n` = retour à la ligne) |
 | `/craftMasterToys` · `status` | cfty | Objets à manipuler ([Objets](Objets.md)) : qui a trouvé quoi, prises dans les cibles, plus long lancer, golf, ballons crevés, œufs cassés, avec les boutons pour noter |
 | `/craftMasterToys list` · `glow [secondes]` · `collect` | | Objets cachés restants : où (clic = téléportation), les faire briller, tous les ramasser |
 | `/craftMasterToys reset` · `egg <blocs>` | | Remet les compteurs à zéro / règle l'œuf fragile tenu (0 = casse au moindre choc) |
+
+## Arènes d'épreuve (admin)
+Une zone de référence copiée pour chaque candidat, remise à zéro, réapparition : [Arènes](Arenes.md).
+
+| Commande | Alias | Effet |
+|---|---|---|
+| `/craftMasterArene liste` | cfar | Les arènes, leurs copies et leurs réglages |
+| `/craftMasterArene creer <nom>` | | Arène entre les deux derniers points du mètre ruban |
+| `/craftMasterArene spawn <nom>` | | Point de départ (et de réapparition) : là où tu te tiens |
+| `/craftMasterArene copier <nom> [joueurs\|tous]` | | Une copie par candidat, côte à côte, murs de barrières |
+| `/craftMasterArene placer <nom> [joueurs]` | | Chacun au départ de sa copie, réapparition là, avec le kit |
+| `/craftMasterArene reset <nom>` | | Toutes les copies refaites comme la référence (objets cachés compris) |
+| `/craftMasterArene tp <nom> <joueur> [dessus]` | | Aller voir la copie d'un candidat (au-dessus pour juger) |
+| `/craftMasterArene kit <nom> [vide]` | | Le kit = les objets de ton inventaire / aucun |
+| `/craftMasterArene champ <nom> [encre]` | | Champ à dessiner entre les deux points du mètre ruban |
+| `/craftMasterArene manche <nom> <manche>` | | Lie l'arène à sa manche |
+| `/craftMasterArene option <nom> chronoLettre\|panneauxSuite\|murs\|inventaireVide\|solFin\|alphabet <true\|false>` · `chronoSuite <s>` | | Réglages (voir la page) |
+| `/craftMasterArene panneaux <nom> [verrouiller]` | | Les panneaux de chaque copie (et les verrouiller) |
+| `/craftMasterArene comparer <nom> [noter]` | | Chaque copie comparée bloc à bloc à la référence ; `noter` l'écrit sur la feuille |
+| `/craftMasterArene fleurs <nom>` · `animal <nom>` | | Installe le chemin des fleurs de Jeremy / le champ de l'épreuve Animal devant toi |
+| `/craftMasterArene retirer <nom> <joueur>` · `supprimer <nom>` | | Oublie une copie / l'arène (les blocs restent) |
 
 ## Pour tous
 | Commande | Alias | Effet |

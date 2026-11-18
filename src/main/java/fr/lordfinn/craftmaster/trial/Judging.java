@@ -59,7 +59,7 @@ public final class Judging {
         switch (effect) {
             case Actions.ResultRecorded r -> announceResult(server, r);
             case Actions.StopwatchStarted w -> startStopwatch(server, w.player());
-            case Actions.StopwatchStopped w -> stopStopwatch(server, w.player(), w.ms());
+            case Actions.StopwatchStopped w -> stopStopwatch(server, w.player(), w.ms(), w.quiet());
             case Actions.StopwatchReset w -> resetStopwatch(w.player());
             case Actions.BuzzersReset b -> lines.add(Buzzers.reset(server) + " buzzer(s) éteint(s).");
             default -> {}
@@ -83,6 +83,7 @@ public final class Judging {
                 .append(Component.literal(r.text()).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD))
                 .append(Component.literal(" (" + r.manche() + ")").withStyle(ChatFormatting.GRAY));
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            if (r.quiet() && !toldPrivately(p, r.player())) continue;
             p.sendOverlayMessage(bar);
             Show.sound(p, Show.holder(SoundEvents.VILLAGER_WORK_CARTOGRAPHER), 0.7f, 1.2f);
         }
@@ -107,7 +108,16 @@ public final class Judging {
     }
 
     /** {@code ms}: the time the action measured (and wrote on the sheet), shown as is. */
-    private static void stopStopwatch(MinecraftServer server, String player, long ms) {
+    /**
+     * A private result (a trial where nobody must know who finished): the player themself, the organisers and the
+     * spectators (everyone who is not another contestant).
+     */
+    public static boolean toldPrivately(ServerPlayer p, String player) {
+        if (p.getGameProfile().name().equalsIgnoreCase(player) || fr.lordfinn.craftmaster.Permissions.isAdmin(p)) return true;
+        return contestant(p) == null;
+    }
+
+    private static void stopStopwatch(MinecraftServer server, String player, long ms, boolean quiet) {
         Stopwatch.SHARED.stop(player, System.currentTimeMillis());
         Bar bar = BARS.get(player);
         if (bar != null && ms >= 0) {
@@ -115,12 +125,14 @@ public final class Judging {
             bar.event.setColor(BossEvent.BossBarColor.YELLOW);
             bar.event.setProgress(1f);
             bar.removeAt = server.getTickCount() + 20 * 6;
+            if (quiet) for (ServerPlayer p : server.getPlayerList().getPlayers()) if (!toldPrivately(p, player)) bar.event.removePlayer(p);
         }
         ServerPlayer runner = server.getPlayerList().getPlayerByName(player);
         if (runner != null && ms >= 0)
             Show.title(runner, Component.literal("Stop !").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD),
                     Component.literal(Stopwatch.format(ms)).withStyle(ChatFormatting.YELLOW), 2, 30, 10);
-        Show.soundAll(server, SoundEvents.NOTE_BLOCK_BELL, 1f, 1.0f);
+        for (ServerPlayer p : server.getPlayerList().getPlayers())
+            if (!quiet || toldPrivately(p, player)) Show.sound(p, SoundEvents.NOTE_BLOCK_BELL, 1f, 1.0f);
     }
 
     private static void resetStopwatch(String player) {

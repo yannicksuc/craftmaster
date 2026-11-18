@@ -404,6 +404,7 @@ public final class Tasks {
             Show.sound(p, Show.holder(SoundEvents.BOOK_PAGE_TURN), 0.8f, 1.3f);
         }
         sync(server);
+        fr.lordfinn.craftmaster.trial.kit.Arenas.onSecretShown(server, l.season().id, l.manche().id);
         return n;
     }
 

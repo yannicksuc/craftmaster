@@ -11,4 +11,7 @@ public interface DisplayAccessor {
 
     @Invoker("setViewRange")
     void craftmaster$setViewRange(float range);
+
+    @Invoker("setTransformation")
+    void craftmaster$setTransformation(com.mojang.math.Transformation transformation);
 }

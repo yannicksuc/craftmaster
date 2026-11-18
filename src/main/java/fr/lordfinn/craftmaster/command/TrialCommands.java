@@ -405,7 +405,88 @@ public final class TrialCommands {
                     }
                     TrialNetwork.openProp(p, prop);
                     return 1;
-                }));
+                }))
+                // ---- trial kit (docs/wiki/Arenes.md): generic pieces of the kit's trials
+                .then(literal("motdepasse")
+                        .then(literal("initiale").then(argument("valeur", word()).executes(c -> lockedPickup(c, "initiale:" + str(c, "valeur"), null))
+                                .then(argument("nom", StringArgumentType.greedyString()).executes(c -> lockedPickup(c, "initiale:" + str(c, "valeur"), str(c, "nom"))))))
+                        .then(literal("mot").then(argument("valeur", word()).executes(c -> lockedPickup(c, "mot:" + str(c, "valeur"), null))
+                                .then(argument("nom", StringArgumentType.greedyString()).executes(c -> lockedPickup(c, "mot:" + str(c, "valeur"), str(c, "nom"))))))
+                        .then(literal("libre").executes(c -> lockedPickup(c, "libre", null))))
+                .then(literal("vase").then(argument("objectif", integer(1, 200)).executes(c -> {
+                    ServerPlayer p = player(c);
+                    if (p == null) return 0;
+                    if (!(p.pick(8, 1f, false) instanceof net.minecraft.world.phys.BlockHitResult bh)
+                            || p.level().getBlockState(bh.getBlockPos()).isAir()) {
+                        fail(c, "Regarde le pot (ou le bloc) qui sert de vase.");
+                        return 0;
+                    }
+                    BlockPos at = bh.getBlockPos();
+                    fr.lordfinn.craftmaster.trial.kit.Pickups.placeVase((net.minecraft.server.level.ServerLevel) p.level(),
+                            new Vec3(at.getX() + 0.5, at.getY(), at.getZ() + 0.5), getInteger(c, "objectif"));
+                    ok(c, "Vase posé : il montre chaque objet pris avec un mot de passe, jusqu'à " + getInteger(c, "objectif") + " (plein = fin de l'essai).");
+                    return 1;
+                })))
+                .then(literal("marquer").then(argument("but", word()).executes(c -> {
+                    ServerPlayer p = player(c);
+                    if (p == null) return 0;
+                    ItemStack st = p.getMainHandItem();
+                    if (st.isEmpty()) {
+                        fail(c, "Prends en main l'objet à marquer (la pomme).");
+                        return 0;
+                    }
+                    fr.lordfinn.craftmaster.trial.kit.Finish.mark(st, str(c, "but"));
+                    ok(c, "« " + st.getHoverName().getString() + " » marqué « " + str(c, "but") + " » : le manger termine l'essai du joueur (chrono noté).");
+                    return 1;
+                })))
+                .then(literal("panneau").then(argument("texte", StringArgumentType.greedyString())
+                        .executes(c -> ArenaCommands.writeSign(c, str(c, "texte")))))
+                .then(literal("vocal")
+                        .then(literal("commun").executes(c -> {
+                            if (!net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("voicechat")) {
+                                fail(c, "Simple Voice Chat n'est pas sur ce serveur.");
+                                return 0;
+                            }
+                            int n = fr.lordfinn.craftmaster.compat.VoiceGroups.gather(c.getSource().getServer(),
+                                    pl -> Judging.contestant(pl) != null || Permissions.isAdmin(pl));
+                            if (n < 0) fail(c, "Le chat vocal n'est pas prêt.");
+                            else ok(c, "Canal vocal commun : " + n + " joueur(s) (candidats et organisateurs). Fermé par /cftr chrono ou /cftr vocal fin.");
+                            return n < 0 ? 0 : 1;
+                        }))
+                        .then(literal("fin").executes(c -> {
+                            boolean was = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("voicechat")
+                                    && fr.lordfinn.craftmaster.compat.VoiceGroups.disband(c.getSource().getServer());
+                            ok(c, was ? "Canal vocal commun fermé : chacun revient au vocal de proximité." : "Pas de canal vocal commun ouvert.");
+                            return 1;
+                        })))
+                .then(literal("chrono").then(argument("secondes", integer(1, 7200)).executes(c -> {
+                    Manche m = Judging.currentManche();
+                    String label = m != null ? m.name : "Chrono";
+                    fr.lordfinn.craftmaster.trial.kit.Arenas.startTimer(c.getSource().getServer(), label, getInteger(c, "secondes"));
+                    ok(c, "Chrono de « " + label + " » lancé : " + getInteger(c, "secondes") + " s (canal vocal commun fermé s'il était ouvert).");
+                    return 1;
+                })));
+    }
+
+    /** A password-locked pickup lying on the block looked at, showing the item held. */
+    private static int lockedPickup(CommandContext<CommandSourceStack> c, String rule, String label) {
+        ServerPlayer p = player(c);
+        if (p == null) return 0;
+        ItemStack held = p.getMainHandItem();
+        if (held.isEmpty()) {
+            fail(c, "Prends en main l'objet à poser (une fleur...).");
+            return 0;
+        }
+        if (!(p.pick(8, 1f, false) instanceof net.minecraft.world.phys.BlockHitResult bh) || p.level().getBlockState(bh.getBlockPos()).isAir()) {
+            fail(c, "Regarde le sol où le poser.");
+            return 0;
+        }
+        BlockPos top = bh.getBlockPos();
+        String name = label != null ? label : held.getHoverName().getString();
+        fr.lordfinn.craftmaster.trial.kit.Pickups.placePickup((net.minecraft.server.level.ServerLevel) p.level(),
+                new Vec3(bh.getLocation().x, top.getY() + 1, bh.getLocation().z), held, rule, name, p.getYRot(), null);
+        ok(c, "« " + name + " » posé, verrouillé (" + rule + ").");
+        return 1;
     }
 
     // ---------------------------------------------------------------- boards

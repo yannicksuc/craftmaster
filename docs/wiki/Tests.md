@@ -662,3 +662,34 @@ joueur qui marche (le lissage seul traîne de v × tau), avance plafonnée, arr�
 saut non anticipé. Régie vocale : « suis le premier du classement », « suis qui est sur scène ».
 Pas vérifié : la vraie souris (le `@Redirect` de `MouseHandler.turnPlayer` s'applique, le jeu démarre ; mêmes
 entrées que `camturn`), les replays et les intros (même code, `DirectorCamera.follow`).
+
+## 18. Arènes d'épreuve et cinq épreuves (vérifiées en jeu sur 26.2 le 18/11/2026)
+Serveur de dev 26.2 (monde `plateau`), client LordFinn piloté par MCP Fabric, commandes par RCON.
+- **Fleurs de Jeremy** : `/cfar fleurs fleurs` pose le chemin (26 fleurs à plat, numérotées), le vase et Jeremy ✔ ;
+  `/cfar copier fleurs LordFinn` + `placer` : la copie est identique (fleurs, vase, golem) ✔. Clic sur la fleur 1 :
+  la fenêtre du jeu « Fleur n°1 / Mot de passe » ✔ ; « Banane » : « ✗ « Banane » : mauvais mot de passe », fenêtre
+  rouverte sans attente ✔ ; « Abricot » : la fleur part dans l'inventaire, « ✿ Fleur n°1 prise avec « Abricot » » ✔.
+  Vase : 26 fleurs une à une, le bouquet grandit (vraies fleurs, visibles de tous côtés) ✔, à 26 Jeremy tend sa
+  fleur et « Terminé ! » ✔. Manche liée : l'ouverture de la lettre lance le chrono ✔, le vase plein l'arrête,
+  26,0 s sur la feuille ✔. Corrigé : le bouquet en images plates était invisible de face (→ blocs de fleurs) ; le
+  nom de l'objet s'affichait en visant la fleur (→ étiquette gardée en interne) ; sans manche le chrono ne
+  s'arrêtait pas.
+- **Animal** : `/cfar animal animal` + copie ✔ ; le kit (bannière rouge, bannière verte) donné par `placer` ✔ ;
+  en survie, bannière rouge plantée, un carré parcouru, bannière verte : le carré est tracé en noir, vu d'en haut
+  par `/cfar tp animal LordFinn dessus` ✔ (en créatif le joueur vole et ne trace rien : normal). `/tache suite
+  Animal` : panneaux cirés, texte chez l'organisateur, chrono de 10 min « Animal » ✔. `/cftr chrono 3` pendant un
+  dessin : à 0, « Temps écoulé », dessin arrêté (10 blocs) ✔.
+- **La pomme** : une pomme ordinaire mangée ne fait rien, la pomme marquée termine l'essai, 5,7 s sur la feuille ✔.
+  Corrigé : « a déjà fini » était commun à toutes les manches (→ par manche).
+- **Village** : référence de 9 × 5 × 9 sur bedrock (tonneau avec une pioche, coffre de TNT, cadre avec un briquet),
+  copie ✔ ; 12 blocs cassés, tonneau vidé, cadre retiré : 91,5 % ✔ (le contenu et le cadre ne comptent pas) ;
+  `/cfar reset village` : pioche et cadre revenus, 100 % ✔. Pas vérifié : le canal vocal commun (pas de Simple
+  Voice Chat sur le serveur de dev).
+- **Inventaire alphabétique** : plateforme de verre, `option alphabet true` ; sur la plateforme rien ne se passe,
+  au sol : « Terminé ! » privé, suite notée ✔ ; client en anglais : Apple ≤ Bread ≤ Carrot ≤ Diamond ≤ Egg ≤ Stone
+  = 6, alerte bundle « 3 objets » avec [disqualifier] ✔ ; client en français : Carotte ≤ Diamant ≤ Flèche ≤ Pain ≤
+  Pomme ≤ Roche = 6 (la même rangée ne fait que 2 en anglais) ✔ ; objet lâché après le sol : refusé ✔. Corrigé : un
+  candidat déjà au sol au lancement était « terminé » d'office (→ il doit être passé par la plateforme). Pas vérifié
+  ici : le téléchargement de la langue (le serveur de dev n'a pas Internet ; fichier fr_fr déposé à la main depuis
+  le cache du jeu) ; les clics refusés dans l'écran d'inventaire (même verrou que le lâcher).
+- Panneau d'indice : `/cftr panneau Indice :|1 = A, 2 = B…|Un mot par fleur` écrit et cire le panneau visé ✔.

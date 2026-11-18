@@ -23,6 +23,7 @@ public class VoiceActivity implements VoicechatPlugin {
     @Override
     public void initialize(VoicechatApi api) {
         Speaking.setAvailable();
+        VoiceGroups.init(api);
         CraftMaster.LOG.info("[Réalisation] Chat vocal détecté : la réalisation automatique peut suivre qui parle.");
     }
 
