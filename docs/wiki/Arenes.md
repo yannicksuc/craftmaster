@@ -180,7 +180,7 @@ même chose sans copier (le premier qui la mange termine). `/cfre kind temps`.
 Quand le candidat **à l'antenne** (suivi par la caméra ou vu par ses yeux) ouvre son inventaire, le jeu de diffusion
 (F8) et le flux de l'émission (F7) le montrent dans un panneau aux couleurs de l'émission, qui glisse depuis le bord
 droit de l'image et repart quand il le ferme :
-- les objets, en direct, comme ils les déplace ;
+- les objets, en direct, comme il les déplace ;
 - la case sous sa souris, éclairée ;
 - la flèche de sa souris, lissée, et **l'objet qu'il tient au curseur** qui la suit ;
 - sous la grille, le nom de l'objet tenu (sinon celui de la case survolée).
