@@ -22,7 +22,7 @@ sans jamais ouvrir l'API locale du Stream Deck (127.0.0.1) sur Internet.
 - **Permissions** : `craftmaster:admin` (ou op 2), `craftmaster:camera`, `craftmaster:image`. Mais
   `RunActions` et `ActionExecutor.execute(ServerPlayer…)` ne connaissent que « admin » : quelqu'un qui n'a que
   `craftmaster:camera` peut couper par commande, pas par paquet.
-- **Ce qui ne passe pas par la couche** : les tablettes (`/craftMasterTablet` envoyée en commande), l'écran de
+- **Ce qui ne passe pas par la couche** : les tablettes (`/cm plateau tablette` envoyée en commande), l'écran de
   saisie, le classement, les saisons (UI locale du client de LordFinn : à laisser de côté pour les modos).
 - **Replays (branche happy-gauss)** : la lecture tourne sur le client qui regarde (lecteur de Server Replay ;
   pendant la lecture le vrai serveur ne lui envoie plus rien, seules les commandes passent). Les ordres

@@ -37,14 +37,14 @@ import static net.minecraft.commands.Commands.literal;
 /**
  * Commands of the studio set (reference: docs/wiki/Plateau.md):
  * <ul>
- *   <li>{@code /craftMasterImage <URL> [largeur] [hauteur]} (aliases {@code /image}, {@code /cfim}, permission
+ *   <li>{@code /cm media image <URL> [largeur] [hauteur]} (aliases {@code /cm media image}, {@code /cm media image}, permission
  *   {@code craftmaster:image} like the plugin's craftmaster.image): the screen you look at shows the image, or a new
  *   screen is hung on the wall you look at; {@code clear}, {@code remove}, {@code fit}, {@code size}. The address
  *   {@code chat:twitch}, {@code chat:jeu} or {@code chat:tout} makes the screen a chat wall (media/ChatWall).</li>
- *   <li>{@code /craftMasterSpotlight} ({@code /cfsp}, admin): follow a player, stop, on / off, colour, aim at me;
+ *   <li>{@code /cm projecteur} ({@code /cm projecteur}, admin): follow a player, stop, on / off, colour, aim at me;
  *   on the spotlight you look at, or on all of them with {@code all}.</li>
- *   <li>{@code /craftMasterDesk name <nom>} ({@code /cfdk}, admin): the name on the desk you look at.</li>
- *   <li>{@code /craftMasterGong} ({@code /cfgo}, admin): strikes the nearest gong.</li>
+ *   <li>{@code /cm plateau pupitre nom <nom>} ({@code /cm plateau pupitre}, admin): the name on the desk you look at.</li>
+ *   <li>{@code /cm plateau gong} ({@code /cm plateau gong}, admin): strikes the nearest gong.</li>
  * </ul>
  */
 public final class StudioCommands {
@@ -69,7 +69,7 @@ public final class StudioCommands {
 
     // ---------------------------------------------------------------- timer tablets
 
-    /** /craftMasterTablet start|pause|toggle|reset|restart [group]: every loaded tablet (of the group). */
+    /** /cm plateau tablette lancer|pause|toggle|reset|restart [group]: every loaded tablet (of the group). */
     private static LiteralArgumentBuilder<CommandSourceStack> tablet(String name) {
         LiteralArgumentBuilder<CommandSourceStack> root = literal(name).requires(Permissions.ADMIN);
         for (String what : List.of("start", "pause", "toggle", "reset", "restart")) {
@@ -155,7 +155,7 @@ public final class StudioCommands {
                         .executes(StudioCommands::showImage));
     }
 
-    /** /image <URL> [w] [h]: on the screen looked at, else a new screen on the wall looked at. */
+    /** /cm media image <URL> [w] [h]: on the screen looked at, else a new screen on the wall looked at. */
     private static int showImage(CommandContext<CommandSourceStack> c) {
         ImageRequest req;
         try {
@@ -250,7 +250,7 @@ public final class StudioCommands {
     };
     private static final SuggestionProvider<CommandSourceStack> COLORS = (c, b) -> SharedSuggestionProvider.suggest(Spotlights.COLOR_WORDS, b);
 
-    /** Which spotlights a /cfsp order acts on: the one looked at (null), all, or a name / group. */
+    /** Which spotlights a /cm projecteur ordre acts on: the one looked at (null), all, or a name / group. */
     private interface SpotTarget {
         String of(CommandContext<CommandSourceStack> c);
     }
@@ -266,7 +266,7 @@ public final class StudioCommands {
         var target = argument("target", StringArgumentType.string()).suggests(SPOT_TARGETS);
         spotlightOrders(target, c -> StringArgumentType.getString(c, "target"));
         root.then(literal("groupe").then(target));
-        // Names the spotlight looked at: "face1", "contre", "poursuite"... (groups: same start, /cfsp groupe face* …)
+        // Names the spotlight looked at: "face1", "contre", "poursuite"... (groups: same start, /cm projecteur groupe face* …)
         root.then(literal("nom").then(argument("name", StringArgumentType.word()).executes(c -> {
             String n = StringArgumentType.getString(c, "name");
             return onSpotlight(c, s -> {
@@ -274,7 +274,7 @@ public final class StudioCommands {
                 return "Projecteur nommé « " + s.name() + " ».";
             });
         })
-                // By its place (from the console, a script, without looking at it): /cfsp nom face1 74 -46 9
+                // By its place (from the console, a script, without looking at it): /cm projecteur nom face1 74 -46 9
                 .then(argument("pos", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos()).executes(c -> {
                     String n = StringArgumentType.getString(c, "name");
                     BlockPos pos = net.minecraft.commands.arguments.coordinates.BlockPosArgument.getLoadedBlockPos(c, "pos");
@@ -454,7 +454,7 @@ public final class StudioCommands {
                 return 1;
             }
         }
-        fail(c, "Regarde un projecteur (ou /cfsp tout …, /cfsp groupe <nom ou début de nom> …).");
+        fail(c, "Regarde un projecteur (ou /cm projecteur tout …, /cm projecteur groupe <nom ou début de nom> …).");
         return 0;
     }
 

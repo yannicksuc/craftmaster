@@ -66,11 +66,11 @@ archivées (les totaux ne changent pas), les joueurs notés forment la liste des
 gardés et les scores sont publiés.
 
 ## Bon à savoir
-- Modifier à la main : serveur allumé, éditer puis `/craftMasterReloadScores` (sinon la prochaine commande écrasera
+- Modifier à la main : serveur allumé, éditer puis `/cm scores recharger` (sinon la prochaine commande écrasera
   la modification).
 - Un fichier illisible (YAML cassé) n'empêche pas le serveur de démarrer : le mod le copie dans
   `config.yml.broken`, part d'un état vide et l'écrit dans les logs. Corriger la copie, la remettre à la place de
-  `config.yml`, puis `/craftMasterReloadScores`.
+  `config.yml`, puis `/cm scores recharger`.
 - Le journal d'annulation n'est pas dans le fichier (mémoire seulement).
 - Sauvegarde : copier ce fichier (et les structures des décors).
 
@@ -78,5 +78,5 @@ gardés et les scores sont publiés.
 `config/craftmaster/tasks.json` (JSON) : `revealed` (`"<saison>:<id manche>": {at, by}`), `lastRevealed`, et
 `notes` (`id → {title, text, look, readers, players, once, ink, pieces, spots[], finds[]}` ; une cachette :
 `{world, x, y, z, entity?, method, piece, takenBy?, face?}` ; une trouvaille : `{player, at, piece, method}`).
-Séparé de `config.yml` exprès : une révélation ou une trouvaille est un événement du direct, `/craftMasterUndo`
+Séparé de `config.yml` exprès : une révélation ou une trouvaille est un événement du direct, `/cm annuler`
 ne l'annule pas. Un fichier illisible est gardé en `tasks.json.broken`.

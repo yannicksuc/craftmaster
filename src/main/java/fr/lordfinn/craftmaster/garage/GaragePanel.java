@@ -18,7 +18,7 @@ import java.util.Map;
  * <p>
  * Found automatically from the block right under the motor: every block of the same kind touching it (left, right,
  * below) in the wall's plane, below the motor. The plane is the one where the panel is the widest (on a tie, the
- * one facing the motor's front). A door of mixed blocks is given as a box instead ({@code /craftMasterGarage zone}).
+ * one facing the motor's front). A door of mixed blocks is given as a box instead ({@code /cm plateau garage zone}).
  */
 public final class GaragePanel {
 

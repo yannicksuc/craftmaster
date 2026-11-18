@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * The replay director on the game watching a replay (Server Replay's viewer, started by {@code /cmreplay voir}):
+ * The replay director on the game watching a replay (Server Replay's viewer, started by {@code /cm replay voir}):
  * the server says where the playback is ({@link ReplayStatus}, five times a second); this game shows the playback
  * bar at the bottom ({@link ReplayBar}), sends the bar's orders back ({@code /replay view cm …}, the only commands
  * the viewer lets through), and directs the picture ({@link ReplayDirector}) with the broadcast camera.
@@ -96,7 +96,7 @@ public final class ReplayClient {
                 net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal("cmbarre").executes(c -> {
                     Minecraft mc = Minecraft.getInstance();
                     if (!active()) {
-                        c.getSource().sendFeedback(net.minecraft.network.chat.Component.literal("Aucun replay en cours (/cmreplay voir)."));
+                        c.getSource().sendFeedback(net.minecraft.network.chat.Component.literal("Aucun replay en cours (/cm replay voir)."));
                         return 0;
                     }
                     // After the chat screen closes

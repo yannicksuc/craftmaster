@@ -165,7 +165,7 @@ public final class RoundStart {
         Tasks.openStartLetter(p, waiting.season, waiting.mancheId, waiting.name);
         p.sendSystemMessage(Component.literal("Lis la tâche, puis ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal("[Commencer l'épreuve]").withStyle(st -> st.withColor(ChatFormatting.GREEN).withBold(true)
-                        .withClickEvent(new ClickEvent.RunCommand("/craftMasterGo"))
+                        .withClickEvent(new ClickEvent.RunCommand("/cm go"))
                         .withHoverEvent(new HoverEvent.ShowText(Component.literal("Lance l'épreuve : tu pourras bouger")))))
                 .append(Component.literal(" (J pour relire la lettre)").withStyle(ChatFormatting.GRAY)));
     }

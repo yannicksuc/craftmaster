@@ -88,7 +88,7 @@ public final class ActionExecutor {
     /**
      * A command's actions, written in the journal under who typed it (the console: "console"). No right is checked
      * again: each command already has its permission (Brigadier's {@code requires}). For commands that show the lines
-     * their own way (e.g. /cmtele).
+     * their own way (e.g. /cm media tele).
      */
     public static Result command(CommandSourceStack source, List<Map<String, Object>> actions) {
         Result r = execute(source.getServer(), actions);

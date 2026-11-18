@@ -48,6 +48,12 @@ public final class Arena {
     /** With {@link #solFin}: the score is the longest alphabetical run of the inventory, in the player's language. */
     public boolean alphabet;
 
+    /**
+     * The viewers see the inventory of a contestant playing here ({@link InventoryCam}): true = yes even in the
+     * "trials only" mode, false = never, null = as the show's mode says.
+     */
+    public Boolean inventoryCam;
+
     /** The drawing field (walked on between the red and the green banner), or null. */
     public Field field;
     /** Items each contestant receives (vanilla item JSON). */

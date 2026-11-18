@@ -17,7 +17,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * The buzzers of the server, all in one game. Its {@link Mode} (saved with the show, {@code /craftMasterBuzzer
+ * The buzzers of the server, all in one game. Its {@link Mode} (saved with the show, {@code /cm epreuve buzzer
  * mode}): "first" (the first press lights its buzzer, tells everyone, locks the others out until the reset; later
  * presses are still noted 2nd, 3rd with the delay), "order" (everyone may buzz once, every buzzer lights up and the
  * order is announced), "auto" (like first, re-armed by itself after a few seconds), "free" (every press flashes its

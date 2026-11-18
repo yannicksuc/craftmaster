@@ -20,7 +20,7 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * What the director asked of the automatic framing (by voice, the régie or {@code /cam}), live, not saved:
+ * What the director asked of the automatic framing (by voice, the régie or {@code /cm cam}), live, not saved:
  * <ul>
  *   <li>{@link #size}: wider (+1), tighter (-1) or as it comes (0) — the follow shot's framings and the choice of a
  *       placed camera;</li>

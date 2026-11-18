@@ -21,7 +21,7 @@ import net.minecraft.world.level.Level;
 import java.util.function.Consumer;
 
 /**
- * "Repère de travelling" (a clapperboard): bound to a path ({@code /cam trajet <nom> objet}), a right click adds a
+ * "Repère de travelling" (a clapperboard): bound to a path ({@code /cm cam trajet <nom> objet}), a right click adds a
  * step at the player's eyes, looking where they look; sneaking + right click removes the last step. The path's name
  * is kept in the item's custom data ({@code {path: "pont"}}). For those who may drive the cameras.
  */
@@ -55,7 +55,7 @@ public class PathMarkerItem extends Item {
         }
         String path = path(player.getItemInHand(hand));
         if (path.isEmpty()) {
-            sp.sendSystemMessage(Component.literal("Ce repère n'est lié à aucun trajet : /cam trajet <nom> objet").withStyle(ChatFormatting.YELLOW));
+            sp.sendSystemMessage(Component.literal("Ce repère n'est lié à aucun trajet : /cm cam trajet <nom> objet").withStyle(ChatFormatting.YELLOW));
             return InteractionResult.FAIL;
         }
         String line = player.isShiftKeyDown()

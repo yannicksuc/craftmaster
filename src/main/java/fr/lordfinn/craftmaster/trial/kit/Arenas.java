@@ -55,7 +55,7 @@ import java.util.Set;
 /**
  * The trial sets ({@link Arena}): reference box copied once per contestant, reset, spawn and respawn, kit of items,
  * drawing field, signs, block-by-block comparison with the reference, and the links with the round (stopwatch at
- * the letter, timer and locked signs at the hidden part's reveal). Commands: {@code /craftMasterArene}.
+ * the letter, timer and locked signs at the hidden part's reveal). Commands: {@code /cm arene}.
  */
 public final class Arenas {
 

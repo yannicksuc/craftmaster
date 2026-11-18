@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Recording travellings in game (shared by {@code /cam trajet} and the "Repère de travelling" item): a step is
+ * Recording travellings in game (shared by {@code /cm cam trajet} and the "Repère de travelling" item): a step is
  * taken at the organiser's eyes, looking where they look. Also the dust line that shows a path in the world.
  */
 public final class PathRecording {

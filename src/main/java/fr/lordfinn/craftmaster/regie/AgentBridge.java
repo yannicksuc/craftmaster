@@ -200,6 +200,12 @@ public final class AgentBridge {
         if (line.isEmpty()) return "Commande vide.";
         List<String> words = words(line);
         String root = words.getFirst().toLowerCase(Locale.ROOT);
+        // The new tree (/cm cam …): checked as the group it stands for, run as it is
+        List<String> asOld = oldForm(words);
+        if (asOld != null) {
+            words = asOld;
+            root = words.getFirst().toLowerCase(Locale.ROOT);
+        }
         if (!ROOTS.contains(root))
             return "Refusé : « " + root + " » n'est pas une commande de la régie (cam, tv, sequence, conduite, ambiance, cfsp, plateau, cmtele, cfpt, fx).";
         String embedded = embeddedLine(root, words);
@@ -221,9 +227,9 @@ public final class AgentBridge {
             int n = nextPending++;
             PENDING.put(n, new Pending(n, job.id, line, player.getUUID(), System.currentTimeMillis()));
             player.sendSystemMessage(Component.literal("Régie IA veut : /" + line + " ").withStyle(ChatFormatting.GOLD)
-                    .append(button("[Confirmer]", "/regieia confirmer " + n, "Le faire", ChatFormatting.GREEN))
+                    .append(button("[Confirmer]", "/cm ia confirmer " + n, "Le faire", ChatFormatting.GREEN))
                     .append(Component.literal(" "))
-                    .append(button("[Refuser]", "/regieia refuser " + n, "Ne pas le faire", ChatFormatting.RED)));
+                    .append(button("[Refuser]", "/cm ia refuser " + n, "Ne pas le faire", ChatFormatting.RED)));
             return "CONFIRMATION REQUISE (n° " + n + ") : « " + line + " » n'a PAS été fait. Dis à l'organisateur ce que ça supprime ; "
                     + "il confirme en cliquant [Confirmer] dans son chat, ou en te le redisant (outil confirmer, numéro " + n + ", dans une demande suivante).";
         }
@@ -234,6 +240,37 @@ public final class AgentBridge {
         if (!reading && !cap.failed) job.done.add("/" + line);
         CraftMaster.LOG.info("Régie IA ({}) : /{} -> {}", job.who, line, mask(String.join(" | ", cap.lines)));
         return cap.lines.isEmpty() ? "(fait, aucune réponse)" : String.join("\n", cap.lines);
+    }
+
+    /** Groups of /cm the control may use, and the old root they stand for (absent: not for the control). */
+    static final Map<String, String> GROUPS = Map.of("cam", "cam", "camera", "cam", "tv", "tv", "sequence", "sequence",
+            "conduite", "conduite", "ambiance", "ambiance", "projecteur", "cfsp", "fx", "fx");
+
+    /**
+     * A {@code /cm} line as the old command it stands for ({@code cm cam couper 2} -> {@code cam couper 2}), for the
+     * checks; null if the line is not a {@code /cm} one. A group the control may not use keeps "cm group" (refused).
+     */
+    static List<String> oldForm(List<String> w) {
+        if (w.isEmpty() || !Set.of("cm", "craftmaster").contains(w.getFirst().toLowerCase(Locale.ROOT))) return null;
+        if (w.size() < 2) return List.of("cm");
+        String g = w.get(1).toLowerCase(Locale.ROOT);
+        List<String> rest = w.subList(2, w.size());
+        String old = GROUPS.get(g);
+        if (old == null && g.equals("media") && !rest.isEmpty() && rest.getFirst().equalsIgnoreCase("tele")) {
+            old = "cmtele";
+            rest = rest.subList(1, rest.size());
+        }
+        if (old == null && g.equals("plateau") && !rest.isEmpty()) {
+            String sub = rest.getFirst().toLowerCase(Locale.ROOT);
+            if (sub.equals("portrait")) {
+                old = "cfpt";
+                rest = rest.subList(1, rest.size());
+            } else if (Set.of("devant", "point", "retirerpoint", "maitre", "scene", "public").contains(sub)) old = "plateau";
+        }
+        List<String> out = new ArrayList<>();
+        out.add(old == null ? "cm " + g : old);
+        out.addAll(rest);
+        return out;
     }
 
     /** The line a cue list or a timeline will run later, in "conduite ajouter <nom> <ligne>" / "inserer <nom> <n> <ligne>". */
@@ -250,7 +287,8 @@ public final class AgentBridge {
         String l = line.strip();
         if (l.startsWith("/")) l = l.substring(1);
         if (l.isEmpty()) return null;
-        String r = l.split("\\s+")[0].toLowerCase(Locale.ROOT);
+        List<String> asOld = oldForm(words(l));
+        String r = asOld != null ? asOld.getFirst().toLowerCase(Locale.ROOT) : l.split("\\s+")[0].toLowerCase(Locale.ROOT);
         if (ROOTS.contains(r) || LINE_ROOTS.contains(r)) return null;
         return "Refusé : une ligne « " + r + " … » ne peut pas être ajoutée (commandes de la régie, attendre, noir, playsound, title, particle).";
     }
@@ -498,7 +536,7 @@ public final class AgentBridge {
         return s == null ? "" : ADDRESS.matcher(s).replaceAll("‹adresse masquée›");
     }
 
-    // ---------------------------------------------------------------- /regieia (the chat's buttons)
+    // ---------------------------------------------------------------- /cm ia (the chat's buttons)
 
     private static void commands(CommandDispatcher<CommandSourceStack> d) {
         d.register(literal("regieia").requires(Permissions.ADMIN)

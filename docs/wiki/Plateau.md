@@ -19,8 +19,8 @@ Tous sont posés face à soi (le dossier de l'autre côté), comme les chaises.
 CraftMaster (le trophée de l'émission est une tête de joueur, la grenouille d'or) et les marches du podium. Un monde
 qui en contient se charge sans erreur : `craftmaster:trophy` devient une **tête de joueur** (bloc et objet), les
 marches du podium du **quartz** (1er et 2e : bloc, 3e : dalle), `assistant_chair` et `sofa` disparaissent (alias
-de registre, `Studio.removed()`). La révélation de fin (`/craftMasterReveal`) n'en dépendait pas : ses feux
-d'artifice partent des bustes du classement (`/craftMasterAddBust`).
+de registre, `Studio.removed()`). La révélation de fin (`/cm revelation`) n'en dépendait pas : ses feux
+d'artifice partent des bustes du classement (`/cm plateau buste ajouter`).
 
 ## Éclairage
 | Objet | Bloc | Utilisation |
@@ -91,10 +91,10 @@ son collier. Le plan de diffusion part toujours de son objectif.
 |---|---|---|
 | Tablette chrono | `timer_tablet` | Cadre photo autour d'un écran à chiffres 7 segments (comme celui que tient l'assistant de Taskmaster), réglable de A à Z ([ci-dessous](#tablette-chrono)) |
 | Chrono géant | `timer_display` | Panneau doré « 1 · Le Pont » + le temps en grands chiffres à 7 segments. Se fixe à un mur (le panneau monte au-dessus du bloc). Clic droit : plus grand (1 à 6 : 2,5 × 1 à 15 × 6 blocs), accroupi : plus petit |
-| Écran du studio | `studio_screen` (objet) | Écran plat posé sur un mur, 3 × 2 blocs, qui montre une image téléchargée, ou une **vidéo** avec WaterMedia ; voir `/image` |
-| Pupitre de candidat | `contestant_desk` | Pupitre en noyer et velours, plaque en laiton au nom du candidat, tournée vers le public (celui qui le pose). Nom : une **étiquette renommée** utilisée dessus (elle est gardée), ou `/craftMasterDesk name`. **Côte à côte** (même sens), les pupitres forment un seul long pupitre (plus de montants ni de bord doré entre eux). **Clic droit** (sauf étiquette) : son **tiroir**, 9 cases |
+| Écran du studio | `studio_screen` (objet) | Écran plat posé sur un mur, 3 × 2 blocs, qui montre une image téléchargée, ou une **vidéo** avec WaterMedia ; voir `/cm media image` |
+| Pupitre de candidat | `contestant_desk` | Pupitre en noyer et velours, plaque en laiton au nom du candidat, tournée vers le public (celui qui le pose). Nom : une **étiquette renommée** utilisée dessus (elle est gardée), ou `/cm plateau pupitre nom`. **Côte à côte** (même sens), les pupitres forment un seul long pupitre (plus de montants ni de bord doré entre eux). **Clic droit** (sauf étiquette) : son **tiroir**, 9 cases |
 | Sonnette de comptoir | `desk_bell` | « Ding » quand un candidat a fini : les organisateurs voient « ♪ Ensuri a sonné (1:42 restantes) » ; impulsion de redstone, une fois par demi-seconde |
-| Gong | `gong` | Disque doré dans un cadre en chêne noir du jeu (montants et poutre en bûche écorcée, pieds en planches). Clic droit (ou impulsion de redstone) : un coup de gong entendu dans tout le studio, le disque se balance. **Un organisateur accroupi** termine en plus la manche en cours (comme `/craftMasterManche end`, annulable) |
+| Gong | `gong` | Disque doré dans un cadre en chêne noir du jeu (montants et poutre en bûche écorcée, pieds en planches). Clic droit (ou impulsion de redstone) : un coup de gong entendu dans tout le studio, le disque se balance. **Un organisateur accroupi** termine en plus la manche en cours (comme `/cm manche fin`, annulable) |
 | Table des prix | `prize_table` | Table drapée de velours ; jusqu'à 4 prix posés à plat (un par quart du plateau) : clic droit **sur le dessus** avec l'objet pour le poser, main vide pour le reprendre. Clic droit **sur le drapé** (les côtés) : l'**étagère cachée** dessous, 27 cases. Côte à côte (même sens), les tables forment une seule longue table sous un seul drapé. Casser la table fait tomber les prix et l'étagère |
 | Poteau à cordon | `stanchion` | Poteaux en laiton ; un cordon de velours pend jusqu'au poteau suivant sur la même ligne (est ou sud, jusqu'à 4 blocs, sans mur entre les deux) |
 
@@ -104,7 +104,7 @@ son collier. Le plan de diffusion part toujours de son objectif.
 - À la fin du temps : « 0:00 » rouge qui clignote 8 s.
 - Sans manche ni chrono : « -:-- » discret. Le bandeau donne « numéro · nom » de la manche en cours (« CraftMaster » sinon).
 
-Il suit le chrono de l'émission (barre de boss, `/craftMasterManche start`, la voix), il n'a rien à régler.
+Il suit le chrono de l'émission (barre de boss, `/cm manche lancer`, la voix), il n'a rien à régler.
 
 ### Tablette chrono
 Un cadre photo autour d'un passe-partout et d'un verre sombre à chiffres 7 segments, au pixel près (une case de
@@ -132,14 +132,14 @@ dégradé avec biseau. Chevalet de peintre en chêne : pieds derrière la tablet
   comme dans Taskmaster ; le temps figé clignote, une note s'envole de la sonnette, et les organisateurs lisent
   « ♪ Ensuri a sonné — tablette arrêtée à 25.7 ». Son impulsion redstone ne relance jamais la tablette.
 - **S'arrête avec le chrono** (coché par défaut) : arrêter le chrono de l'émission (StreamDeck `/timer/stop`, la voix,
-  `/craftMasterTimer stop`) met aussi la tablette en pause.
-- Commande : `/craftMasterTablet start|pause|toggle|reset|restart [groupe]` (`/cftb`, organisateurs) ; StreamDeck :
+  `/cm manche chrono stop`) met aussi la tablette en pause.
+- Commande : `/cm plateau tablette lancer|pause|toggle|reset|restart [groupe]` (`/cm plateau tablette`, organisateurs) ; StreamDeck :
   `http://127.0.0.1:25710/tablet/start?group=plateau` ([Saisie](Saisie.md)).
 - Tenue en main, c'est un petit cadre « 25.7 » fixe : les chiffres vivants ne s'affichent que posée (à venir).
 
-### `/image` : images et vidéos sur les écrans
-Remplace le `/image <URL>` du plugin (qui passait par ImageFrame). Avec WaterMedia (modpack, 26.2), un écran passe
-aussi des vidéos, des clips Twitch, des directs et les clips enregistrés en jeu : écrans nommés et `/cmtele`, voir
+### `/cm media image` : images et vidéos sur les écrans
+Remplace le `/cm media image <URL>` du plugin (qui passait par ImageFrame). Avec WaterMedia (modpack, 26.2), un écran passe
+aussi des vidéos, des clips Twitch, des directs et les clips enregistrés en jeu : écrans nommés et `/cm media tele`, voir
 [Clips et télés](Clips.md).
 
 **Vidéos** : avec [WaterMedia](https://modrinth.com/mod/watermedia) 3.0.1+ (et ses binaires, WaterMedia Binaries)
@@ -149,15 +149,15 @@ une vidéo** : YouTube, Twitch, Kick, un lien MP4 / WebM direct… Le mod CraftM
 « Pas une image : les vidéos demandent le mod WaterMedia ».
 - Même image pour tout le monde : le serveur garde où en est la vidéo, chaque jeu se cale dessus (à 2 s près).
 - Le son vient de l'écran : plein jusqu'à 4 blocs, s'éteint à 40 ; réglage « Juke-box / blocs musicaux » du jeu.
-- `/image play`, `/image pause`, `/image restart`, `/image seek <secondes>`, `/image volume <0-100>`,
-  `/image loop <true|false>` (en boucle par défaut), sur l'écran regardé.
+- `/cm media image lancer`, `/cm media image pause`, `/cm media image relancer`, `/cm media image seek <secondes>`, `/cm media image volume <0-100>`,
+  `/cm media image boucle <true|false>` (en boucle par défaut), sur l'écran regardé.
 - Un écran hors de vue depuis 5 s, ou à plus de 128 blocs, arrête son lecteur chez ce joueur (il reprend au bon
   endroit quand on le revoit).
 
-- `/image <URL> [largeur] [hauteur]` en **regardant un écran du studio** : il affiche l'image (et change de taille
+- `/cm media image <URL> [largeur] [hauteur]` en **regardant un écran du studio** : il affiche l'image (et change de taille
   si on la donne). En regardant **un mur** : un nouvel écran y est accroché, centré sur le bloc visé, 5 × 3 par
   défaut comme le plugin (largeur seule : hauteur en 5:3), au plus 64 × 36 blocs (écran géant de scène).
-- `/image clear` (retour à la mire), `/image remove`, `/image size <l> <h>`, `/image fit <true|false>` (image
+- `/cm media image effacer` (retour à la mire), `/cm media image retirer`, `/cm media image taille <l> <h>`, `/cm media image ajuster <true|false>` (image
   entière avec bandes noires, ou étirée), sur l'écran regardé.
 - Clic droit sur un écran (avec la permission) : réglages (adresse, taille, image entière / étirée, mire).
 - Permission **`craftmaster:image`** (comme `craftmaster.image` du plugin) ou organisateur.
@@ -171,17 +171,17 @@ une vidéo** : YouTube, Twitch, Kick, un lien MP4 / WebM direct… Le mod CraftM
 ## Commandes
 | Commande | Alias | Effet |
 |---|---|---|
-| `/craftMasterImage <URL> [l] [h]` | `image`, `cfim` | Voir ci-dessus (permission image) |
-| `/craftMasterSpotlight follow <joueur>` | `cfsp` | Le projecteur regardé suit le joueur (et s'allume) |
-| `/cfsp stop` / `on` / `off` | | Arrête de suivre (garde sa direction) / allume / éteint |
-| `/cfsp color <teinture>` | | Couleur du faisceau (`red`, `light_blue`…) |
-| `/cfsp here` | | Pointe vers soi (se placer là où la lumière doit tomber) |
-| `/cfsp all <follow\|stop\|on\|off\|color\|here> …` | | Tous les projecteurs chargés |
-| `/cfsp list` | | Les projecteurs chargés, allumés ou non, suivi |
-| `/craftMasterDesk name <nom>` | `cfdk` | Nom du pupitre regardé (`-` : plaque vide) |
-| `/craftMasterGong` | `cfgo` | Coup de gong sur le gong le plus proche (32 blocs) |
+| `/cm media image <URL> [l] [h]` | `image`, `cfim` | Voir ci-dessus (permission image) |
+| `/cm projecteur suivre <joueur>` | `cfsp` | Le projecteur regardé suit le joueur (et s'allume) |
+| `/cm projecteur stop` / `on` / `off` | | Arrête de suivre (garde sa direction) / allume / éteint |
+| `/cm projecteur color <teinture>` | | Couleur du faisceau (`red`, `light_blue`…) |
+| `/cm projecteur ici` | | Pointe vers soi (se placer là où la lumière doit tomber) |
+| `/cm projecteur tout <follow\|stop\|on\|off\|color\|here> …` | | Tous les projecteurs chargés |
+| `/cm projecteur liste` | | Les projecteurs chargés, allumés ou non, suivi |
+| `/cm plateau pupitre nom <nom>` | `cfdk` | Nom du pupitre regardé (`-` : plaque vide) |
+| `/cm plateau gong` | `cfgo` | Coup de gong sur le gong le plus proche (32 blocs) |
 
-Toutes admin sauf `/image` (permission image). Messages en français, Tab propose joueurs et couleurs.
+Toutes admin sauf `/cm media image` (permission image). Messages en français, Tab propose joueurs et couleurs.
 
 ## Régie vocale
 - « Projecteurs sur Ensuri », « lumière sur Juste » → `spotlight.follow {player}` (pseudo ou surnom)

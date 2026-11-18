@@ -26,11 +26,11 @@ import static net.minecraft.commands.Commands.literal;
 /**
  * The show's moderators (docs/wiki/RegieModos.md), organisers only:
  * <pre>
- * /craftMasterModo liste                                   (/modo, /cfmo)
- * /craftMasterModo ajouter &lt;twitch&gt; [minecraft|-] [droits]   droits: camera,tv,replay,jeu (default camera,tv,replay)
- * /craftMasterModo retirer &lt;nom&gt;
- * /craftMasterModo pause · reprendre                       stops / lets back every moderator at once
- * /craftMasterModo journal [n]                             who did what (the last n lists, 10 by default)
+ * /cm modo liste                                   (/cm modo, /cm modo)
+ * /cm modo ajouter &lt;twitch&gt; [minecraft|-] [droits]   droits: camera,tv,replay,jeu (default camera,tv,replay)
+ * /cm modo retirer &lt;nom&gt;
+ * /cm modo pause · reprendre                       stops / lets back every moderator at once
+ * /cm modo journal [n]                             who did what (the last n lists, 10 by default)
  * </pre>
  */
 public final class ModoCommands {
@@ -67,7 +67,7 @@ public final class ModoCommands {
                         })))
                 .then(literal("pause").executes(c -> {
                     Moderators.setPaused(true);
-                    return say(c, "Régies des modos coupées (tu gardes tout). /modo reprendre pour les rendre.", true);
+                    return say(c, "Régies des modos coupées (tu gardes tout). /cm modo reprendre pour les rendre.", true);
                 }))
                 .then(literal("reprendre").executes(c -> {
                     Moderators.setPaused(false);
@@ -112,7 +112,7 @@ public final class ModoCommands {
 
     private static int list(CommandContext<CommandSourceStack> c) {
         List<Moderators.Entry> all = Moderators.list();
-        if (all.isEmpty()) return say(c, "Aucun modo. /modo ajouter <twitch> [minecraft|-] [camera,tv,replay,jeu]", true);
+        if (all.isEmpty()) return say(c, "Aucun modo. /cm modo ajouter <twitch> [minecraft|-] [camera,tv,replay,jeu]", true);
         say(c, all.size() + " modo(s)" + (Moderators.paused() ? " — EN PAUSE" : "") + " :", true);
         for (Moderators.Entry e : all)
             c.getSource().sendSuccess(() -> Component.literal(" · " + (e.twitch.isEmpty() ? "-" : e.twitch) + " / "

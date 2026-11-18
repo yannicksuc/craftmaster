@@ -54,9 +54,9 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 /**
- * TV direction commands (chantier E): {@code /craftMasterCamera} (alias {@code /cam}) places and drives the cameras
- * (of the studio and of the rounds, see {@link CameraSpot}) and records the travellings, {@code /craftMasterTv}
- * (alias {@code /tv}) runs the overlay, the credits and the rounds' intros. They need {@link Permissions#CAMERA}
+ * TV direction commands (chantier E): {@code /cm cam} (alias {@code /cm cam}) places and drives the cameras
+ * (of the studio and of the rounds, see {@link CameraSpot}) and records the travellings, {@code /cm tv}
+ * (alias {@code /cm tv}) runs the overlay, the credits and the rounds' intros. They need {@link Permissions#CAMERA}
  * (organisers, or the craftmaster:camera permission). The on-air actions and the intros go through
  * {@link ActionExecutor}, like the voice control. Reference: docs/wiki/Realisation.md.
  *
@@ -161,11 +161,11 @@ public final class CameraCommands {
     private static CameraSpot spot(CommandContext<CommandSourceStack> c) {
         String ref = str(c, "camera");
         CameraSpot s = Director.resolve(c.getSource().getServer(), ref);
-        if (s == null) fail(c, "Aucune caméra « " + ref + " » dans " + Director.focusName() + " (/cam list tout pour toutes les voir).");
+        if (s == null) fail(c, "Aucune caméra « " + ref + " » dans " + Director.focusName() + " (/cm cam liste tout pour toutes les voir).");
         return s;
     }
 
-    // ---------------------------------------------------------------- /craftMasterCamera
+    // ---------------------------------------------------------------- /cm cam
 
     private static LiteralArgumentBuilder<CommandSourceStack> camera(String name) {
         return literal(name).requires(Permissions.CAMERA)
@@ -291,8 +291,8 @@ public final class CameraCommands {
         c.getSource().sendSystemMessage(Component.literal("— Caméras : " + (everything ? "tous les lieux" : Director.focusName()) + " —")
                 .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
         if (all.isEmpty()) c.getSource().sendSystemMessage(Component.literal(Cameras.list().isEmpty()
-                ? "Aucune caméra. Place-toi et regarde le plan voulu, puis /cam here 1 Plan large (ou pose l'objet Caméra de studio)."
-                : "Aucune caméra ici (/cam list tout pour les autres lieux).").withStyle(ChatFormatting.GRAY));
+                ? "Aucune caméra. Place-toi et regarde le plan voulu, puis /cm cam ici 1 Plan large (ou pose l'objet Caméra de studio)."
+                : "Aucune caméra ici (/cm cam liste tout pour les autres lieux).").withStyle(ChatFormatting.GRAY));
         BroadcastNetwork.Shot shot = Director.shot();
         String group = "";
         for (CameraSpot s : all) {
@@ -331,7 +331,7 @@ public final class CameraCommands {
         List<String> zones = new ArrayList<>(Cameras.list().zones(Director.focusLieu()));
         zones.remove("");
         ok(c, "Touches 1–9 : " + Director.focusName() + " (" + Cameras.list().group(Director.focus()).size() + " caméra(s))"
-                + (zones.isEmpty() ? "" : " · zones : " + String.join(", ", zones)) + ". /cam focus <studio|manche|auto> [zone], /cam zone <zone|joueur|suivante|tout>.");
+                + (zones.isEmpty() ? "" : " · zones : " + String.join(", ", zones)) + ". /cm cam focus <studio|manche|auto> [zone], /cm cam zone <zone|joueur|suivante|tout>.");
         return 1;
     }
 
@@ -379,7 +379,7 @@ public final class CameraCommands {
         if (level == null) return 0;
         // Eyes at the lens: what the player sees is the shot (to check or adjust it)
         p.teleportTo(level, s.x(), s.y() - p.getEyeHeight(), s.z(), Set.of(), s.yaw(), s.pitch(), false);
-        ok(c, "Tu vois ce que voit la caméra " + s.label() + ". /cam here " + s.key() + " pour la recadrer d'ici.");
+        ok(c, "Tu vois ce que voit la caméra " + s.label() + ". /cm cam ici " + s.key() + " pour la recadrer d'ici.");
         return 1;
     }
 
@@ -394,14 +394,14 @@ public final class CameraCommands {
             if (group != null && !CameraSpot.STUDIO.equals(CameraSpot.lieuOf(group)) && Lieux.lieu(CameraSpot.lieuOf(group)) == null) group = null;
         }
         if (group == null || !num.matches("\\d{1,2}") || Integer.parseInt(num) < 1) {
-            fail(c, "« " + ref + " » : donne un numéro (/cam here 3) ou lieu:numéro (/cam here pont:2, /cam here pont:ensuri:1).");
+            fail(c, "« " + ref + " » : donne un numéro (/cm cam ici 3) ou lieu:numéro (/cm cam ici pont:2, /cm cam ici pont:ensuri:1).");
             return null;
         }
         return new CameraSpot(Integer.parseInt(num), null, "", world, x, y, z, yaw, pitch, 0, CameraSpot.BREATHING,
                 CameraSpot.lieuOf(group), CameraSpot.zoneOf(group));
     }
 
-    /** {@code /cam placer <n> <x y z> vers <x y z>}: the lens there, looking at the target; a new camera is a bare viewpoint. */
+    /** {@code /cm cam placer <n> <x y z> vers <x y z>}: the lens there, looking at the target; a new camera is a bare viewpoint. */
     private static int placeAt(CommandContext<CommandSourceStack> c) {
         var pos = net.minecraft.commands.arguments.coordinates.Vec3Argument.getVec3(c, "pos");
         var target = net.minecraft.commands.arguments.coordinates.Vec3Argument.getVec3(c, "target");
@@ -448,7 +448,7 @@ public final class CameraCommands {
     private static int spotlight(CommandContext<CommandSourceStack> c, String reason) {
         String player = str(c, "player");
         fr.lordfinn.craftmaster.show.ShowEvents.spotlight(c.getSource().getServer(), player, reason == null ? "" : reason);
-        ok(c, "Projecteur sur " + player + (Director.autoDirection() ? "." : " (la réalisation automatique est désactivée : /cam auto on)."));
+        ok(c, "Projecteur sur " + player + (Director.autoDirection() ? "." : " (la réalisation automatique est désactivée : /cm cam auto on)."));
         return 1;
     }
 
@@ -457,7 +457,7 @@ public final class CameraCommands {
     private static int listPaths(CommandContext<CommandSourceStack> c) {
         c.getSource().sendSystemMessage(Component.literal("— Trajets (travellings) —").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
         if (CameraPaths.all().isEmpty()) c.getSource().sendSystemMessage(Component.literal(
-                "Aucun trajet. Place-toi au départ et tape /cam trajet <nom> point, puis déplace-toi et recommence (ou /cam trajet <nom> objet).")
+                "Aucun trajet. Place-toi au départ et tape /cm cam trajet <nom> point, puis déplace-toi et recommence (ou /cm cam trajet <nom> objet).")
                 .withStyle(ChatFormatting.GRAY));
         for (CameraPath p : CameraPaths.all())
             c.getSource().sendSystemMessage(Component.literal("  " + p.name()).withStyle(ChatFormatting.WHITE)
@@ -469,7 +469,7 @@ public final class CameraCommands {
     private static CameraPath path(CommandContext<CommandSourceStack> c) {
         String n = str(c, "path");
         CameraPath p = CameraPaths.get(n);
-        if (p == null) fail(c, "Aucun trajet « " + n + " » (/cam trajets).");
+        if (p == null) fail(c, "Aucun trajet « " + n + " » (/cm cam trajets).");
         return p;
     }
 
@@ -549,7 +549,7 @@ public final class CameraCommands {
                     if (i < 0 || level == null) return 0;
                     CameraPath.Step s = path.steps().get(i);
                     p.teleportTo(level, s.x(), s.y() - p.getEyeHeight(), s.z(), Set.of(), s.yaw(), s.pitch(), false);
-                    ok(c, "Tu es à l'étape " + (i + 1) + " du trajet « " + path.name() + " » (/cam trajet " + path.name() + " remplacer " + (i + 1) + " pour la refaire d'ici).");
+                    ok(c, "Tu es à l'étape " + (i + 1) + " du trajet « " + path.name() + " » (/cm cam trajet " + path.name() + " remplacer " + (i + 1) + " pour la refaire d'ici).");
                     return 1;
                 })))
                 .then(literal("apercu").executes(CameraCommands::preview))
@@ -639,7 +639,7 @@ public final class CameraCommands {
             return 0;
         }
         if (!ServerPlayNetworking.canSend(p, BroadcastNetwork.ShowCue.TYPE)) {
-            fail(c, "Ton jeu n'a pas le mod : /cam trajet " + path.name() + " montrer dessine le trajet.");
+            fail(c, "Ton jeu n'a pas le mod : /cm cam trajet " + path.name() + " montrer dessine le trajet.");
             return 0;
         }
         ServerPlayNetworking.send(p, new BroadcastNetwork.ShowCue(BroadcastNetwork.Cues.PATH_PREVIEW, path.name(), "", "",
@@ -650,12 +650,12 @@ public final class CameraCommands {
         return 1;
     }
 
-    // ---------------------------------------------------------------- /craftMasterTv
+    // ---------------------------------------------------------------- /cm tv
 
     private static int voice(CommandContext<CommandSourceStack> c) {
         ok(c, "Réalisation automatique sur qui parle : " + (Director.voiceCuts() ? "oui" : "non")
                 + (fr.lordfinn.craftmaster.broadcast.Speaking.available() ? "" : " (chat vocal absent : rien à suivre)")
-                + (Director.autoDirection() ? "." : " · la réalisation automatique est arrêtée (/cam auto on)."));
+                + (Director.autoDirection() ? "." : " · la réalisation automatique est arrêtée (/cm cam auto on)."));
         return 1;
     }
 
@@ -754,7 +754,7 @@ public final class CameraCommands {
                                         .executes(c -> run(c, intro(c, "intro.shot.add", "task", true, "seconds", DoubleArgumentType.getDouble(c, "seconds")))))))
                 .then(literal("plan").then(argument("index", integer(1, MancheIntro.MAX_SHOTS))
                         .then(literal("retirer").executes(c -> run(c, intro(c, "intro.shot.remove", "index", getInteger(c, "index")))))
-                        // The intro editor (clickable in /tv intro <m> voir): try from here, reorder, other camera
+                        // The intro editor (clickable in /cm tv intro <m> voir): try from here, reorder, other camera
                         .then(literal("essayer").executes(c -> run(c, intro(c, "intro.play", "from", getInteger(c, "index")))))
                         .then(literal("monter").executes(c -> run(c, intro(c, "intro.shot.move", "index", getInteger(c, "index"), "to", getInteger(c, "index") - 1))))
                         .then(literal("descendre").executes(c -> run(c, intro(c, "intro.shot.move", "index", getInteger(c, "index"), "to", getInteger(c, "index") + 1))))
@@ -824,7 +824,7 @@ public final class CameraCommands {
             String hover = (t.index() + 1) + " · " + t.shot().describe(t, in.beatSeconds());
             out.append(Component.literal("█".repeat(n)).withStyle(st -> st.withColor(col)
                     .withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(Component.literal(hover)))
-                    .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/tv intro " + m.id + " plan " + (t.index() + 1) + " essayer"))));
+                    .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/cm tv intro " + m.id + " plan " + (t.index() + 1) + " essayer"))));
             if (cells >= 80) break;
         }
         if (in.music.equals(MancheIntro.INTRO_MUSIC) && in.bpm == MancheIntro.INTRO_BPM) {
@@ -852,7 +852,7 @@ public final class CameraCommands {
         c.getSource().sendSystemMessage(Component.literal("Lieu de la tâche de « " + m.name + " » : caméra " + s.key()
                 + String.format(java.util.Locale.ROOT, " (%.1f %.1f %.1f)", s.x(), s.y(), s.z())
                 + (r.problem().isEmpty() ? ", l'enveloppe et l'arrivée dans le cadre." : " — " + r.problem() + ".")
-                + " Sans trépied ; /cam pour la retoucher.").withStyle(ChatFormatting.GREEN));
+                + " Sans trépied ; /cm cam pour la retoucher.").withStyle(ChatFormatting.GREEN));
         return 1;
     }
 
@@ -864,7 +864,7 @@ public final class CameraCommands {
         }
         MancheIntro in = m.intro;
         c.getSource().sendSystemMessage(Component.literal("— Intro de « " + m.name + " » — "
-                + (in.auto ? in.chained ? "jouée au lancement, enchaînée (noir, TP, titre, révélation)" : "jouée au lancement" : "à la main (/tv intro " + m.id + ")")
+                + (in.auto ? in.chained ? "jouée au lancement, enchaînée (noir, TP, titre, révélation)" : "jouée au lancement" : "à la main (/cm tv intro " + m.id + ")")
                 + " · " + (in.music.isEmpty() ? "sans musique" : "musique " + in.music)
                 + (in.bpm > 0 ? " · " + in.rhythmText() : "")
                 + (in.look.isEmpty() ? "" : " · look " + in.look)
@@ -874,14 +874,14 @@ public final class CameraCommands {
                     return p == null ? 0 : p.duration();
                 }) * 10) / 10.0)).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
         if (in.shots.isEmpty()) c.getSource().sendSystemMessage(Component.literal(
-                "Aucun plan : /tv intro " + m.id + " ajouter camera <caméra> [s] · ajouter trajet <nom> [s] · ajouter suivi <joueur> [s]").withStyle(ChatFormatting.GRAY));
+                "Aucun plan : /cm tv intro " + m.id + " ajouter camera <caméra> [s] · ajouter trajet <nom> [s] · ajouter suivi <joueur> [s]").withStyle(ChatFormatting.GRAY));
         int auto = in.autoCardShot();
         List<MancheIntro.Timed> timeline = in.timeline(n -> {
             CameraPath p = CameraPaths.get(n);
             return p == null ? 0 : p.duration();
         });
         if (!in.shots.isEmpty()) c.getSource().sendSystemMessage(strip(m, in, timeline));
-        String base = "/tv intro " + m.id + " ";
+        String base = "/cm tv intro " + m.id + " ";
         for (int i = 0; i < in.shots.size(); i++) {
             MancheIntro.Shot s = in.shots.get(i);
             String plan = base + "plan " + (i + 1) + " ";

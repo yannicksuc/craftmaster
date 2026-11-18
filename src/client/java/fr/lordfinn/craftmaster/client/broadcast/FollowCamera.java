@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.Random;
 
 /**
- * The follow shot (/cam follow, the automatic director, replays): framings that change by themselves
+ * The follow shot (/cm cam suivre, the automatic director, replays): framings that change by themselves
  * ({@link FollowFraming}: three-quarters, profile, low and high angle, wide, close-up, over the shoulder…), held
  * 7 to 12 s with a slow orbit or push in, then a glide round the player to the next one. The blocks decide:
  * <ul>

@@ -96,7 +96,7 @@ public final class GroundEnd {
         if (s.inBundle > 0)
             Finish.tellOrganisers(server, null, Component.literal("  ⚠ " + s.inBundle + " objet(s) encore dans un bundle ").withStyle(ChatFormatting.RED)
                     .append(Component.literal("[disqualifier " + name + "]").withStyle(st -> st.withColor(ChatFormatting.DARK_RED).withBold(true)
-                            .withClickEvent(new ClickEvent.RunCommand("/craftMasterResult dq " + name))
+                            .withClickEvent(new ClickEvent.RunCommand("/cm epreuve feuille dq " + name))
                             .withHoverEvent(new HoverEvent.ShowText(Component.literal("« Aucun objet ne doit être dans un bundle »"))))),
                     name + " — " + s.inBundle + " objet(s) dans un bundle");
     }

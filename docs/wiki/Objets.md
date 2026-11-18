@@ -8,7 +8,7 @@ chaque mesure arrive chez les organisateurs avec des boutons **« [noter …] »
 résultats de la manche en cours.
 
 « Candidats » = les joueurs de la saison active ; « organisateurs » = permission `craftmaster:admin` ou opérateur.
-Les messages pour les organisateurs vont dans leur chat et dans le journal (`/craftMasterTrial log`).
+Les messages pour les organisateurs vont dans leur chat et dans le journal (`/cm epreuve journal`).
 
 ## 1. Le geste commun : poser, ramasser, lancer
 
@@ -53,14 +53,14 @@ aussi pour le compteur.
 2. Un candidat qui en ramasse un l'a **trouvé** : il voit « ✔ Trouvé : canard en plastique bleu (3) » et les
    organisateurs « ✔ Ensuri a trouvé un canard en plastique bleu (3 en tout, encore 4 cachés) » avec le bouton
    **[noter 3]**. Le canard part dans son inventaire : le compteur sur le joueur les compte aussi.
-3. `/craftMasterToys` : qui a trouvé combien (et de quelles couleurs), le nombre encore caché ;
-   `/craftMasterToys list` : où sont ceux qui restent (clic = s'y téléporter) ; `glow [secondes]` : les fait
+3. `/cm epreuve jouets` : qui a trouvé combien (et de quelles couleurs), le nombre encore caché ;
+   `/cm epreuve jouets liste` : où sont ceux qui restent (clic = s'y téléporter) ; `glow [secondes]` : les fait
    briller à travers les murs ; `collect` : les ramasse tous (fin de la tâche).
 4. Organisateur accroupi + clic droit sur un objet posé : il bascule caché / pas caché (et montre son dernier
    joueur).
 
 Un objet lancé n'est jamais caché ; un organisateur qui ramasse un objet caché ne le « trouve » pas (sauf s'il est
-lui-même candidat de la saison). Les compteurs sont en mémoire : `/craftMasterToys reset` ou un redémarrage les
+lui-même candidat de la saison). Les compteurs sont en mémoire : `/cm epreuve jouets reset` ou un redémarrage les
 remet à zéro (les objets cachés, eux, restent dans le monde avec leur état).
 
 ## 3. Lancer et cible qui compte
@@ -81,7 +81,7 @@ La distance est celle entre l'endroit du lancer et le récipient. Pour un objet 
 œuf du jeu, c'est la distance du lanceur au moment où ça tombe dedans. Main vide sur le récipient : ce qu'il y a
 dedans et à qui (« Ensuri 3, Cyllu 1 ») ; **accroupi** main vide : le vider (organisateurs, ou en créatif).
 Le **compteur** marche dessus (« combien de sachets dans la tasse ? »), une trémie dessous le vide.
-`/craftMasterToys` garde pour chacun le nombre de prises et la plus lointaine.
+`/cm epreuve jouets` garde pour chacun le nombre de prises et la plus lointaine.
 
 ## 4. Ballon à gonfler et à crever
 
@@ -106,7 +106,7 @@ Un œuf qui se pose, se ramasse et se lance comme les autres, mais qui **casse**
 par défaut (le choc compte, qu'il tombe ou qu'il cogne un mur en volant), si on le frappe ou si quelque chose le
 blesse. Crac, coquille et jaune ; « ◇ Crac ! L'œuf est cassé » pour son joueur et « ◇ L'œuf fragile de Juste s'est
 cassé (choc d'une chute de 4,3 blocs) » pour les organisateurs.
-- `/craftMasterToys egg <blocs>` règle l'œuf tenu en main (0 = casse **au moindre choc** : « Œuf à coquille
+- `/cm epreuve jouets oeuf <blocs>` règle l'œuf tenu en main (0 = casse **au moindre choc** : « Œuf à coquille
   fine », aussi dans l'onglet créatif). Le réglage est dans l'objet : il le garde dans un coffre, posé, lancé.
 - Posé délicatement (clic droit sur un bloc), un œuf ne casse pas, même à coquille fine.
 - « Monter l'œuf le plus haut sans le casser » : le poser en haut de la construction, le mètre ruban mesure la
@@ -160,19 +160,19 @@ cassé (choc d'une chute de 4,3 blocs) » pour les organisateurs.
 
 ## Commandes
 
-`/craftMasterToys` (alias `cfty`, organisateurs) : voir [Commandes](Commandes.md#épreuves-admin).
+`/cm epreuve jouets` (alias `cfty`, organisateurs) : voir [Commandes](Commandes.md#épreuves-admin).
 
 ## Exemples de tâches
 
-- **« Trouve les dix canards cachés dans le labo, le plus vite »** : `/craftMasterZone create labo`, dix canards
+- **« Trouve les dix canards cachés dans le labo, le plus vite »** : `/cm epreuve zone creer labo`, dix canards
   posés par un organisateur (dans des pots, sous des dalles, derrière des meubles), chrono du juge sur chaque
-  candidat ; `/craftMasterToys` dit qui en a trouvé combien, **[noter 10]**, et `list` / `glow` retrouvent les
+  candidat ; `/cm epreuve jouets` dit qui en a trouvé combien, **[noter 10]**, et `list` / `glow` retrouvent les
   derniers.
 - **« Lance un sachet dans la tasse de la plus grande distance »** : une tasse-cible au fond du jardin ; chaque prise
   propose **[noter 7,4 blocs]** ; mesure « distance », le plus grand gagne.
-- **« Gonfle le plus gros ballon les yeux bandés »** (avec `/fx` flou) : chacun relâche quand il veut ;
+- **« Gonfle le plus gros ballon les yeux bandés »** (avec `/cm fx` flou) : chacun relâche quand il veut ;
   **[noter 1,9 bloc]** pour ceux dont le ballon n'a pas éclaté, disqualifié pour les autres.
-- **« Crève un max de ballons en deux minutes »** : des ballons attachés partout, `/craftMasterToys` compte les
+- **« Crève un max de ballons en deux minutes »** : des ballons attachés partout, `/cm epreuve jouets` compte les
   ballons crevés de chacun ; un ballon renommé « piège » relié à un signal redstone sous le sol.
 - **« Golf à cinq trous avec des œufs »** : cinq trous de golf, un œuf fragile par candidat et par trou, les coups
   notés à chaque trou et au total.

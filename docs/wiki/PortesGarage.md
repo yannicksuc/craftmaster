@@ -16,8 +16,8 @@ porte qui s'enroule. Fermée, la porte redevient vos vrais blocs ; ouverte, l'ou
    touchent dans le plan du mur, sous le moteur (1024 blocs au plus, 32 blocs autour du moteur). Le plan est celui
    où la porte est la plus large.
 4. Porte faite de **plusieurs sortes de blocs** (vitres, motifs…) : donner sa zone,
-   `/craftMasterGarage zone <moteur x y z> <coin x y z> <coin x y z>` (tous les blocs de la boîte font partie de la
-   porte). `/craftMasterGarage zone <moteur> auto` revient à la détection.
+   `/cm plateau garage zone <moteur x y z> <coin x y z> <coin x y z>` (tous les blocs de la boîte font partie de la
+   porte). `/cm plateau garage zone <moteur> auto` revient à la détection.
 5. **Camoufler le moteur** pour garder le look exact du linteau : clic droit sur le moteur avec un bloc en main
    (organisateurs) — le moteur prend son apparence. Accroupi + clic droit main vide : il reprend la sienne (sans
    camouflage, ce geste redit quelle porte il a trouvée).
@@ -31,13 +31,13 @@ Casser le moteur remet toujours la porte fermée : vos blocs ne se perdent jamai
   - une **impulsion** (bouton) ouvre une porte fermée, ferme une porte ouverte ;
   - un **signal tenu** (levier) l'ouvre (ou la ferme), et le couper la renvoie dans l'autre sens.
 - **Créatif** : clic droit main vide sur le moteur.
-- **Commande** : `/craftMasterGarage open|close|toggle <x y z>` (`/cfga`), ou par son nom
-  `/cfga porte <nom> open|close|toggle`.
+- **Commande** : `/cm plateau garage ouvrir|close|toggle <x y z>` (`/cm plateau garage`), ou par son nom
+  `/cm plateau garage porte <nom> open|close|toggle`.
 - **Régie** : actions `garage.open`, `garage.close`, `garage.toggle` (`{"name": "atelier"}`, sans nom = la seule
   porte nommée). À la voix : « ouvre la porte du garage », « ferme la porte de l'atelier ». Stream Deck :
   `http://127.0.0.1:<port>/garage/toggle?name=atelier` (aussi `/garage/open`, `/garage/close`).
-  Une porte se nomme avec `/cfga nom <x y z> <nom>` (gardé dans `config/craftmaster/garages.json`) ;
-  `/cfga liste`, `/cfga oublier <nom>`.
+  Une porte se nomme avec `/cm plateau garage nom <x y z> <nom>` (gardé dans `config/craftmaster/garages.json`) ;
+  `/cm plateau garage liste`, `/cm plateau garage oublier <nom>`.
 
 Relancer pendant le mouvement repart dans l'autre sens, depuis là où est la porte.
 
@@ -49,9 +49,9 @@ Relancer pendant le mouvement repart dans l'autre sens, depuis là où est la po
 - Serveur arrêté pendant le mouvement : au redémarrage la porte finit son mouvement (rien à faire).
 
 ### Réglages
-- `/cfga vitesse <x y z> <secondes par bloc>` : 0,6 s par bloc de hauteur par défaut (une porte de 3 de haut
+- `/cm plateau garage vitesse <x y z> <secondes par bloc>` : 0,6 s par bloc de hauteur par défaut (une porte de 3 de haut
   s'ouvre en 1,8 s), de 0,2 à 3 s.
-- `/cfga info <x y z>` : taille trouvée, état, nom, vitesse, zone.
+- `/cm plateau garage info <x y z>` : taille trouvée, état, nom, vitesse, zone.
 
 ## WorldEdit sans mises à jour par défaut
 
@@ -61,7 +61,7 @@ configuration). CraftMaster règle donc **la session WorldEdit de chaque joueur 
 comme ils sont.
 
 - WorldEdit reste **facultatif** : sans lui, rien ne se passe (tout passe par réflexion, aucune dépendance).
-- Réglage : `config/craftmaster/worldedit.json`, `"perfOff": true` (défaut). `/craftMasterWorldEdit perf on`
-  (`/cfwe`) remet le comportement normal de WorldEdit aux prochaines connexions ; `/cfwe perf off` le recoupe (et
-  l'applique aux joueurs en ligne). `/cfwe` seul montre l'état et votre session.
+- Réglage : `config/craftmaster/worldedit.json`, `"perfOff": true` (défaut). `/cm worldedit perf on`
+  (`/cm worldedit`) remet le comportement normal de WorldEdit aux prochaines connexions ; `/cm worldedit perf off` le recoupe (et
+  l'applique aux joueurs en ligne). `/cm worldedit` seul montre l'état et votre session.
 - Un joueur peut toujours taper `//perf ...` pour le reste de sa session.

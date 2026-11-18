@@ -48,31 +48,31 @@ Les noms français marchent aussi : « noir et blanc », « sépia », « fish-e
 ### Pour les intros d'épreuve
 
 Les effets `look_intro`, `macro`, `mise_au_point`, `stop_motion` et `timelapse` sont faits pour les intros façon
-Taskmaster (docs/design/intro-epreuve.md) : `look_intro` sur toute l'intro (par la régie : `/fx diffusion
-look_intro`), puis un traitement par plan (`/tv intro <m> plan 3 effet macro`, `plan 4 effet mise_au_point`,
+Taskmaster (docs/design/intro-epreuve.md) : `look_intro` sur toute l'intro (par la régie : `/cm fx diffusion
+look_intro`), puis un traitement par plan (`/cm tv intro <m> plan 3 effet macro`, `plan 4 effet mise_au_point`,
 `plan 2 effet timelapse`…). Ils se combinent : `look_intro+macro`.
 
 - `macro` et `mise_au_point` lisent la **profondeur** de l'image : ils marchent sur toutes les vues (caméras,
   trajets, joueur suivi). Le sujet est ce qui est au centre de l'image : on cadre l'objet au centre. Pour un vrai
-  rendu macro, réduire aussi le champ de vision (`/cam zoom 20`).
+  rendu macro, réduire aussi le champ de vision (`/cm cam zoom 20`).
 - `mise_au_point` repart de zéro à chaque nouveau plan, même si le plan d'avant l'avait déjà.
 - `timelapse` ne dessine rien : il avance l'heure **sur le jeu qui l'affiche** (le jeu de diffusion). Les joueurs
   et le serveur gardent leur heure.
 
 ## Combiner les effets
-- Plusieurs d'un coup : `/fx diffusion fisheye+masque_rond+sepia` (6 au plus).
-- **Ajouter sans rien enlever** : un `+` devant. `/fx diffusion +vignette` garde ce qui est déjà là et ajoute la
+- Plusieurs d'un coup : `/cm fx diffusion fisheye+masque_rond+sepia` (6 au plus).
+- **Ajouter sans rien enlever** : un `+` devant. `/cm fx diffusion +vignette` garde ce qui est déjà là et ajoute la
   vignette. À la voix : « ajoute du sépia ».
-- **Retirer un seul effet** : un `-` devant. `/fx Ensuri -flou` enlève le flou et garde le reste. À la voix :
+- **Retirer un seul effet** : un `-` devant. `/cm fx Ensuri -flou` enlève le flou et garde le reste. À la voix :
   « enlève juste le flou ».
 - Tout se cumule : sur un joueur, l'effet imposé + celui de ses lunettes ; sur le stream, l'effet de la régie
-  (`/fx diffusion`) + celui du plan en cours (intro, travelling).
+  (`/cm fx diffusion`) + celui du plan en cours (intro, travelling).
 
 ## Sur la diffusion (le stream)
 
 | Moyen | Exemple |
 |---|---|
-| Commande | `/fx diffusion noir_blanc` · `/fx diffusion judas 20` (20 secondes) · `/fx diffusion aucun` |
+| Commande | `/cm fx diffusion noir_blanc` · `/cm fx diffusion judas 20` (20 secondes) · `/cm fx diffusion aucun` |
 | Voix | « passe la diffusion en noir et blanc », « effet judas sur le stream », « enlève les effets » |
 
 Tous les jeux en mode diffusion (F8) montrent l'effet. Il reste jusqu'au prochain ordre (ou la durée donnée), et un
@@ -81,12 +81,12 @@ jeu de diffusion qui se reconnecte le retrouve. La commande demande d'être orga
 
 ## Sur la vue d'un joueur (imposé par l'organisateur)
 
-- `/fx Ensuri flou 60` : Ensuri voit flou pendant 60 secondes (il est prévenu en haut de l'écran).
-  `/fx tous sepia`, `/fx candidats pixel` (les candidats de la saison connectés), `/fx Ensuri aucun`.
+- `/cm fx Ensuri flou 60` : Ensuri voit flou pendant 60 secondes (il est prévenu en haut de l'écran).
+  `/cm fx tous sepia`, `/cm fx candidats pixel` (les candidats de la saison connectés), `/cm fx Ensuri aucun`.
 - **Le joueur ne peut pas l'enlever** lui-même : c'est la façon de « forcer » un effet pour une épreuve.
 - Voix : « mets Ensuri en flou », « mets tout le monde en sépia », « enlève les effets d'Ensuri ».
-- `/fx aucun` (ou « enlève les effets ») : plus aucun effet nulle part, ni diffusion ni joueurs.
-- `/fx etat` : qui a quoi ; `/fx liste` : tous les effets.
+- `/cm fx aucun` (ou « enlève les effets ») : plus aucun effet nulle part, ni diffusion ni joueurs.
+- `/cm fx etat` : qui a quoi ; `/cm fx liste` : tous les effets.
 
 Réservé aux organisateurs.
 
@@ -97,7 +97,7 @@ L'onglet CraftMaster en a une par effet ; elles se fabriquent aussi à l'établi
 avec les lunettes en main = on les met sur la tête (comme une citrouille) ; on voit alors le monde à travers. Les
 autres les voient sur la tête du joueur, et la diffusion aussi.
 
-| Verres | Nom | Effet sur la vue | Pour `/fx porter` |
+| Verres | Nom | Effet sur la vue | Pour `/cm fx porter` |
 |---|---|---|---|
 | Bleu clair | Lunettes floues | flou | `blurry_glasses` |
 | Marron | Lunettes sépia | sépia | `sepia_glasses` |
@@ -114,14 +114,14 @@ autres les voient sur la tête du joueur, et la diffusion aussi.
 
 L'effet est le composant `craftmaster:screen_fx`, la couleur `minecraft:dyed_color`, le nom `minecraft:item_name`.
 Les onze anciens objets (un dessin chacun) restent connus du jeu : dans l'inventaire d'un joueur, ils deviennent
-tout seuls les nouvelles lunettes, avec le même effet (et un verrou posé par `/fx porter … verrouille` reste).
+tout seuls les nouvelles lunettes, avec le même effet (et un verrou posé par `/cm fx porter … verrouille` reste).
 
 **Pour une épreuve**, l'organisateur peut les mettre lui-même sur la tête d'un candidat :
-- `/fx porter Ensuri blurry_glasses` : Ensuri porte les lunettes floues (ce qu'il avait sur la tête va dans son
+- `/cm fx porter Ensuri blurry_glasses` : Ensuri porte les lunettes floues (ce qu'il avait sur la tête va dans son
   inventaire) ;
-- `/fx porter @a blurry_glasses verrouille` : **verrouillées**, impossible de les enlever (en survie / aventure ;
+- `/cm fx porter @a blurry_glasses verrouille` : **verrouillées**, impossible de les enlever (en survie / aventure ;
   un joueur en créatif peut toujours) ;
-- `/fx retirer Ensuri` : les enlève (rendues sans le verrou).
+- `/cm fx retirer Ensuri` : les enlève (rendues sans le verrou).
 
 Astuce : n'importe quel objet de tête peut porter un effet,
 `/give @s carved_pumpkin[craftmaster:screen_fx="sepia+vignette"]`.
@@ -136,7 +136,7 @@ seconde.
 
 `fr.lordfinn.craftmaster.client.fx.ScreenEffects.setBroadcastEffect("fisheye+masque_rond")` (ou `null` / `"aucun"`)
 met un effet sur l'image des jeux en mode diffusion, avec fondu ; `setBroadcastEffect(id, secondesDeFondu)` règle le
-fondu. C'est le même emplacement que `/fx diffusion` : le dernier ordre gagne.
+fondu. C'est le même emplacement que `/cm fx diffusion` : le dernier ordre gagne.
 
 ## Performances
 

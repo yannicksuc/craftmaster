@@ -257,7 +257,7 @@ public final class Broadcast {
     // ---------------------------------------------------------------- client commands
 
     private static void registerCommands(CommandDispatcher<FabricClientCommandSource> d) {
-        for (String name : List.of("craftMasterBroadcast", "craftmasterbroadcast", "diffusion")) d.register(tree(name));
+        for (String name : List.of("diffusion")) d.register(tree(name));
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> tree(String name) {

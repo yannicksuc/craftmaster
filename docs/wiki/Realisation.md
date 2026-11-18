@@ -7,13 +7,13 @@ Tout est piloté depuis le serveur : LordFinn (ou un réalisateur) change de pla
 touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montrent exactement la même chose.
 
 ## En bref, le soir du direct
-1. Une fois : poser les caméras du studio (voir plus bas), leur donner un rôle (`/cam role 1 large`,
-   `/cam role 2 trone`, `/cam role 4 podium`).
+1. Une fois : poser les caméras du studio (voir plus bas), leur donner un rôle (`/cm cam role 1 large`,
+   `/cm cam role 2 trone`, `/cm cam role 4 podium`).
 2. Sur le PC de diffusion : se connecter avec le compte caméra, de préférence **en spectateur**
    (`/gamemode spectator <compte>`), puis **F8** (ou `/diffusion`, ou depuis n'importe quel jeu admin
-   `/tv broadcast <compte> on`). OBS capture la fenêtre du jeu (1920 × 1080 conseillé).
-3. `/tv intro` (ou « générique ») au début, `/cam auto on` (ou « réalisation automatique ») si on veut que la
-   réalisation se fasse toute seule, `/tv outro` (« générique de fin ») à la fin.
+   `/cm tv diffusion <compte> on`). OBS capture la fenêtre du jeu (1920 × 1080 conseillé).
+3. `/cm tv intro` (ou « générique ») au début, `/cm cam auto on` (ou « réalisation automatique ») si on veut que la
+   réalisation se fasse toute seule, `/cm tv outro` (« générique de fin ») à la fin.
 
 ## Les caméras
 - **Objet « Caméra de studio »** (onglet CraftMaster, recette : lingot de fer, verre, lingots, bâtons) : clic droit
@@ -32,23 +32,23 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   | le côté d'une **barre** | debout sur un bras qui part de la barre, avec son collier |
 
   Le plan est toujours pris **depuis l'objectif** : sa hauteur dépend de la fixation (1,5 bloc au-dessus du sol sur
-  le trépied, juste au-dessus du support sinon, juste en dessous quand elle est suspendue). Viser (`/cam aim`, le
+  le trépied, juste au-dessus du support sinon, juste en dessous quand elle est suspendue). Viser (`/cm cam viser`, le
   bouton [Viser comme moi]) et tous les réglages marchent pareil partout ; une caméra suspendue est dessinée à
-  l'envers, son numéro reste lisible. `/cam here` la remet sur un trépied au sol, à la place de tes yeux. Les caméras
+  l'envers, son numéro reste lisible. `/cm cam ici` la remet sur un trépied au sol, à la place de tes yeux. Les caméras
   posées avant gardent leur trépied.
 
   ![Les fixations](img/camera-ensemble.png)
   ![Suspendue au plafond](img/camera-plafond.png) ![Plan de diffusion depuis cette caméra](img/camera-diffusion.png)
-- **`/cam here <n> [nom]`** (le plus pratique pour cadrer) : la caméra n se met **à la place de tes yeux, regardant
+- **`/cm cam ici <n> [nom]`** (le plus pratique pour cadrer) : la caméra n se met **à la place de tes yeux, regardant
   là où tu regardes**. On se place, on regarde le plan voulu, on tape la commande. Une caméra existante est déplacée.
-- `/cam placer <n> <x y z> vers <x y z>` : sans bouger (console, [Régie IA](RegieIA.md)) : l'objectif à ces coordonnées,
+- `/cm cam placer <n> <x y z> vers <x y z>` : sans bouger (console, [Régie IA](RegieIA.md)) : l'objectif à ces coordonnées,
   regardant la cible ; une caméra nouvelle est un simple point de vue (pas de trépied).
-- `/cam aim <n>` : la caméra garde sa place, elle regarde là où tu regardes. `/cam goto <n>` : tu vois exactement ce
-  que voit la caméra (pour vérifier, puis `/cam here <n>` pour recadrer d'ici).
+- `/cm cam viser <n>` : la caméra garde sa place, elle regarde là où tu regardes. `/cm cam aller <n>` : tu vois exactement ce
+  que voit la caméra (pour vérifier, puis `/cm cam ici <n>` pour recadrer d'ici).
 - Clic droit sur une caméra (réalisation) : son numéro, son réglage, sa fixation et des liens cliquables (à
   l'antenne, viser, renommer, rôle). Un coup dessus la retire.
-- Réglages : `/cam name <n> <nom>`, `/cam role <n> large|trone|podium|aucun` (un seul rôle par caméra et par rôle),
-  `/cam zoom <n> <15..110>` ou `reset` (champ de vision), `/cam motion <n> fixe|respiration|travelling|panoramique`.
+- Réglages : `/cm cam nom <n> <nom>`, `/cm cam role <n> large|trone|podium|aucun` (un seul rôle par caméra et par rôle),
+  `/cm cam zoom <n> <15..110>` ou `reset` (champ de vision), `/cm cam mouvement <n> fixe|respiration|travelling|panoramique`.
 - **Mouvement** : *respiration* (défaut) = la caméra « respire » de quelques centimètres et d'une fraction de degré,
   comme une caméra sur pied tenue par un cadreur ; *travelling* = avance lentement (1,6 bloc max, ralentit) ;
   *panoramique* = balaie doucement ±7° ; *fixe* = immobile.
@@ -65,7 +65,7 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
 ## Changer de plan
 | Moyen | Exemples |
 |---|---|
-| Commandes | `/cam cut 2` · `/cam cut "Plan large" fondu` · `/cam cut trone enchaine` · `/cam wide` · `/cam next` / `prev` · `/cam follow Ensuri` |
+| Commandes | `/cm cam couper 2` · `/cm cam couper "Plan large" fondu` · `/cm cam couper trone enchaine` · `/cm cam large` · `/cm cam suivante` / `prev` · `/cm cam suivre Ensuri` |
 | Voix | « caméra 2 », « plan large », « plan sur le trône », « le podium », « suis Ensuri », « caméra 3 en fondu » |
 | Client de diffusion | touches **1 à 9** = caméra 1 à 9 du lieu actif, **molette** = caméra précédente / suivante (sur un plan qui suit : rapproche / éloigne), **Tab** / Maj + molette = zone suivante, **0** = écran partagé, `/diffusion camera <n, nom ou clé>`, `/diffusion zone <zone\|next>` |
 
@@ -79,14 +79,14 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   - *surimpression* (« double exposition ») : la nouvelle image monte par-dessus l'ancienne, figée, les deux restent
     superposées un moment, puis l'ancienne s'efface (1,6 s ; par exemple un plan du trône par-dessus le ciel).
 
-  Par plan (`/cam cut 2 enchaine`, `/cam cut trone surimpression`) ou par défaut (`/cam transition fondu`). Partout
-  où une transition se donne : coupes, trajets, plans d'intro (`/tv intro <m> plan 1 transition miroir`), voix
+  Par plan (`/cm cam couper 2 enchaine`, `/cm cam couper trone surimpression`) ou par défaut (`/cm cam transition fondu`). Partout
+  où une transition se donne : coupes, trajets, plans d'intro (`/cm tv intro <m> plan 1 transition miroir`), voix
   (« caméra 2 en miroir », « flash blanc sur le trône »). Un jeu de diffusion d'une version plus ancienne du mod
   joue ces trois-là en coupe.
-- **Plan qui suit un joueur** (`/cam follow`) : son nom s'affiche en synthé quelques secondes, puis la caméra
+- **Plan qui suit un joueur** (`/cm cam suivre`) : son nom s'affiche en synthé quelques secondes, puis la caméra
   change de cadrage toute seule (voir *Le plan qui suit un joueur* plus bas) ; on peut la prendre en main.
-- **Réalisation automatique** (`/cam auto on|off`, « réalisation automatique ») : coupe sur le candidat qui marque
-  (7 s), sur celui qui ouvre son enveloppe ou qu'on met en lumière (`/tv spotlight <joueur>`, 9 s, avec un synthé
+- **Réalisation automatique** (`/cm cam auto on|off`, « réalisation automatique ») : coupe sur le candidat qui marque
+  (7 s), sur celui qui ouvre son enveloppe ou qu'on met en lumière (`/cm tv vedette <joueur>`, 9 s, avec un synthé
   « ouvre son enveloppe »), sur la caméra *podium* pendant toute la révélation, sur le plan large au lancement d'une
   manche et à la fin de chaque plan automatique. Une coupe à la main reprend la main.
 - **Sur qui parle** (avec Simple Voice Chat sur le serveur) : la réalisation automatique coupe aussi sur celui qui
@@ -102,13 +102,13 @@ touches 1 à 9 du client de diffusion ; plusieurs jeux en mode diffusion montren
   qui vont (deux : bord à bord ou cadres ; plus : cadres ou un en grand) ; seulement si toutes les tuiles sont dans
   la même dimension et assez proches pour que le jeu de diffusion les voie toutes (distance de vue du serveur). Une coupe à la main lui laisse l'antenne 20 s ; un point, une mise en
   lumière, la révélation passent avant. **Suivre un joueur à la main** (le bouton du candidat dans la régie du site,
-  `/cam follow Ensuri`, « suis Ensuri ») reste sur lui comme « reste sur Ensuri » : ni la voix, ni les points, ni les
+  `/cm cam suivre Ensuri`, « suis Ensuri ») reste sur lui comme « reste sur Ensuri » : ni la voix, ni les points, ni les
   silences, ni le début d'une manche ne coupent ailleurs, jusqu'à ce qu'on choisisse un autre plan ou qu'on repasse en
   auto (la révélation, elle, reprend l'antenne). Depuis la **régie du site**, il reste suivi jusqu'à ce qu'on le
   désélectionne (nouveau clic sur le bouton allumé : retour au plan d'ensemble de l'auto). Autrement (« reste sur
-  Ensuri », « suis Ensuri », `/cam follow`, `/cam rester`), il est lâché après **20 s sans l'entendre** (sans chat
+  Ensuri », « suis Ensuri », `/cm cam suivre`, `/cm cam rester`), il est lâché après **20 s sans l'entendre** (sans chat
   vocal : 20 s après l'ordre) et l'auto repasse sur le plan d'ensemble (la caméra qui voit le plus de joueurs). Seuls ceux qu'une caméra cadre comptent (pas les modos ni les spectateurs).
-  `/cam auto voix on|off` (oui par défaut), `/cam auto voix` : où on en est. Rien n'est enregistré : seulement qui
+  `/cm cam auto voix on|off` (oui par défaut), `/cm cam auto voix` : où on en est. Rien n'est enregistré : seulement qui
   émet, et quand.
 - Le joueur caméra en **spectateur** est déplacé tout seul près du plan (4 blocs sous l'objectif) pour que le
   serveur lui envoie le décor et les joueurs ; un joueur qui n'est pas spectateur n'est jamais déplacé.
@@ -146,7 +146,7 @@ Jamais deux fois le même d'affilée.
   au bord.
 - **Même suivi que les projecteurs** : la caméra suit le joueur sans traîner derrière lui quand il marche (elle
   vise un peu devant, là où il va), lui laisse de la place devant quand il traverse l'image, et accepte les mêmes
-  règles que les poursuites : `/cam follow @moment` (le joueur du moment), `@candidat`, `@scene`, `@maitre`,
+  règles que les poursuites : `/cm cam suivre @moment` (le joueur du moment), `@candidat`, `@scene`, `@maitre`,
   `@rang:1` (« suis le premier du classement »), `@dernier`, `@hasard`, `@public`, `@proche`, `@zone:<nom>` ;
   le joueur est revu quatre fois par seconde tant que le plan est à l'antenne (il reste sur lui tant qu'il
   correspond) et, s'il change, la caméra coupe sur le nouveau au lieu d'un fondu.
@@ -160,18 +160,18 @@ Jamais deux fois le même d'affilée.
 
 | Dit | Commande | Effet |
 |---|---|---|
-| « on va voir Ensuri », « et maintenant allons voir comment ça se passe chez Ensuri » | `/cam voir Ensuri` | une caméra posée qui le voit bien (tirée au sort, selon sa place dans l'image), sinon le plan qui le suit ; en manche, une fois sur trois environ, lui en grand et les autres zones en petit dessous ; l'auto continue ensuite |
-| « reste sur Ensuri » · « tu peux lâcher Ensuri » | `/cam rester Ensuri` · `off` | rien ne coupe ailleurs (qui parle, points, mise en lumière, début de manche) jusqu'au prochain plan choisi à la main ou 20 s sans l'entendre (`off` : retour au plan d'ensemble) ; suivre un joueur à la main fait pareil |
-| « plus large » · « plus serré » · « cadrage normal » | `/cam cadrage large\|serre\|auto` | cadrages plus loin / plus près, caméras qui le montrent plus petit / plus grand |
-| « évite la caméra 3 » · « tu peux reprendre la caméra 3 » | `/cam eviter 3` · `off` | l'auto ne la prend plus (si elle est à l'antenne, on passe ailleurs) |
-| « repasse en auto » | `/cam auto on` | plus de joueur retenu, cadrage normal (les caméras évitées le restent) |
+| « on va voir Ensuri », « et maintenant allons voir comment ça se passe chez Ensuri » | `/cm cam voir Ensuri` | une caméra posée qui le voit bien (tirée au sort, selon sa place dans l'image), sinon le plan qui le suit ; en manche, une fois sur trois environ, lui en grand et les autres zones en petit dessous ; l'auto continue ensuite |
+| « reste sur Ensuri » · « tu peux lâcher Ensuri » | `/cm cam rester Ensuri` · `off` | rien ne coupe ailleurs (qui parle, points, mise en lumière, début de manche) jusqu'au prochain plan choisi à la main ou 20 s sans l'entendre (`off` : retour au plan d'ensemble) ; suivre un joueur à la main fait pareil |
+| « plus large » · « plus serré » · « cadrage normal » | `/cm cam cadrage large\|serre\|auto` | cadrages plus loin / plus près, caméras qui le montrent plus petit / plus grand |
+| « évite la caméra 3 » · « tu peux reprendre la caméra 3 » | `/cm cam eviter 3` · `off` | l'auto ne la prend plus (si elle est à l'antenne, on passe ailleurs) |
+| « repasse en auto » | `/cm cam auto on` | plus de joueur retenu, cadrage normal (les caméras évitées le restent) |
 
 Ces consignes ne sont pas enregistrées : elles tiennent jusqu'au redémarrage du serveur.
 
 ## Les lieux : caméras du studio et caméras des épreuves
 Chaque caméra a un **lieu** : le **studio** (par défaut ; toutes les anciennes caméras y sont) ou une **manche**
 (une épreuve, par son id : `pont`). Dans une manche, une caméra peut aussi appartenir à une **zone** : la salle d'un
-candidat ou d'une équipe. Les zones sont les **zones d'épreuve** (`/craftMasterZone create salle-ensuri …` puis
+candidat ou d'une équipe. Les zones sont les **zones d'épreuve** (`/cm epreuve zone creer salle-ensuri …` puis
 `players salle-ensuri Ensuri`) : on donne à la caméra le nom de la zone, ou simplement le nom du candidat.
 
 **Numéros : chaque lieu, et chaque zone, a ses caméras 1, 2, 3…** La salle d'Ensuri a sa caméra 1, celle de Cyllu
@@ -184,30 +184,30 @@ Chaque caméra a aussi une **clé** unique pour la viser de n'importe où : `stu
 - générique, intro du studio, révélation, entre deux manches : celles **du studio** ;
 - dans une manche à zones : **Tab** (ou Maj + molette) passe à la zone suivante (Maj + Tab : précédente), puis
   1–9 = les caméras de cette salle ; « zone d'Ensuri » / « caméras de l'équipe bleue » à la voix (et ça montre son
-  plan large), `/cam zone ensuri` ; « suis Ensuri » choisit aussi sa zone ;
-- à la main, jusqu'au prochain temps de l'émission : `/cam focus studio`, `/cam focus pont [zone]`,
-  `/cam focus auto` pour revenir au suivi automatique. `/cam focus` dit où on en est.
-- Viser ailleurs reste possible à tout moment : `/cam cut studio:2`, « caméra 2 du studio », « caméra 1 d'Ensuri »,
+  plan large), `/cm cam zone ensuri` ; « suis Ensuri » choisit aussi sa zone ;
+- à la main, jusqu'au prochain temps de l'émission : `/cm cam focus studio`, `/cm cam focus pont [zone]`,
+  `/cm cam focus auto` pour revenir au suivi automatique. `/cm cam focus` dit où on en est.
+- Viser ailleurs reste possible à tout moment : `/cm cam couper studio:2`, « caméra 2 du studio », « caméra 1 d'Ensuri »,
   `/diffusion camera pont:2`. « Plan sur le trône » et « le podium » trouvent la caméra du studio même en manche.
 
 | Mettre en place | Commande |
 |---|---|
-| Ranger une caméra | `/cam lieu <caméra> <studio\|manche> [zone]` : `/cam lieu 3 pont ensuri` · « la caméra 3 est sur le pont » |
-| Poser directement | `/cam focus pont ensuri` puis `/cam here 1` (ou l'objet Caméra de studio) ; ou `/cam here pont:ensuri:1` |
-| Voir | `/cam list` (le lieu actif), `/cam list tout` (tous les lieux), clic droit sur un trépied (son lieu + bouton [Lieu]) |
+| Ranger une caméra | `/cm cam lieu <caméra> <studio\|manche> [zone]` : `/cm cam lieu 3 pont ensuri` · « la caméra 3 est sur le pont » |
+| Poser directement | `/cm cam focus pont ensuri` puis `/cm cam ici 1` (ou l'objet Caméra de studio) ; ou `/cm cam ici pont:ensuri:1` |
+| Voir | `/cm cam liste` (le lieu actif), `/cm cam liste tout` (tous les lieux), clic droit sur un trépied (son lieu + bouton [Lieu]) |
 
 - Changer de lieu garde le numéro s'il est libre là-bas (sinon le premier libre) ; le trépied reste où il est.
 - **Réalisation automatique en manche** : quand un candidat marque, ouvre son enveloppe ou buzze, elle coupe sur
   **la caméra de sa zone la plus proche de lui** (sinon le plan qui le suit), puis revient au plan large de la manche.
-- **Écran partagé** : `/cam mosaic` (« écran partagé », touche **0** du client de diffusion) : jusqu'à 6 salles côte à
-  côte, chacune par le plan large de sa zone, avec le nom des candidats. `/cam mosaic off` ou 0 pour revenir. Les
+- **Écran partagé** : `/cm cam mosaique` (« écran partagé », touche **0** du client de diffusion) : jusqu'à 6 salles côte à
+  côte, chacune par le plan large de sa zone, avec le nom des candidats. `/cm cam mosaique off` ou 0 pour revenir. Les
   vignettes se rafraîchissent à tour de rôle (une image sur deux, trois ou quatre) : parfait pour des salles où l'on
   construit, moins pour une course rapide. Connu : sur un terrain plat ouvert, une fine ligne orangée peut
   apparaître à l'horizon des vignettes (rien dans des salles fermées).
 - **Plans choisis en écran partagé** (2 à 6) : Ctrl+clic sur les plans de la régie des modos (en jeu ou sur le site),
   ou à la voix (« mets la 3 et la 5 côte à côte ») ; dispositions cadres, bord à bord ou un principal en grand
   ([Régie des modos](RegieModos.md#plusieurs-plans-à-lantenne-écran-partagé)).
-- `/cam pov Ensuri` (« vue d'Ensuri ») : à travers les yeux d'un joueur.
+- `/cm cam pov Ensuri` (« vue d'Ensuri ») : à travers les yeux d'un joueur.
 
 ## Le menu d'une caméra (clic droit dessus)
 Nom, rôle, zoom (glisser ou molette, clic droit : celui du spectateur), mouvement, **visible / cachée** (cachée :
@@ -246,18 +246,18 @@ l'écran, garde la scène en vue :
 ## Les travellings enregistrés (trajets)
 Un **trajet** est un mouvement de caméra en plusieurs **étapes** : la caméra glisse de l'une à l'autre en courbe
 douce (pas de cassure aux étapes), démarre et s'arrête en douceur, et peut marquer une **pause** sur une étape.
-1. Place-toi au départ, regarde le premier cadre : `/cam trajet pont point`.
-2. Déplace-toi, regarde le cadre suivant : `/cam trajet pont point 3` (3 secondes pour y aller). Recommence.
-   Plus simple : `/cam trajet pont objet` donne un **Repère de travelling** (clap) : **clic droit = une étape à tes
+1. Place-toi au départ, regarde le premier cadre : `/cm cam trajet pont point`.
+2. Déplace-toi, regarde le cadre suivant : `/cm cam trajet pont point 3` (3 secondes pour y aller). Recommence.
+   Plus simple : `/cm cam trajet pont objet` donne un **Repère de travelling** (clap) : **clic droit = une étape à tes
    yeux**, accroupi + clic droit = retirer la dernière.
 3. Régler : `duree <s> [étape]` (temps pour arriver à l'étape), `pause <s> [étape]` (arrêt sur l'étape),
    `courbe lisse|lineaire|entree|sortie [étape]`, `zoom <15..110>|reset [étape]`, `remplacer <étape>` (refaire
    l'étape d'ici), `aller <étape>` (y aller pour vérifier), `suppr [étape]`, `lieu <lieu>`, `effacer`.
-4. Vérifier : `/cam trajet pont` (la liste des étapes) ; `montrer` (la ligne dorée dans le monde 20 s, étapes en
+4. Vérifier : `/cm cam trajet pont` (la liste des étapes) ; `montrer` (la ligne dorée dans le monde 20 s, étapes en
    rouge, vue seulement par les organisateurs, jamais par la diffusion) ; `apercu` (le trajet joué **sur ton écran
    seulement**, avec le temps en haut).
-5. À l'antenne : `/cam jouer pont [transition] [effet]` · « lance le travelling du pont ». À la fin, la caméra reste
-   sur la dernière étape jusqu'au plan suivant. `/cam trajets` les liste.
+5. À l'antenne : `/cm cam jouer pont [transition] [effet]` · « lance le travelling du pont ». À la fin, la caméra reste
+   sur la dernière étape jusqu'au plan suivant. `/cm cam trajets` les liste.
 - Les trajets sont dans `config/craftmaster/trajets.json`. Ils sont joués image par image par le jeu de diffusion
   (fluide à 60 i/s, même avec un serveur qui rame).
 
@@ -274,29 +274,29 @@ prend le relais.
 
 | Faire | Commande (`<m>` = la manche) |
 |---|---|
-| Faire l'intro toute seule | `/tv intro <m> construire` (à partir des caméras de la manche, sur la musique d'intro ; remplace les plans) |
-| Ajouter un plan | `/tv intro <m> ajouter camera large 4` · `ajouter trajet survol` · `ajouter suivi Ensuri 5` (+ `[transition] [effet]`) · `ajouter tache [s]` (lieu de la tâche) |
-| Régler un plan | `/tv intro <m> plan 2 duree 3` · `plan 2 transition coupe` · `plan 2 effet sepia` · `plan 1 carte synthe Le Pont \| Épreuve 1` · `plan 3 retirer` |
-| Réglages | `/tv intro <m> musique intro\|theme\|aucune\|<son>` · `titre on\|off` · `auto on` (jouée toute seule au lancement de la manche) · `effacer` |
-| Look, consigne | `/tv intro <m> look look_intro\|aucun` (effet ajouté à tous les plans) · `consigne on\|off` (la tâche tapée en bas à la fin) |
-| Lieu de la tâche | `/tv intro <m> lieu` (replace la caméra du plan « lieu de la tâche ») |
-| Couper sur la musique | `/tv intro <m> rythme intro` (musique d'intro, 120 BPM) · `rythme theme` (tempo du thème, 112 BPM) · `rythme 96` · `rythme 120 4` (4 temps par plan) · `rythme 120 4 0,4` (1er temps à 0,4 s) · `rythme off` |
-| Lancement enchaîné | `/tv intro <m> enchaine on\|off` (on par défaut, avec `auto on`) |
-| Voir / jouer | `/tv intro <m> voir` · `/tv intro <m>` · « lance l'intro du pont » · `/tv stop` l'arrête |
-| Éditeur | `/tv intro <m> voir` (cliquable) · `plan 3 essayer` (jouer à partir du plan 3, sans musique) · `plan 3 monter\|descendre` · `plan 3 camera <caméra>` · `plan 3 tache` |
+| Faire l'intro toute seule | `/cm tv intro <m> construire` (à partir des caméras de la manche, sur la musique d'intro ; remplace les plans) |
+| Ajouter un plan | `/cm tv intro <m> ajouter camera large 4` · `ajouter trajet survol` · `ajouter suivi Ensuri 5` (+ `[transition] [effet]`) · `ajouter tache [s]` (lieu de la tâche) |
+| Régler un plan | `/cm tv intro <m> plan 2 duree 3` · `plan 2 transition coupe` · `plan 2 effet sepia` · `plan 1 carte synthe Le Pont \| Épreuve 1` · `plan 3 retirer` |
+| Réglages | `/cm tv intro <m> musique intro\|theme\|aucune\|<son>` · `titre on\|off` · `auto on` (jouée toute seule au lancement de la manche) · `effacer` |
+| Look, consigne | `/cm tv intro <m> look look_intro\|aucun` (effet ajouté à tous les plans) · `consigne on\|off` (la tâche tapée en bas à la fin) |
+| Lieu de la tâche | `/cm tv intro <m> lieu` (replace la caméra du plan « lieu de la tâche ») |
+| Couper sur la musique | `/cm tv intro <m> rythme intro` (musique d'intro, 120 BPM) · `rythme theme` (tempo du thème, 112 BPM) · `rythme 96` · `rythme 120 4` (4 temps par plan) · `rythme 120 4 0,4` (1er temps à 0,4 s) · `rythme off` |
+| Lancement enchaîné | `/cm tv intro <m> enchaine on\|off` (on par défaut, avec `auto on`) |
+| Voir / jouer | `/cm tv intro <m> voir` · `/cm tv intro <m>` · « lance l'intro du pont » · `/cm tv stop` l'arrête |
+| Éditeur | `/cm tv intro <m> voir` (cliquable) · `plan 3 essayer` (jouer à partir du plan 3, sans musique) · `plan 3 monter\|descendre` · `plan 3 camera <caméra>` · `plan 3 tache` |
 
 - Les caméras d'un plan se lisent **dans le lieu de la manche** : `large`, `2`, `ensuri:1`, ou `studio:3`.
 - **Coupé sur la musique** (`rythme`) : chaque plan dure un nombre entier de temps, donc chaque coupe tombe sur un
   temps. Un plan sans durée dure environ 3 s (6 temps à 112 BPM), un plan avec durée est arrondi au temps le plus
-  proche (jamais moins d'un temps). `/tv intro <m> voir` donne la durée jouée de chaque plan (« 3,2 s (6 temps) »).
+  proche (jamais moins d'un temps). `/cm tv intro <m> voir` donne la durée jouée de chaque plan (« 3,2 s (6 temps) »).
   Le thème fourni est une fanfare provisoire à 112 BPM qui commence sur un temps ; avec une autre musique, donner
   son tempo et, si elle commence par un silence, l'instant de son premier temps.
-- **Lancement enchaîné** (`auto on` + `enchaine on`, le défaut) : `/cfma next` lance l'intro **avant** la manche.
+- **Lancement enchaîné** (`auto on` + `enchaine on`, le défaut) : `/cm manche suivante` lance l'intro **avant** la manche.
   Les joueurs restent où ils sont et entendent le thème. À la fin de l'intro, l'image de tout le monde (joueurs et
   diffusion) descend au noir, les joueurs sont téléportés dans le noir, la diffusion coupe sur le plan large de la
   manche, « MANCHE 3 » puis le nom de la manche sont tapés à la machine sur le noir, puis l'image s'ouvre sur eux
   avec le cor et le chrono (≈ 5 s en tout). Les chronos de tablette et la réalisation automatique démarrent à ce
-  moment-là. `/tv stop` pendant l'intro la saute : on passe directement au noir. Un joueur sans le mod a une
+  moment-là. `/cm tv stop` pendant l'intro la saute : on passe directement au noir. Un joueur sans le mod a une
   cécité pendant le noir et le titre habituel. `enchaine off` : la manche démarre tout de suite et l'intro joue
   par-dessus (ancien comportement).
 - **Intro construite toute seule** (`construire`, « fais l'intro du pont toute seule ») : sur la musique d'intro
@@ -309,20 +309,20 @@ prend le relais.
   attend. Sa caméra est faite la première fois : le premier point de TP de la manche, l'enveloppe posée la plus
   proche (16 blocs au plus), et un point de vue dégagé derrière l'arrivée qui voit les deux. C'est une caméra du lieu
   de la manche nommée « Lieu de la tâche », **sans trépied** (rien ne gêne les joueurs). Une fois faite elle ne
-  bouge plus : on peut la retoucher avec `/cam`. Après avoir déplacé le point de TP ou l'enveloppe :
-  `/tv intro <m> lieu`. Sans enveloppe posée, le plan montre l'arrivée.
+  bouge plus : on peut la retoucher avec `/cm cam`. Après avoir déplacé le point de TP ou l'enveloppe :
+  `/cm tv intro <m> lieu`. Sans enveloppe posée, le plan montre l'arrivée.
 - **Consigne tapée** (`consigne on`, le défaut) : si la tâche de la manche est révélée au lancement, sa première
   phrase (sans titre, sans partie secrète, 110 caractères au plus) est tapée à la machine en bas de l'image pendant
   le plan « lieu de la tâche » (ou le dernier plan), sur la diffusion seulement.
 - **Musique d'intro** (`musique intro`) : une petite pièce provisoire (pizzicato, basson, glockenspiel), générée par
   `scripts/gen_intro_music.py`, remplaçable dans un pack de ressources (`assets/craftmaster/sounds/show/intro.ogg`).
-- **Éditeur** : `/tv intro <m> voir` montre la frise de l'intro sur la musique (un pavé par temps, une couleur par
+- **Éditeur** : `/cm tv intro <m> voir` montre la frise de l'intro sur la musique (un pavé par temps, une couleur par
   plan ; survoler = le plan, cliquer = l'essayer) et dit si elle finit sur l'accord de la musique d'intro. Chaque
   plan a ses boutons : ▶ (jouer à partir de lui, sans la musique), ↑ ↓ (changer sa place), caméra, effet,
   transition, durée (la commande est proposée, à compléter), ✖ (retirer). En bas : tout jouer, ajouter une caméra
   ou le lieu de la tâche, construire, replacer le lieu de la tâche. Tout est annulable.
-- Tout réglage d'intro est **annulable** (« annule », `/craftMasterUndo`) : il est rangé avec la manche.
-- `/tv intro` seul lance toujours le générique d'ouverture de l'émission.
+- Tout réglage d'intro est **annulable** (« annule », `/cm annuler`) : il est rangé avec la manche.
+- `/cm tv intro` seul lance toujours le générique d'ouverture de l'émission.
 
 ## Le flux de l'émission chez les joueurs
 - Chaque joueur peut afficher **le flux commun** (le plan de la réalisation, automatique ou mené par la régie, avec
@@ -330,10 +330,10 @@ prend le relais.
   continue de jouer : marcher, cliquer, chat, inventaire, comme en première personne ; son personnage est dans
   l'image comme les autres. Pas de viseur (il viserait ce qu'on ne voit pas).
 - **Imposé à tous** pendant les grands moments : le générique d'ouverture et de fin, l'intro d'une manche (et son
-  lancement), la révélation des scores ; ou à la main : `/tv flux forcer`, puis `/tv flux libre`. La touche ne le
+  lancement), la révélation des scores ; ou à la main : `/cm tv flux forcer`, puis `/cm tv flux libre`. La touche ne le
   quitte pas pendant ce temps ; ensuite chacun retrouve son choix.
 - Pendant un moment imposé, les joueurs **restent immobiles** (ni déplacement ni clic ; chat et menus restent) ;
-  `/tv flux bouger on` les laisse bouger et interagir, `off` les fige de nouveau. `/tv flux` : où on en est.
+  `/cm tv flux bouger on` les laisse bouger et interagir, `off` les fige de nouveau. `/cm tv flux` : où on en est.
 - Limite : un plan pris loin des joueurs (la caméra d'une autre manche) peut montrer un décor pas encore chargé
   chez eux.
 
@@ -344,7 +344,7 @@ selon la distance, gauche / droite, atténuation, y compris une voix transformé
 qui arrive comme n'importe quelle voix) sont entendus **depuis la tête du joueur**, tournée là où il regarde. Ça
 vaut pour :
 - le **flux de l'émission** (F7, ou imposé) ;
-- l'**aperçu** d'un travelling (`/cam trajet <nom> apercu`, bouton Aperçu) ;
+- l'**aperçu** d'un travelling (`/cm cam trajet <nom> apercu`, bouton Aperçu) ;
 - **regarder par** une caméra, une étape de travelling ou un projecteur pour la cadrer (gauche / droite : là où le
   joueur regardait avant d'entrer dans la vue).
 Le tonnerre et les autres sons lointains gardent leur retard compté depuis le joueur. Les prises de vignettes des
@@ -365,23 +365,23 @@ qu'il montre, comme le micro d'une caméra de télé, et l'écoute suit chaque c
   - bandeau de la manche en haut au centre : « MANCHE 2 », son nom (ou le titre de la tâche révélée, chantier D),
     le chrono, une ligne d'or qui raccourcit, le tout rouge et clignotant dans les 10 dernières secondes ;
   - **synthé** en bas à gauche (visage, nom, « 2e · 14 pts » / « Candidat » / « Maître du jeu », ou texte libre :
-    `/tv lowerthird player Ensuri`, `/tv lowerthird text Pause | On revient vite`) ;
+    `/cm tv synthe joueur Ensuri`, `/cm tv synthe texte Pause | On revient vite`) ;
   - **bandeau des scores publiés** en bas (rang, visage, nom, points) : 14 s après chaque publication (mode `auto`),
-    toujours (`on`), jamais (`off`), ou maintenant (`/tv scores`). Caché pendant la révélation et pour une saison
+    toujours (`on`), jamais (`off`), ou maintenant (`/cm tv scores`). Caché pendant la révélation et pour une saison
     cachée ;
   - **points en direct** à droite : « Ensuri **+3** » qui apparaît avec un petit rebond ;
-  - **carte de la tâche** à la demande (`/tv task [secondes]`, « montre la tâche ») : c'est la carte du chantier D ;
-  - **bandes cinéma** : `/tv letterbox on|off`.
+  - **carte de la tâche** à la demande (`/cm tv tache [secondes]`, « montre la tâche ») : c'est la carte du chantier D ;
+  - **bandes cinéma** : `/cm tv bandes on|off`.
 
 ## Générique
-- **Ouverture** (`/tv intro`, « générique ») : le thème démarre ; les caméras du studio s'enchaînent en fondus
+- **Ouverture** (`/cm tv intro`, « générique ») : le thème démarre ; les caméras du studio s'enchaînent en fondus
   (plan large d'abord) sous le titre CRAFTMASTER, le sceau, la saison et la partie ; puis chaque candidat est
   présenté (plan qui le suit s'il est connecté, plan large sinon) avec sa grande carte (visage, « CANDIDAT 1/4 »,
   nom, rang publié) ; enfin le nom de la manche en cours (ou « Que le jeu commence ! »). ≈ 3,5 s par caméra
   (5 au plus) + 4 s par candidat.
-- **Fin** (`/tv outro`, « générique de fin ») : 30 s de crédits qui défilent (CraftMaster, saison, partie, présenté
+- **Fin** (`/cm tv outro`, « générique de fin ») : 30 s de crédits qui défilent (CraftMaster, saison, partie, présenté
   par, les candidats, le **classement publié**, réalisation) sur des fondus lents entre les caméras.
-- `/tv stop` arrête le générique (cartes effacées, musique coupée).
+- `/cm tv stop` arrête le générique (cartes effacées, musique coupée).
 - **Musique** : le son `craftmaster:show.theme` (fichier `assets/craftmaster/sounds/show/theme.ogg`), joué pour tout
   le monde, sans atténuation, sur le volume « Juke-box / Blocs musicaux ». Le thème fourni est **provisoire** : une
   petite fanfare générée par `scripts/gen_theme.py` (rien d'échantillonné, libre de droits).
@@ -390,5 +390,5 @@ qu'il montre, comme le micro d'une caméra de télé, et l'écoute suit chaque c
   chez qui doit l'entendre). Aucun autre fichier n'est nécessaire.
 
 ## Permissions
-- Piloter (commandes `/cam`, `/tv`, objet caméra, touches de la diffusion) : organisateur ou la permission `craftmaster:camera` (LuckPerms…).
+- Piloter (commandes `/cm cam`, `/cm tv`, objet caméra, touches de la diffusion) : organisateur ou la permission `craftmaster:camera` (LuckPerms…).
 - Suivre la réalisation (mode diffusion) : tout le monde.

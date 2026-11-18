@@ -258,7 +258,7 @@ public class TimerTabletBlockEntity extends SyncedBlockEntity {
             if (t.level != null && !t.level.isClientSide() && t.settings.stopOnRoundEnd) t.control("pause");
     }
 
-    /** /craftMasterTablet: a control for the tablets of a group ("" = every tablet); how many were reached. */
+    /** /cm plateau tablette: a control for the tablets of a group ("" = every tablet); how many were reached. */
     public static int controlAll(String group, String what) {
         int n = 0;
         String g = group == null ? "" : group.trim().toLowerCase(java.util.Locale.ROOT);

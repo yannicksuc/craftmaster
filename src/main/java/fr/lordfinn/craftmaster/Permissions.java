@@ -29,7 +29,7 @@ public final class Permissions {
 
     // ---------------------------------------------------------------- studio set (chantier F)
 
-    /** Showing images on the studio screens (/image), like the plugin's craftmaster.image; admins can too. */
+    /** Showing images on the studio screens (/cm media image), like the plugin's craftmaster.image; admins can too. */
     private static final Predicate<CommandSourceStack> IMAGE_ONLY =
             PermissionPredicates.require(CraftMaster.id("image"), PermissionLevel.GAMEMASTERS);
     public static final Predicate<CommandSourceStack> IMAGE = s -> IMAGE_ONLY.test(s) || ADMIN.test(s);

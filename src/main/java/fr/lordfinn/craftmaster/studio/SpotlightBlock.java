@@ -32,7 +32,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 /**
  * Orientable stage spotlight, standing on the floor or hung under a ceiling. Right click: on / off. Sneak + right
  * click with an empty hand: points where you look. A dye: colours the beam. Following a player:
- * {@code /craftMasterSpotlight follow} (or the voice control).
+ * {@code /cm projecteur suivre} (or the voice control).
  */
 public class SpotlightBlock extends BaseEntityBlock {
 

@@ -28,7 +28,7 @@ import java.util.function.Consumer;
  * "Caméra de studio": used on a block, mounts a camera there (next free number, {@link CameraMount}), its lens turned
  * the way the player looks: on the floor (its own tripod), on a tripod stand or a rig rod, under a ceiling or a rod
  * (hung upside-down), on a wall (a small arm) or a rod's side. Only for those who may drive the cameras; frame it
- * afterwards with {@code /cam aim}, or place it exactly with {@code /cam here}.
+ * afterwards with {@code /cm cam viser}, or place it exactly with {@code /cm cam ici}.
  */
 public class CameraItem extends Item {
 
@@ -51,7 +51,7 @@ public class CameraItem extends Item {
         }
         Vec3 at = ctx.getClickLocation();
         double[] anchor = mount.anchor(pos.getX(), pos.getY(), pos.getZ(), at.x, at.y, at.z);
-        // In the lieu / zone the operator works in (/cam focus), like the keys 1–9
+        // In the lieu / zone the operator works in (/cm cam focus), like the keys 1–9
         String group = fr.lordfinn.craftmaster.broadcast.Director.focus();
         int number = Cameras.list().nextFree(group);
         CameraSpot spot = new CameraSpot(number, null, "", Busts.worldId(level), anchor[0], anchor[1] + mount.lensDy(), anchor[2],
@@ -64,7 +64,7 @@ public class CameraItem extends Item {
         level.playSound(null, anchor[0], anchor[1], anchor[2], SoundEvents.ARMOR_STAND_PLACE, SoundSource.BLOCKS, 1f, 1.2f);
         player.sendSystemMessage(Component.literal("Caméra " + number + " posée " + mount.label() + " (" + spot.placeName() + "). ")
                 .withStyle(ChatFormatting.GOLD)
-                .append(Component.literal("Clic droit dessus pour la régler, /cam aim " + spot.key() + " pour la viser, /cam lieu "
+                .append(Component.literal("Clic droit dessus pour la régler, /cm cam viser " + spot.key() + " pour la viser, /cm cam lieu "
                         + spot.key() + " <lieu> [zone] pour changer de lieu.").withStyle(ChatFormatting.GRAY)));
         ItemStack stack = ctx.getItemInHand();
         if (!player.isCreative()) stack.shrink(1);

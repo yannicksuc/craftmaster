@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The judge's results sheet of a round (organisers, key N or /craftMasterResult): one line per contestant with
+ * The judge's results sheet of a round (organisers, key N or /cm epreuve feuille): one line per contestant with
  * their value (typed, said to the voice, or measured: stopwatch, tape, counter, scales), a disqualification
  * toggle, their stopwatch, their place and the points the scale proposes. "Apply the scale" writes those points
  * (score.set) in one undoable change. Everything is an action run by the server, exactly like the voice.

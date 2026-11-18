@@ -70,7 +70,7 @@ phrases synthétisées (voix Windows française) : avec les pseudos en vocabulai
   Serveur : bloc « TV direction » de `scripts/server_smoke_test.py <hôte> <port rcon>` (avec LordFinn connecté).
 - `StudioLogicTest` (décor du studio) : angles des projecteurs (conventions de Minecraft, aller-retour direction ↔
   angles, plus court chemin à travers ±180°, approche douce sans dépassement), chiffres à 7 segments et format du
-  chrono, arguments de `/image` (5 × 3 par défaut, hauteur en 5:3, limites 16 × 9, adresses refusées), balancement
+  chrono, arguments de `/cm media image` (5 × 3 par défaut, hauteur en 5:3, limites 16 × 9, adresses refusées), balancement
   amorti du gong.
 - `StudioActionsTest` : `spotlight.follow` (surnom → pseudo, invité gardé tel quel, rien dans le journal),
   `spotlight.stop / on / off`, joueur manquant refusé.
@@ -158,7 +158,7 @@ titre où l'outil `screenshot` de MCP Fabric refuse faute de monde), `hover x y`
 écran ouvert : charger un lancer, gonfler un ballon, tirer à l'arc ; `stop_using_item` de MCP Fabric ne relâche que
 côté client, le serveur ne voit pas le relâchement).
 
-**Lettre de tâche** : `/tache apercu <manche>` puis, pour le sceau, `click` dessus puis `drag` vers le haut (il saute
+**Lettre de tâche** : `/cm tache apercu <manche>` puis, pour le sceau, `click` dessus puis `drag` vers le haut (il saute
 au-delà de 26 pixels de lettre), ou `hold SPACE 2` ; captures avec `slowmo 3`. Tests JUnit : `TaskMarkupTest`,
 `LetterMotionTest`.
 
@@ -218,7 +218,7 @@ adresse (pas de serveur d'images de test). À vérifier à la main.
 
 ### Réalisation TV (chantier E, vérifié en jeu : 2 clients, le 2e en 1920 × 1080 et en mode diffusion)
 Client de diffusion = `Joueur2` en spectateur, non admin (`dev-client.ps1 -Second -Size 1920x1080`), mode diffusion
-activé à distance (`/tv broadcast Joueur2 on`) ; LordFinn admin pose les caméras par `/cam here` (via RCON
+activé à distance (`/cm tv diffusion Joueur2 on`) ; LordFinn admin pose les caméras par `/cm cam ici` (via RCON
 `execute as LordFinn`). Les captures sont exactement l'image envoyée à OBS.
 
 | Fonction | Résultat |
@@ -237,7 +237,7 @@ activé à distance (`/tv broadcast Joueur2 on`) ; LordFinn admin pose les camé
 
 Non vérifié (outils sans touches ni clics, jeu muet) : touche F8, touches 1–9 et molette (même chemin que
 `/diffusion camera`, vérifié), clic droit et coup sur un trépied, pose avec l'objet Caméra de studio (même code que
-`/cam here`), le thème à l'oreille (fichier généré, durée 37 s vérifiée), la carte de la tâche (bouchon du chantier D :
+`/cm cam ici`), le thème à l'oreille (fichier généré, durée 37 s vérifiée), la carte de la tâche (bouchon du chantier D :
 l'appel `CurrentTask.showCard` est fait, la carte est dessinée par D).
 
 ## 5. Test d'ensemble après fusion des trois chantiers (v3)
@@ -275,7 +275,7 @@ réglages d'un prop (onglet Apparence) ; feuille de résultats (valeurs, DQ, pla
 rafraîchissement en direct après « apply » et « undo ») ; chrono en barre de boss ; essai complet d'un candidat
 (prop « Départ » → chrono, prop « Arrivée » → arrêt, temps noté, objet donné, note, annonce du premier, signal
 redstone) ; sortie / retour de zone ; buzzer (premier, second appui ignoré) ; carton rouge ; mètre ruban et
-compteur (sur un coffre vanilla) avec les boutons « Noter pour » ; `/craftMasterName` avec couleurs.
+compteur (sur un coffre vanilla) avec les boutons « Noter pour » ; `/cm nommer` avec couleurs.
 Non vérifié en jeu (pas d'outil de clic dans les écrans) : changer d'onglet, boutons des écrans (Appliquer,
 Enregistrer, Tester, DQ…) — leurs actions sont celles des commandes, vérifiées ; régie vocale réelle.
 
@@ -288,7 +288,7 @@ Enregistrer, Tester, DQ…) — leurs actions sont celles des commandes, vérifi
 - Éditeur de tâches, sceau à cire, éditeur de notes : affichés (les clics dans les écrans ne sont pas pilotables
   par MCP : non vérifiés).
 - Enveloppes posées sur des tables (cire rouge et or), ramassée par Joueur2 (message), ouverte, carte « Pour Joueur2 ».
-- Carte en surimpression : `/tache show` (glisse, disparaît après la durée), `/craftMasterTwitch test`.
+- Carte en surimpression : `/cm tache montrer` (glisse, disparaît après la durée), `/craftMasterTwitch test`.
 - Notes : sous un tapis (rien sans s'accroupir, trouvée accroupi), dans une bibliothèque, épinglée sur une face,
   double fond d'un coffre ; note déchirée en 2 à l'encre invisible et prise unique : vierge sans lampe, violette
   avec la lampe UV (morceau 2 manquant), recollée après le 2e morceau ; cachettes « prise par Joueur2 ».
@@ -304,12 +304,12 @@ Captures : dossier de travail de l'agent (non versionnées).
 | Suspension qui tombe quand le plafond disparaît | ✔ |
 | Projecteurs : faisceau, tache de lumière, couleur, `cfsp all here`, suivi de Joueur2 en mouvement (captures successives), bloc de lumière posé sous le joueur | ✔ |
 | Chrono géant : durée avant le départ, temps qui défile, rouge les 10 dernières secondes, « 0:00 » rouge à la fin, bandeau « 1 · Le Pont » | ✔ |
-| `/image <URL> 4 3` sur un mur : écran posé ; adresse refusée par le site → mire + « Image unavailable: HTTP 400 » ; `/image <URL>` en regardant l'écran : photo JPEG (2,5 Mo) affichée, image entière avec bandes | ✔ |
+| `/cm media image <URL> 4 3` sur un mur : écran posé ; adresse refusée par le site → mire + « Image unavailable: HTTP 400 » ; `/cm media image <URL>` en regardant l'écran : photo JPEG (2,5 Mo) affichée, image entière avec bandes | ✔ |
 | Écran de réglages ouvert par clic droit (adresse complète, taille, image entière / étirée, mire) | ✔ |
 | Pupitre nommé par une étiquette renommée ; nom « Ensuri / JustEdible / Cyllu » sur la plaque | ✔ |
 | Table des prix : objet posé dans le quart visé, affiché à plat | ✔ |
-| Sonnette : « ♪ LordFinn rang the bell », impulsion (état `powered`) ; gong : balancement image par image, `/cfgo` ; enseigne et gong par redstone | ✔ |
-| Joueur2 (non admin) : `/image` et `/cfsp` inconnus | ✔ |
+| Sonnette : « ♪ LordFinn rang the bell », impulsion (état `powered`) ; gong : balancement image par image, `/cm plateau gong` ; enseigne et gong par redstone | ✔ |
+| Joueur2 (non admin) : `/cm media image` et `/cm projecteur` inconnus | ✔ |
 
 Non vérifiés en jeu : les sons (jeu muet), les clics accroupi (viser un projecteur, finir la manche au gong : pas
 d'outil MCP pour s'accroupir), les clics dans l'écran de réglages (Enregistrer), les ordres vocaux des projecteurs
@@ -318,29 +318,29 @@ de 2,5 Mo), le cache disque entre deux sessions.
 
 
 ### Effets d'écran (vérifié en jeu : serveur 25821, LordFinn + Joueur2 dont un en 1920 × 1080 en mode diffusion)
-- Les 16 effets un par un sur la vue de LordFinn (`/fx LordFinn <effet>`), puis des combinaisons (`judas`,
+- Les 16 effets un par un sur la vue de LordFinn (`/cm fx LordFinn <effet>`), puis des combinaisons (`judas`,
   `negatif+vignette`, six effets à la fois) : rendus, fondus (captures pendant le fondu : iris qui se ferme).
-- Diffusion : `/fx diffusion fisheye+masque_rond+sepia`, `citrouille`, `vhs+vignette` sur le plan d'une caméra, avec
+- Diffusion : `/cm fx diffusion fisheye+masque_rond+sepia`, `citrouille`, `vhs+vignette` sur le plan d'une caméra, avec
   un synthé et le logo : l'habillage reste net par-dessus.
 - `citrouille` = la superposition vanille `textures/misc/pumpkinblur.png` (même chemin de rendu que la citrouille
   portée) ; le masque citrouille porté l'affiche par le jeu lui-même.
 - Objets portés : les 12 sur des porte-armures et sur LordFinn vus par Joueur2 (face, côté, trois-quarts) ;
-  `/fx porter … verrouille` (malédiction du lien sans reflet), `/fx retirer`.
+  `/cm fx porter … verrouille` (malédiction du lien sans reflet), `/cm fx retirer`.
 - Images par seconde (`/essaifx`) : 30 / s avec ou sans six effets sur la fenêtre 1080p (fenêtre en arrière-plan,
   limitée à 30), 60 / s (vsync) avec sept effets sur le client 854 × 480.
 - `scripts/server_smoke_test.py <hôte> [port RCON]` : section « fx » (commandes, refus, objets, composant).
-- Non vérifié en jeu : clic droit pour mettre les lunettes (pas de clic par MCP ; testé par `/fx porter` et
+- Non vérifié en jeu : clic droit pour mettre les lunettes (pas de clic par MCP ; testé par `/cm fx porter` et
   l'équipement), la régie vocale de bout en bout (pytest seulement), les recettes à l'établi.
 
 ## 6. Test d'ensemble après fusion des cinq chantiers (v4)
 Serveur de dev + LordFinn (admin, créatif) + Joueur2 en spectateur et **en mode diffusion à 1920 × 1080** (l'image
 que capte OBS), plateau monté par RCON : trône, canapés, pupitres, table des prix, trophée, lampadaire, chrono géant,
-gong, enseigne EN DIRECT, buzzer, gros bouton, projecteur, rideau de scène, trois caméras (`/cam here`).
+gong, enseigne EN DIRECT, buzzer, gros bouton, projecteur, rideau de scène, trois caméras (`/cm cam ici`).
 - Diffusion : logo, EN DIRECT, bandeau de la manche avec chrono, plan large / trône / suivi, fondu.
 - Enveloppe (D → E) : LordFinn ouvre son enveloppe → animation complète puis carte ; la réalisation automatique
   coupe sur lui avec le synthé « ouvre son enveloppe » ; le bandeau de la manche prend le titre de la tâche révélée.
 - Rideau de scène ouvert à l'antenne (G) : glissement continu, faisceaux et trône découverts.
-- Points en direct « Joueur2 +3 », publication → bandeau des scores, carte de la tâche (`/tv task`, en français
+- Points en direct « Joueur2 +3 », publication → bandeau des scores, carte de la tâche (`/cm tv tache`, en français
   sur le jeu français), générique d'ouverture (titre, puis présentation des candidats).
 - Projecteur qui suit LordFinn (F), chrono géant lisible vu de près et depuis la diffusion.
 - `scripts/server_smoke_test.py` : 0 échec. JUnit : 200 tests. pytest (régie) : 78 tests.
@@ -361,7 +361,7 @@ régie vocale avec la vraie compréhension Claude (pas de clé API sur le PC).
 Vérifié en jeu (serveur de dev, deux clients) : trône, chaise de candidat, 3 inclinaisons de lumière de studio,
 softbox au sol et au mur, cadre au mur, trépied + barre, carrelage, paroi du globe ; un joueur assis sur le trône et
 sur la chaise (bonne hauteur, vu d'un second client) ; clic droit sur une lumière (angle 3 → 4) ; caméra posée avec
-`/cam here`, son nouveau trépied, coupe `/cam cut` en mode diffusion. Test serveur 0 échec, JUnit 200 tests.
+`/cm cam ici`, son nouveau trépied, coupe `/cm cam couper` en mode diffusion. Test serveur 0 échec, JUnit 200 tests.
 Non vérifié : icônes dans l'inventaire / l'onglet créatif, softbox et cadre au plafond, rotation accroupi + clic.
 
 ### Tablette chrono (vérifié en jeu, serveur de dev + client LordFinn piloté par MCP Fabric)
@@ -370,7 +370,7 @@ Non vérifié : icônes dans l'inventaire / l'onglet créatif, softbox et cadre 
 | 4 positions (debout, chevalet, à plat, au mur) × 4 modes (minuteur 25.7, chrono, heure, chrono de l'émission) | ✔ (captures) |
 | Mode Émission : suit le chrono de la manche (« 1:28 », « 3 · Château ») | ✔ |
 | Écran de réglages (clic droit) : aperçu en direct, Relancer, changement de cadre vu tout de suite | ✔ |
-| Redstone (front montant : relance un minuteur fini), `/craftMasterTablet`, StreamDeck `/tablet/start`, `?group=` | ✔ |
+| Redstone (front montant : relance un minuteur fini), `/cm plateau tablette`, StreamDeck `/tablet/start`, `?group=` | ✔ |
 | Matières (chêne, noyer, laque, laiton, acier), dos et pied par matière, chevalet, chiffres sur la grille de pixels | ✔ (captures de face et de dos) |
 | Sons de fin, comparateur, clic des joueurs non organisateurs | non vérifiés en jeu (jeu muet, pas de second client) |
 
@@ -388,7 +388,7 @@ Non vérifié : icônes dans l'inventaire / l'onglet créatif, softbox et cadre 
 Serveur `:26.2:runServer` (`run-server-26.2/`, jeu 25901, RCON 25902) + client `scripts\dev-client.ps1 -Version 26.2`
 (`run-26.2/`, MCP Fabric 26.2 dans `run-26.2/mods/`, pont 25941), Fabric Loader 0.20.1, Fabric API 0.161.0+26.2.
 - `.\gradlew.bat build` : 274 tests sur chaque version, deux jars.
-- Serveur 26.2 : démarre, commandes (`/craftMasterHistory`, `/craftMasterRanking`, `/fx`, `/cam`, `/tv`, `/cfpt`),
+- Serveur 26.2 : démarre, commandes (`/cm historique`, `/cm classement`, `/cm fx`, `/cm cam`, `/cm tv`, `/cm plateau portrait`),
   blocs du studio posés avec leurs données (trône, projecteur, chrono géant, enveloppe).
 - Client 26.2 (captures MCP) : studio dessiné (trône, projecteur, chrono géant avec son bandeau, enveloppe) ; les 16
   effets d'écran compilent et s'affichent, HUD net par-dessus ; mode diffusion (vue de la caméra, HUD et mains
@@ -404,8 +404,8 @@ du studio (sépia, noir et blanc, vignette) sur le thème, `rythme theme`, `auto
 - vue joueur : pendant l'intro le joueur reste au studio ; noir ; « MANCHE 3 » et « Château » tapés sur le noir (le
   cadre joueur se retire pendant le noir) ; l'image s'ouvre sur le point de TP, chrono lancé ;
 - vue diffusion (F8) : plans coupés en rythme avec leurs effets, noir, titre, ouverture sur le plan large avec le
-  bandeau de la manche (caché pendant la descente au noir) ; `/tv stop` pendant l'intro saute au noir ;
-- `/tv intro <m> voir` donne « 3,2 s (6 temps) » par plan.
+  bandeau de la manche (caché pendant la descente au noir) ; `/cm tv stop` pendant l'intro saute au noir ;
+- `/cm tv intro <m> voir` donne « 3,2 s (6 temps) » par plan.
 Pas vérifié : un joueur sans le mod (cécité + titre), plusieurs joueurs et plusieurs points de TP, le son des
 touches de la machine à écrire et le calage à l'oreille sur le thème.
 
@@ -425,13 +425,13 @@ Binaries 3.0.1 dans `run-26.2/mods/`. Plateau posé par RCON, captures MCP.
 | 3 tables des prix côte à côte : une seule table sous un drapé ; clic sur le drapé : étagère (27 cases) ; clic sur le dessus : le prix se pose (données du bloc vérifiées) | ✔ |
 | `craftmaster:trophy` (alias) : donne une tête de joueur | ✔ |
 | Icônes clap, caméra, télécommande, tableau dans la barre | ✔ |
-| Écran du studio + MP4 direct : la vidéo joue ; `/image pause` fige l'image, `/image play` repart | ✔ |
+| Écran du studio + MP4 direct : la vidéo joue ; `/cm media image pause` fige l'image, `/cm media image lancer` repart | ✔ |
 | Écran du studio + lien YouTube (WaterMedia) : la vidéo joue | ✔ |
 | Adresse en 404 : « Vidéo indisponible : HTTP 404… » sur la mire | ✔ |
 | Son des vidéos selon la distance, deux joueurs synchronisés | non vérifié (jeu muet, un seul client) |
 | `podium_first` donné : bloc de quartz (alias) ; anciennes lunettes floues données : deviennent `craftmaster:glasses` (effet « flou », verres bleus) | ✔ |
 | Cordon des poteaux : une face par côté, plus de scintillement ; poteau en laiton sans taches d'ombre | ✔ |
-| Buzzers en textures vanilla ; appui : allumé ; bloc de redstone à côté : remis à zéro ; mode `free` : clignote 1 s puis s'éteint ; menu `/craftMasterBuzzer mode` dans le chat | ✔ |
+| Buzzers en textures vanilla ; appui : allumé ; bloc de redstone à côté : remis à zéro ; mode `free` : clignote 1 s puis s'éteint ; menu `/cm epreuve buzzer mode` dans le chat | ✔ |
 | Compteur sur un wagonnet à coffre et un porte-armure (API de transfert, entités) | ✔ (utilisé ; total en barre d'action) |
 | Mètre ruban entre deux points visés au sol : « 5,1 m » au milieu, ruban jaune 10 s | ✔ |
 | Ardoise, tableau blanc, toile : cadres en bois / fer vanilla de 2 px, auget ; ardoise mate sans poussière | ✔ |
@@ -469,8 +469,8 @@ En jeu (serveur + client 26.2 de ce worktree, jeu 25961, RCON 25962, pont MCP 25
 |---|---|
 | Canards de 7 couleurs posés sur l'eau : ils flottent à plat ; sur une dalle, dans un pot, derrière un bloc | ✔ |
 | Canard dans un canal : le courant l'emmène au bout (x 14,5 → 20,8) | ✔ |
-| Candidat (non op) qui ramasse deux canards cachés : dans son inventaire, `/craftMasterToys` « trouvé(s) 2 : 1 canard en plastique, 1 canard en plastique rouge », 7 encore cachés | ✔ |
-| `/craftMasterToys list` (coordonnées cliquables) et `glow` (contour à travers les murs) | ✔ |
+| Candidat (non op) qui ramasse deux canards cachés : dans son inventaire, `/cm epreuve jouets` « trouvé(s) 2 : 1 canard en plastique, 1 canard en plastique rouge », 7 encore cachés | ✔ |
+| `/cm epreuve jouets liste` (coordonnées cliquables) et `glow` (contour à travers les murs) | ✔ |
 | Lancer chargé (`use 1.5`) : distance notée au repos, record | ✔ |
 | Sachet lancé dans le seau-cible : « Dans le seau ! (3,4 blocs · 3) », 3 prises notées à LordFinn | ✔ |
 | Objet tombé, boule de neige et œuf du jeu dans la poubelle et la tasse | ✔ |
@@ -484,7 +484,7 @@ En jeu (serveur + client 26.2 de ce worktree, jeu 25961, RCON 25962, pont MCP 25
 | Distributeur chargé de balles + signal : il en lance une, qui roule loin | ✔ |
 
 Non vérifiés en jeu : l'onglet créatif (pas d'inventaire par MCP), les recettes à l'établi, une flèche sur un ballon, deux joueurs (messages d'un candidat vus par un
-organisateur : vérifiés par le journal `/craftMasterTrial log`), le client 26.3 en jeu (seulement compilé et testé).
+organisateur : vérifiés par le journal `/cm epreuve journal`), le client 26.3 en jeu (seulement compilé et testé).
 
 ## 12. Portes de garage et WorldEdit (vérifié en jeu sur 26.2 le 13/11/2026)
 Serveur `:26.2:runServer` (jeu 25931, RCON 25932) avec WorldEdit 7.4.5 dans `run-server-26.2/mods/` + client
@@ -494,12 +494,12 @@ rouge entre deux piliers de quartz, moteur au milieu du linteau.
   linteau (captures à 0,6 et 1,2 s par bloc) ; même teinte et même ombrage que les vrais blocs.
 - Joueur dans l'embrasure à la fermeture : poussé hors du plan juste avant l'arrivée du panneau (z 5,6 → 6,4).
 - Bouton sur un pilier : ouvre et la porte reste ouverte ; levier : ferme, le couper (> 2 s) rouvre.
-- `/cfga nom`, `/cfga porte atelier close`, Stream Deck `/garage/toggle?name=atelier` et `/garage/close`.
+- `/cm plateau garage nom`, `/cm plateau garage porte atelier fermer`, Stream Deck `/garage/toggle?name=atelier` et `/garage/close`.
 - Moteur camouflé en quartz : invisible dans le linteau.
 - Serveur arrêté en pleine ouverture : au redémarrage la porte finit de s'ouvrir, plus aucune barrière.
-- WorldEdit : `/cfwe` montre la session « neighbors off, update off » dès la connexion ; `//set sand` en l'air laisse
+- WorldEdit : `/cm worldedit` montre la session « neighbors off, update off » dès la connexion ; `//set sand` en l'air laisse
   le sable flotter (un bloc posé à côté le fait tomber, comme prévu).
-- Non vérifié : client 26.3 en jeu (compilé et testé unitairement), deux joueurs, très grande porte, `/cfwe perf on`
+- Non vérifié : client 26.3 en jeu (compilé et testé unitairement), deux joueurs, très grande porte, `/cm worldedit perf on`
   suivi d'une reconnexion.
 
 ### Show gelé après un crash (vérifié en jeu sur 26.2, le 13/11/2026)
@@ -530,12 +530,12 @@ voix Windows (Paul), déposées dans `run-26.2/regie-trigger/`.
 
 | Dit | Résultat | |
 |---|---|---|
-| « Rends l'ambiance tension plus rouge et ajoute un plan serré sur la galerie dans la révélation » | 7 `/ambiance modifier tension …` (contre #FF3030, rampe, face, table) ; révélation non touchée car la caméra 13 y est déjà à 7 s : il le dit et propose ; réponse en 16 s | ✔ |
+| « Rends l'ambiance tension plus rouge et ajoute un plan serré sur la galerie dans la révélation » | 7 `/cm ambiance modifier tension …` (contre #FF3030, rampe, face, table) ; révélation non touchée car la caméra 13 y est déjà à 7 s : il le dit et propose ; réponse en 16 s | ✔ |
 | « Oui, ajoute le travelling galerie juste après, vers dix secondes » | clé caméra `travelling:galerie` à 10 s, en enchaîné, dans `revelation` (seules `tension` et `revelation` changées) | ✔ |
 | « Supprime l'ambiance pause » puis « Oui, je confirme » | 1re demande : rien de fait, [Confirmer] [Refuser] dans le chat ; 2e : supprimée | ✔ |
 | « Annule ce que l'agent vient de faire » | `pause` revenue à l'identique | ✔ |
-| Clic [Annuler] (`/regieia annuler <demande>`) | déjà annulée : « Rien à annuler » ; sinon état d'avant remis | ✔ |
-| « Ajoute une caméra 15 qui filme le trône de près, un peu en plongée, et appelle-la trône serré » | `/cam placer 15 …` (5 blocs, 2 plus haut, zoom 30), nommée | ✔ |
+| Clic [Annuler] (`/cm ia annuler <demande>`) | déjà annulée : « Rien à annuler » ; sinon état d'avant remis | ✔ |
+| « Ajoute une caméra 15 qui filme le trône de près, un peu en plongée, et appelle-la trône serré » | `/cm cam placer 15 …` (5 blocs, 2 plus haut, zoom 30), nommée | ✔ |
 
 Icône et bouton (Simple Voice Chat 2.6.27+26.2 sur le client et le serveur de dev, menu ouvert par
 `open de.maxhenkel.voicechat.gui.VoiceChatScreen` dans `run-26.2/dev-input.txt`, captures MCP) : bouton à sa place
@@ -569,18 +569,18 @@ le point de vue : chaque facette du cône est tracée jusqu'au bloc qu'elle renc
 ## 15. Écoute depuis le joueur dans les vues de caméra (vérifiée en jeu sur 26.2 le 14/11/2026)
 Serveur `:26.2:runServer` (jeu 26601, RCON 26602) + LordFinn (`dev-client.ps1 -Version 26.2`, pont MCP 26641) et
 Joueur2 (`runClient2`, pont MCP 26642), Simple Voice Chat 2.6.27+26.2 dans les `mods/` des trois (enlevé après).
-LordFinn en (0,5 ; 100 ; 0,5), Joueur2 à 2 blocs, caméra 1 à 40 blocs (`/cam placer 1 40.5 105 0.5 vers …`). Mesure
+LordFinn en (0,5 ; 100 ; 0,5), Joueur2 à 2 blocs, caméra 1 à 40 blocs (`/cm cam placer 1 40.5 105 0.5 vers …`). Mesure
 par la ligne `ears` de `dev-input.txt` : écoute du jeu (`SoundManager.getListenerTransform()`), état de la caméra de
 Voice Chat (`ClientManager.getCameraState()`, qui sert au volume, à la direction OpenAL et à la stéréo des voix).
 
 | Vue | Caméra | Écoute du jeu | Voice Chat | |
 |---|---|---|---|---|
 | Normale | yeux | yeux | yeux | ✔ |
-| F7 imposé (`/tv flux forcer`), caméra 1 à l'antenne | (40,5 ; 105 ; 0,5) | yeux (0,5 ; 101,6 ; 0,5) | yeux, vers +Z | ✔ |
+| F7 imposé (`/cm tv flux forcer`), caméra 1 à l'antenne | (40,5 ; 105 ; 0,5) | yeux (0,5 ; 101,6 ; 0,5) | yeux, vers +Z | ✔ |
 | F7, le joueur tourne à 90° | caméra 1 | yeux, vers −X | yeux, vers −X, yRot 90 | ✔ |
 | Regarder par une caméra (`control 40.5 105 0.5 90 10`) | (40,5 ; 105 ; 0,5) | yeux | yeux, orientation d'avant (tangage 0, pas 10) | ✔ |
-| Aperçu d'un travelling de 20 s (`/cam trajet t1 apercu`) | sur le trajet, ~31 blocs | yeux | yeux | ✔ |
-| Mode diffusion F8 (`/tv broadcast LordFinn on`) | caméra 1 | caméra 1 | caméra 1 | ✔ (voulu) |
+| Aperçu d'un travelling de 20 s (`/cm cam trajet t1 apercu`) | sur le trajet, ~31 blocs | yeux | yeux | ✔ |
+| Mode diffusion F8 (`/cm tv diffusion LordFinn on`) | caméra 1 | caméra 1 | caméra 1 | ✔ (voulu) |
 
 Non mesuré en jeu : une vraie voix (les clients de test n'ont pas de micro : Voice Chat « désactivé », la position
 mesurée est celle qu'il utilise pour toutes les voix), le son lui-même (jeux de test muets), et l'image d'après une
@@ -613,7 +613,7 @@ s'arrêtent au plus tard là où le bord du cône touche le sol.
 Serveur `:26.2:runServer` (monde plat, décor fait au RCON : salle de 4 blocs de haut avec poteaux et fenêtre,
 porte basse, couloir de 2 de large et 3 de haut, pièce de 2 blocs sous plafond, piliers dehors) ; LordFinn
 (`dev-client.ps1 -Version 26.2`) marche au pathfinding MCP de dehors à la salle, au couloir puis à la pièce basse ;
-Joueur2 en spectateur, `/diffusion on`, `/cam follow LordFinn`, captures MCP en rafale (40 images à 1,1 s).
+Joueur2 en spectateur, `/diffusion on`, `/cm cam suivre LordFinn`, captures MCP en rafale (40 images à 1,1 s).
 Prise en main : `camturn <dx> <dy>` et `camwheel <crans>` dans `run2-26.2/dev-input.txt` (mêmes entrées que la
 souris et la molette). Journal de dev `[Suivi]` : chaque cadrage choisi et pourquoi.
 
@@ -630,9 +630,9 @@ Corrigé grâce à ces essais : changements de cadrage en rafale dans les passag
 un toutes les 3 s, et seulement vers un cadrage qui a vraiment plus de place) ; gros plans de nuque à l'entrée d'un
 couloir (esquive autour du joueur, puis changement immédiat sous 0,9 bloc) ; coin de mur cachant le corps (rayon
 poitrine → objectif).
-Caméras posées (3 caméras `/cam placer` : salle, dehors, bout du couloir) : `/cam voir LordFinn` prend la caméra
+Caméras posées (3 caméras `/cm cam placer` : salle, dehors, bout du couloir) : `/cm cam voir LordFinn` prend la caméra
 de la salle quand il y est, celle du couloir quand il y est, le suit quand aucune ne le voit (poteau devant, caméra
-évitée) ✔ ; `/cam eviter 1`, `cadrage large|serre`, `rester`, `auto on` répondent ✔ ; le suivi coupe de lui-même
+évitée) ✔ ; `/cm cam eviter 1`, `cadrage large|serre`, `rester`, `auto on` répondent ✔ ; le suivi coupe de lui-même
 sur la caméra de la salle (2 fois en 75 s) puis revient aux cadrages ✔. Corrigé : la part de l'image comptée en
 aire sous-estimait un joueur en pied (rien n'était choisi) → hauteur occupée ; un joueur au bord du cadre ne compte
 plus. Pas vérifié : la coupe sur qui parle (pas de Simple Voice Chat sur le serveur de dev ; même code que `voir`,
@@ -645,19 +645,19 @@ Régie vocale : `test_offline.py` (« on va aller voir Ensuri pour voir comment 
 en « principal » : LordFinn suivi en grand avec ses cadrages, les caméras 1 et 3 en petit ✔ ; [follow:LordFinn, 2]
 « bord à bord » ✔. Pas vérifié en jeu : l'écran partagé automatique des zones d'une manche et « on va voir » en
 manche (il faut deux candidats dans deux zones : un seul joueur sur le serveur de dev).
-Suivre à la main reste à l'antenne (régie du site « Suivre un candidat ») : auto en marche, `/cam follow LordFinn`
-puis `/tv spotlight Joueur2` : l'image reste sur LordFinn ✔ ; `/cam wide` (un autre plan choisi) puis le même
-projecteur : coupe sur Joueur2 comme avant ✔. Fin du maintien : `/cam follow LordFinn` (sans chat vocal) encore suivi à 18 s, plan d'ensemble (caméra 1) à 22 s ✔ ; `camera.follow` avec `hold: true` (la régie du site) toujours suivi 25 s après ✔, puis `camera.stay` `enabled: false` (désélection) : plan d'ensemble ✔. Pas vérifié : la voix (pas de micro sur le serveur de test).
+Suivre à la main reste à l'antenne (régie du site « Suivre un candidat ») : auto en marche, `/cm cam suivre LordFinn`
+puis `/cm tv vedette Joueur2` : l'image reste sur LordFinn ✔ ; `/cm cam large` (un autre plan choisi) puis le même
+projecteur : coupe sur Joueur2 comme avant ✔. Fin du maintien : `/cm cam suivre LordFinn` (sans chat vocal) encore suivi à 18 s, plan d'ensemble (caméra 1) à 22 s ✔ ; `camera.follow` avec `hold: true` (la régie du site) toujours suivi 25 s après ✔, puis `camera.stay` `enabled: false` (désélection) : plan d'ensemble ✔. Pas vérifié : la voix (pas de micro sur le serveur de test).
 
-Changements plus vifs (retour de LordFinn « trop lent à changer ») : `/cam follow @maitre`, puis
-`/plateau maitre Joueur2` et retour à LordFinn : coupe sèche sur le nouveau dès l'image suivante (avant : jusqu'à 1 s
+Changements plus vifs (retour de LordFinn « trop lent à changer ») : `/cm cam suivre @maitre`, puis
+`/cm plateau maitre Joueur2` et retour à LordFinn : coupe sèche sur le nouveau dès l'image suivante (avant : jusqu'à 1 s
 puis un fondu enchaîné), et le synthé « Joueur2 » ne reste plus sur LordFinn ✔. `SpeakerCutsTest` : une voix passe à
 l'antenne après ½ s, une toux de 0,35 s ne coupe pas, un plan tient 2 s (3 s en groupe). Pas vérifié en vrai micro.
 
-Suivi commun caméras / projecteurs : `/cam follow @maitre` suit LordFinn, cadré sans retard en courant (gros plan
+Suivi commun caméras / projecteurs : `/cm cam suivre @maitre` suit LordFinn, cadré sans retard en courant (gros plan
 tenu en marchant) ✔ ; projecteur suspendu en poursuite, LordFinn marche 3 s dans un sens puis dans l'autre de nuit,
 vu par la caméra 2 : la flaque reste centrée sous ses pieds (avant, elle traînait derrière) ✔ ; poursuite
-`@antenne` : vide au départ, LordFinn dès « /cam voir LordFinn » ✔. `TargetTrackerTest` : pas de retard sur un
+`@antenne` : vide au départ, LordFinn dès « /cm cam voir LordFinn » ✔. `TargetTrackerTest` : pas de retard sur un
 joueur qui marche (le lissage seul traîne de v × tau), avance plafonnée, arrêt sans dépassement, téléportation,
 saut non anticipé. Régie vocale : « suis le premier du classement », « suis qui est sur scène ».
 Pas vérifié : la vraie souris (le `@Redirect` de `MouseHandler.turnPlayer` s'applique, le jeu démarre ; mêmes
@@ -665,8 +665,8 @@ entrées que `camturn`), les replays et les intros (même code, `DirectorCamera.
 
 ## 18. Arènes d'épreuve et cinq épreuves (vérifiées en jeu sur 26.2 le 18/11/2026)
 Serveur de dev 26.2 (monde `plateau`), client LordFinn piloté par MCP Fabric, commandes par RCON.
-- **Fleurs de Jeremy** : `/cfar fleurs fleurs` pose le chemin (26 fleurs à plat, numérotées), le vase et Jeremy ✔ ;
-  `/cfar copier fleurs LordFinn` + `placer` : la copie est identique (fleurs, vase, golem) ✔. Clic sur la fleur 1 :
+- **Fleurs de Jeremy** : `/cm arene fleurs fleurs` pose le chemin (26 fleurs à plat, numérotées), le vase et Jeremy ✔ ;
+  `/cm arene copier fleurs LordFinn` + `placer` : la copie est identique (fleurs, vase, golem) ✔. Clic sur la fleur 1 :
   la fenêtre du jeu « Fleur n°1 / Mot de passe » ✔ ; « Banane » : « ✗ « Banane » : mauvais mot de passe », fenêtre
   rouverte sans attente ✔ ; « Abricot » : la fleur part dans l'inventaire, « ✿ Fleur n°1 prise avec « Abricot » » ✔.
   Vase : 26 fleurs une à une, le bouquet grandit (vraies fleurs, visibles de tous côtés) ✔, à 26 Jeremy tend sa
@@ -674,16 +674,16 @@ Serveur de dev 26.2 (monde `plateau`), client LordFinn piloté par MCP Fabric, c
   26,0 s sur la feuille ✔. Corrigé : le bouquet en images plates était invisible de face (→ blocs de fleurs) ; le
   nom de l'objet s'affichait en visant la fleur (→ étiquette gardée en interne) ; sans manche le chrono ne
   s'arrêtait pas.
-- **Animal** : `/cfar animal animal` + copie ✔ ; le kit (bannière rouge, bannière verte) donné par `placer` ✔ ;
+- **Animal** : `/cm arene animal animal` + copie ✔ ; le kit (bannière rouge, bannière verte) donné par `placer` ✔ ;
   en survie, bannière rouge plantée, un carré parcouru, bannière verte : le carré est tracé en noir, vu d'en haut
-  par `/cfar tp animal LordFinn dessus` ✔ (en créatif le joueur vole et ne trace rien : normal). `/tache suite
-  Animal` : panneaux cirés, texte chez l'organisateur, chrono de 10 min « Animal » ✔. `/cftr chrono 3` pendant un
+  par `/cm arene tp animal LordFinn dessus` ✔ (en créatif le joueur vole et ne trace rien : normal). `/cm tache suite
+  Animal` : panneaux cirés, texte chez l'organisateur, chrono de 10 min « Animal » ✔. `/cm epreuve chrono 3` pendant un
   dessin : à 0, « Temps écoulé », dessin arrêté (10 blocs) ✔.
 - **La pomme** : une pomme ordinaire mangée ne fait rien, la pomme marquée termine l'essai, 5,7 s sur la feuille ✔.
   Corrigé : « a déjà fini » était commun à toutes les manches (→ par manche).
 - **Village** : référence de 9 × 5 × 9 sur bedrock (tonneau avec une pioche, coffre de TNT, cadre avec un briquet),
   copie ✔ ; 12 blocs cassés, tonneau vidé, cadre retiré : 91,5 % ✔ (le contenu et le cadre ne comptent pas) ;
-  `/cfar reset village` : pioche et cadre revenus, 100 % ✔. Pas vérifié : le canal vocal commun (pas de Simple
+  `/cm arene reset village` : pioche et cadre revenus, 100 % ✔. Pas vérifié : le canal vocal commun (pas de Simple
   Voice Chat sur le serveur de dev).
 - **Inventaire alphabétique** : plateforme de verre, `option alphabet true` ; sur la plateforme rien ne se passe,
   au sol : « Terminé ! » privé, suite notée ✔ ; client en anglais : Apple ≤ Bread ≤ Carrot ≤ Diamond ≤ Egg ≤ Stone
@@ -692,8 +692,8 @@ Serveur de dev 26.2 (monde `plateau`), client LordFinn piloté par MCP Fabric, c
   candidat déjà au sol au lancement était « terminé » d'office (→ il doit être passé par la plateforme). Pas vérifié
   ici : le téléchargement de la langue (le serveur de dev n'a pas Internet ; fichier fr_fr déposé à la main depuis
   le cache du jeu) ; les clics refusés dans l'écran d'inventaire (même verrou que le lâcher).
-- Panneau d'indice : `/cftr panneau Indice :|1 = A, 2 = B…|Un mot par fleur` écrit et cire le panneau visé ✔.
-- **Caméra d'inventaire** : deux jeux, LordFinn (candidat) et Joueur2 en diffusion (`/diffusion on`, `/cam follow
+- Panneau d'indice : `/cm epreuve panneau Indice :|1 = A, 2 = B…|Un mot par fleur` écrit et cire le panneau visé ✔.
+- **Caméra d'inventaire** : deux jeux, LordFinn (candidat) et Joueur2 en diffusion (`/diffusion on`, `/cm cam suivre
   LordFinn`). LordFinn ouvre son inventaire : le panneau « Inventaire · LordFinn » glisse à droite de l'image avec
   ses objets ✔ ; souris sur une case : la case s'éclaire, la flèche est dessus ✔ ; il prend les carottes : la case se
   vide, les carottes suivent la flèche, « Carotte » écrit dessous ✔ ; il les pose ailleurs : elles y sont ✔ ; il ferme :

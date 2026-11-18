@@ -25,8 +25,8 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 /**
- * {@code /sequence} (alias {@code /cfsq}): the stage's timelines (edit in game, play, tools, files);
- * {@code /plateau}: the stage's plan (where the audience looks from, named points, the master).
+ * {@code /cm sequence} (alias {@code /cm sequence}): the stage's timelines (edit in game, play, tools, files);
+ * {@code /cm plateau}: the stage's plan (where the audience looks from, named points, the master).
  */
 public final class TimelineCommands {
 
@@ -53,7 +53,7 @@ public final class TimelineCommands {
         return bad ? 0 : 1;
     }
 
-    // ---------------------------------------------------------------- /sequence
+    // ---------------------------------------------------------------- /cm sequence
 
     private static LiteralArgumentBuilder<CommandSourceStack> sequence(String root) {
         var name = argument("name", StringArgumentType.string()).suggests(SEQUENCES);
@@ -103,17 +103,17 @@ public final class TimelineCommands {
 
     private static int list(CommandContext<CommandSourceStack> c) {
         Map<String, Sequence> all = Sequences.all();
-        if (all.isEmpty()) return say(c, "Aucune séquence. Crée-en une : /sequence editer <nom>.");
+        if (all.isEmpty()) return say(c, "Aucune séquence. Crée-en une : /cm sequence editer <nom>.");
         Map<String, Double> playing = Sequencer.playing(c.getSource().getServer());
         MutableComponent out = Component.literal("Séquences :").withStyle(ChatFormatting.GOLD);
         for (Map.Entry<String, Sequence> e : all.entrySet()) {
             String q = StageCommands.quoted(e.getKey());
             Sequence s = e.getValue();
             out.append(Component.literal("\n ▶ ").withStyle(st -> st.withColor(ChatFormatting.GREEN)
-                    .withClickEvent(new ClickEvent.RunCommand("/sequence lancer " + q))
+                    .withClickEvent(new ClickEvent.RunCommand("/cm sequence lancer " + q))
                     .withHoverEvent(new HoverEvent.ShowText(Component.literal("Lancer")))));
             out.append(Component.literal(e.getKey()).withStyle(st -> st.withColor(playing.containsKey(e.getKey()) ? ChatFormatting.YELLOW : ChatFormatting.WHITE)
-                    .withClickEvent(new ClickEvent.RunCommand("/sequence editer " + q))
+                    .withClickEvent(new ClickEvent.RunCommand("/cm sequence editer " + q))
                     .withHoverEvent(new HoverEvent.ShowText(Component.literal("Ouvrir l'éditeur" + (s.description.isEmpty() ? "" : "\n" + s.description))))));
             out.append(Component.literal("  " + Sequence.num(s.duree) + " s, " + s.pistes.size() + " piste(s), " + s.keyCount() + " keypoint(s)"
                     + (s.boucle ? ", boucle" : "") + (playing.containsKey(e.getKey()) ? " — joue" : "")).withStyle(ChatFormatting.GRAY));
@@ -130,14 +130,14 @@ public final class TimelineCommands {
         return say(c, b.substring(0, b.length() - 1) + ".");
     }
 
-    // ---------------------------------------------------------------- /plateau
+    // ---------------------------------------------------------------- /cm plateau
 
     private static LiteralArgumentBuilder<CommandSourceStack> plateau(String root) {
         return literal(root).requires(Permissions.ADMIN)
                 .executes(TimelineCommands::plateauInfo)
                 .then(literal("devant").executes(c -> {
                     ServerPlayer p = c.getSource().getPlayer();
-                    if (p == null) return say(c, "Rien : place-toi dans le public, regarde la scène, et tape /plateau devant.");
+                    if (p == null) return say(c, "Rien : place-toi dans le public, regarde la scène, et tape /cm plateau devant.");
                     // Rounded to a quarter turn when close: stages are usually square to the world
                     float yaw = net.minecraft.util.Mth.wrapDegrees(p.getYRot());
                     float snapped = Math.round(yaw / 90f) * 90f;
@@ -180,11 +180,11 @@ public final class TimelineCommands {
     private static int plateauInfo(CommandContext<CommandSourceStack> c) {
         Look.Plateau p = Scenography.book().plateau;
         var zones = fr.lordfinn.craftmaster.trial.TrialZones.zones();
-        String msg = "Plateau : scène = zone « " + p.scene + " »" + (zones.containsKey(p.scene) ? "" : " (à créer : /craftMasterZone create " + p.scene + ")")
+        String msg = "Plateau : scène = zone « " + p.scene + " »" + (zones.containsKey(p.scene) ? "" : " (à créer : /cm epreuve zone creer " + p.scene + ")")
                 + ", public = zone « " + p.publicZone + " »" + (zones.containsKey(p.publicZone) ? "" : " (facultative)")
-                + ", le public regarde vers " + (p.devant == null ? "? (/plateau devant)" : Math.round(p.devant) + "°")
+                + ", le public regarde vers " + (p.devant == null ? "? (/cm plateau devant)" : Math.round(p.devant) + "°")
                 + ", CraftMaster : " + fr.lordfinn.craftmaster.studio.SpotlightFollow.master()
-                + ", points : " + (p.points.isEmpty() ? "aucun (/plateau point <nom>)" : String.join(", ", p.points.keySet())) + ".";
+                + ", points : " + (p.points.isEmpty() ? "aucun (/cm plateau point <nom>)" : String.join(", ", p.points.keySet())) + ".";
         return say(c, msg);
     }
 }

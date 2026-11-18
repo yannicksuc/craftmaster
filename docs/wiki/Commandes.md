@@ -1,318 +1,209 @@
 # Commandes
 
-**Admin** = permission `craftmaster:admin` (LuckPerms…) ou opérateur niveau 2. Chaque commande existe aussi en
-minuscules et avec son alias. Noms de manches et pseudos : accents acceptés, guillemets si le nom contient un espace
-(`"Le Pont"`). La touche Tab propose saisons, parties, manches, joueurs, décors et rideaux.
+Tout passe par **une seule commande** : `/craftmaster`, ou son raccourci **`/cm`**. Elle se lit comme une phrase :
+`/cm <quoi> <que faire> [détails]`, tout en français, et la touche **Tab** propose à chaque étape ce qui existe
+(groupes, actions, manches, joueurs, arènes, ambiances, caméras, options et leurs valeurs).
 
-Les commandes v3 agissent sur la **saison active** et sa **partie active** (créée toute seule, « Partie 1 ») : on
-n'a jamais besoin de parler de partie s'il n'y en a qu'une. Tout ce qui modifie saisons, manches, joueurs et scores
-passe par le même exécuteur que la régie vocale : même comportement, et **tout est annulable** (`/cfun`).
+- `/cm` seul ou **touche N** : le **menu CraftMaster** ([Menus](#le-menu-craftmaster)) ; sans le mod : l'état du direct.
+- `/cm aide [groupe]` : les groupes, cliquables, puis les actions d'un groupe.
+- **Admin** = permission `craftmaster:admin` (LuckPerms…) ou opérateur niveau 2. Les droits des modos
+  (`craftmaster:camera`, `tv`, `replay`, `image`) ouvrent seulement leurs groupes.
+- Noms avec espace ou accent : entre guillemets (`"Le Pont"`). Une manche se désigne par son nom, son surnom ou `next`.
+- Chaque commande répond en français : ce qui a changé en doré, une erreur en rouge avec ce qu'il faut faire.
+- Tout ce qui touche aux saisons, manches, joueurs, scores et feuilles passe par l'exécuteur de la régie vocale :
+  même comportement que la voix et **annulable** (`/cm annuler`).
 
-## Le direct (admin)
-| Commande | Alias | Effet |
-|---|---|---|
-| `/craftMasterManche start <manche\|next>` | cfma | Lance la manche : titre, son, TP des joueurs de la saison, chrono, décor si sur scène |
-| `/craftMasterManche next` | | Lance la manche suivante |
-| `/craftMasterManche end` | | Fin de la manche en cours (titre et son) |
-| `/craftMasterGive <pseudo> <points> [manche]` | cfg | Points pour la manche en cours (ou nommée), annoncés « LordFinn +3 (Le Pont) » ; pseudo ou surnom |
-| `/craftMasterTimer stop` | cfti | Arrête le chrono (et libère les joueurs figés) |
-| `/craftMasterTimer go` | cfti | Lance tout de suite le chrono d'une manche qui attend sa lettre ou son bouton, libère les joueurs figés |
-| `/craftMasterPublish [saison]` | cfpu | Publie les scores : busts, étiquettes, écrans et classement des joueurs se mettent à jour |
-| `/craftMasterReveal start [saison]` | cfrv | Révélation mise en scène ([Émission](Emission.md)) |
-| `/craftMasterReveal stop` | | Interrompt la révélation (rideau rouvert) |
-| `/craftMasterReveal timing [rideau tambour joueur podium]` | | Durées en secondes (sans argument : les affiche) |
-| `/craftMasterStage curtain open\|close [nom]` | cfsg | Ouvre / ferme un rideau nommé (défaut : `stage`) |
-| `/craftMasterStage scene place <décor>` | | Pose un décor à l'ancre de scène |
-| `/craftMasterGarage open\|close\|toggle <x y z>` | cfga | Ouvre / ferme la porte de garage d'un moteur ([Portes de garage](PortesGarage.md)) |
-| `/craftMasterGarage porte <nom> open\|close\|toggle` | | Idem par le nom de la porte (`nom`, `oublier`, `liste`, `zone`, `vitesse`, `info`) |
-| `/craftMasterWorldEdit [perf on\|off]` | cfwe | WorldEdit sans voisins ni mises à jour à chaque connexion (défaut : oui) |
-| `/craftMasterUndo [nombre]` | cfun | Annule la ou les dernières modifications (50 gardées depuis le démarrage) |
-| `/craftMasterRedo [nombre]` | cfrf | Refait ce qui vient d'être annulé (toute nouvelle modification vide le « refaire ») |
-| `/craftMasterScores [saison]` | cfsc | Écran de saisie des points de l'arbitre (aussi touche **U**, [Saisie](Saisie.md)) |
-| `/craftMasterHistory` | cfhi | Les 10 dernières modifications |
-| `/craftMasterStatus` | cfst | Saison, manche en cours, dernier score, scores non publiés, chrono, révélation |
-| `/craftMasterStatus context` | | Le contexte envoyé à la régie vocale, en JSON (vérification) |
-| `/craftMasterReprise [statut]` | cfrp | Après un crash : show gelé ou non, chronos, candidats qui manquent ([Épreuves](Epreuves.md#6-après-un-crash--le-show-gelé)) |
-| `/craftMasterReprise reprendre [force]` | | Feu vert : chaque chrono repart avec le temps qui lui restait ; refusé si un candidat manque, sauf `force` |
-| `/craftMasterReprise geler` | | Gèle le show à la main (joueurs, entités, chronos) |
+## Les anciennes commandes
+Les anciens noms (`/cfma`, `/cfar`, `/cam`, `/tv`, `/tache`, `/ambiance`, `/craftMasterManche`…) ne sont plus
+proposés, mais **marchent encore** : le serveur les traduit vers la nouvelle forme (`/cfma start pont` →
+`/cm manche lancer pont`). En jeu, une ligne grise rappelle le nouveau nom ; la console, le RCON, les conduites déjà
+enregistrées, les blocs de commande et la régie IA sont traduits sans rien dire (une ligne dans le journal). Les trois
+commandes du plugin qui doublaient les manches (`craftMasterAddTask`, `RemoveTask`, `RenameTask`) sont supprimées :
+`/cm manche creer|archiver|renommer`.
 
-## Saisons (admin)
-| Commande | Alias | Effet |
-|---|---|---|
-| `/craftMasterSeason list` | cfse | Les saisons (★ active) |
-| `/craftMasterSeason create [nom]` | | Nouvelle saison (numéro suivant), devient active |
-| `/craftMasterSeason activate <n>` | | Change de saison active |
-| `/craftMasterSeason rename <n> <nom>` | | Renomme |
-| `/craftMasterSeason archive <n> <true\|false>` | | Range (lecture seule, reste dans les classements) |
-| `/craftMasterSeason delete <n>` | | Supprime (annulable) ; les busts restent enregistrés |
-| `/craftMasterHideRanking <n> <true\|false>` | cfhr | Cache / révèle ; révéler publie aussi les scores |
+Restent à part, parce qu'elles vivent dans le jeu de chacun (pas sur le serveur) : `/diffusion` (F8), `/regie` (`;`),
+`/ia`, `/essaifx`, `/cmbarre`, `/cmtwitch`. Le serveur sait aussi les ouvrir : `/cm menu`, `/cm tv diffusion <joueur>`.
 
-## Parties (admin, facultatif)
-`/craftMasterPartie` (cfpa) : `list`, `create [nom]` (devient active), `rename <partie> <nom>`,
-`status <partie> <preparation|en_cours|terminee>`, `archive <partie> <true|false>`, `delete <partie>`,
-`activate <partie>`. Une partie se désigne par son numéro ou son nom.
+## L'arbre
 
-## Manches (admin)
+| Groupe | Ce qu'on y trouve |
+|---|---|
+| `menu` · `aide` · `statut` · `historique` · `annuler` · `refaire` | Menu, aide, état du direct, journal et annulation |
+| `saison` · `partie` · `manche` · `joueur` | La saison, ses parties, ses manches (lancement, chrono, TP…) et ses candidats |
+| `points` · `scores` · `classement` · `revelation` | Donner des points, corriger / publier les scores, classement, révélation |
+| `tache` · `note` | Lettres de tâche, enveloppes, notes cachées |
+| `epreuve` · `arene` | Outils d'épreuve (feuille, chronos, buzzers, zones, objets…) · arènes copiées par candidat |
+| `plateau` | Le décor : rideaux, ancre et décors de scène, points du plateau, portes de garage, pupitres, gong, tablettes, tableaux, busts |
+| `ambiance` · `conduite` · `sequence` · `projecteur` | Lumières et scénographie |
+| `camera` (`cam`) · `tv` · `fx` · `replay` · `media` | Réalisation, habillage, effets, replays, écrans, clips et chaînes |
+| `modo` · `ia` | Régie des modos · boutons de la régie IA |
+| `debug` · `reprise` · `worldedit` · `nommer` · `go` | Mode debug, reprise après crash, outils |
+
+### Le direct
 | Commande | Effet |
 |---|---|
-| `/craftMasterManche list` | Manches de la partie active (▶ en cours, notée, scène, décor, chrono, TP, surnoms) |
-| `/craftMasterManche create <nom> [chrono en s]` | Ajoute à la fin |
-| `/craftMasterManche rename <manche> <nom>` | Renomme (les points suivent : une manche garde son identifiant) |
-| `/craftMasterManche aliases <manche> [surnoms…]` | Surnoms pour la voix (séparés par des virgules ou espaces ; rien = aucun) |
-| `/craftMasterManche order <manche> <position>` | Change l'ordre |
-| `/craftMasterManche timer <manche> <secondes>` | Chrono (0 = aucun) |
-| `/craftMasterManche depart <manche> <lancement\|lettre\|bouton>` | Quand le chrono démarre : quand un joueur de la manche ouvre la lettre de la tâche (défaut ; une manche sans tâche écrite démarre au lancement, et `/cfti go` le lance avant) ; au lancement ; ou au bouton « Commencer l'épreuve » de la lettre : la lettre s'ouvre seule devant chaque joueur au lancement, il reste figé (ni marcher, ni casser, ni poser, ni utiliser, sauf la lettre) jusqu'à son clic, le premier clic lance le chrono. Le même bouton est dans le chat (jeu sans le mod), J rouvre la lettre |
-| `/craftMasterManche stage <manche> <true\|false>` | Se joue sur scène |
-| `/craftMasterManche scene <manche> <décor\|aucun>` | Décor posé au lancement (si sur scène) |
-| `/craftMasterManche tp add <manche>` | Ajoute l'endroit où l'on se tient (et la direction du regard) comme point de TP |
-| `/craftMasterManche tp clear <manche>` | Retire ses points de TP |
-| `/craftMasterManche archive <manche> <true\|false>` | Range (plus listée, ses points comptent) |
-| `/craftMasterManche delete <manche>` | Supprime avec ses points (annulable) |
+| `/cm statut` · `/cm statut contexte` | Saison, manche en cours, dernier score, scores non publiés, chrono, révélation · le contexte JSON de la régie vocale |
+| `/cm historique` | Les 10 dernières modifications |
+| `/cm annuler [n]` · `/cm refaire [n]` | Annule / refait (50 gardées depuis le démarrage) |
+| `/cm reprise [statut]` · `reprendre [force]` · `geler` | Après un crash : état, feu vert (chaque chrono repart avec son reste), gel à la main ([Épreuves](Epreuves.md#6-après-un-crash--le-show-gelé)) |
+| `/cm go` | Le bouton « Commencer l'épreuve » de la lettre, pour un jeu sans le mod (cliqué dans le chat) |
 
-## Joueurs de la saison (admin)
-`/craftMasterPlayer` (cfpl) : `list`, `add <pseudo> [surnoms…]`, `aliases <pseudo> [surnoms…]`,
-`rename <pseudo> <nouveau>` (scores en direct et publiés suivent), `remove <pseudo>` (archivé s'il a des points,
-pour rester au classement). Un joueur qui reçoit des points sans être dans la liste y est ajouté.
-
-## Plateau (admin)
+### Saisons, parties, joueurs (admin)
 | Commande | Effet |
 |---|---|
-| `/craftMasterStage info` | Rideaux, ancre, décors, durées de la révélation |
-| `/craftMasterStage curtain set <nom> [x y z]` | Enregistre le rideau (bloc visé ou position) ; `stage` = rideau de scène |
-| `/craftMasterStage curtain remove <nom>` | L'oublie |
-| `/craftMasterStage anchor [x y z]` | Ancre de scène (bloc visé ou position) : coin bas nord-ouest des décors |
-| `/craftMasterStage scene save <nom> <de> <à>` | Enregistre la zone comme décor (structure vanilla, 64 blocs max par côté) |
-| `/craftMasterStage scene delete <nom>` | L'oublie (le fichier de structure reste) |
+| `/cm saison liste` | Les saisons (★ active) |
+| `/cm saison creer [nom]` · `activer <n>` · `renommer <n> <nom>` | Nouvelle saison (devient active) · change d'active · renomme |
+| `/cm saison archiver <n> <true\|false>` · `supprimer <n>` | Range (lecture seule) · supprime (annulable, les busts restent) |
+| `/cm partie liste\|creer\|renommer\|statut\|archiver\|supprimer\|activer …` | Les parties (facultatif ; numéro ou nom) |
+| `/cm joueur liste` · `ajouter <pseudo> [surnoms…]` · `surnoms <pseudo> [surnoms…]` | Candidats de la saison |
+| `/cm joueur renommer <pseudo> <nouveau>` · `retirer <pseudo>` | Scores suivent · archivé s'il a des points |
 
-## Commandes du plugin (admin, toujours là)
-Elles agissent sur la partie active de la saison donnée ; « tâche » = manche.
-
-| Commande | Alias | Effet |
-|---|---|---|
-| `/craftMasterAddTask <saison> <tâche>` | cfat | Ajoute la manche (une manche retirée revient avec ses points) |
-| `/craftMasterRemoveTask <saison> <tâche>` | cfrt | Archive la manche ; ses points restent dans les totaux |
-| `/craftMasterRenameTask <saison> <ancien> <nouveau>` | cfrn | Renomme ; fusionne si le nouveau nom existe |
-| `/craftMasterSetScore <saison> <tâche> <pseudo> <score>` | cfss | Fixe le score |
-| `/craftMasterAddScore <saison> <tâche> <pseudo> <points>` | cfas | Ajoute des points (négatif pour en retirer) |
-| `/craftMasterRemoveScore <saison> <tâche> <pseudo>` | cfds | Efface ce score |
-| `/craftMasterReloadScores` | cfrs | Relit `config/craftmaster/config.yml` (vide le journal d'annulation) |
-| `/craftMasterAddBust <saison> <rang>` | cfab | En regardant une tête de joueur : en fait le bust de ce rang |
-| `/craftMasterRemoveBust <saison> <rang>` | cfdb | Oublie le bust |
-| `/craftMasterCurtain <open\|close\|toggle> <x y z>` | cfcu | Ouvre / ferme le rideau qui contient ce bloc (le tissu glisse en continu chez tous les joueurs, [Rideaux](Rideaux.md)) |
-
-Un score sur une tâche qui n'est pas dans la liste est accepté avec un avertissement (la manche est créée archivée).
-Les scores changés ici sont en direct : les joueurs les voient après `/craftMasterPublish` ([Classement](Classement.md)).
-
-## Classement (tous)
-| Commande | Alias | Effet |
-|---|---|---|
-| `/craftMasterRanking [saison]` | cfrk | Ouvre l'écran (dernière saison) ; dans le chat si le jeu n'a pas le mod |
-| `/craftMasterRanking chat [saison]` | | Classement dans le chat (joueurs : publié ; admins : en direct + « non publié ») |
-
-## Tableaux suspendus (admin)
-`/craftMasterPortrait` (alias `cfpt`) — détail dans [Tableaux](Tableaux.md). Sans cible, agit sur le tableau regardé.
+### Manches (admin)
 | Commande | Effet |
 |---|---|
-| `/cfpt place <saison> <rang> [<bloc du plafond> <north\|south\|east\|west>]` | Accroche un tableau |
-| `/cfpt set [cibles] season\|rank\|player\|name\|skin\|pose\|window\|windowDepth\|windowSize\|height <valeur>` | Change un réglage |
-| `/cfpt edit [cibles]` / `/cfpt poseEditor [cibles]` | Ouvre l'écran de réglages / l'éditeur de poses |
-| `/cfpt remove [cibles]` | Retire le tableau |
-| `/cfpt poses` | Liste les poses |
-| `/cfpt publish <saison>` | Réarrange les galeries de la saison selon le classement |
-| `/cfpt highlight <saison> <rang>` | Illumine le tableau de ce rang (5 s) |
-| `/cfpt hoist <saison> <blocs\|auto> [secondes]` · `/cfpt set [cibles] hoist <blocs\|auto> [secondes]` | Monte ou descend les tableaux (toute une galerie, ou ceux visés) jusqu'à cette longueur de ficelle, en douceur (1 bloc/s sans durée) |
+| `/cm manche lancer <manche\|next>` · `suivante` · `fin` | Lance (titre, son, TP, chrono, décor) · la suivante · fin de la manche |
+| `/cm manche chrono go` · `chrono stop` | Lance tout de suite le chrono qui attend sa lettre ou son bouton · l'arrête (libère les figés) |
+| `/cm manche chrono <manche> <secondes>` | Durée du chrono (0 = aucun) |
+| `/cm manche depart <manche> <lancement\|lettre\|bouton>` | Quand le chrono démarre ([Tâches](Taches.md)) |
+| `/cm manche liste` · `creer <nom> [s]` · `renommer` · `surnoms` · `ordre <manche> <position>` | Gestion de la liste |
+| `/cm manche scene <manche> <true\|false>` · `decor <manche> <décor\|aucun>` | Se joue sur scène · décor posé au lancement |
+| `/cm manche tp ajouter <manche>` · `tp effacer <manche>` | Points de TP (là où tu te tiens) |
+| `/cm manche archiver <manche> <true\|false>` · `supprimer <manche>` | Range · supprime avec ses points (annulable) |
+| `/cm manche camerainventaire <manche> <oui\|non\|defaut>` | Caméra d'inventaire des viewers pour cette manche ([Caméra d'inventaire](#caméra-dinventaire)) |
 
-## Épreuves (admin)
-Détail et usage : [Épreuves](Epreuves.md). Ce qui touche aux données (feuille, chronos notés) passe par
-l'exécuteur des actions : **annulable** et identique à la voix.
-
-| Commande | Alias | Effet |
-|---|---|---|
-| `/craftMasterResult` | cfre | Ouvre la feuille de résultats de la manche en cours (touche **R**) ; `open <manche>` pour une autre |
-| `/craftMasterResult set <joueur> <valeur> [temps\|nombre\|distance\|note\|poids]` | | Note une valeur (`42`, `1:05`, `12,5`) ; le type choisit la mesure si la feuille est vide |
-| `/craftMasterResult dq\|undq <joueur>` | | Disqualifie / réintègre |
-| `/craftMasterResult remove <joueur>` · `clear` | | Efface une ligne / la feuille |
-| `/craftMasterResult kind <type>` · `order <lower\|higher\|auto>` · `scale <5,4,3,2,1>` | | Réglages de la feuille |
-| `/craftMasterResult apply [barème]` | | Applique le barème : score de chaque candidat dans la manche (une seule annulation) |
-| `/craftMasterResult show` | | La feuille dans le chat (places, points proposés) |
-| `/craftMasterChrono start\|stop <joueur> [noter]` · `reset [joueur]` · `list` | cfch | Chronos des candidats ; l'arrêt note le temps (sauf `false`) |
-| `/craftMasterBuzzer reset\|status` | cfbz | Rallume la partie de buzzers / qui a buzzé et dans quel ordre |
-| `/craftMasterZone create <nom> [<de> <à>]` | cfzo | Zone d'épreuve (sans coordonnées : les deux derniers points du mètre ruban) |
-| `/craftMasterZone players <nom> <joueurs…\|all>` · `enable <nom> <true\|false>` · `show` · `remove` · `list` | | Réglages des zones |
-| `/craftMasterTrial log` · `reset` · `prop` | cftr | Journal (boutons, buzzers, premiers, sorties de zone) / remise à zéro / réglages de l'objet regardé |
-| `/craftMasterTrial motdepasse initiale <lettre>\|mot <mot>\|libre [nom]` | | Pose l'objet tenu à plat sur le sol visé, verrouillé par un mot de passe ([Arènes](Arenes.md)) |
-| `/craftMasterTrial vase <nombre>` | | Le pot visé devient un vase qui montre les objets pris avec un mot de passe ; plein = fin de l'essai |
-| `/craftMasterTrial marquer <but>` | | L'objet tenu devient l'objet de l'épreuve : le manger termine l'essai (« la pomme ») |
-| `/craftMasterTrial panneau <texte>` | | Écrit le panneau visé (« \| » = ligne suivante) et le cire |
-| `/craftMasterTrial vocal commun\|fin` | | Candidats et organisateurs dans un même canal de Simple Voice Chat / retour au vocal de proximité |
-| `/craftMasterTrial chrono <secondes>` | | Lance le chrono de la manche en cours maintenant (ferme le canal vocal commun) |
-| `/craftMasterBoard size <l> <h>` · `clear` · `lock <true\|false>` · `text <texte>` | cfbd | Tableau à dessin regardé (`\n` = retour à la ligne) |
-| `/craftMasterToys` · `status` | cfty | Objets à manipuler ([Objets](Objets.md)) : qui a trouvé quoi, prises dans les cibles, plus long lancer, golf, ballons crevés, œufs cassés, avec les boutons pour noter |
-| `/craftMasterToys list` · `glow [secondes]` · `collect` | | Objets cachés restants : où (clic = téléportation), les faire briller, tous les ramasser |
-| `/craftMasterToys reset` · `egg <blocs>` | | Remet les compteurs à zéro / règle l'œuf fragile tenu (0 = casse au moindre choc) |
-
-## Arènes d'épreuve (admin)
-Une zone de référence copiée pour chaque candidat, remise à zéro, réapparition : [Arènes](Arenes.md).
-
-| Commande | Alias | Effet |
-|---|---|---|
-| `/craftMasterArene liste` | cfar | Les arènes, leurs copies et leurs réglages |
-| `/craftMasterArene creer <nom>` | | Arène entre les deux derniers points du mètre ruban |
-| `/craftMasterArene spawn <nom>` | | Point de départ (et de réapparition) : là où tu te tiens |
-| `/craftMasterArene copier <nom> [joueurs\|tous]` | | Une copie par candidat, côte à côte, murs de barrières |
-| `/craftMasterArene placer <nom> [joueurs]` | | Chacun au départ de sa copie, réapparition là, avec le kit |
-| `/craftMasterArene reset <nom>` | | Toutes les copies refaites comme la référence (objets cachés compris) |
-| `/craftMasterArene tp <nom> <joueur> [dessus]` | | Aller voir la copie d'un candidat (au-dessus pour juger) |
-| `/craftMasterArene kit <nom> [vide]` | | Le kit = les objets de ton inventaire / aucun |
-| `/craftMasterArene champ <nom> [encre]` | | Champ à dessiner entre les deux points du mètre ruban |
-| `/craftMasterArene manche <nom> <manche>` | | Lie l'arène à sa manche |
-| `/craftMasterArene option <nom> chronoLettre\|panneauxSuite\|murs\|inventaireVide\|solFin\|alphabet <true\|false>` · `chronoSuite <s>` | | Réglages (voir la page) |
-| `/craftMasterArene panneaux <nom> [verrouiller]` | | Les panneaux de chaque copie (et les verrouiller) |
-| `/craftMasterArene comparer <nom> [noter]` | | Chaque copie comparée bloc à bloc à la référence ; `noter` l'écrit sur la feuille |
-| `/craftMasterArene fleurs <nom>` · `animal <nom>` | | Installe le chemin des fleurs de Jeremy / le champ de l'épreuve Animal devant toi |
-| `/craftMasterArene retirer <nom> <joueur>` · `supprimer <nom>` | | Oublie une copie / l'arène (les blocs restent) |
-
-## Pour tous
-| Commande | Alias | Effet |
-|---|---|---|
-| `/craftMasterName [nom]` | cfnm | Nomme l'objet tenu (codes `&6`, `&l`…) ; sans nom : retire le nom |
-
-## Régie des modos (organisateur) — [RegieModos](RegieModos.md)
-Droits `camera`, `tv`, `replay`, `jeu` (permissions `craftmaster:camera|tv|replay|jeu`, `craftmaster:modo` = camera + tv +
-replay), ou la liste du mod :
-| Commande | Alias | Effet |
-|---|---|---|
-| `/craftMasterModo [liste]` | modo, cfmo | Les modos (Twitch, Minecraft, droits) |
-| `/modo ajouter <twitch> [minecraft\|-] [camera,tv,replay,jeu]` | | Ajoute / modifie (par défaut camera,tv,replay) |
-| `/modo retirer <nom>` · `/modo pause` · `/modo reprendre` | | Retire · coupe toutes les régies des modos · les rend |
-| `/modo journal [n]` | | Qui a fait quoi (ordres réussis et refusés) |
-| `/modo site [etat\|on\|off]` · `/modo site lier [adresse]` | | Lien avec lordfinn.fr : état, activer, couper · nouveau secret |
-| `/regie` (client) | | Ouvre la régie des modos (aussi touche `;`) |
-
-## Régie IA (organisateur) — [RegieIA](RegieIA.md)
-| Commande | Alias | Effet |
-|---|---|---|
-| `/ia <demande>` (client) | | Écrire une demande à l'agent de régie au lieu de la dire |
-| `/regieia confirmer <n>` · `refuser <n>` · `annuler <demande>` | | Les boutons du chat : confirmer / refuser une suppression, défaire une demande |
-
-## Réalisation TV (organisateur ou permission `craftmaster:camera`)
-Détail : [Réalisation](Realisation.md). `<caméra>` = numéro, nom ou rôle (`large`, `trone`, `podium`) ;
-`[transition]` = `coupe`, `fondu`, `enchaine`, `miroir`, `flash` ou `surimpression`.
-| Commande | Alias | Effet |
-|---|---|---|
-| `/craftMasterCamera [list]` | cam | Les caméras (● à l'antenne), le plan en cours, la réalisation auto |
-| `/cam here <n> [nom]` | | Pose (ou déplace) la caméra n à la place de tes yeux, regardant là où tu regardes |
-| `/cam add [nom]` | | Idem avec le numéro libre suivant |
-| `/cam aim <n>` · `/cam goto <n>` | | Elle regarde là où tu regardes · tu vois ce qu'elle voit |
-| `/cam placer <n> <x y z> vers <x y z>` | | Pose (ou déplace) la caméra n à ces coordonnées, regardant la cible, sans bouger (console, [Régie IA](RegieIA.md)) ; une nouvelle n'a pas de trépied |
-| `/cam name <n> <nom>` · `/cam role <n> <rôle\|aucun>` | | Renomme · rôle (un seul par rôle) |
-| `/cam zoom <n> <15..110\|reset>` · `/cam motion <n> <fixe\|respiration\|travelling\|panoramique>` | | Champ de vision · mouvement à l'antenne |
-| `/cam remove <n>` | | Retire la caméra et son trépied |
-| `/cam cut <caméra> [transition]` · `/cam wide` · `/cam next` · `/cam prev` | | Change de plan |
-| `/cam follow <joueur> [transition]` | | Plan qui suit un joueur |
-| `/cam auto <on\|off>` · `/cam transition <transition>` | | Réalisation automatique (on : plus de joueur retenu, cadrage normal) · transition par défaut |
-| `/cam voir <joueur>` | | On va le voir : caméra posée qui le voit bien, sinon le plan qui le suit |
-| `/cam rester <joueur\|off>` | | La réalisation auto reste sur ce joueur |
-| `/cam cadrage <large\|serre\|auto>` | | Cadrage automatique plus large / plus serré / normal |
-| `/cam eviter <caméra> [off]` | | La réalisation auto n'utilise plus cette caméra (off : de nouveau) |
-| `/cam lieu <caméra> <studio\|manche> [zone]` | | Range la caméra dans un lieu (et une zone : nom de zone d'épreuve ou candidat) |
-| `/cam focus [<studio\|manche\|auto> [zone]]` · `/cam zone <zone\|joueur\|suivante\|precedente\|tout>` | | Lieu / zone que visent les touches 1–9 et « caméra 2 » (sans argument : où on en est) |
-| `/cam list tout` | | Les caméras de tous les lieux, par lieu et zone |
-| `/cam mosaic [lieu\|off]` · `/cam pov <joueur>` | | Écran partagé des zones · vue d'un joueur |
-| `/cam trajet <nom> point [s]` · `duree` · `pause` · `courbe` · `zoom` · `suppr` · `remplacer` · `aller` · `apercu` · `montrer` · `jouer` · `objet` · `lieu` · `effacer` | | Enregistre et règle un travelling (voir [Réalisation](Realisation.md)) |
-| `/cam jouer <trajet> [transition] [effet]` · `/cam trajets` | | Travelling à l'antenne · liste |
-| `/tv intro <manche> [jouer\|voir\|ajouter …\|plan <n> …\|auto\|musique\|titre\|effacer]` | | Intro animée d'une manche |
-| `/craftMasterTv lowerthird player <joueur>` | tv | Synthé avec le nom (et le rang publié) d'un joueur |
-| `/tv lowerthird text <titre> [\| sous-titre]` | | Synthé libre |
-| `/tv task [secondes]` · `/tv scores [show\|auto\|on\|off]` · `/tv letterbox <on\|off>` | | Carte de la tâche · bandeau des scores · bandes cinéma |
-| `/tv intro` · `/tv outro` · `/tv stop` | | Générique d'ouverture · de fin · l'arrêter |
-| `/tv spotlight <joueur> [raison]` | | « Tous les yeux sur lui » : la réalisation auto coupe dessus |
-| `/tv broadcast <joueur> <on\|off>` | | Active / coupe le mode diffusion de ce jeu à distance |
-
-## Replays (admin, [Replays](Replays.md))
-- `/craftMasterReplay` (`/cmreplay`) : état ; `mode manche|partie|off`, `start`, `stop`, `joueurs on|off`, `zone on|off`,
-  `marge <n>`, `drapeau [texte]`, `repere <texte>`, `voir [<n> [zone|joueur]]` (regarder un enregistrement). Il faut Server Replay sur le
-  serveur.
-- `/cmbarre` (sur le jeu, pendant un replay) : la souris sur la ligne de temps (comme la touche M).
-## Clips et télés ([Clips](Clips.md), permission `craftmaster:image`)
+### Points, scores, classement
 | Commande | Effet |
 |---|---|
-| `/cmtele nommer <nom>` | nomme l'écran du studio que tu regardes |
-| `/cmtele <nom> clip [n\|dernier]` · `lien <URL>` · `direct <joueur>` · `image <URL>` · `chat [twitch\|jeu\|tout]` · `off` | ce que montre la télé (`tout` = toutes ; `chat` = le mur de chat) |
-| `/cmtele liste` | les télés et ce qu'elles montrent |
-| `/cmclip liste` · `renommer <n> <nom>` · `supprimer <n>` | les clips gardés par le serveur |
-| `/cmchaine lier <joueur> <chaîne>` · `delier <joueur>` · `liste` | chaînes Twitch des candidats |
-| F9 / F10 (touches du jeu) | démarre / arrête le clip de la vue de ce jeu |
-| `/craftMasterTwitch clips` (commande du jeu) | liens de clips Twitch postés par le chat |
+| `/cm points <pseudo> <points> [manche]` | Points pour la manche en cours (ou nommée), annoncés « LordFinn +3 (Le Pont) » |
+| `/cm scores saisie [saison]` | Écran de saisie de l'arbitre (touche **U**, [Saisie](Saisie.md)) |
+| `/cm scores publier [saison]` | Publie : busts, étiquettes, écrans, classement des joueurs |
+| `/cm scores ajouter\|fixer <saison> <manche> <pseudo> <n>` · `effacer <saison> <manche> <pseudo>` | Corrige un score d'une saison donnée |
+| `/cm scores recharger` | Relit `config/craftmaster/config.yml` (vide le journal d'annulation) |
+| `/cm classement [saison]` · `classement chat [saison]` (tous) | L'écran du classement (touche **K**) · dans le chat |
+| `/cm classement cacher <saison> <true\|false>` | Cache / révèle une saison (révéler publie) |
+| `/cm revelation lancer [saison]` · `stop` · `durees [rideau tambour joueur podium]` | Révélation mise en scène ([Émission](Emission.md)) |
 
-## Effets d'écran ([Effets](Effets.md))
-| Commande | Alias | Rôle |
-|---|---|---|
-| `/craftMasterFx diffusion <effet[+effet]\|aucun> [secondes]` | `/fx` | Effet sur l'image de la diffusion (organisateur ou `craftmaster:camera`) |
-| `/fx <joueur\|tous\|candidats> <effet[+effet]\|aucun> [secondes]` | | Effet imposé sur la vue de joueurs (organisateur) |
-| `/fx aucun` | | Plus aucun effet (diffusion et joueurs) |
-| `/fx porter <joueurs> <objet> [verrouille]` · `/fx retirer <joueurs>` | | Met / enlève des lunettes, un masque (verrouillé : malédiction du lien) |
-| `/fx etat` · `/fx liste` | | Qui a quel effet · les effets et combinaisons |
-| `/essaifx <effet\|aucun> [secondes]` | `/craftMasterFxTry` | Commande du jeu : essai sur sa propre vue, images par seconde |
-
-## Mode diffusion (tous, commande du jeu)
+### Tâches et notes (admin, sauf `/cm tache`)
+`/cm tache` seul (**tous**) : la tâche du moment (touche **J**). Détail : [Tâches](Taches.md).
 | Commande | Effet |
 |---|---|
-| `/craftMasterBroadcast [on\|off]` (alias `/diffusion`) ou **F8** | Mode diffusion (image TV) |
-| `/diffusion chat <on\|off>` · `/diffusion status` | Chat visible en diffusion · état |
-| `/diffusion camera <n, nom ou clé>` (ou touches 1–9, molette) | Demande ce plan (réalisation seulement) |
-| `/diffusion zone <zone\|next\|prev>` (ou Tab / Maj+Tab, Maj+molette) · touche **0** | Zone suivante de la manche · écran partagé |
+| `/cm tache editer [manche]` · `sceau` · `lire <manche>` · `apercu <manche>` · `liste` | Éditeur · sceau · lire · jouer la lettre pour soi · la liste |
+| `/cm tache regler <manche> titre\|texte\|ajouter\|regles\|secondes\|cire\|revelee …` | Réglages de la lettre |
+| `/cm tache effacer <manche>` · `reveler [manche]` · `cacher [manche]` · `suite [manche]` | Efface · révèle · remet au secret · révèle la partie `[secret]` suivante |
+| `/cm tache montrer [manche] [s]` · `enveloppe <manche> [joueurs\|tous]` · `fermer [joueurs]` | Carte à l'écran de tous · enveloppes · fermer |
+| `/cm tache cachertout` · `outils` | Tout redevient secret (répétition) · sceau et lampe UV |
+| `/cm note liste\|info\|creer\|editer\|texte\|regler\|donner\|bouteille\|reset\|decacher\|supprimer …` | Notes cachées ([Tâches](Taches.md#notes-cachées)) |
 
-## Tâches et enveloppes
-`/craftMasterTask` (alias `/tache`, `/cftk`) — détail dans [Tâches](Taches.md). Sans argument (**tous**) : la tâche
-du moment (comme la touche J). Le reste est admin et passe par l'exécuteur d'actions (textes annulables).
+### Épreuves (admin) — [Épreuves](Epreuves.md)
 | Commande | Effet |
 |---|---|
-| `/tache` | Ouvre la tâche du moment (secrète : l'enveloppe scellée ; admin : même secrète) |
-| `/tache edit [manche]` · `/tache seal` | Éditeur de tâches · écran du sceau à cire |
-| `/tache view <manche>` | Lire la tâche d'une manche (admin, même secrète) |
-| `/tache apercu <manche>` (`preview`) | Jouer la lettre (sceau, ouverture) sur ton écran seulement : rien n'est révélé |
-| `/tache list` | Les manches, leur tâche, secrète ou révélée (quand, par qui) |
-| `/tache set <manche> title <texte>` | Titre |
-| `/tache set <manche> text <texte>` · `append <texte>` | Texte (`\n` = retour à la ligne) · ajouter un paragraphe |
-| `/tache set <manche> rules [r1 \| r2 \| r3]` | Règles en puces (vide = aucune) |
-| `/tache set <manche> seconds <n>` | Durée affichée (0 = chrono de la manche) |
-| `/tache set <manche> wax <couleur>` | Cire : rouge, or, noir, blanc, bleu, vert, violet, rose, orange, cyan, marron, gris |
-| `/tache set <manche> revealOnStart <true\|false>` | Révélée au lancement de la manche, ou par enveloppe seulement |
-| `/tache clear <manche>` | Efface la tâche |
-| `/tache reveal [manche]` · `/tache hide [manche]` | Révèle à tous (annoncé) · remet au secret (défaut : manche en cours) |
-| `/tache suite [manche]` | Révèle la partie `[secret]` suivante du texte (« révèle la suite ») |
-| `/tache show [manche] [secondes]` | La carte à l'écran de tous (12 s), révélée d'abord |
-| `/tache envelope <manche> [joueurs\|tous]` | Enveloppes scellées à leur nom (défaut : candidats connectés) |
-| `/tache close [joueurs]` | Ferme les cartes ouvertes |
-| `/tache resetReveals` | Toutes les tâches de la saison active redeviennent secrètes (répétition) |
-| `/tache tools` | Donne le sceau à cire et la lampe UV |
+| `/cm epreuve feuille [ouvrir <manche>]` | Feuille de résultats (touche **R**) |
+| `/cm epreuve feuille regler <joueur> <valeur> [mesure]` · `dq\|undq <joueur>` · `retirer <joueur>` · `effacer` | Noter, disqualifier, effacer |
+| `/cm epreuve feuille mesure <type>` · `ordre <lower\|higher\|auto>` · `bareme <5,4,3,2,1>` · `appliquer [barème]` · `montrer` | Réglages, barème, feuille dans le chat |
+| `/cm epreuve chrono lancer\|stop <joueur> [noter]` · `reset [joueur]` · `liste` · `<secondes>` | Chronos des candidats · lance le chrono de la manche maintenant |
+| `/cm epreuve buzzer reset\|statut` | Buzzers |
+| `/cm epreuve zone creer\|joueurs\|activer\|montrer\|retirer\|liste …` | Zones d'épreuve |
+| `/cm epreuve journal` · `reset` · `objet` | Journal · remise à zéro · réglages de l'objet regardé |
+| `/cm epreuve motdepasse …` · `vase <n>` · `marquer <but>` · `panneau <texte>` · `vocal commun\|fin` | Objets d'épreuve ([Arènes](Arenes.md)) |
+| `/cm epreuve tableau taille\|effacer\|verrouiller\|texte …` | Tableau à dessin regardé |
+| `/cm epreuve jouets [statut]` · `liste` · `briller [s]` · `ramasser` · `reset` · `oeuf <blocs>` | Objets à manipuler ([Objets](Objets.md)) |
 
-## Notes cachées (admin)
-`/craftMasterNote` (alias `/cfno`) — détail dans [Tâches](Taches.md#notes-cachées).
+### Arènes (admin) — [Arènes](Arenes.md)
 | Commande | Effet |
 |---|---|
-| `/cfno list` · `/cfno info <note>` | Les notes · cachettes et trouvailles d'une note |
-| `/cfno create [titre]` | Nouvelle note (sans titre : l'éditeur) ; donne son outil de cachette |
-| `/cfno edit <note>` · `/cfno text <note> <texte>` | Éditeur · texte |
-| `/cfno set <note> look\|readers\|players\|title\|once\|ink\|pieces <valeur>` | Un réglage (aspect, lecteurs, prise unique, encre invisible, morceaux) |
-| `/cfno give <note>` · `/cfno bottle <note>` | Outil de cachette · bouteille à la mer |
-| `/cfno reset <note>` | Oublie les trouvailles, remet les notes prises en place |
-| `/cfno unhide <note>` · `/cfno delete <note>` | Retire toutes les cachettes · supprime la note |
+| `/cm arene liste` · `creer <nom>` · `spawn <nom>` · `manche <nom> <manche>` | Les arènes, en créer, départ, manche liée |
+| `/cm arene copier <nom> [joueurs\|tous]` · `placer <nom> [joueurs]` · `reset <nom>` | Une copie par candidat · chacun à son départ · tout refaire |
+| `/cm arene tp <nom> <joueur> [dessus]` · `kit <nom> [vide]` · `champ <nom> [encre]` | Voir une copie · kit · champ à dessiner |
+| `/cm arene option <nom> <option> <valeur>` | `chronoLettre`, `panneauxSuite`, `murs`, `inventaireVide`, `solFin`, `alphabet`, `cameraInventaire` (true/false), `chronoSuite` (s) — en direct, aussi dans le [menu des épreuves](#épreuves-en-direct) |
+| `/cm arene panneaux <nom> [verrouiller]` · `comparer <nom> [noter]` | Panneaux des copies · comparaison bloc à bloc |
+| `/cm arene fleurs <nom>` · `animal <nom>` | Installe les fleurs de Jeremy / le champ d'Animal devant toi |
+| `/cm arene retirer <nom> <joueur>` · `supprimer <nom>` | Oublie une copie / l'arène |
 
-## Client (chacun dans son jeu)
+### Le plateau (admin) — [Plateau](Plateau.md), [Rideaux](Rideaux.md), [Portes de garage](PortesGarage.md), [Tableaux](Tableaux.md)
 | Commande | Effet |
 |---|---|
-| `/craftMasterTwitch` · `reload` · `test` | État de la lecture du chat Twitch · relire `config/craftmaster-client.json` · simuler un `!tache` |
+| `/cm plateau` · `info` | Rideaux, ancre, décors, points, sens du public |
+| `/cm plateau rideau ouvrir\|fermer [nom]` · `regler <nom> [x y z]` · `retirer <nom>` | Rideaux nommés (défaut `stage`) |
+| `/cm plateau rideau bloc ouvrir\|fermer\|basculer <x y z>` | Le rideau qui contient ce bloc |
+| `/cm plateau ancre [x y z]` · `decor poser <décor>` · `decor enregistrer <nom> <de> <à>` · `decor supprimer <nom>` | Ancre et décors de scène |
+| `/cm plateau devant` · `point <nom>` · `retirerpoint <nom>` | Sens du public · points visés par les projecteurs (`@point:nom`) |
+| `/cm plateau garage ouvrir\|fermer\|basculer <x y z>` · `garage porte <nom> …` | Portes de garage |
+| `/cm plateau pupitre nom <nom\|->` · `gong` · `tablette lancer\|pause\|basculer\|reset\|relancer` | Pupitre regardé · gong · tablettes chrono |
+| `/cm plateau portrait poser\|regler\|editer\|retirer\|poses\|publier\|illuminer\|hisser …` | Tableaux suspendus |
+| `/cm plateau buste ajouter\|retirer <saison> <rang>` | Busts (en regardant une tête de joueur) |
 
-## Décor du studio
-Détail dans [Plateau](Plateau.md). Sans cible, une commande agit sur l'écran, le projecteur ou le pupitre regardé.
-| Commande | Alias | Effet |
-|---|---|---|
-| `/craftMasterImage <URL> [largeur] [hauteur]` | `image`, `cfim` | Image sur l'écran regardé, ou nouvel écran (5 × 3 par défaut) sur le mur regardé ; permission `craftmaster:image` ou admin. `chat:twitch`, `chat:jeu` ou `chat:tout` à la place de l'URL : le mur de chat ([Clips](Clips.md#le-mur-de-chat)) |
-| `/image clear\|remove` · `/image size <l> <h>` · `/image fit <true\|false>` | | Mire / retirer / taille / image entière ou étirée |
-| `/craftMasterDesk name <nom\|->` | `cfdk` | Nom sur la plaque du pupitre regardé (admin) |
-| `/craftMasterGong` | `cfgo` | Coup du gong le plus proche (admin) |
-| `/craftMasterSpotlight` | `cfsp` | Projecteurs : `nom <nom>` (celui regardé) ; `[tout\|groupe <nom>] allume\|eteint\|couleur <c>\|intensite <0-100>\|cone <1-30>\|faisceau on\|off\|halo on\|off\|ici\|suivre <joueur|@scene|@moment|@antenne|@candidat\|@scene\|@moment\|@candidat\|@proche\|@zone:nom>\|stop [fondu s]` ; `liste` — voir [Scénographie](Scenographie.md) |
-| `/ambiance` | `cfam` | Ambiances : `enregistrer <nom> [parties] [fondu]`, `lancer <nom> [fondu]`, `modifier <nom> <cible> <ordre>` (sans la jouer), `noir [fondu]`, `supprimer`, liste cliquable |
-| `/conduite` | `cfco` | Conduites : `ajouter <nom> <ligne>`, `voir`, `inserer`, `retirer`, `lancer`, `stop`, `statut`, `auto <moment> <conduite>`, `manche <manche> <conduite>` |
+### Lumières (admin) — [Scénographie](Scenographie.md)
+| Commande | Effet |
+|---|---|
+| `/cm ambiance [liste]` · `lancer <nom> [fondu]` · `enregistrer <nom> [parties] [fondu]` · `modifier` · `noir [fondu]` · `supprimer` | Ambiances |
+| `/cm conduite liste\|creer\|ajouter\|inserer\|retirer\|voir\|lancer\|stop\|statut\|supprimer\|auto\|manche …` | Conduites |
+| `/cm sequence liste\|editer\|creer\|lancer\|stop\|statut\|…` | Séquences (timeline) |
+| `/cm projecteur nom <nom>` · `[tout\|groupe <nom>] allume\|eteint\|couleur\|intensite\|cone\|faisceau\|halo\|ici\|suivre\|stop` · `liste` | Projecteurs |
+
+### Réalisation (organisateur ou `craftmaster:camera`) — [Réalisation](Realisation.md)
+`/cm camera` = `/cm cam`. `<caméra>` = numéro, nom ou rôle ; `[transition]` = `coupe`, `fondu`, `enchaine`, `miroir`, `flash`, `surimpression`.
+| Commande | Effet |
+|---|---|
+| `/cm cam [liste [tout]]` | Les caméras, le plan, la réalisation auto |
+| `/cm cam ici <n> [nom]` · `ajouter [nom]` · `viser <n>` · `aller <n>` · `placer <n> <x y z> vers <x y z>` | Poser / viser / voir une caméra |
+| `/cm cam nom <n> <nom>` · `role <n> <rôle\|aucun>` · `zoom <n> <15..110\|reset>` · `mouvement <n> <…>` · `retirer <n>` | Réglages |
+| `/cm cam couper <caméra> [transition]` · `large` · `suivante` · `precedente` · `suivre <joueur>` · `pov <joueur>` | Change de plan |
+| `/cm cam auto <on\|off>` · `transition <t>` · `voir` · `rester` · `cadrage` · `eviter` · `lieu` · `focus` · `zone` · `mosaique` | Réalisation automatique |
+| `/cm cam trajet <nom> …` · `jouer <trajet>` · `trajets` | Travellings |
+| `/cm tv synthe joueur <joueur>` · `synthe texte <titre> [\| sous-titre]` | Synthés |
+| `/cm tv tache [s]` · `scores [show\|auto\|on\|off]` · `bandes <on\|off>` · `intro` · `outro` · `stop` · `vedette <joueur>` | Habillage |
+| `/cm tv intro <manche> …` | Intro animée d'une manche |
+| `/cm tv diffusion <joueur> <on\|off>` | Mode diffusion d'un jeu à distance |
+| `/cm tv inventaire [toujours\|epreuves\|jamais]` | [Caméra d'inventaire](#caméra-dinventaire) |
+| `/cm fx diffusion <effet> [s]` · `<joueurs> <effet> [s]` · `aucun` · `porter` · `retirer` · `etat` · `liste` | [Effets](Effets.md) |
+| `/cm replay …` | [Replays](Replays.md) (`mode`, `lancer`, `stop`, `voir`, `drapeau`, `repere`…) |
+| `/cm media image <URL> [l] [h]` · `image effacer\|retirer\|taille\|ajuster` | Image sur un écran du studio (`craftmaster:image`) |
+| `/cm media tele …` · `clip …` · `chaine …` | Télés, clips, chaînes Twitch ([Clips](Clips.md)) |
+
+### Régies
+| Commande | Effet |
+|---|---|
+| `/cm modo [liste]` · `ajouter` · `retirer` · `pause` · `reprendre` · `journal` · `site` | [Régie des modos](RegieModos.md) |
+| `/cm ia confirmer\|refuser <n>` · `annuler <demande>` | Boutons de la [Régie IA](RegieIA.md) |
+
+### Mode debug (admin)
+`/cm debug [on|off]` (aussi dans le menu). Pour toi seul, jamais sur la diffusion ni chez les candidats :
+- en particules : la zone de référence de chaque arène (or), ses copies (vert, avec leur candidat), les départs
+  (colonne blanche), les champs à dessiner (bleu), les zones d'épreuve (rouge), l'ancre de scène et les points du plateau ;
+- en haut à gauche : la manche en cours et son chrono, qui attend sa lettre ou son bouton, l'arène où tu es (et la
+  copie de qui), les options de chaque arène, le plan à l'antenne, la caméra d'inventaire, l'état de la reprise.
+Un jeu en mode diffusion (F8) ne l'affiche jamais, même pour un organisateur.
+
+### Outils
+| Commande | Effet |
+|---|---|
+| `/cm worldedit [perf on\|off]` | WorldEdit sans voisins ni mises à jour (admin) |
+| `/cm nommer [nom]` (tous) | Nomme l'objet tenu (codes `&6`, `&l`…) |
+
+## Caméra d'inventaire
+Quand un candidat ouvre son inventaire, les jeux de diffusion et le flux de l'émission le montrent en direct
+([Arènes](Arenes.md#caméra-dinventaire)). Qui est montré :
+- `/cm tv inventaire toujours` (défaut) : tous les candidats ;
+- `/cm tv inventaire epreuves` : seulement pendant une manche qui la demande (`/cm manche camerainventaire <manche> oui`)
+  ou dans une arène qui la demande (`/cm arene option <nom> cameraInventaire true`) ;
+- `/cm tv inventaire jamais`.
+Une manche ou une arène réglée à `non` la coupe toujours, même en mode `toujours`.
+
+## Le menu CraftMaster
+**Touche N** ou `/cm menu` : un seul point d'entrée, dans les couleurs du kit (velours, cadres dorés). Chaque bouton
+dit ce qu'il fait au survol ; la molette fait défiler les listes ; les réglages s'appliquent tout de suite.
+- **Saison et manches** : la saison active, ses manches (lancer, fin, suivante, chrono go/stop), publier, révélation,
+  et les écrans de saisie (U), de classement (K), de tâche et de résultats (R).
+- **Épreuves en direct** : chaque arène, sa manche, ses copies ; ses options à cocher en direct (chrono à la lettre,
+  panneaux à la suite, murs, sol = fin, alphabet, caméra d'inventaire, chrono de la suite à la molette) ; placer, remettre
+  à zéro, comparer, panneaux. Les cinq épreuves (Fleurs de Jeremy, Animal, La pomme, Village, Inventaire
+  alphabétique / élytres) y sont réglables comme les autres.
+- **Ambiances et spots** : lancer une ambiance ou une conduite, noir, l'éditeur de séquences, les projecteurs.
+- **Caméra et diffusion** : couper sur une caméra, plan large, auto on/off, la régie des modos, la caméra d'inventaire.
+- **Joueurs** : les candidats (en ligne ou non), points +1 / −1, les suivre, aller les voir.
+- **Debug** : le mode debug, l'état du direct, annuler / refaire.
+
+## Stream Deck
+L'API locale du jeu (`config/craftmaster-client.json`, section `streamDeck`) répond sur `127.0.0.1` ; elle sait
+aussi lancer n'importe quelle commande : `/cm?c=manche lancer next` (organisateur). Le dossier **CraftMaster** du Stream
+Deck est généré par `StreamTools/craftmaster-deck.ps1`.

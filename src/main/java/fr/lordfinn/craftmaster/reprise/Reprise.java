@@ -72,7 +72,7 @@ import java.util.concurrent.Executors;
  * The show after a crash: a server restarted while a round was being played does not start again by itself. It is
  * frozen — players can neither move nor act, mobs and every entity stand still (the game's own tick freeze), every
  * clock (round timer, timer tablets, contestants' stopwatches, buzzers' delays) stands where it was at the crash —
- * until the organiser gives the go ({@code /craftMasterReprise reprendre}, refused while a contestant is missing
+ * until the organiser gives the go ({@code /cm reprise reprendre}, refused while a contestant is missing
  * unless forced). Then each clock goes on with exactly the time it had left.
  *
  * <p>For that, the clocks are saved every second in {@code config/craftmaster/reprise.json} ({@link RepriseState}).
@@ -179,7 +179,7 @@ public final class Reprise {
             return;
         }
         restore(server, saved);
-        CraftMaster.LOG.info("[Reprise] Show gelé après le redémarrage ; chronos remis à l'état du {} (/craftMasterReprise).",
+        CraftMaster.LOG.info("[Reprise] Show gelé après le redémarrage ; chronos remis à l'état du {} (/cm reprise).",
                 java.time.Instant.ofEpochMilli(saved.savedAt));
     }
 
@@ -603,7 +603,7 @@ public final class Reprise {
     }
 
     private static Component resumeButton(boolean force) {
-        String cmd = "/craftMasterReprise reprendre" + (force ? " force" : "");
+        String cmd = "/cm reprise reprendre" + (force ? " force" : "");
         return Component.literal(force ? "[Forcer la reprise]" : "[Reprendre]").withStyle(s -> s
                 .withColor(force ? ChatFormatting.RED : ChatFormatting.GREEN)
                 .withClickEvent(new ClickEvent.RunCommand(cmd))

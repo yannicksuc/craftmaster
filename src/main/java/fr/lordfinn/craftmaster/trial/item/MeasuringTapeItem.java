@@ -32,7 +32,7 @@ import java.util.function.Consumer;
  * the height. For 10 seconds a yellow tape lies between the two points with the distance written above it, seen by
  * everyone ({@link TapeRibbons}). Sneak + use starts over.
  * Organisers get buttons to write the distance down for a contestant. The two last points also define a task
- * zone ({@code /craftMasterZone create <name>}).
+ * zone ({@code /cm epreuve zone creer <name>}).
  */
 public class MeasuringTapeItem extends Item {
 

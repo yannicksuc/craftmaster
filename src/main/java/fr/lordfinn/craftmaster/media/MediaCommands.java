@@ -31,11 +31,11 @@ import static net.minecraft.commands.Commands.literal;
 /**
  * Commands of the screens' videos and the clips (reference: docs/wiki/Clips.md), permission craftmaster:image:
  * <ul>
- *   <li>{@code /cmtele liste}, {@code /cmtele nommer <nom>} (the screen you look at), {@code /cmtele <nom> clip
+ *   <li>{@code /cm media tele liste}, {@code /cm media tele nommer <nom>} (the screen you look at), {@code /cm media tele <nom> clip
  *   [n|dernier]}, {@code lien <URL>}, {@code direct <joueur>}, {@code image <URL>}, {@code chat [twitch|jeu|tout]}
  *   (the chat wall, {@link ChatWall}), {@code off}.</li>
- *   <li>{@code /cmclip liste}, {@code /cmclip renommer <n> <nom>}, {@code /cmclip supprimer <n>}.</li>
- *   <li>{@code /cmchaine lier <joueur> <chaîne>}, {@code delier <joueur>}, {@code liste}: contestants' Twitch channels.</li>
+ *   <li>{@code /cm media clip liste}, {@code /cm media clip renommer <n> <nom>}, {@code /cm media clip supprimer <n>}.</li>
+ *   <li>{@code /cm media chaine lier <joueur> <chaîne>}, {@code delier <joueur>}, {@code liste}: contestants' Twitch channels.</li>
  * </ul>
  */
 public final class MediaCommands {
@@ -58,7 +58,7 @@ public final class MediaCommands {
         for (String n : List.of("cmchaine", "craftMasterChaine", "craftmasterchaine")) d.register(chaine(n));
     }
 
-    // ---------------------------------------------------------------- /cmtele
+    // ---------------------------------------------------------------- /cm media tele
 
     private static LiteralArgumentBuilder<CommandSourceStack> tele(String name) {
         return literal(name).requires(Permissions.IMAGE)
@@ -135,11 +135,11 @@ public final class MediaCommands {
         }
         String n = StringArgumentType.getString(c, "nom").toLowerCase(Locale.ROOT);
         s.get().setScreenName(n);
-        ok(c, "Cet écran s'appelle « " + n + " » : /cmtele " + n + " clip | lien <URL> | direct <joueur> | chat | off.");
+        ok(c, "Cet écran s'appelle « " + n + " » : /cm media tele " + n + " clip | lien <URL> | direct <joueur> | chat | off.");
         return 1;
     }
 
-    // ---------------------------------------------------------------- /cmclip
+    // ---------------------------------------------------------------- /cm media clip
 
     private static LiteralArgumentBuilder<CommandSourceStack> clip(String name) {
         return literal(name).requires(Permissions.IMAGE)
@@ -148,7 +148,7 @@ public final class MediaCommands {
                         .then(argument("nom", StringArgumentType.greedyString()).executes(c -> {
                             ClipStore.Clip cl = MediaServer.clip(StringArgumentType.getString(c, "quoi"));
                             if (cl == null || !MediaServer.clips().rename(cl.id, StringArgumentType.getString(c, "nom"))) {
-                                fail(c, "Clip introuvable (/cmclip liste).");
+                                fail(c, "Clip introuvable (/cm media clip liste).");
                                 return 0;
                             }
                             ok(c, "Clip renommé : « " + cl.name + " ».");
@@ -157,7 +157,7 @@ public final class MediaCommands {
                 .then(literal("supprimer").then(argument("quoi", StringArgumentType.word()).suggests(CLIPS).executes(c -> {
                     ClipStore.Clip cl = MediaServer.clip(StringArgumentType.getString(c, "quoi"));
                     if (cl == null || !MediaServer.clips().delete(cl.id)) {
-                        fail(c, "Clip introuvable (/cmclip liste).");
+                        fail(c, "Clip introuvable (/cm media clip liste).");
                         return 0;
                     }
                     ok(c, "Clip « " + cl.name + " » supprimé du serveur.");
@@ -177,7 +177,7 @@ public final class MediaCommands {
         for (int i = 0; i < all.size(); i++) {
             ClipStore.Clip cl = all.get(i);
             int n = i + 1;
-            String cmd = "/cmtele " + first + " clip " + n;
+            String cmd = "/cm media tele " + first + " clip " + n;
             MutableComponent line = Component.literal(" " + n + ". ").withStyle(ChatFormatting.YELLOW)
                     .append(Component.literal(cl.name).withStyle(ChatFormatting.WHITE))
                     .append(Component.literal(String.format(Locale.ROOT, "  %d s · %.1f Mo · %s%s", cl.durationMs / 1000, cl.size / 1048576.0,
@@ -188,14 +188,14 @@ public final class MediaCommands {
         return all.size();
     }
 
-    // ---------------------------------------------------------------- /cmchaine
+    // ---------------------------------------------------------------- /cm media chaine
 
     private static LiteralArgumentBuilder<CommandSourceStack> chaine(String name) {
         return literal(name).requires(Permissions.IMAGE)
                 .then(literal("liste").executes(c -> {
                     Map<String, String> all = MediaServer.channels().all();
                     if (all.isEmpty()) {
-                        fail(c, "Aucune chaîne liée : /cmchaine lier <joueur> <chaîne>.");
+                        fail(c, "Aucune chaîne liée : /cm media chaine lier <joueur> <chaîne>.");
                         return 0;
                     }
                     var online = c.getSource().getServer().getPlayerList().getPlayers().stream().map(p -> p.getGameProfile().name().toLowerCase(Locale.ROOT)).toList();
@@ -211,7 +211,7 @@ public final class MediaCommands {
                                 fail(c, "Chaîne invalide : son nom Twitch (3 à 25 lettres, chiffres ou _) ou twitch.tv/<nom>.");
                                 return 0;
                             }
-                            ok(c, p + " → twitch.tv/" + MediaServer.channels().channelOf(p) + " (/cmtele <tele> direct " + p + ").");
+                            ok(c, p + " → twitch.tv/" + MediaServer.channels().channelOf(p) + " (/cm media tele <tele> direct " + p + ").");
                             return 1;
                         }))))
                 .then(literal("delier").then(argument("joueur", StringArgumentType.word()).executes(c -> {

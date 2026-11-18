@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * The end-of-task gong: a golden disc hanging in a wooden frame. Right click (or a redstone pulse) strikes it: a
  * deep gong heard across the studio and the disc swings. An organiser who strikes it sneaking also ends the round
- * in progress (same as {@code /craftMasterManche end}, undoable).
+ * in progress (same as {@code /cm manche fin}, undoable).
  */
 public class GongBlock extends FacingEntityBlock {
 

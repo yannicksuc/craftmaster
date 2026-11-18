@@ -26,7 +26,7 @@ import java.util.Set;
  * The end of a contestant's attempt, common to the kit's trials (the vase is full, the apple is eaten, the ground
  * is touched): their stopwatch stops and the time goes on the results sheet, and the news is <b>private</b>: the
  * player, the organisers and the spectators know, the other contestants don't. Also: one colour per contestant in
- * the organisers' chat, and the items marked as a trial's goal ({@code /craftMasterTrial marquer}).
+ * the organisers' chat, and the items marked as a trial's goal ({@code /cm epreuve marquer}).
  */
 public final class Finish {
 

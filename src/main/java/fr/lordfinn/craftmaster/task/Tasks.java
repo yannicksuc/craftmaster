@@ -281,7 +281,7 @@ public final class Tasks {
                 flags | (secret ? TaskNetwork.SECRET : 0), List.of(), l.manche().id, l.season().id, "");
     }
 
-    /** J key or /craftMasterTask: the task of the moment (secret = the sealed card; organisers read it anyway). */
+    /** J key or /cm tache: the task of the moment (secret = the sealed card; organisers read it anyway). */
     public static void openCurrent(ServerPlayer player) {
         boolean admin = Permissions.isAdmin(player);
         Located l = taskOfTheMoment(admin);

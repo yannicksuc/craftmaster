@@ -29,7 +29,7 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 /**
- * {@code /craftMasterToys} (cfty), organisers: what the players did with the toys (found, caught, thrown, golf,
+ * {@code /cm epreuve jouets} (cfty), organisers: what the players did with the toys (found, caught, thrown, golf,
  * balloons, eggs) with buttons to write it down, the hidden toys left (list, glow, collect), the reset, and the
  * fragility of the egg in hand.
  */
@@ -72,7 +72,7 @@ public final class ToyCommands {
                             c.getSource().sendSystemMessage(Component.literal(switch (a) {
                                 case ALL -> "Chaque lancer et chaque prise s'écrit dans le chat.";
                                 case IMPORTANT -> "Dans le chat : les records et les objets dans une cible ; les autres lancers au-dessus de la barre.";
-                                case NONE -> "Plus rien dans le chat : tout est dans /cfty status et le journal des épreuves.";
+                                case NONE -> "Plus rien dans le chat : tout est dans /cm epreuve jouets statut et le journal des épreuves.";
                             }).withStyle(ChatFormatting.GOLD));
                             return 1;
                         })))
@@ -108,8 +108,8 @@ public final class ToyCommands {
         s.sendSystemMessage(Component.literal("— Objets d'épreuve —").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
         int left = hiddenLeft(s.getServer());
         s.sendSystemMessage(Component.literal(" Cachés et pas encore trouvés : " + left).withStyle(ChatFormatting.GRAY)
-                .append(button(" [où ?]", "/craftMasterToys list", "Liste avec téléportation"))
-                .append(button(" [faire briller]", "/craftMasterToys glow", "10 secondes, visibles à travers les murs")));
+                .append(button(" [où ?]", "/cm epreuve jouets liste", "Liste avec téléportation"))
+                .append(button(" [faire briller]", "/cm epreuve jouets briller", "10 secondes, visibles à travers les murs")));
         if (Toys.TALLY.isEmpty()) {
             s.sendSystemMessage(Component.literal(" Rien encore depuis la dernière remise à zéro.").withStyle(ChatFormatting.GRAY));
             return 1;
@@ -132,7 +132,7 @@ public final class ToyCommands {
             s.sendSystemMessage(head);
             for (String line : Toys.TALLY.describe(p)) s.sendSystemMessage(Component.literal("   " + line).withStyle(ChatFormatting.GRAY));
         }
-        s.sendSystemMessage(Component.literal(" ").append(button("[remettre à zéro]", "/craftMasterToys reset", "Oublie qui a trouvé / lancé quoi")).withStyle(ChatFormatting.DARK_GRAY));
+        s.sendSystemMessage(Component.literal(" ").append(button("[remettre à zéro]", "/cm epreuve jouets reset", "Oublie qui a trouvé / lancé quoi")).withStyle(ChatFormatting.DARK_GRAY));
         return 1;
     }
 

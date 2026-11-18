@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 /**
  * The replays' disk: how much CraftMaster's recordings take, how much is free, a warning when it runs low, and the
- * purge of old replays ({@code keepDays}, {@code maxGb} in {@code replays.json}, or {@code /cmreplay purge}). Only the
+ * purge of old replays ({@code keepDays}, {@code maxGb} in {@code replays.json}, or {@code /cm replay purge}). Only the
  * recordings of CraftMaster's index are touched (their files, then their entry); recordings in progress never.
  */
 public final class ReplayDisk {
@@ -52,7 +52,7 @@ public final class ReplayDisk {
         if (now - lastWarning < 5 * 60_000) return null;
         lastWarning = now;
         return String.format(Locale.FRENCH, "⚠ Replays : plus que %.1f Go libres sur le disque des enregistrements "
-                + "(Server Replay met en pause sous 1 Go). /cmreplay disque, /cmreplay purge <jours>.", f / GB);
+                + "(Server Replay met en pause sous 1 Go). /cm replay disque, /cm replay purge <jours>.", f / GB);
     }
 
     /** One recording of the index with its files on the disk. */
@@ -99,7 +99,7 @@ public final class ReplayDisk {
         }
     }
 
-    /** Lines for {@code /cmreplay disque}. */
+    /** Lines for {@code /cm replay disque}. */
     public static List<String> report() {
         List<Stored> all = stored();
         long used = all.stream().mapToLong(Stored::bytes).sum();

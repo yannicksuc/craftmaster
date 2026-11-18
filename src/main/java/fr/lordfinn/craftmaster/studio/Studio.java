@@ -27,7 +27,7 @@ import java.util.Set;
 
 /**
  * The studio set (chantier F, docs/wiki/Plateau.md): throne, lights and spotlights, giant timer, studio screens
- * (/image), contestants' desks, prize table, gong and bells, "EN DIRECT" sign and stanchions. Registered
+ * (/cm media image), contestants' desks, prize table, gong and bells, "EN DIRECT" sign and stanchions. Registered
  * after {@link ModContent} (same creative tab).
  */
 public final class Studio {

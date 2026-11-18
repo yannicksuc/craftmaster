@@ -133,7 +133,7 @@ public final class ReplayMoments {
     }
 
     /**
-     * A flag at this moment, by {@code by} (key, {@code /cmreplay drapeau}, voice, Stream Deck; null = the console):
+     * A flag at this moment, by {@code by} (key, {@code /cm replay drapeau}, voice, Stream Deck; null = the console):
      * an organiser's takes the colour of who is on air, a player's has its own shape. What to tell them.
      */
     public static String flag(ServerPlayer by, String note) {

@@ -40,24 +40,24 @@ Réglages dans `config/craftmaster-client.json`, section `clips` :
 | `maxSeconds` | 180 | arrêt automatique (0 = jamais) |
 
 ## Les télés
-Une télé, c'est un écran du studio (`/image`, [Plateau](Plateau.md)) auquel on donne un nom :
-1. Pose l'écran : `/image <adresse> [largeur] [hauteur]` en regardant un mur.
-2. En le regardant, nomme-le : `/cmtele nommer gauche`. Plusieurs écrans peuvent porter le même nom : ils montrent
+Une télé, c'est un écran du studio (`/cm media image`, [Plateau](Plateau.md)) auquel on donne un nom :
+1. Pose l'écran : `/cm media image <adresse> [largeur] [hauteur]` en regardant un mur.
+2. En le regardant, nomme-le : `/cm media tele nommer gauche`. Plusieurs écrans peuvent porter le même nom : ils montrent
    alors la même chose.
-3. Ensuite, sans le regarder : `/cmtele gauche …`.
+3. Ensuite, sans le regarder : `/cm media tele gauche …`.
 
 Ce qu'une télé peut montrer :
 
 | Commande | Ce qui passe |
 |---|---|
-| `/cmtele gauche clip` | le dernier clip du serveur (`clip dernier`, `clip avant-dernier`, `clip 3` = le 3ᵉ de la liste) |
-| `/cmtele gauche lien <URL>` | un clip Twitch (`clips.twitch.tv/…` ou `twitch.tv/<chaîne>/clip/…`), une vidéo `.mp4`, une page Kick, Medal, Streamable… |
-| `/cmtele gauche direct <joueur>` | le direct Twitch de ce candidat (sa chaîne liée, il doit être connecté) ; ou directement un nom de chaîne |
-| `/cmtele gauche image <URL>` | une image |
-| `/cmtele gauche chat twitch` · `chat jeu` · `chat tout` | le mur de chat : les derniers messages du chat Twitch, du chat du jeu, ou des deux (`chat` seul = les deux) — voir [plus bas](#le-mur-de-chat) |
-| `/cmtele gauche off` | la mire CraftMaster |
-| `/cmtele tout …` | toutes les télés nommées |
-| `/cmtele liste` | les télés, leur nom et ce qu'elles montrent |
+| `/cm media tele gauche clip` | le dernier clip du serveur (`clip dernier`, `clip avant-dernier`, `clip 3` = le 3ᵉ de la liste) |
+| `/cm media tele gauche lien <URL>` | un clip Twitch (`clips.twitch.tv/…` ou `twitch.tv/<chaîne>/clip/…`), une vidéo `.mp4`, une page Kick, Medal, Streamable… |
+| `/cm media tele gauche direct <joueur>` | le direct Twitch de ce candidat (sa chaîne liée, il doit être connecté) ; ou directement un nom de chaîne |
+| `/cm media tele gauche image <URL>` | une image |
+| `/cm media tele gauche chat twitch` · `chat jeu` · `chat tout` | le mur de chat : les derniers messages du chat Twitch, du chat du jeu, ou des deux (`chat` seul = les deux) — voir [plus bas](#le-mur-de-chat) |
+| `/cm media tele gauche off` | la mire CraftMaster |
+| `/cm media tele tout …` | toutes les télés nommées |
+| `/cm media tele liste` | les télés, leur nom et ce qu'elles montrent |
 
 - **Synchronisation** : la vidéo démarre au même moment pour tout le monde. Un joueur qui arrive en cours de route la
   prend où elle en est (sauf un direct, toujours en temps réel). Les clips tournent en boucle.
@@ -72,19 +72,19 @@ Ce qu'une télé peut montrer :
   pour un direct monétisé.
 
 ## Les clips sur le serveur
-- `/cmclip liste` : numéro, nom, durée, poids, auteur, direct ou replay. Clic sur une ligne : la commande
-  `/cmtele … clip <n>` est prête dans le chat.
-- `/cmclip renommer <n> <nom>`.
-- `/cmclip supprimer <n>`.
+- `/cm media clip liste` : numéro, nom, durée, poids, auteur, direct ou replay. Clic sur une ligne : la commande
+  `/cm media tele … clip <n>` est prête dans le chat.
+- `/cm media clip renommer <n> <nom>`.
+- `/cm media clip supprimer <n>`.
 
 Le nom par défaut est « Clip 13/11 03h16 ».
 
 ## Les chaînes des candidats
-- `/cmchaine lier Ensuri ensuri_tv` (ou `twitch.tv/ensuri_tv`).
-- `/cmchaine delier Ensuri`.
-- `/cmchaine liste` : candidats connectés en vert.
+- `/cm media chaine lier Ensuri ensuri_tv` (ou `twitch.tv/ensuri_tv`).
+- `/cm media chaine delier Ensuri`.
+- `/cm media chaine liste` : candidats connectés en vert.
 
-Gardé dans `config/craftmaster/twitch.json`. Ensuite : `/cmtele plateau direct Ensuri`. Un candidat connecté sans
+Gardé dans `config/craftmaster/twitch.json`. Ensuite : `/cm media tele plateau direct Ensuri`. Un candidat connecté sans
 chaîne liée est refusé, plutôt que de deviner une chaîne du même nom.
 
 ## Les liens de clips postés par le chat
@@ -92,19 +92,19 @@ Le jeu de diffusion lit déjà le chat Twitch (`twitch` dans `config/craftmaster
 [Tâches](Taches.md)). Il retient aussi les **liens de clips Twitch** postés par les viewers : les 20 derniers, sans
 doublon. **Rien ne passe tout seul** : c'est toi qui choisis.
 - `/craftMasterTwitch clips` liste les liens (qui, il y a combien de temps). Un clic prépare
-  `/cmtele <tele> lien <lien>`.
+  `/cm media tele <tele> lien <lien>`.
 - Le bouton Stream Deck `/tele?nom=gauche&chat` met le dernier lien du chat sur la télé « gauche ».
 - `/craftMasterTwitch message <texte>` fait comme si un viewer avait posté ce texte, pour essayer sans Twitch.
 
 ## Le mur de chat
 Une télé peut afficher les **derniers messages du chat**, lisibles de loin sur un grand écran du plateau :
-- `/cmtele <tele> chat twitch` : le chat Twitch du direct ;
-- `/cmtele <tele> chat jeu` : le chat des joueurs dans Minecraft ;
-- `/cmtele <tele> chat tout` (ou `chat` seul) : les deux, un petit trait violet (Twitch) ou vert (jeu) devant
+- `/cm media tele <tele> chat twitch` : le chat Twitch du direct ;
+- `/cm media tele <tele> chat jeu` : le chat des joueurs dans Minecraft ;
+- `/cm media tele <tele> chat tout` (ou `chat` seul) : les deux, un petit trait violet (Twitch) ou vert (jeu) devant
   chaque message.
 
-Sans nom de télé, sur l'écran regardé : `/image chat:twitch` (ou `chat:jeu`, `chat:tout`). Un mur qui n'existe
-pas encore se pose comme une image : `/image chat:twitch 8 5` en regardant un mur. L'adresse `chat:…` marche
+Sans nom de télé, sur l'écran regardé : `/cm media image chat:twitch` (ou `chat:jeu`, `chat:tout`). Un mur qui n'existe
+pas encore se pose comme une image : `/cm media image chat:twitch 8 5` en regardant un mur. L'adresse `chat:…` marche
 aussi dans les réglages de l'écran (clic droit).
 
 À l'écran : le plus récent en bas, le pseudo dans sa couleur (la couleur Twitch du viewer, sinon une couleur fixe
@@ -147,7 +147,7 @@ Voix ([Régie vocale](RegieVocale.md)) :
 
 Le clip tourne sur le jeu qui l'a demandé : la régie web ne peut pas le lancer, sauf par le Stream Deck local.
 Les ordres des télés du Stream Deck et de la voix sont des actions `tele.show`, comme ceux de la régie des
-modérateurs. `/cmtele` tapée à la main passe aussi par cette action : commande, voix, Stream Deck, régie
+modérateurs. `/cm media tele` tapée à la main passe aussi par cette action : commande, voix, Stream Deck, régie
 en jeu et site suivent un seul chemin, avec le même effet (droits et journal de la régie des modos).
 
 Action `tele.show` : `{tele, clip | link | live | image | chat | off}`. Un seul champ parmi les six ; sans aucun,

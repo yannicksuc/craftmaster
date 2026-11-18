@@ -37,8 +37,8 @@ import static net.minecraft.commands.Commands.literal;
 
 /**
  * Watching the recordings with Server Replay's viewer (on the server: the player watching needs nothing but the
- * game, and CraftMaster to get the playback bar). {@code /cmreplay voir} lists the recordings of the index,
- * {@code /cmreplay voir <n> [zone|joueur]} plays one of their files.
+ * game, and CraftMaster to get the playback bar). {@code /cm replay voir} lists the recordings of the index,
+ * {@code /cm replay voir <n> [zone|joueur]} plays one of their files.
  *
  * <p>While a replay plays the viewer cuts its player off the real world: nothing the server sends reaches them,
  * and only commands get through, to the viewer's own command tree. CraftMaster adds {@code /replay view cm …}
@@ -304,7 +304,7 @@ public final class ReplayViewing {
 
     // ---------------------------------------------------------------- watching
 
-    /** {@code /cmreplay voir <n> [vue]}: plays file {@code viewName} (default: the zone) of recording n (1 = newest). */
+    /** {@code /cm replay voir <n> [vue]}: plays file {@code viewName} (default: the zone) of recording n (1 = newest). */
     public static String watch(ServerPlayer player, int n, String viewName) {
         if (!ServerReplayBridge.viewerAvailable()) return "Le lecteur de Server Replay n'est pas disponible sur ce serveur.";
         if (ServerReplayBridge.viewerOf(player) != null) return "Tu regardes déjà un replay (/replay view close pour le fermer).";

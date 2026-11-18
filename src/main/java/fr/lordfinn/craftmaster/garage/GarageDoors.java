@@ -47,7 +47,7 @@ import static net.minecraft.commands.Commands.literal;
 
 /**
  * Garage doors: the motor block, the named doors (config/craftmaster/garages.json, for the show's actions and the
- * voice control) and {@code /craftMasterGarage} ({@code /cfga}).
+ * voice control) and {@code /cm plateau garage} ({@code /cm plateau garage}).
  */
 public final class GarageDoors {
 
@@ -192,7 +192,7 @@ public final class GarageDoors {
             return ok(c, "Porte « " + n + " » oubliée (le moteur reste en place).");
         })));
         t.then(literal("liste").executes(c -> {
-            if (NAMES.isEmpty()) return ok(c, "Aucune porte nommée. /craftMasterGarage nom <x y z> <nom>");
+            if (NAMES.isEmpty()) return ok(c, "Aucune porte nommée. /cm plateau garage nom <x y z> <nom>");
             NAMES.forEach((n, s) -> c.getSource().sendSuccess(() -> Component.literal("• " + n + " : " + s.describe()), false));
             return NAMES.size();
         }));

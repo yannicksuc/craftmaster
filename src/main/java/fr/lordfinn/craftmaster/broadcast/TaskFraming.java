@@ -24,7 +24,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
  * envelope placed nearest to it ({@link EnvelopeBlockEntity}, within {@link #SEARCH} blocks), and a viewpoint behind
  * the arrival that sees both (free lens position, clear line of sight). It is a bare viewpoint in the round's lieu,
  * named {@link #NAME}, without a tripod (it must not stand in the players' way); once made it is reused as it is,
- * so the organiser can move it ({@code /cam}) and it stays; {@link #regenerate} makes it again.
+ * so the organiser can move it ({@code /cm cam}) and it stays; {@link #regenerate} makes it again.
  */
 public final class TaskFraming {
 

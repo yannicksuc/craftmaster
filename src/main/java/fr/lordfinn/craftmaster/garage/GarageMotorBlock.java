@@ -36,7 +36,7 @@ import net.minecraft.world.phys.BlockHitResult;
  * down ({@link GarageMotorBlockEntity}). Its front faces the player who places it.
  * <p>
  * Opened and closed by: a redstone signal on the motor or around the doorway (a button switches it, a lever holds it),
- * a right click with an empty hand in creative, {@code /craftMasterGarage}, the show's actions (garage.open...).
+ * a right click with an empty hand in creative, {@code /cm plateau garage}, the show's actions (garage.open...).
  * Right click with a block (organisers): the motor takes that block's look, to disappear into the lintel; sneak +
  * right click with an empty hand: gives its own look back, or tells what door it found.
  */

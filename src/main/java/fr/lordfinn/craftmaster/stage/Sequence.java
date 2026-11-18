@@ -100,7 +100,7 @@ public final class Sequence {
         /** One portrait after the other, this many seconds apart (left to right). */
         public Double cascade;
 
-        // ---- ecran: what /cmtele <screen> takes ("clip dernier", "lien https://…", "chat", "off")
+        // ---- ecran: what /cm media tele <screen> takes ("clip dernier", "lien https://…", "chat", "off")
         public String montre;
 
         // ---- commande: a cue list line (a server command without "/", or "ambiance x", "noir 2"…)

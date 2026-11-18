@@ -669,7 +669,7 @@ public final class Director {
     // ---------------------------------------------------------------- tick
 
     /**
-     * A follow shot by rule ({@code /cam follow @moment}, « suis le premier du classement »): the same rules as the
+     * A follow shot by rule ({@code /cm cam suivre @moment}, « suis le premier du classement »): the same rules as the
      * follow-spots ({@link SpotlightFollow}), the player picked again every second while the shot is on air (kept
      * while they still match, so it does not jump between two people), "" = none. Another cut ends it.
      */
@@ -893,7 +893,7 @@ public final class Director {
                 CameraPath path = CameraPaths.get(ref);
                 if (path == null || path.isEmpty()) {
                     lines.add("⚠ " + (path == null ? "Aucun trajet « " + ref + " »" : "Le trajet « " + path.name() + " » n'a aucune étape")
-                            + " (/cam trajets pour la liste).");
+                            + " (/cm cam trajets pour la liste).");
                     return;
                 }
                 take(server, new ShotRequest(BroadcastNetwork.SHOT_PATH, path.name(), "", transition, effect, List.of(), Source.MANUAL));
@@ -1083,7 +1083,7 @@ public final class Director {
             String l = lieu == null || lieu.equals("auto") ? focusLieu() : lieu;
             String g = Lieux.zoneOf(server, who, l);
             if (g == null) {
-                lines.add("⚠ Aucune caméra pour la zone de " + who + " dans " + Lieux.lieuName(l) + " (/cam lieu <caméra> " + l + " " + who + ").");
+                lines.add("⚠ Aucune caméra pour la zone de " + who + " dans " + Lieux.lieuName(l) + " (/cm cam lieu <caméra> " + l + " " + who + ").");
                 return;
             }
             zone = CameraSpot.zoneOf(g);
@@ -1140,7 +1140,7 @@ public final class Director {
         CameraSpot moved = Cameras.move(server, spot.key(), lieu, zone);
         boolean trial = zone.isEmpty() || Lieux.trialZone(zone) != null;
         lines.add("Caméra " + before + " → " + moved.placeName() + " (" + Lieux.lieuName(lieu) + "), numéro " + moved.number() + " : "
-                + moved.key() + (trial ? "" : " · « " + zone + " » n'est pas une zone d'épreuve (/craftMasterZone) : étiquette libre") + ".");
+                + moved.key() + (trial ? "" : " · « " + zone + " » n'est pas une zone d'épreuve (/cm epreuve zone) : étiquette libre") + ".");
     }
 
     /** Exact name, then name ignoring case, then a cast nickname. */

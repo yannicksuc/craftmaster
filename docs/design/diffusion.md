@@ -48,7 +48,7 @@ pas été révélée (enveloppe ouverte, ou manche lancée, ou révélation forc
   note à rassembler, note dans une bouteille, note sur la face cachée d'un bloc. Chaque note : texte, apparence,
   qui peut la voir / la lire, prise une seule fois ou lisible par tous, l'admin voit qui l'a trouvée et quand.
   Lecture avec le même écran papier que la tâche.
-- **Consultation** : touche (par défaut `J`, catégorie CraftMaster) et commande (`/craftMasterTask`, alias `/tache`)
+- **Consultation** : touche (par défaut `J`, catégorie CraftMaster) et commande (`/cm tache`, alias `/cm tache`)
   pour toute personne connectée : affiche la tâche en cours révélée (sinon « tâche encore secrète »). Pour l'admin,
   même touche = tâche en cours même secrète, avec un bouton « révéler ».
 - **Twitch** (option, désactivée par défaut) : le client de diffusion lit le chat d'une chaîne en anonyme ; `!tache`
@@ -88,8 +88,8 @@ pas été révélée (enveloppe ouverte, ou manche lancée, ou révélation forc
   **canapé / sièges des candidats** (si les chaises actuelles ne suffisent pas pour le plateau).
 - **Éclairage** : lampadaire, lampe de bureau, projecteur orientable (faisceau visible, lumière réelle), suspension.
 - **Chrono géant** (bloc ou entité) qui affiche le chrono de la manche en grands chiffres.
-- **Écran du studio / cadre image** : remplace `/image <URL>` du plugin (qui passait par ImageFrame). Image téléchargée
-  depuis une URL, sur plusieurs blocs (taille au choix), commande `/image <URL> [largeur] [hauteur]` + objet. Aussi
+- **Écran du studio / cadre image** : remplace `/cm media image <URL>` du plugin (qui passait par ImageFrame). Image téléchargée
+  depuis une URL, sur plusieurs blocs (taille au choix), commande `/cm media image <URL> [largeur] [hauteur]` + objet. Aussi
   utilisable pour des images d'épreuve.
 - **Pupitres / tables** des candidats avec plaque à leur nom, **table des prix**, **cloche / gong** de fin.
 - Tout objet « logique » qui manque au plateau d'une émission de ce genre : à proposer et faire.
@@ -190,7 +190,7 @@ Côté client : `fr.lordfinn.craftmaster.client.broadcast.ShowStateClient.get()`
 **Événements ponctuels** `craftmaster:show_cue` — `ShowCue(kind, title, subtitle, player, ticks)` ; kinds dans
 `BroadcastNetwork.Cues` : `points` (player, title « +3 », subtitle = manche), `lower_third`, `scores`, `task`
 (→ `CurrentTask.showCard(ticks)` sur les jeux en diffusion), `title_card`, `contestant`, `credits`, `theme`
-(title "play" / "stop"), `clear`, `broadcast` (title "on" / "off", envoyé à un seul joueur par `/tv broadcast`).
+(title "play" / "stop"), `clear`, `broadcast` (title "on" / "off", envoyé à un seul joueur par `/cm tv diffusion`).
 Client → serveur : `craftmaster:broadcast_mode {on}` (le jeu passe en diffusion) et `craftmaster:camera_request
 {json}` (une action `camera.*` / `broadcast.*` / `show.*`, exécutée si le joueur a `Permissions.CAMERA`).
 
@@ -211,10 +211,10 @@ Client → serveur : `craftmaster:broadcast_mode {on}` (le jeu passe en diffusio
 et le crochet générique **`ShowEvents.spotlight(MinecraftServer, String player, String reason)`** →
 `onSpotlight(...)` : « tous les yeux sur ce joueur ». **Chantier D : à appeler quand un candidat ouvre son
 enveloppe, avec `reason = "envelope"`** (la réalisation auto coupe sur lui avec le synthé « ouvre son enveloppe »).
-`/tv spotlight <joueur> [raison]` le déclenche à la main.
+`/cm tv vedette <joueur> [raison]` le déclenche à la main.
 
 **Contrat D utilisé** : `client.task.CurrentTask.get()` (titre de la tâche révélée dans le bandeau de manche) et
-`CurrentTask.showCard(ticks)` (`/tv task`, « montre la tâche »). Le chantier E livre un **bouchon** de cette classe
+`CurrentTask.showCard(ticks)` (`/cm tv tache`, « montre la tâche »). Le chantier E livre un **bouchon** de cette classe
 (même API, `get()` vide, `showCard` journalise) : **à remplacer par la classe du chantier D à la fusion.**
 
 **Autres points pour la fusion** : permission `craftmaster:camera` (`Permissions.CAMERA` = admin ou elle) ;
@@ -223,7 +223,7 @@ ajoutent leurs sons) ; mixins client dans `craftmaster.client.mixins.json` (nouv
 `timerName()`, `timerEndTick()`, `timerTotalTicks()` ; le panneau de la régie vocale est masqué en diffusion.
 Écarts avec la section E : la « présentation de chaque candidat avec son portrait » utilise le plan qui le suit
 (connecté) ou le plan large, plus son visage sur la carte (pas les tableaux suspendus) ; le plan « réaction sur le
-trône » est la caméra de rôle `trone` (ou `/cam follow LordFinn`).
+trône » est la caméra de rôle `trone` (ou `/cm cam suivre LordFinn`).
 
 ### E (suite). Lieux et zones des caméras, travellings, intros de manche, écran partagé (livré)
 
@@ -329,7 +329,7 @@ sont dans `config/craftmaster/tasks.json` (`fr.lordfinn.craftmaster.task.TaskSto
   joueur ; dans le chat si son jeu n'a pas le mod. Pour les objets d'épreuve de H.
 - `Notes.open(ServerPlayer, String noteId)` → `boolean` : ouvre une note comme trouvée (lecteurs respectés,
   trouvaille notée « avec un objet d'épreuve », admins prévenus). Pour H aussi.
-- `Tasks.openCurrent(ServerPlayer)` (touche J / `/tache`), `Tasks.locateActive(String)`, `Tasks.isRevealed(Located)`.
+- `Tasks.openCurrent(ServerPlayer)` (touche J / `/cm tache`), `Tasks.locateActive(String)`, `Tasks.isRevealed(Located)`.
 - `ShowEvents.Listener` : `onTaskRevealed(server, season, mancheId, ServerPlayer by)` (by = l'ouvreur de
   l'enveloppe, ou null : lancement de manche, organisateur) et `onEnvelopeOpened(server, player, season, mancheId)`
   (`mancheId` vide = enveloppe de texte libre), appelé à chaque ouverture d'une enveloppe scellée — pour la
@@ -360,8 +360,8 @@ forme : `#`, `---`, `**`, `__`, `~~`, `{rouge}…{/}`, `>`, `!règle`, `[tampon:
 `[secret]…[/secret]`). La révélation et l'annonce d'une enveloppe attendent maintenant le paquet `task_seal_broken`
 (client → serveur, quand le sceau saute ; 45 s au plus) ; `onEnvelopeOpened` reste appelé au clic droit (la caméra
 coupe sur le lecteur pendant qu'il arrache le sceau). Nouveautés : action `task.reveal_more {manche?}` (effet
-`TaskSecretShown`, outil vocal `task_reveal_more`, « révèle la suite »), `/tache suite [manche]`,
-`/tache apercu <manche>` (`Tasks.preview`), drapeau `TaskNetwork.PREVIEW`, paquet `task_paper_update` (une lettre
+`TaskSecretShown`, outil vocal `task_reveal_more`, « révèle la suite »), `/cm tache suite [manche]`,
+`/cm tache apercu <manche>` (`Tasks.preview`), drapeau `TaskNetwork.PREVIEW`, paquet `task_paper_update` (une lettre
 ouverte prend le nouveau texte). Les parties `[secret]` sont caviardées côté serveur (`Tasks.shown`,
 `TaskMarkup.redact`) dans `task_paper` et `task_state` : `CurrentTask.get().text()` peut contenir `[secret:N]`
 (non-admin) ou `[secret]…[/secret]` (admin) ; `TaskMarkup.parse` / `plain` les traitent.
@@ -434,7 +434,7 @@ Guide : `docs/wiki/Effets.md`. Effets (ids) : `noir_blanc`, `sepia`, `pixel`, `f
 
 **API client (pour les intros / travellings)** : `fr.lordfinn.craftmaster.client.fx.ScreenEffects.setBroadcastEffect(
 String idOrNull)` (fondu 0,6 s ; `setBroadcastEffect(String, float fadeSeconds)`), `broadcastEffect()`. Ne s'affiche
-que sur un jeu en mode diffusion ; même emplacement que `/fx diffusion` (le dernier ordre gagne). Hors diffusion, la
+que sur un jeu en mode diffusion ; même emplacement que `/cm fx diffusion` (le dernier ordre gagne). Hors diffusion, la
 vue d'un joueur combine l'effet imposé par le serveur, celui de son objet de tête et l'essai `/essaifx`.
 Rendu : post effects `craftmaster:fx/<id>` appliqués au monde avant le HUD (l'habillage reste net) ; `citrouille`
 est la superposition vanille `textures/misc/pumpkinblur.png` dessinée par `Hud.extractTextureOverlay` (élément HUD

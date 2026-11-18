@@ -131,7 +131,7 @@ public final class Spotlights {
     /** One spotlight's settings in the chat, with buttons to change them (organisers). */
     public static net.minecraft.network.chat.Component panel(SpotlightBlockEntity s) {
         String t = at(s);
-        String base = "/cfsp groupe \"" + t + "\" ";
+        String base = "/cm projecteur groupe \"" + t + "\" ";
         net.minecraft.network.chat.MutableComponent c = net.minecraft.network.chat.Component.literal(
                 "◉ Projecteur" + (s.name().isEmpty() ? "" : " « " + s.name() + " »") + " — horizontal " + Math.round(s.yaw())
                         + "°, vertical " + Math.round(s.pitch()) + "°, " + (s.lit() ? "allumé " + s.intensity() + " %" : "éteint")
@@ -144,7 +144,7 @@ public final class Spotlights {
         c.append(button("[⇄ inverser]", base + "inverser 1", "Pointer dans l'autre sens"));
         c.append(button("[◎ vers moi]", base + "ici 0.5", "Pointer vers toi"));
         c.append(button(s.lit() ? "[éteindre]" : "[allumer]", base + (s.lit() ? "eteint 0.5" : "allume 0.5"), ""));
-        c.append(button("[angle exact…]", null, "Taper l'angle : /cfsp groupe \"" + t + "\" angle <horizontal> <vertical> [secondes]"));
+        c.append(button("[angle exact…]", null, "Taper l'angle : /cm projecteur groupe \"" + t + "\" angle <horizontal> <vertical> [secondes]"));
         return c;
     }
 

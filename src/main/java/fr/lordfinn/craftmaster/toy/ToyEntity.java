@@ -61,7 +61,7 @@ public class ToyEntity extends Entity {
     private int squeakCooldown;
     /** Sitting in a golf hole. */
     private BlockPos holedIn;
-    /** Shown glowing to find it (organisers' {@code /craftMasterToys glow}) until this tick count. */
+    /** Shown glowing to find it (organisers' {@code /cm epreuve jouets briller}) until this tick count. */
     private int glowTicks;
 
     public ToyEntity(EntityType<? extends ToyEntity> type, Level level) {
@@ -302,7 +302,7 @@ public class ToyEntity extends Entity {
         Component m = Component.literal("↔ " + ToyPhysics.blocksText(d) + (best ? " (record)" : "")).withStyle(ChatFormatting.GOLD);
         if (sp != null) sp.sendOverlayMessage(m);
         // Organisers near the throw: a record in the chat with the button to write it down; a plain throw above
-        // the hotbar only (unless /cfty annonces tout) — all of them are in /cfty status and the trial log
+        // the hotbar only (unless /cm epreuve jouets annonces tout) — all of them are in /cm epreuve jouets statut and the trial log
         net.minecraft.network.chat.MutableComponent line = Component.literal("↔ " + thrower + " : lancer de " + ToyPhysics.blocksText(d) + (best ? " (record)" : "")).withStyle(ChatFormatting.GOLD)
                 .append(Component.literal(" (" + Toys.frName(stack()) + ")").withStyle(ChatFormatting.GRAY))
                 .append(Toys.noteButton(thrower, d, ResultSheet.Kind.DISTANCE, ToyPhysics.blocksText(d)));

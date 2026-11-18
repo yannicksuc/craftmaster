@@ -110,7 +110,7 @@ class CameraMountTest {
         assertEquals(rod, s.withRotation(40, 10).mount());
         assertEquals(rod, s.withName("B").withFov(40).withMotion("pan").withRole("large").mount());
         assertEquals(rod, s.withLieu("pont", "", 2).mount());
-        // Moved to the player's eyes (/cam here): back on a floor tripod
+        // Moved to the player's eyes (/cm cam ici): back on a floor tripod
         assertEquals(CameraMount.FLOOR, s.withPlace("w", 1, 2, 3, 0, 0).mount());
         // Old constructor: on the floor
         assertEquals(CameraMount.FLOOR, new CameraSpot(1, "A", "", "w", 0, 64, 0, 0, 0, 0, null).mount());

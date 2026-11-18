@@ -56,7 +56,7 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 /**
- * {@code /craftMasterArene} (cfar): the trial sets copied once per contestant ({@link Arenas}) and the installers of
+ * {@code /cm arene} (cfar): the trial sets copied once per contestant ({@link Arenas}) and the installers of
  * the trials built on them. Reference: docs/wiki/Arenes.md.
  */
 public final class ArenaCommands {
@@ -78,7 +78,7 @@ public final class ArenaCommands {
         out.add("tous");
         return out;
     });
-    private static final SuggestionProvider<CommandSourceStack> OPTIONS = list(c -> List.of("chronoLettre", "panneauxSuite", "murs", "inventaireVide", "solFin", "alphabet"));
+    private static final SuggestionProvider<CommandSourceStack> OPTIONS = list(c -> List.of("chronoLettre", "panneauxSuite", "murs", "inventaireVide", "solFin", "alphabet", "cameraInventaire"));
 
     private static String str(CommandContext<CommandSourceStack> c, String n) {
         return c.getArgument(n, String.class);
@@ -86,7 +86,7 @@ public final class ArenaCommands {
 
     private static Arena arena(CommandContext<CommandSourceStack> c) {
         Arena a = Arenas.get(str(c, "arene"));
-        if (a == null) fail(c, "Arène inconnue : " + str(c, "arene") + " (/cfar liste).");
+        if (a == null) fail(c, "Arène inconnue : " + str(c, "arene") + " (/cm arene liste).");
         return a;
     }
 
@@ -127,7 +127,7 @@ public final class ArenaCommands {
                         return 0;
                     }
                     Arena a = Arenas.create(str(c, "arene"), p.level(), pts[0], pts[1]);
-                    ok(c, "Arène « " + a.name + " » : " + a.sizeX() + " × " + a.sizeY() + " × " + a.sizeZ() + " blocs. Ensuite : /cfar spawn, /cfar copier.");
+                    ok(c, "Arène « " + a.name + " » : " + a.sizeX() + " × " + a.sizeY() + " × " + a.sizeZ() + " blocs. Ensuite : /cm arene spawn, /cm arene copier.");
                     return 1;
                 })))
                 .then(literal("supprimer").then(argument("arene", word()).suggests(ARENAS).executes(c -> {
@@ -183,7 +183,7 @@ public final class ArenaCommands {
                     ServerPlayer p = player(c);
                     if (a == null || p == null) return 0;
                     int n = Arenas.setKit(p, a);
-                    ok(c, "Kit de « " + a.name + " » : " + n + " pile(s), celles de ton inventaire. Données par /cfar placer.");
+                    ok(c, "Kit de « " + a.name + " » : " + n + " pile(s), celles de ton inventaire. Données par /cm arene placer.");
                     return 1;
                 }).then(literal("vide").executes(c -> {
                     Arena a = arena(c);
@@ -230,7 +230,7 @@ public final class ArenaCommands {
 
     private static int listArenas(CommandContext<CommandSourceStack> c) {
         say(c, Component.literal("— Arènes d'épreuve —").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
-        if (Arenas.all().isEmpty()) say(c, Component.literal(" Aucune. /cfar creer <nom> avec deux points du mètre ruban.").withStyle(ChatFormatting.GRAY));
+        if (Arenas.all().isEmpty()) say(c, Component.literal(" Aucune. /cm arene creer <nom> avec deux points du mètre ruban.").withStyle(ChatFormatting.GRAY));
         for (Arena a : Arenas.all()) {
             List<String> opts = new ArrayList<>();
             if (a.manche != null) opts.add("manche " + a.manche);
@@ -240,6 +240,7 @@ public final class ArenaCommands {
             if (a.field != null) opts.add("champ à dessiner");
             if (a.solFin) opts.add(a.alphabet ? "fin au sol, inventaire alphabétique" : "fin au sol");
             if (!a.kit.isEmpty()) opts.add("kit de " + a.kit.size());
+            if (a.inventoryCam != null) opts.add(a.inventoryCam ? "caméra d'inventaire" : "sans caméra d'inventaire");
             say(c, Component.literal(" " + a.name).withStyle(ChatFormatting.YELLOW)
                     .append(Component.literal(" " + a.sizeX() + "×" + a.sizeY() + "×" + a.sizeZ() + " — copies : "
                             + (a.copies.isEmpty() ? "aucune" : String.join(", ", a.copies.keySet()))
@@ -253,13 +254,13 @@ public final class ArenaCommands {
         if (a == null) return 0;
         List<String> players = players(who);
         if (players.isEmpty()) {
-            fail(c, "Aucun candidat dans la saison active : donne les joueurs (/cfar copier " + a.name + " Ensuri Cyllu).");
+            fail(c, "Aucun candidat dans la saison active : donne les joueurs (/cm arene copier " + a.name + " Ensuri Cyllu).");
             return 0;
         }
         List<String> added = Arenas.assign(a, players);
         int n = Arenas.rebuild(c.getSource().getServer(), a);
         ok(c, n + " copie(s) de « " + a.name + " » construites" + (added.isEmpty() ? "" : " (nouvelles : " + String.join(", ", added) + ")")
-                + ". /cfar placer " + a.name + " pour y envoyer les candidats.");
+                + ". /cm arene placer " + a.name + " pour y envoyer les candidats.");
         return 1;
     }
 
@@ -336,8 +337,9 @@ public final class ArenaCommands {
                 a.alphabet = on;
                 if (on) a.solFin = true;
             }
+            case "camerainventaire" -> a.inventoryCam = on;
             default -> {
-                fail(c, "Option inconnue : chronoLettre, panneauxSuite, murs, inventaireVide, solFin, alphabet (ou chronoSuite <secondes>).");
+                fail(c, "Option inconnue : chronoLettre, panneauxSuite, murs, inventaireVide, solFin, alphabet, cameraInventaire (ou chronoSuite <secondes>).");
                 return 0;
             }
         }
@@ -381,7 +383,7 @@ public final class ArenaCommands {
             ActionExecutor.execute(c.getSource(), actions);
         } else {
             say(c, Component.literal(" [noter sur la feuille]").withStyle(st -> st.withColor(ChatFormatting.GREEN)
-                    .withClickEvent(new ClickEvent.RunCommand("/cfar comparer " + a.name + " noter"))));
+                    .withClickEvent(new ClickEvent.RunCommand("/cm arene comparer " + a.name + " noter"))));
         }
         return 1;
     }
@@ -442,8 +444,8 @@ public final class ArenaCommands {
         ar.syaw = fwd.toYRot();
         ar.chronoLettre = true;
         Arenas.save();
-        ok(c, "Chemin de « " + ar.name + " » posé : 26 fleurs, le vase et Jeremy. Ensuite : /cfar manche " + ar.name
-                + " <manche>, /cfar copier " + ar.name + ", /cfar placer " + ar.name + ". Panneau d'indice : /cftr panneau <texte> en visant un panneau.");
+        ok(c, "Chemin de « " + ar.name + " » posé : 26 fleurs, le vase et Jeremy. Ensuite : /cm arene manche " + ar.name
+                + " <manche>, /cm arene copier " + ar.name + ", /cm arene placer " + ar.name + ". Panneau d'indice : /cm epreuve panneau <texte> en visant un panneau.");
         return 1;
     }
 
@@ -493,8 +495,8 @@ public final class ArenaCommands {
         for (Item banner : List.of(Items.BANNER.red(), Items.BANNER.green()))
             ItemStack.CODEC.encodeStart(ops, new ItemStack(banner)).result().ifPresent(ar.kit::add);
         Arenas.save();
-        ok(c, "Champ de « " + ar.name + " » posé (" + size + " × " + size + ", panneau à l'entrée, bannières rouge et verte en kit). Ensuite : /cfar manche "
-                + ar.name + " <manche>, /cfar copier " + ar.name + ", /cfar placer " + ar.name + ".");
+        ok(c, "Champ de « " + ar.name + " » posé (" + size + " × " + size + ", panneau à l'entrée, bannières rouge et verte en kit). Ensuite : /cm arene manche "
+                + ar.name + " <manche>, /cm arene copier " + ar.name + ", /cm arene placer " + ar.name + ".");
         return 1;
     }
 

@@ -106,7 +106,7 @@ public final class MancheIntros {
         if (m == null) return "⚠ Manche « " + mancheId + " » introuvable.";
         MancheIntro intro = m.intro;
         if (intro.shots.isEmpty())
-            return "⚠ La manche « " + m.name + " » n'a pas encore d'intro (/tv intro " + m.id + " ajouter camera <caméra>).";
+            return "⚠ La manche « " + m.name + " » n'a pas encore d'intro (/cm tv intro " + m.id + " ajouter camera <caméra>).";
         // A round still waiting for an earlier intro is dropped: another one is being introduced
         dropPending();
         stop(server);

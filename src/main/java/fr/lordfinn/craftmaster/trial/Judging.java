@@ -235,7 +235,7 @@ public final class Judging {
         MutableComponent line = Component.literal("  Noter pour : ").withStyle(ChatFormatting.GRAY);
         String v = String.format(Locale.ROOT, "%.2f", value);
         for (String p : cast) {
-            String cmd = "/craftMasterResult set " + quote(p) + " " + v + " " + kind.id;
+            String cmd = "/cm epreuve feuille regler " + quote(p) + " " + v + " " + kind.id;
             line.append(Component.literal("[" + p + "]").withStyle(s -> s.withColor(ChatFormatting.GOLD)
                     .withClickEvent(new ClickEvent.RunCommand(cmd))
                     .withHoverEvent(new HoverEvent.ShowText(Component.literal("Noter " + ResultSheet.format(kind, value) + " pour " + p

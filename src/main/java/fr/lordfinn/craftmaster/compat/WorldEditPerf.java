@@ -38,7 +38,7 @@ import static net.minecraft.commands.Commands.literal;
  * <p>
  * WorldEdit is optional: everything goes through reflection, only when the {@code worldedit} mod is there. The
  * setting is {@code config/craftmaster/worldedit.json} ({@code "perfOff": true}), switched with
- * {@code /craftMasterWorldEdit perf on|off}. A player can still type {@code //perf} for the rest of the session.
+ * {@code /cm worldedit perf on|off}. A player can still type {@code //perf} for the rest of the session.
  */
 public final class WorldEditPerf {
 
@@ -177,7 +177,7 @@ public final class WorldEditPerf {
         JsonObject o = new JsonObject();
         o.addProperty("perfOff", enabled);
         o.addProperty("_doc", "true : à la connexion, WorldEdit est réglé comme //perf neighbors off + //perf update off. "
-                + "/craftMasterWorldEdit perf on|off");
+                + "/cm worldedit perf on|off");
         try {
             Files.createDirectories(file().getParent());
             Files.writeString(file(), GSON.toJson(o), StandardCharsets.UTF_8);

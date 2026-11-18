@@ -23,7 +23,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Portes de garage animées, WorldEdit sans mises à jour](PortesGarage.md)
 - [Finitions v4 : rideau fluide, éditeur de poses, skins HD](Finitions.md)
 - [Chaises](Chaises.md)
-- [Plateau : trône, éclairage, projecteurs, chrono géant, écrans /image, pupitres, gong…](Plateau.md)
+- [Plateau : trône, éclairage, projecteurs, chrono géant, écrans /cm media image, pupitres, gong…](Plateau.md)
 - [Régie vocale (piloter à la voix)](RegieVocale.md)
 - [Régie IA (changer la préparation de l'émission à la voix, pendant le direct)](RegieIA.md)
 - [Régie des modos : dans le jeu (touche ;) et sur lordfinn.fr](RegieModos.md)
@@ -38,17 +38,17 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Tests : unitaires, serveur, en jeu](Tests.md)
 
 ## Déroulé type d'une soirée
-1. Avant : `/craftMasterSeason create Saison 4`, les joueurs avec leurs surnoms
-   (`/craftMasterPlayer add Ensuri Ensu`), les manches (`/craftMasterManche create "Le Pont" 180`), leurs points de
-   TP (`/craftMasterManche tp add "Le Pont"` à chaque emplacement), le rideau de scène
-   (`/craftMasterStage curtain set stage`) et, au besoin, `/craftMasterHideRanking 4 true` pour le suspense.
-2. Pendant : `/craftMasterManche next` lance chaque manche (titre, TP, chrono) ; `/cfg LordFinn 3` donne les points,
-   annoncés « LordFinn +3 (Le Pont) ». De temps en temps `/craftMasterPublish` met à jour busts et classement des
-   joueurs. Une erreur ? `/craftMasterUndo`.
-3. La révélation : `/craftMasterReveal start` — rideau fermé, roulement de tambour, révélation du dernier au premier,
+1. Avant : `/cm saison creer Saison 4`, les joueurs avec leurs surnoms
+   (`/cm joueur ajouter Ensuri Ensu`), les manches (`/cm manche creer "Le Pont" 180`), leurs points de
+   TP (`/cm manche tp ajouter "Le Pont"` à chaque emplacement), le rideau de scène
+   (`/cm plateau rideau regler stage`) et, au besoin, `/cm classement cacher 4 true` pour le suspense.
+2. Pendant : `/cm manche suivante` lance chaque manche (titre, TP, chrono) ; `/cm points LordFinn 3` donne les points,
+   annoncés « LordFinn +3 (Le Pont) ». De temps en temps `/cm scores publier` met à jour busts et classement des
+   joueurs. Une erreur ? `/cm annuler`.
+3. La révélation : `/cm revelation lancer` — rideau fermé, roulement de tambour, révélation du dernier au premier,
    feux d'artifice sur le podium, rideau ouvert.
 
 Pour Twitch : un jeu « caméra » en mode diffusion (F8) montre les plans des caméras du studio et l'habillage TV,
-`/tv intro` lance le générique ([Réalisation](Realisation.md)).
+`/cm tv intro` lance le générique ([Réalisation](Realisation.md)).
 
 Le tout est aussi faisable à la voix (régie vocale). Le détail : [Émission](Emission.md).

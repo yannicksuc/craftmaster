@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  *   <li>{@code @moment}: whoever the show just put in the spotlight (envelope opened, buzzer, reveal…), for a minute;</li>
  *   <li>{@code @antenne}: the player the TV direction shows (followed, cut to because they speak, « on va voir »).</li>
  * </ul>
- * The same rules serve the follow camera ({@code /cam follow @moment}): one follow system for both.
+ * The same rules serve the follow camera ({@code /cm cam suivre @moment}): one follow system for both.
  * The beam stays on its player while they still match (no jumping between two people standing side by side).
  */
 public final class SpotlightFollow {

@@ -25,7 +25,7 @@ import java.util.concurrent.Executor;
  * <ul>
  *   <li><b>Same picture for everyone</b>: each game plays at the position the server gives
  *   ({@link ImageScreenEntity#videoPosition}), looping on the video's length; a game more than 2 s off seeks.</li>
- *   <li><b>Sound</b>: the screen's volume (/image volume), the "Jukebox / Note Blocks" slider, full up to 4 blocks
+ *   <li><b>Sound</b>: the screen's volume (/cm media image volume), the "Jukebox / Note Blocks" slider, full up to 4 blocks
  *   away, fading out at {@link #HEARING} blocks.</li>
  *   <li>A screen out of sight for {@link #FORGET_MS} ms, gone, or farther than {@link #KEEP} blocks stops its
  *   player (it starts again, at the right position, when seen again).</li>

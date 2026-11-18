@@ -41,7 +41,7 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 /**
- * /craftMasterPortrait (alias /cfpt): placing and setting up hanging portraits without the screens (handy for
+ * /cm plateau portrait (alias /cm plateau portrait): placing and setting up hanging portraits without the screens (handy for
  * tests and for the console), plus the pose list, a manual publish and highlight. Reference: docs/wiki/Tableaux.md.
  * Without a target, a command acts on the portrait the player is looking at.
  */
@@ -81,7 +81,7 @@ public final class PortraitCommands {
             ok(c, "Tableaux de la saison " + getInteger(c, "season") + " réarrangés.");
             return 1;
         })));
-        // Raise / lower a whole gallery (stage scenery): /cfpt hoist <season> <blocks|auto> [seconds]
+        // Raise / lower a whole gallery (stage scenery): /cm plateau portrait hisser <season> <blocks|auto> [seconds]
         root.then(literal("hoist").then(argument("season", integer()).then(argument("length", StringArgumentType.word()).suggests(LENGTHS)
                 .executes(c -> hoistGallery(c, 0))
                 .then(argument("seconds", DoubleArgumentType.doubleArg(0.5, 120))
@@ -189,7 +189,7 @@ public final class PortraitCommands {
         node.then(literal("pose").then(argument("value", StringArgumentType.greedyString()).suggests(POSES).executes(c -> {
             String pose = Pose.normalizeName(StringArgumentType.getString(c, "value").replace("\"", ""));
             if (!PoseLibraries.server().has(pose)) {
-                fail(c, "Pose inconnue : " + pose + " (/cfpt poses).");
+                fail(c, "Pose inconnue : " + pose + " (/cm plateau portrait poses).");
                 return 0;
             }
             return apply(c, targeted, p -> p.setPoseName(pose), "pose " + pose);
@@ -285,7 +285,7 @@ public final class PortraitCommands {
     private static int placeLooking(CommandContext<CommandSourceStack> c) {
         ServerPlayer player = c.getSource().getPlayer();
         if (player == null) {
-            fail(c, "Depuis la console : /cfpt place <saison> <rang> <bloc du plafond> <north|south|east|west>.");
+            fail(c, "Depuis la console : /cm plateau portrait poser <saison> <rang> <bloc du plafond> <north|south|east|west>.");
             return 0;
         }
         HitResult hit = player.pick(8, 1f, false);

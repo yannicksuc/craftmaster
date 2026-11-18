@@ -6,7 +6,7 @@ import fr.lordfinn.craftmaster.stage.TimelineNetwork;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 
-/** Opens the stage timeline editor when the server sends one (/sequence editer), and feeds it while it is open. */
+/** Opens the stage timeline editor when the server sends one (/cm sequence editer), and feeds it while it is open. */
 public final class TimelineClient {
 
     private TimelineClient() {}

@@ -29,9 +29,9 @@ import java.util.Set;
  *
  * <p>What is shown:
  * <ul>
- *   <li>in broadcast mode: the <b>broadcast effect</b> ({@link #setBroadcastEffect}, or {@code /fx diffusion …}
+ *   <li>in broadcast mode: the <b>broadcast effect</b> ({@link #setBroadcastEffect}, or {@code /cm fx diffusion …}
  *       from the server), the current shot's own effect (intros) added to it, plus the local try-out ({@code /essaifx});</li>
- *   <li>otherwise: the effect forced on this player by an organiser ({@code /fx <joueur> …}), the effect of what
+ *   <li>otherwise: the effect forced on this player by an organiser ({@code /cm fx <joueur> …}), the effect of what
  *       they wear on their head (glasses, masks: data component {@code craftmaster:screen_fx}) and the try-out,
  *       combined.</li>
  * </ul>
@@ -81,7 +81,7 @@ public final class ScreenEffects {
 
     /** Same, with the fade duration in seconds (0 = at once). */
     public static void setBroadcastEffect(String idOrNull, float fadeSeconds) {
-        // The shot's own effect (intros, camera moves): added to the operator's /fx diffusion, never replacing it
+        // The shot's own effect (intros, camera moves): added to the operator's /cm fx diffusion, never replacing it
         shot = new Slot(ScreenFx.parseLenient(idOrNull), Long.MAX_VALUE);
         fade = Math.max(0f, fadeSeconds);
     }

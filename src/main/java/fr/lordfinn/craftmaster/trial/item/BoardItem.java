@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 /**
  * Canvas, slate or whiteboard to hang: used on the side of a block, the board goes on that wall, its bottom-left
  * corner (as seen from the front) on the block clicked, its default size up and to the right. The size changes
- * with {@code /craftMasterBoard size}.
+ * with {@code /cm epreuve tableau taille}.
  */
 public class BoardItem extends Item {
 

@@ -9,16 +9,16 @@ Tout passe aussi par la régie vocale, le Stream Deck et l'onglet **Scène** de 
 Pose les projecteurs (onglet CraftMaster), au sol ou suspendus. Là où tombe le faisceau, le serveur pose de la vraie
 lumière (blocs de lumière invisibles, un bloc sur deux, au niveau de l'intensité : 15 à 100 %), qui passe sous les
 chaises et les tables. Puis **nomme-les** en les regardant :
-`/cfsp nom face1`, `/cfsp nom face2`, `/cfsp nom contre`, `/cfsp nom poursuite`…
+`/cm projecteur nom face1`, `/cm projecteur nom face2`, `/cm projecteur nom contre`, `/cm projecteur nom poursuite`…
 Un nom sans son numéro forme un **groupe** : `face` = face1, face2…
 
 | Commande | Effet |
 |---|---|
-| `/cfsp <ordre>` | le projecteur que tu regardes |
-| `/cfsp tout <ordre>` | tous les projecteurs chargés |
-| `/cfsp groupe <nom> <ordre>` | ceux qui portent ce nom, ou dont le nom commence par lui |
+| `/cm projecteur <ordre>` | le projecteur que tu regardes |
+| `/cm projecteur tout <ordre>` | tous les projecteurs chargés |
+| `/cm projecteur groupe <nom> <ordre>` | ceux qui portent ce nom, ou dont le nom commence par lui |
 
-**Le menu d'un projecteur** : Maj + clic droit dessus (organisateurs), ou `/cfsp menu` en le regardant. Il s'ouvre sur
+**Le menu d'un projecteur** : Maj + clic droit dessus (organisateurs), ou `/cm projecteur menu` en le regardant. Il s'ouvre sur
 le côté de l'écran, le faisceau reste visible : nom, allumé, couleur, intensité, cône, direction (◀ ▶ tourner de 15°,
 ▲ ▼ incliner de 10°, ⇄ dans l'autre sens, « Où je regarde » : pointe le bloc sous ton viseur, « Vers moi »), qui il
 suit, effet et vitesse. Molette sur une valeur pour l'ajuster ; chaque changement se voit tout de suite.
@@ -36,7 +36,7 @@ Ordres (le dernier nombre, facultatif, est la **durée du fondu** en secondes) :
 | `suivre <joueur ou règle>` · `stop` | poursuite (voir plus bas) / arrête de suivre en gardant la direction |
 | `liste` | les projecteurs, leur nom, leur état, qui ils suivent |
 
-Exemple : `/cfsp groupe face couleur ambre 3` puis `/cfsp groupe face intensite 40 3` : la face passe en ambre et
+Exemple : `/cm projecteur groupe face couleur ambre 3` puis `/cm projecteur groupe face intensite 40 3` : la face passe en ambre et
 baisse à 40 % en 3 secondes.
 
 ### Poursuite automatique
@@ -45,7 +45,7 @@ lui tant qu'il correspond (elle ne saute pas d'un joueur à l'autre) :
 
 | Règle | Suit |
 |---|---|
-| `@scene` | qui est sur scène : un joueur dans la zone d'épreuve nommée `scene` (`/craftMasterZone create scene` avec le mètre ruban) |
+| `@scene` | qui est sur scène : un joueur dans la zone d'épreuve nommée `scene` (`/cm epreuve zone creer decor` avec le mètre ruban) |
 | `@zone:<nom>` | un joueur dans cette zone |
 | `@candidat` | le candidat le plus proche (saison active) |
 | `@proche` | le joueur le plus proche (pas les spectateurs) |
@@ -53,7 +53,7 @@ lui tant qu'il correspond (elle ne saute pas d'un joueur à l'autre) :
 | `@antenne` | le joueur que montre la réalisation (suivi, coupé sur lui parce qu'il parle, « on va voir ») |
 
 Un seul système de suivi pour les projecteurs et les caméras : les mêmes règles servent au plan qui suit
-(`/cam follow @moment`, voir [Réalisation](Realisation.md)), et le faisceau suit le joueur comme la caméra :
+(`/cm cam suivre @moment`, voir [Réalisation](Realisation.md)), et le faisceau suit le joueur comme la caméra :
 lissé, sans traîner derrière quelqu'un qui marche (il vise un peu devant, là où il va), sans à-coup quand il saute,
 d'un coup quand il est téléporté. La poursuite vise ses pieds : la flaque reste sous lui.
 
@@ -64,15 +64,15 @@ montrent). Règle la scène comme tu la veux, puis :
 
 | Commande | Effet |
 |---|---|
-| `/ambiance enregistrer <nom> [parties] [fondu]` | enregistre la scène actuelle ; parties : `tout` (défaut), ou `lumieres`, `rideaux`, `tableaux`, `ecrans` reliées par des + (`lumieres+rideaux`) |
-| `/ambiance lancer <nom> [fondu]` | rejoue l'ambiance : les projecteurs tournent et changent en fondu, les tableaux montent ou descendent, les rideaux s'ouvrent ou se ferment, les télés changent |
-| `/ambiance` | la liste, cliquable (clic : la lancer ; « mettre à jour » : la remplacer par la scène actuelle) |
-| `/ambiance modifier <nom> <cible> <ordre>` | change l'ambiance enregistrée **sans la jouer** : cible `tout`, un projecteur ou un groupe (`face`) ; ordre `allume`, `eteint`, `couleur <c>`, `intensite <0-100>`, `cone <1-30>`, `suivre <qui\|personne>`, `vise <x y z>`, `faisceau on\|off`, `halo on\|off` ; ou `tout fondu <s>`, `<rideau> rideau ouvert\|ferme` |
-| `/ambiance noir [fondu]` | tous les projecteurs s'éteignent |
-| `/ambiance supprimer <nom>` | |
+| `/cm ambiance enregistrer <nom> [parties] [fondu]` | enregistre la scène actuelle ; parties : `tout` (défaut), ou `lumieres`, `rideaux`, `tableaux`, `ecrans` reliées par des + (`lumieres+rideaux`) |
+| `/cm ambiance lancer <nom> [fondu]` | rejoue l'ambiance : les projecteurs tournent et changent en fondu, les tableaux montent ou descendent, les rideaux s'ouvrent ou se ferment, les télés changent |
+| `/cm ambiance` | la liste, cliquable (clic : la lancer ; « mettre à jour » : la remplacer par la scène actuelle) |
+| `/cm ambiance modifier <nom> <cible> <ordre>` | change l'ambiance enregistrée **sans la jouer** : cible `tout`, un projecteur ou un groupe (`face`) ; ordre `allume`, `eteint`, `couleur <c>`, `intensite <0-100>`, `cone <1-30>`, `suivre <qui\|personne>`, `vise <x y z>`, `faisceau on\|off`, `halo on\|off` ; ou `tout fondu <s>`, `<rideau> rideau ouvert\|ferme` |
+| `/cm ambiance noir [fondu]` | tous les projecteurs s'éteignent |
+| `/cm ambiance supprimer <nom>` | |
 
 Une ambiance « lumières seulement » ne touche ni aux rideaux ni aux tableaux. Un nom avec des espaces se met entre
-guillemets : `/ambiance lancer "plateau ouvert"`.
+guillemets : `/cm ambiance lancer "plateau ouvert"`.
 
 ## 3. Les conduites
 Une conduite enchaîne des lignes, jouées l'une après l'autre :
@@ -87,26 +87,26 @@ Une conduite enchaîne des lignes, jouées l'une après l'autre :
 
 | Commande | Effet |
 |---|---|
-| `/conduite ajouter <nom> <ligne>` | ajoute une ligne (crée la conduite au besoin) |
-| `/conduite voir <nom>` | ses lignes, cliquables : ✕ pour retirer, clic sur une ligne pour la recopier et l'insérer modifiée |
-| `/conduite inserer <nom> <n> <ligne>` · `retirer <nom> <n>` | |
-| `/conduite lancer <nom>` · `stop` · `statut` | une seule conduite joue à la fois |
-| `/conduite` | la liste, cliquable |
+| `/cm conduite ajouter <nom> <ligne>` | ajoute une ligne (crée la conduite au besoin) |
+| `/cm conduite voir <nom>` | ses lignes, cliquables : ✕ pour retirer, clic sur une ligne pour la recopier et l'insérer modifiée |
+| `/cm conduite inserer <nom> <n> <ligne>` · `retirer <nom> <n>` | |
+| `/cm conduite lancer <nom>` · `stop` · `statut` | une seule conduite joue à la fois |
+| `/cm conduite` | la liste, cliquable |
 
 ### Lancement automatique
 | Commande | Effet |
 |---|---|
-| `/conduite auto <moment> <conduite ou ambiance>` | moments : `lancement` (d'une manche), `fin` (de la manche), `chrono` (le chrono arrive à zéro), `revelation` (début de la révélation), `podium` (le vainqueur est révélé) ; `aucune` pour retirer |
-| `/conduite manche <manche> <conduite ou ambiance>` | cette manche joue la sienne à son lancement, à la place de celle de `lancement` |
-| `/conduite auto` | ce qui se lance tout seul, cliquable |
+| `/cm conduite auto <moment> <conduite ou ambiance>` | moments : `lancement` (d'une manche), `fin` (de la manche), `chrono` (le chrono arrive à zéro), `revelation` (début de la révélation), `podium` (le vainqueur est révélé) ; `aucune` pour retirer |
+| `/cm conduite manche <manche> <conduite ou ambiance>` | cette manche joue la sienne à son lancement, à la place de celle de `lancement` |
+| `/cm conduite auto` | ce qui se lance tout seul, cliquable |
 
 Exemple, une ouverture de manche :
 ```
-/conduite ajouter ouverture noir 1
-/conduite ajouter ouverture attendre 2
-/conduite ajouter ouverture ambiance plateau 3
-/conduite ajouter ouverture cfsp groupe poursuite suivre @scene
-/conduite auto lancement ouverture
+/cm conduite ajouter ouverture noir 1
+/cm conduite ajouter ouverture attendre 2
+/cm conduite ajouter ouverture ambiance plateau 3
+/cm conduite ajouter ouverture cfsp groupe poursuite suivre @scene
+/cm conduite auto lancement ouverture
 ```
 
 ## 4. Les séquences : la timeline de scène
@@ -115,7 +115,7 @@ keypoint ne dit que ce qui change, avec un **fondu** (le temps que prend le chan
 pendant qu'on règle.
 
 ### L'éditeur en jeu
-`/sequence editer <nom>` (la crée au besoin) ouvre l'éditeur **en bas de l'écran** : la scène reste visible au-dessus.
+`/cm sequence editer <nom>` (la crée au besoin) ouvre l'éditeur **en bas de l'écran** : la scène reste visible au-dessus.
 
 - **À gauche, les pistes** : *Lumière* (un groupe de projecteurs : `tout`, `face`, `contre gauche`…), *Rideau* (un
   rideau nommé ou `tout`), *Tableaux* (la galerie d'une saison, ou `tout`), *Écran* (une télé nommée), *Commande*.
@@ -141,7 +141,7 @@ pendant qu'on règle.
 | ↑ ↓ | piste précédente / suivante |
 | Molette / Ctrl+molette | faire défiler / zoomer |
 
-Boutons : **● Capturer** (la scène telle que tu l'as réglée à la main, `/cfsp…`, dans le keypoint choisi ou un
+Boutons : **● Capturer** (la scène telle que tu l'as réglée à la main, `/cm projecteur…`, dans le keypoint choisi ou un
 nouveau), **Miroir** (la piste pour l'autre côté : `gauche ↔ droite`, `cour ↔ jardin`, `g ↔ d` dans le nom ; sinon
 ses angles en miroir), **Inverser** (la sélection, ou toute la séquence, jouée à l'envers), **Dupliquer**,
 **Boucle**, la durée (molette ou clic), ◀ ▶ pour passer d'une séquence à l'autre, **+** pour en créer une, le nom
@@ -150,7 +150,7 @@ ses angles en miroir), **Inverser** (la sélection, ou toute la séquence, joué
 ### Les cibles de poursuite (« suit »)
 | Cible | Suit |
 |---|---|
-| `@maitre` | le CraftMaster (`/plateau maitre <pseudo>`, LordFinn par défaut) |
+| `@maitre` | le CraftMaster (`/cm plateau maitre <pseudo>`, LordFinn par défaut) |
 | `@rang:1`, `@rang:2`… | le joueur à ce rang du classement de la saison active ; `@dernier` : le dernier |
 | `@hasard` | un candidat au hasard (tiré une fois, gardé tant qu'il est là) |
 | `@public` | quelqu'un du public au hasard (zone `public`, sinon un joueur qui n'est ni candidat ni le maître) |
@@ -171,26 +171,26 @@ secondes d'écart.
 ### Le plateau
 | Commande | Effet |
 |---|---|
-| `/plateau` | où en est le plateau |
-| `/plateau devant` | dans le public, en regardant la scène : donne la gauche et la droite (miroirs, vagues) |
-| `/plateau point <nom>` | un point visable là où tu es (`centre` : le centre de la scène ; sans lui, le centre de la zone `scene`) |
-| `/plateau maitre <pseudo>` · `scene <zone>` · `public <zone>` | le CraftMaster, la zone de la scène, celle du public |
+| `/cm plateau` | où en est le plateau |
+| `/cm plateau devant` | dans le public, en regardant la scène : donne la gauche et la droite (miroirs, vagues) |
+| `/cm plateau point <nom>` | un point visable là où tu es (`centre` : le centre de la scène ; sans lui, le centre de la zone `scene`) |
+| `/cm plateau maitre <pseudo>` · `scene <zone>` · `public <zone>` | le CraftMaster, la zone de la scène, celle du public |
 
 ### Les commandes
 | Commande | Effet |
 |---|---|
-| `/sequence` | la liste, cliquable (▶ : lancer ; nom : éditer) |
-| `/sequence lancer <nom> [depuis]` · `stop [nom]` · `statut` | plusieurs séquences peuvent jouer en même temps (un chenillard en boucle sous une révélation) |
-| `/sequence creer <nom> [secondes]` · `dupliquer` · `renommer` · `supprimer` | |
-| `/sequence miroir <nom>` · `inverser <nom>` · `etirer <nom> <facteur>` · `boucle <nom> <true\|false>` | les outils sur toute la séquence |
-| `/sequence importer [nom]` · `exporter <nom>` | fichiers `config/craftmaster/sequences/<nom>.json` |
+| `/cm sequence` | la liste, cliquable (▶ : lancer ; nom : éditer) |
+| `/cm sequence lancer <nom> [depuis]` · `stop [nom]` · `statut` | plusieurs séquences peuvent jouer en même temps (un chenillard en boucle sous une révélation) |
+| `/cm sequence creer <nom> [secondes]` · `dupliquer` · `renommer` · `supprimer` | |
+| `/cm sequence miroir <nom>` · `inverser <nom>` · `etirer <nom> <facteur>` · `boucle <nom> <true\|false>` | les outils sur toute la séquence |
+| `/cm sequence importer [nom]` · `exporter <nom>` | fichiers `config/craftmaster/sequences/<nom>.json` |
 
-Une séquence se lance aussi comme une conduite : `/conduite auto revelation <séquence>`, `/conduite manche …`, une
+Une séquence se lance aussi comme une conduite : `/cm conduite auto revelation <séquence>`, `/cm conduite manche …`, une
 ligne `sequence <nom>` dans une conduite, le bouton de la régie des modos, la voix (« lance la conduite … »), le
 Stream Deck (`/stage/cue?name=…`). « Stop » arrête conduites et séquences.
 
 ### Écrire une séquence à la main (ou par une IA)
-Un fichier `config/craftmaster/sequences/<nom>.json`, puis `/sequence importer <nom>`. Clés en français ; un champ
+Un fichier `config/craftmaster/sequences/<nom>.json`, puis `/cm sequence importer <nom>`. Clés en français ; un champ
 absent = inchangé. Une IA peut en écrire une à partir d'une phrase comme « révélation dramatique : noir, roulement,
 poursuite or sur le premier, vague de faces en ambre ».
 
@@ -226,13 +226,13 @@ poursuite or sur le premier, vague de faces en ambre ».
 | `lumiere` | `allume`, `couleur` (nom ou `#RRVVBB`), `intensite` 0-100, `cone` 1-30, `suit`, `vise`, `horizontal` + `vertical`, `effet`, `vitesse`, `vague` |
 | `rideau` | `ouvert` |
 | `tableaux` | `hauteur` (ficelle, blocs), `cascade` |
-| `ecran` | `montre` : ce que prend `/cmtele <écran>` (`clip dernier`, `lien <url>`, `chat`, `off`) |
+| `ecran` | `montre` : ce que prend `/cm media tele <écran>` (`clip dernier`, `lien <url>`, `chat`, `off`) |
 | `commande` | `commande` : une ligne de conduite (commande sans `/`, `ambiance x`, `noir 2`…) |
 
 ## 5. Tableaux suspendus et télés
-- Monter / descendre les tableaux : `/cfpt hoist <saison> <blocs> [secondes]` ([Tableaux](Tableaux.md)) ; une
+- Monter / descendre les tableaux : `/cm plateau portrait hisser <saison> <blocs> [secondes]` ([Tableaux](Tableaux.md)) ; une
   ambiance retient leur hauteur.
-- Télés nommées (`/cmtele nommer <nom>`) : une ambiance retient ce qu'elles montrent ([Clips](Clips.md)).
+- Télés nommées (`/cm media tele nommer <nom>`) : une ambiance retient ce qu'elles montrent ([Clips](Clips.md)).
 
 ## 6. À la voix, au Stream Deck, à la régie des modos
 - Voix : « noir », « noir en 3 secondes », « ambiance plateau », « passe en ambiance révélation en 5 secondes »,

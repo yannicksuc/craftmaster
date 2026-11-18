@@ -64,7 +64,7 @@ public final class TaskClient {
         });
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, access) -> {
-            for (String name : new String[]{"craftMasterTwitch", "craftmastertwitch"})
+            for (String name : new String[]{"cmtwitch"})
                 dispatcher.register(ClientCommands.literal(name)
                         .executes(c -> {
                             c.getSource().sendFeedback(Component.translatable("message.craftmaster.twitch_status", TwitchChat.status()).withStyle(ChatFormatting.GOLD));
@@ -80,17 +80,17 @@ public final class TaskClient {
                             TwitchChat.trigger("test");
                             return 1;
                         }))
-                        // Twitch clip links posted in the chat: a click prepares /cmtele <tele> lien <link>
+                        // Twitch clip links posted in the chat: a click prepares /cm media tele <tele> lien <link>
                         .then(ClientCommands.literal("clips").executes(c -> {
                             var links = TwitchChat.clipLinks();
                             if (links.isEmpty()) {
                                 c.getSource().sendFeedback(Component.literal("Aucun lien de clip Twitch vu dans le chat.").withStyle(ChatFormatting.GRAY));
                                 return 0;
                             }
-                            c.getSource().sendFeedback(Component.literal("Clips Twitch du chat (clic : /cmtele <tele> lien …) :").withStyle(ChatFormatting.GOLD));
+                            c.getSource().sendFeedback(Component.literal("Clips Twitch du chat (clic : /cm media tele <tele> lien …) :").withStyle(ChatFormatting.GOLD));
                             int i = 1;
                             for (TwitchChat.ClipLink l : links) {
-                                String cmd = "/cmtele <tele> lien " + l.url();
+                                String cmd = "/cm media tele <tele> lien " + l.url();
                                 long ago = (System.currentTimeMillis() - l.at()) / 60_000;
                                 c.getSource().sendFeedback(Component.literal(" " + (i++) + ". ").withStyle(ChatFormatting.YELLOW)
                                         .append(Component.literal(l.url()).withStyle(ChatFormatting.WHITE))
@@ -128,7 +128,7 @@ public final class TaskClient {
     static void requestEditor(String mancheId) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
-        mc.player.connection.sendCommand(mancheId == null || mancheId.isEmpty() ? "craftMasterTask edit" : "craftMasterTask edit " + mancheId);
+        mc.player.connection.sendCommand(mancheId == null || mancheId.isEmpty() ? "cm tache editer" : "cm tache editer " + mancheId);
     }
 
     /** « Commencer l'épreuve »: the player is ready, the round may start (RoundStart on the server). */

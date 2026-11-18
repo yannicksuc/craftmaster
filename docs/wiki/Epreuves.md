@@ -20,7 +20,7 @@ quand un candidat l'utilise (clic droit **ou** coup).
 
 - **Poser** : la *Baguette d'objet d'épreuve* (organisateurs) sur un bloc. L'objet prend l'apparence de ce que
   tu tiens dans l'autre main (une cloche sinon) et ses réglages s'ouvrent.
-- **Régler** : accroupi + clic droit sur l'objet (ou la baguette, ou `/craftMasterTrial prop` en le regardant).
+- **Régler** : accroupi + clic droit sur l'objet (ou la baguette, ou `/cm epreuve objet` en le regardant).
   Quatre onglets, avec infobulles :
   - *Apparence* : nom (affiché au-dessus et dans les messages), taille (0,1 à 8 blocs), rotation, inclinaison,
     tourne sur lui-même, flotte, brille ; « Apparence = l'objet que je tiens » (tête de joueur, objet renommé…).
@@ -35,27 +35,27 @@ quand un candidat l'utilise (clic droit **ou** coup).
     l'ordre de passage. Remise à zéro, suppression.
   - « Tester » enregistre et l'utilise comme un candidat.
 - Les organisateurs reçoivent « ★ Ensuri a touché « Le trésor » en premier » ; tout est dans le journal
-  (`/craftMasterTrial log`).
+  (`/cm epreuve journal`).
 - Un objet d'épreuve ne casse jamais (on le supprime depuis ses réglages).
 
 **Gros bouton rouge** : un socle noir et or avec un dôme rouge. Appuyé (clic ou coup), il descend une seconde,
 donne un signal redstone (fort dans le bloc dessous), et les organisateurs savent qui a appuyé (le premier depuis
-`/craftMasterTrial reset` est marqué).
+`/cm epreuve reset` est marqué).
 
 **Buzzers** (16 couleurs, une par candidat) : le premier qui buzze allume son buzzer (lumière + signal redstone),
 un titre annonce « Ensuri a buzzé en premier ! » et les autres sont bloqués jusqu'à la remise à zéro ; les suivants
-sont quand même notés (2e, 3e, avec l'écart en secondes) : `/craftMasterBuzzer status`. Remise à zéro :
-`/craftMasterBuzzer reset`, la voix (« remets les buzzers »), un organisateur accroupi + clic droit sur un buzzer, ou un
+sont quand même notés (2e, 3e, avec l'écart en secondes) : `/cm epreuve buzzer statut`. Remise à zéro :
+`/cm epreuve buzzer reset`, la voix (« remets les buzzers »), un organisateur accroupi + clic droit sur un buzzer, ou un
 **signal redstone** qui arrive dans un buzzer (bouton, levier, pédale du juge : au front montant).
 
-**Modes des buzzers** (`/craftMasterBuzzer mode` : un menu cliquable dans le chat ; gardé avec les données de
+**Modes des buzzers** (`/cm epreuve buzzer mode` : un menu cliquable dans le chat ; gardé avec les données de
 l'émission, annulable) :
 
 | Mode | Id | Effet |
 |---|---|---|
 | Premier qui buzze | `first` | Par défaut : le premier allume son buzzer et bloque les autres jusqu'à la remise à zéro |
 | Tous dans l'ordre | `order` | Chacun buzze une fois, tous les buzzers s'allument, l'ordre d'arrivée s'affiche dans le chat |
-| Réarmement automatique | `auto` | Comme « premier », puis les buzzers se réarment seuls après le délai (`/craftMasterBuzzer rearm <secondes>`, 5 par défaut) |
+| Réarmement automatique | `auto` | Comme « premier », puis les buzzers se réarment seuls après le délai (`/cm epreuve buzzer rearmer <secondes>`, 5 par défaut) |
 | Libre | `free` | Chaque appui fait clignoter son buzzer une seconde et sonne, sans blocage ni ordre |
 
 ## 2. Feuille de résultats et barème
@@ -65,12 +65,12 @@ poids) ou « disqualifié ». Le classement est automatique (le plus petit ou le
 **ex-aequo partagent la place** et ses points (deux premiers à 5, le suivant est 3e et prend 3). Le barème par
 défaut est 5-4-3-2-1 (places au-delà : 0 point ; disqualifié : 0 ; sans valeur : son score n'est pas touché).
 
-- **Écran** : touche **R** (organisateurs) ou `/craftMasterResult`. Sur papier crème : tête, candidat, valeur
+- **Écran** : touche **R** (organisateurs) ou `/cm epreuve feuille`. Sur papier crème : tête, candidat, valeur
   (taper `42`, `1:05`, `12,5`… Entrée = ligne suivante, vide = effacer), **DQ**, **⏱** (son chrono, le temps
   défile en direct), place, points proposés, score actuel de la manche entre parenthèses. En haut : mesure, ordre,
   barème ; ◀ ▶ pour les autres manches.
 - **« Appliquer le barème »** fixe le score de chaque candidat dans la manche (`score.set`) en **une seule
-  modification annulable** (`/craftMasterUndo`), exactement comme la voix. Les points sont annoncés comme d'habitude.
+  modification annulable** (`/cm annuler`), exactement comme la voix. Les points sont annoncés comme d'habitude.
 - La feuille est enregistrée avec la manche (fichier de données) et elle aussi annulable.
 
 ## 3. Outils du juge
@@ -81,28 +81,28 @@ défaut est 5-4-3-2-1 (places au-delà : 0 point ; disqualifié : 0 ; sans valeu
 | **Mètre ruban** | Sur un point puis sur un autre : la distance entre les **points exacts visés** par le réticule (sur la face du bloc, pas son centre), au centième de bloc, plus la distance à plat et la hauteur. Pendant 10 s, un **ruban jaune** est posé entre les deux points avec la distance écrite au-dessus, visible de tous. Accroupi : recommencer. Les deux derniers points servent à créer une zone. |
 | **Compteur** | Sur **tout ce qui contient des objets** : blocs (coffre, coffre double entier, tonneau, boîte de shulker, entonnoir, distributeur, four…, les rangements des autres mods par l'API de transfert Fabric, le tiroir des pupitres et la table des prix, prix posés compris) et entités (joueur, wagonnet ou bateau à coffre, âne / lama chargé, villageois, porte-armure et mobs : ce qu'ils portent et tiennent, cadre, objet au sol). Nombre d'objets et les trois plus nombreux ; seulement le type tenu dans l'autre main s'il y en a un (« combien d'œufs ? »). |
 | **Balance** (bloc) | Clic droit en tenant un objet : son poids ; main vide : le poids des objets jetés sur le plateau. Table de poids ludique mais cohérente (netherite > or > fer, plume ≈ 0). |
-| **Zones d'épreuve** | `/craftMasterZone create <nom>` (avec les deux points du mètre) ou `… <de> <à>`. Un candidat qui sort a un titre « Hors zone ! », un rappel tant qu'il est dehors, et les organisateurs sont prévenus ; le retour est noté. `players <nom> <joueurs…\|all>`, `show` (contour 15 s), `enable`, `remove`, `list`. Enregistrées dans `config/craftmaster/zones.json`. |
+| **Zones d'épreuve** | `/cm epreuve zone creer <nom>` (avec les deux points du mètre) ou `… <de> <à>`. Un candidat qui sort a un titre « Hors zone ! », un rappel tant qu'il est dehors, et les organisateurs sont prévenus ; le retour est noté. `players <nom> <joueurs…\|all>`, `show` (contour 15 s), `enable`, `remove`, `list`. Enregistrées dans `config/craftmaster/zones.json`. |
 
 Après chaque mesure (mètre, compteur, balance), un organisateur a dans le chat **« Noter pour : [Ensuri] [Cyllu]… »** :
 un clic écrit la valeur sur la feuille de la manche en cours.
 
 ## 4. Créativité
 
-- **Toile de peintre, ardoise, tableau blanc** : se posent sur un mur (2×2 ou 3×2 blocs, `/craftMasterBoard size
+- **Toile de peintre, ardoise, tableau blanc** : se posent sur un mur (2×2 ou 3×2 blocs, `/cm epreuve tableau taille
   <l> <h>` jusqu'à 8×6). 16 pixels par bloc. **Teinture : peindre** (maintenir le clic droit pour tracer) ;
   accroupi + teinture : remplir une zone (pot de peinture) ; **éponge** : gommer ; **main vide : écrire** (quelques
   lignes, centrées, aussi grandes que possible). Sur l'ardoise la teinture devient de la craie. Accroupi + frapper :
-  décrocher. `/craftMasterBoard lock true` réserve un tableau aux organisateurs ; `clear` efface ; `text` écrit.
+  décrocher. `/cm epreuve tableau verrouiller true` réserve un tableau aux organisateurs ; `clear` efface ; `text` écrit.
 - **Socle d'exposition** : poser n'importe quel objet dessus (il flotte et tourne, son nom au-dessus) ; main vide
   pour le reprendre. Idéal pour présenter une création au juge.
 - **Garde-robe** : une armoire qui contient toutes les tenues (vêtements Selfexpression, armures) ; un clic pour
   enfiler une tenue entière ou une seule pièce, « Mes affaires » pour revenir ([Garde-robe](GardeRobe.md)).
-- **Nommer** : `/craftMasterName <nom>` (tous) renomme l'objet tenu, codes couleur `&6`, `&l`… sans enclume ni
+- **Nommer** : `/cm nommer <nom>` (tous) renomme l'objet tenu, codes couleur `&6`, `&l`… sans enclume ni
   XP ; sans nom : retire le nom. Les objets nommés gardent leur nom sur le socle, les props, les tableaux.
 
 **Retirés** (retours de LordFinn, 12/11/2026) : la malle à costumes et le carton rouge. Un monde qui en contient
 se charge sans erreur : la malle devient un coffre vide, le carton rouge disparaît. La disqualification reste là :
-bouton DQ de la feuille de résultats, `/craftMasterResult dq`, la voix (« Ensuri est disqualifié »).
+bouton DQ de la feuille de résultats, `/cm epreuve feuille dq`, la voix (« Ensuri est disqualifié »).
 
 ## 5. À la voix
 
@@ -125,15 +125,15 @@ tout seul**. Au redémarrage, si une manche était en cours, le show est **gelé
 
 Les organisateurs qui ne sont pas candidats et les spectateurs (caméras de la réalisation) restent libres.
 
-`/craftMasterReprise` (cfrp) dit si le show est gelé, la manche, le temps de chaque chrono et **qui manque encore**
+`/cm reprise` (cfrp) dit si le show est gelé, la manche, le temps de chaque chrono et **qui manque encore**
 (les candidats non archivés de la saison qui ne sont pas connectés). Un organisateur qui se connecte reçoit ce
 statut ; à chaque retour ou départ d'un candidat, les organisateurs voient « Ensuri est revenu — manque encore : … »
 ou « tout le monde est là » avec un bouton **[Reprendre]**.
 
-`/craftMasterReprise reprendre` donne le feu vert : refusé tant qu'un candidat manque, sauf
-`/craftMasterReprise reprendre force`. Chaque chrono repart alors avec **exactement** le temps qui lui restait (au
+`/cm reprise reprendre` donne le feu vert : refusé tant qu'un candidat manque, sauf
+`/cm reprise reprendre force`. Chaque chrono repart alors avec **exactement** le temps qui lui restait (au
 tick près pour le chrono de manche) ; le temps passé serveur éteint ou gelé ne compte jamais. Aussi au Stream Deck :
-`/resume` (deux appuis en 3 s, [Saisie](Saisie.md)). `/craftMasterReprise geler` gèle le show à la main (même effet).
+`/resume` (deux appuis en 3 s, [Saisie](Saisie.md)). `/cm reprise geler` gèle le show à la main (même effet).
 
 Pour cela, l'état des chronos est enregistré **chaque seconde** dans `config/craftmaster/reprise.json` (chrono de
 manche en ticks restants, chronos des candidats, buzzers, chaque tablette avec sa position et son temps, y compris
@@ -146,14 +146,14 @@ sait pas encore donner le feu vert.
 
 ## Commandes
 
-Voir [Commandes](Commandes.md#épreuves-admin) : `/craftMasterResult` (cfre), `/craftMasterChrono` (cfch),
-`/craftMasterBuzzer` (cfbz), `/craftMasterZone` (cfzo), `/craftMasterTrial` (cftr), `/craftMasterBoard` (cfbd),
-`/craftMasterName` (cfnm), `/craftMasterReprise` (cfrp).
+Voir [Commandes](Commandes.md#épreuves-admin) : `/cm epreuve feuille` (cfre), `/cm epreuve chrono` (cfch),
+`/cm epreuve buzzer` (cfbz), `/cm epreuve zone` (cfzo), `/cm epreuve` (cftr), `/cm epreuve tableau` (cfbd),
+`/cm nommer` (cfnm), `/cm reprise` (cfrp).
 
 ## Exemple : « Le premier à sonner la cloche »
-1. `/craftMasterManche create "La Cloche"` puis `/craftMasterResult kind temps`.
+1. `/cm manche creer "La Cloche"` puis `/cm epreuve feuille mesure temps`.
 2. Une baguette d'objet d'épreuve sur la ligne de départ (laine verte en main gauche) : *Lance l'essai*,
    message « C'est parti {player} ! ». Une autre sur l'arrivée (cloche) : *Termine l'essai*, *Annonce le 1er*,
    signal redstone vers des feux d'artifice.
-3. `/craftMasterZone create parcours` avec le mètre ruban sur deux coins.
+3. `/cm epreuve zone creer parcours` avec le mètre ruban sur deux coins.
 4. Chaque candidat passe seul : son temps s'écrit sur la feuille. Touche **R**, vérifier, « Appliquer le barème ».

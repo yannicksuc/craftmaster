@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * Link between this server and the moderators' page of lordfinn.fr (docs/wiki/RegieModos.md). The server always calls
  * the site, never the reverse: no port to open, and the Stream Deck's local API (127.0.0.1, on LordFinn's game) has
- * nothing to do with it. Two HTTPS loops, with the shared secret ({@code /modo site lier}) as a bearer token:
+ * nothing to do with it. Two HTTPS loops, with the shared secret ({@code /cm modo site lier}) as a bearer token:
  * <pre>
  * GET  {url}/orders   held up to 25 s by the site → {orders [{id, twitch, actions[]}], watching [logins]}
  * POST {url}/push     every second while something changed (15 s otherwise) →
@@ -123,7 +123,7 @@ public final class SiteLink {
 
     public static String describe() {
         Settings s = settings;
-        if (s.secret.isEmpty()) return "Site : pas lié (/modo site lier [adresse]).";
+        if (s.secret.isEmpty()) return "Site : pas lié (/cm modo site lier [adresse]).";
         return "Site : " + (s.enabled ? "activé" : "coupé") + " · " + s.url + " · " + status
                 + (watching.isEmpty() ? "" : " · page ouverte : " + String.join(", ", watching));
     }

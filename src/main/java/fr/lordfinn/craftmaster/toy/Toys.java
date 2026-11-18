@@ -76,7 +76,7 @@ public final class Toys {
     public static EntityType<BalloonEntity> BALLOON_ENTITY;
     public static SoundEvent SQUEAK, POP, PUFF;
 
-    /** What the players did with the toys since the last {@code /craftMasterToys reset} (memory only). */
+    /** What the players did with the toys since the last {@code /cm epreuve jouets reset} (memory only). */
     public static final ToyTally TALLY = new ToyTally();
 
     /** The creative tab entries (stacks can only be made once the game is loaded). */
@@ -251,7 +251,7 @@ public final class Toys {
         return out;
     }
 
-    /** How much of the toys' news goes to the organisers' chat (everything is in the log and /cfty status). */
+    /** How much of the toys' news goes to the organisers' chat (everything is in the log and /cm epreuve jouets statut). */
     public enum Announce {
         ALL("tout"), IMPORTANT("important"), NONE("rien");
         public final String word;
@@ -302,7 +302,7 @@ public final class Toys {
         String contestant = null;
         for (String c : Judging.contestants()) if (c.equalsIgnoreCase(player)) contestant = c;
         if (contestant == null || Judging.currentManche() == null) return Component.empty();
-        String cmd = "/craftMasterResult set " + Judging.quote(contestant) + " " + String.format(Locale.ROOT, "%.2f", value) + " " + kind.id;
+        String cmd = "/cm epreuve feuille regler " + Judging.quote(contestant) + " " + String.format(Locale.ROOT, "%.2f", value) + " " + kind.id;
         String who = contestant;
         return Component.literal(" [noter " + label + "]").withStyle(s -> s.withColor(ChatFormatting.GOLD)
                 .withClickEvent(new ClickEvent.RunCommand(cmd))

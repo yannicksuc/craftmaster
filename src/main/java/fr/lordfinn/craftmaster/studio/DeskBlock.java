@@ -19,7 +19,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 /**
  * A contestant's desk: the front faces the audience (the player who places it), with a brass plate bearing the
- * contestant's name. Name it with a renamed name tag (the tag is kept), or {@code /craftMasterDesk name}. Desks side
+ * contestant's name. Name it with a renamed name tag (the tag is kept), or {@code /cm plateau pupitre nom}. Desks side
  * by side join into one long desk ({@link SideJoins}); right click (anything but a name tag): its drawer, 9 slots.
  */
 public class DeskBlock extends JoiningBlock {

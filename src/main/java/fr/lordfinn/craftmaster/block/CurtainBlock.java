@@ -37,7 +37,7 @@ import java.util.Map;
  * Stage curtain: a pleated fabric panel. Touching curtain blocks facing the same way form one curtain, which opens
  * from the middle outwards and closes from the sides inwards (see {@link Curtains}). An open curtain is invisible.
  * <p>
- * Opened and closed by: a redstone signal, the curtain remote, a right-click in creative, or /craftMasterCurtain.
+ * Opened and closed by: a redstone signal, the curtain remote, a right-click in creative, or /cm plateau rideau bloc.
  * <p>
  * In the world the fabric is drawn by the client ({@link CurtainBlockEntity}, client/curtain/CurtainRenderer), so it
  * slides continuously and gathers at the sides; the block models only serve the item and the particles.

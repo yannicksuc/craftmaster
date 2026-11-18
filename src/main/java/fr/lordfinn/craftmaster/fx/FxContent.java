@@ -37,7 +37,7 @@ public final class FxContent {
     /** Screen effect of an item worn on the head ("" = none). */
     public static DataComponentType<String> SCREEN_FX;
 
-    /** Kind (the old item id, used by /fx porter) → effect, in creative tab order. */
+    /** Kind (the old item id, used by /cm fx porter) → effect, in creative tab order. */
     public static final Map<String, String> WEARABLES = new LinkedHashMap<>();
     /** Kind → French name (server messages; the item names themselves are in the lang files). */
     public static final Map<String, String> FRENCH = new LinkedHashMap<>();
@@ -114,7 +114,7 @@ public final class FxContent {
             if (!(owner instanceof net.minecraft.world.entity.player.Player player)) return;
             ItemStack now = stack(kind);
             if (now == null) return;
-            // Keep what the old stack carried on top (a binding curse put by /fx porter ... verrouille, a name)
+            // Keep what the old stack carried on top (a binding curse put by /cm fx porter ... verrouille, a name)
             now.applyComponents(stack.getComponentsPatch());
             if (slot != null) player.setItemSlot(slot, now);
             else {

@@ -96,7 +96,7 @@ public final class Sequencer {
         return r == null ? "La séquence « " + Scenography.key(name) + " » ne joue pas." : "Séquence « " + r.name + " » arrêtée.";
     }
 
-    /** Playing timelines and where they are (seconds), for the editor's playhead and /sequence statut. */
+    /** Playing timelines and where they are (seconds), for the editor's playhead and /cm sequence statut. */
     public static Map<String, Double> playing(MinecraftServer server) {
         Map<String, Double> out = new LinkedHashMap<>();
         for (Run r : RUNS.values()) out.put(r.name, r.offset + (server.getTickCount() - r.startTick) / 20.0);

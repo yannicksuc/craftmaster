@@ -304,7 +304,7 @@ public class TravellingScreen extends Screen {
         for (JsonElement e : data.getAsJsonArray("points")) {
             JsonObject p = e.getAsJsonObject();
             if (p.get("at").getAsString().isEmpty()) continue;
-            // "@centre": the middle of the stage zone; "@point:x": a point named on the stage plan (/plateau point)
+            // "@centre": the middle of the stage zone; "@point:x": a point named on the stage plan (/cm plateau point)
             String name = p.get("name").getAsString();
             Component label = name.startsWith("@point:") ? t("aim_point", name.substring(7)) : t("aim_centre");
             out.add(new String[]{label.getString(), p.get("at").getAsString()});

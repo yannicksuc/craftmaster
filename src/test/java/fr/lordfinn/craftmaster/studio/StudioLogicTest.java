@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Pure logic of the studio set: spotlight aiming, seven-segment digits, /image arguments, gong swing. */
+/** Pure logic of the studio set: spotlight aiming, seven-segment digits, /cm media image arguments, gong swing. */
 class StudioLogicTest {
 
     // ---------------------------------------------------------------- spotlight aim
@@ -73,7 +73,7 @@ class StudioLogicTest {
         assertEquals("--:--", SevenSegment.clock(-1));
     }
 
-    // ---------------------------------------------------------------- /image
+    // ---------------------------------------------------------------- /cm media image
 
     @Test
     void imageDefaultsLikeThePlugin() throws Exception {

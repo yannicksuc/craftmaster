@@ -61,9 +61,9 @@ public class StopwatchItem extends Item {
             long t = Stopwatch.SHARED.peek(p, now);
             long last = Stopwatch.SHARED.last(p);
             MutableComponent line = Component.literal("  " + p + "  ").withStyle(ChatFormatting.WHITE);
-            line.append(button("[▶ départ]", "/craftMasterChrono start " + Judging.quote(p), "Lancer le chrono de " + p, ChatFormatting.GREEN));
+            line.append(button("[▶ départ]", "/cm epreuve chrono lancer " + Judging.quote(p), "Lancer le chrono de " + p, ChatFormatting.GREEN));
             line.append(" ");
-            line.append(button("[■ stop]", "/craftMasterChrono stop " + Judging.quote(p), "Arrêter et noter le temps de " + p, ChatFormatting.RED));
+            line.append(button("[■ stop]", "/cm epreuve chrono stop " + Judging.quote(p), "Arrêter et noter le temps de " + p, ChatFormatting.RED));
             if (t >= 0) line.append(Component.literal("  " + Stopwatch.format(t) + " …").withStyle(ChatFormatting.YELLOW));
             else if (last >= 0) line.append(Component.literal("  " + Stopwatch.format(last)).withStyle(ChatFormatting.GRAY));
             judge.sendSystemMessage(line);

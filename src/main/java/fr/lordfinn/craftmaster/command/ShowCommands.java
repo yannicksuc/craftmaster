@@ -205,7 +205,7 @@ public final class ShowCommands {
     private static int listSeasons(CommandContext<CommandSourceStack> c) {
         header(c, "Saisons");
         Season active = activeSeason();
-        if (data().seasonMap().isEmpty()) info(c, "Aucune saison : /craftMasterSeason create <nom>");
+        if (data().seasonMap().isEmpty()) info(c, "Aucune saison : /cm saison creer <nom>");
         for (Season s : data().seasonMap().values()) {
             String flags = (s == active ? " ★ active" : "") + (s.hidden ? " · cachée" : "") + (s.archived ? " · archivée" : "")
                     + (s.published == null ? " · jamais publiée" : "");
@@ -327,7 +327,7 @@ public final class ShowCommands {
         Season s = activeSeason();
         Partie p = activePartie();
         if (s == null || p == null) {
-            fail(c, "Aucune manche : /craftMasterManche create <nom>");
+            fail(c, "Aucune manche : /cm manche creer <nom>");
             return 0;
         }
         header(c, "Manches — " + s.name + (s.parties.size() > 1 ? " · " + p.name : ""));
@@ -345,7 +345,7 @@ public final class ShowCommands {
                     .append(Component.literal(r.name).withStyle(r == current ? ChatFormatting.GREEN : r.archived ? ChatFormatting.DARK_GRAY : ChatFormatting.WHITE))
                     .append(Component.literal((r == current ? " ▶ en cours" : "") + (r.archived ? " (archivée)" : "") + b).withStyle(ChatFormatting.GRAY)));
         }
-        if (p.manches.isEmpty()) info(c, "Aucune manche : /craftMasterManche create <nom>");
+        if (p.manches.isEmpty()) info(c, "Aucune manche : /cm manche creer <nom>");
         return 1;
     }
 
@@ -376,7 +376,7 @@ public final class ShowCommands {
             return 0;
         }
         header(c, "Joueurs de " + s.name);
-        if (s.players.isEmpty()) info(c, "Aucun joueur : /craftMasterPlayer add <pseudo> [surnoms]");
+        if (s.players.isEmpty()) info(c, "Aucun joueur : /cm joueur ajouter <pseudo> [surnoms]");
         for (SeasonPlayer p : s.players.values())
             info(c, Component.literal(p.name).withStyle(p.archived ? ChatFormatting.DARK_GRAY : ChatFormatting.WHITE)
                     .append(Component.literal((p.aliases.isEmpty() ? "" : "  (" + String.join(", ", p.aliases) + ")")
@@ -513,14 +513,14 @@ public final class ShowCommands {
             data().stage().scenes.put(n, new Stage.Scene(size.getX(), size.getY(), size.getZ()));
         });
         ok(c, "Décor « " + n + " » enregistré (" + size.getX() + " × " + size.getY() + " × " + size.getZ() + ")."
-                + (data().stage().anchor == null ? " Définissez l'ancre : /craftMasterStage anchor" : ""));
+                + (data().stage().anchor == null ? " Définissez l'ancre : /cm plateau ancre" : ""));
         return 1;
     }
 
     private static int stageInfo(CommandContext<CommandSourceStack> c) {
         Stage st = data().stage();
         header(c, "Plateau");
-        info(c, "Rideaux : " + (st.curtains.isEmpty() ? "aucun (/craftMasterStage curtain set stage)" : ""));
+        info(c, "Rideaux : " + (st.curtains.isEmpty() ? "aucun (/cm plateau rideau regler stage)" : ""));
         st.curtains.forEach((n, b) -> info(c, "  " + n + " → " + b.describe()));
         info(c, "Ancre : " + (st.anchor == null ? "aucune" : st.anchor.describe()));
         info(c, "Décors : " + (st.scenes.isEmpty() ? "aucun" : ""));
@@ -599,7 +599,7 @@ public final class ShowCommands {
             if (s != null) {
                 int unpublished = 0;
                 for (String pl : s.scoredPlayers()) if (s.unpublishedDelta(pl) != 0) unpublished++;
-                info(c, "Scores non publiés : " + (unpublished == 0 ? "aucun" : unpublished + " joueur(s) — /craftMasterPublish"));
+                info(c, "Scores non publiés : " + (unpublished == 0 ? "aucun" : unpublished + " joueur(s) — /cm scores publier"));
             }
             Show.status(c.getSource().getServer()).forEach(l -> info(c, l));
             return 1;

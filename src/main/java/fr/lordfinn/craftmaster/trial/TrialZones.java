@@ -34,7 +34,7 @@ import java.util.UUID;
 /**
  * The task zones of the server (config/craftmaster/zones.json): a contestant who leaves one gets a warning (title,
  * sound, then a reminder in the action bar while outside) and the organisers are told; coming back is noted too.
- * Zones are set up by commands ({@code /craftMasterZone}) and survive restarts.
+ * Zones are set up by commands ({@code /cm epreuve zone}) and survive restarts.
  */
 public final class TrialZones {
 

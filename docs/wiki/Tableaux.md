@@ -10,16 +10,16 @@ busts).
 - **Objet « Tableau »** (onglet créatif CraftMaster, ou craft : ficelle en haut, tableau vanilla au centre, lingots
   d'or autour). Clic droit **sous** un bloc du plafond : le tableau y est accroché, l'image tournée vers soi.
   Il rejoint la galerie de la dernière saison, au rang suivant.
-- Par commande : `/cfpt place <saison> <rang>` en regardant le bloc du plafond, ou
-  `/cfpt place <saison> <rang> <x y z du bloc du plafond> <north|south|east|west>` (console).
-- **Retirer** : le frapper (comme une peinture ; rendu en survie), ou `/cfpt remove` en le regardant.
+- Par commande : `/cm plateau portrait poser <saison> <rang>` en regardant le bloc du plafond, ou
+  `/cm plateau portrait poser <saison> <rang> <x y z du bloc du plafond> <north|south|east|west>` (console).
+- **Retirer** : le frapper (comme une peinture ; rendu en survie), ou `/cm plateau portrait retirer` en le regardant.
 - Les tableaux sont des entités sauvegardées avec le monde : ils restent après un redémarrage.
 
 Le rail lui-même se construit avec des blocs (chaînes, barres de fer, dalles…) : le tableau ajoute le chariot en
 laiton et la ficelle. Prévoir de la hauteur : un tableau mesure 1,5 bloc, plus la ficelle.
 
 ## Réglages (organisateurs)
-Clic droit sur le tableau (ou `/cfpt edit`) : l'écran laisse voir le tableau à droite, les changements de pose
+Clic droit sur le tableau (ou `/cm plateau portrait editer`) : l'écran laisse voir le tableau à droite, les changements de pose
 s'y voient en direct.
 
 | Réglage | Effet |
@@ -33,17 +33,17 @@ s'y voient en direct.
 | Antichamber px % | Effet fenêtre (Oui / Non, désactivé par défaut), profondeur de la pièce en pixels (4 à 96, défaut 16) et sa taille en % de l'ouverture (100 à 200, défaut 140) — voir plus bas |
 
 Mêmes réglages en commande, sur le tableau regardé ou sur des entités visées :
-`/cfpt set [cibles] season|rank|player|name|skin|pose|window|windowDepth|windowSize|height <valeur>` (`name -` et
+`/cm plateau portrait regler [cibles] season|rank|player|name|skin|pose|window|windowDepth|windowSize|height <valeur>` (`name -` et
 `skin -` remettent le pseudo / le skin du joueur, `height auto`, `window true|false`, `windowDepth 32`,
 `windowSize 180`).
-Exemple : `/cfpt set @e[type=craftmaster:portrait,sort=nearest,limit=1] height 3.5`.
+Exemple : `/cm plateau portrait regler @e[type=craftmaster:portrait,sort=nearest,limit=1] height 3.5`.
 
 ## Monter et descendre (scénographie)
 Un tableau peut **monter ou descendre** jusqu'à la longueur de ficelle voulue, en douceur, comme sur un treuil
 (départ et arrêt progressifs, bruit de chaîne au départ et à l'arrivée) :
-- `/cfpt hoist <saison> <blocs|auto> [secondes]` : toute la galerie d'une saison, par exemple
-  `/cfpt hoist 4 6 5` descend les tableaux de la saison 4 à 6 blocs de ficelle en 5 s ;
-- `/cfpt set [cibles] hoist <blocs|auto> [secondes]` : le tableau regardé, ou les entités visées.
+- `/cm plateau portrait hisser <saison> <blocs|auto> [secondes]` : toute la galerie d'une saison, par exemple
+  `/cm plateau portrait hisser 4 6 5` descend les tableaux de la saison 4 à 6 blocs de ficelle en 5 s ;
+- `/cm plateau portrait regler [cibles] hoist <blocs|auto> [secondes]` : le tableau regardé, ou les entités visées.
 
 Sans durée, il va à 1 bloc par seconde. On peut relancer pendant un mouvement : il repart d'où il est. La longueur
 d'arrivée est enregistrée comme le réglage « Ficelle » (0 à 16 blocs).
@@ -69,9 +69,9 @@ tableau emporte son joueur vers sa nouvelle colonne :
 Les ficelles ne se croisent jamais. Un joueur qui sort de la galerie laisse son tableau au nouveau venu.
 Une saison cachée ne bouge pas (l'ordre trahirait le classement) : ses tableaux restent anonymes (« #1 ? », skin
 par défaut) jusqu'à la révélation. Tant que le déroulé du direct n'a pas sa commande « publier », chaque
-changement de score compte comme une publication ; `/cfpt publish <saison>` force un réarrangement.
+changement de score compte comme une publication ; `/cm plateau portrait publier <saison>` force un réarrangement.
 
-Pendant la révélation, `/cfpt highlight <saison> <rang>` illumine le tableau de ce rang pendant 5 s (halo doré,
+Pendant la révélation, `/cm plateau portrait illuminer <saison> <rang>` illumine le tableau de ce rang pendant 5 s (halo doré,
 pleine lumière, contour lumineux).
 
 ## Poses
@@ -79,11 +79,11 @@ Bibliothèque partagée par tous les tableaux : `config/craftmaster/poses.json` 
 joueur). Poses fournies, inspirées de l'affiche : **classique** (buste), **sort du cadre**, **assis dans le
 cadre**, **porte le cadre**, **se penche dehors**, **salut**, **bras croisés**, **trône**, et **sort par
 derrière** (le haut du corps sort du dos plat du tableau, vu de derrière). Les poses jouent avec le cadre : mains
-sur les montants, jambe passée par-dessus la barre du bas, assis sur la barre, penché hors de la peinture… `/cfpt poses` les liste.
+sur les montants, jambe passée par-dessus la barre du bas, assis sur la barre, penché hors de la peinture… `/cm plateau portrait poses` les liste.
 
 Chaque champ de l'écran du tableau a une infobulle ; Entrée enregistre.
 
-**Éditeur de poses** (« Éditer… » dans l'écran du tableau, ou `/cfpt poseEditor`). À droite, un **aperçu 3D**
+**Éditeur de poses** (« Éditer… » dans l'écran du tableau, ou `/cm plateau portrait editeurposes`). À droite, un **aperçu 3D**
 du tableau (même modèle, skin, cape et cadre que dans le monde, rien de coupé), et le tableau dans le monde montre
 aussi la pose en direct.
 
@@ -126,7 +126,7 @@ Sa **profondeur** et sa **taille** (100 à 200 % de l'ouverture) se règlent par
 plus on en découvre en se déplaçant (parallaxe). Aucun membre ne dépasse : le personnage est entièrement « derrière la vitre ». De côté, de
 dessus, de dessous, le tableau reste un cadre mince ; de dos, on ne voit qu'une toile blanche : rien de
 l'intérieur n'est visible ailleurs que par l'ouverture. Réglage : bouton « Fenêtre » de l'écran,
-ou `/cfpt set window true`.
+ou `/cm plateau portrait regler fenetre true`.
 
 Technique : Minecraft 26.3 ne donne pas accès au stencil. L'intérieur est donc une illusion d'optique : chaque
 point du personnage et du rideau est ramené, le long du regard du joueur, sur le plan de la toile (il reste

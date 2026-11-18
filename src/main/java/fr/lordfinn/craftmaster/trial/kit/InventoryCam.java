@@ -112,6 +112,16 @@ public final class InventoryCam {
             Screen s = SCREENS.get(p.getUUID());
             if (s == null) continue;
             View last = SENT.get(p.getUUID());
+            if (!shown(p)) {
+                // Not for the viewers here: what was on screen closes
+                if (last != null && last.open()) {
+                    View closed = new View(last.player(), false, -1, 0, 0, last.slots(), ItemStack.EMPTY);
+                    SENT.put(p.getUUID(), closed);
+                    send(server, closed);
+                }
+                if (!s.open()) SCREENS.remove(p.getUUID());
+                continue;
+            }
             if (!s.open() && (last == null || !last.open())) continue;
             List<ItemStack> slots = new ArrayList<>(36);
             for (int i = 0; i < 36; i++) slots.add(p.getInventory().getItem(i).copy());
@@ -122,6 +132,127 @@ public final class InventoryCam {
             send(server, v);
             if (!s.open()) SCREENS.remove(p.getUUID());
         }
+    }
+
+    // ---------------------------------------------------------------- who is shown (docs/wiki/Commandes.md)
+
+    /** toujours: every contestant; epreuves: only in a round or an arena that asks for it; jamais. */
+    public static final List<String> MODES = List.of("toujours", "epreuves", "jamais");
+
+    /** Saved in config/craftmaster/inventory-cam.json. */
+    public static final class Settings {
+        public String mode = "toujours";
+        /** Round id → shown (true) or never (false); absent = as the mode says. */
+        public Map<String, Boolean> manches = new HashMap<>();
+    }
+
+    private static Settings settings;
+
+    public static Settings settings() {
+        if (settings == null) {
+            settings = new Settings();
+            java.nio.file.Path f = file();
+            try {
+                if (java.nio.file.Files.exists(f)) {
+                    Settings read = new com.google.gson.Gson().fromJson(java.nio.file.Files.readString(f), Settings.class);
+                    if (read != null) settings = read;
+                    if (settings.manches == null) settings.manches = new HashMap<>();
+                    if (!MODES.contains(settings.mode)) settings.mode = "toujours";
+                }
+            } catch (Exception e) {
+                CraftMaster.LOG.warn("[Caméra d'inventaire] {} illisible : {}", f, e.toString());
+            }
+        }
+        return settings;
+    }
+
+    private static java.nio.file.Path file() {
+        return net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().resolve("craftmaster/inventory-cam.json");
+    }
+
+    public static void save() {
+        try {
+            java.nio.file.Files.createDirectories(file().getParent());
+            java.nio.file.Files.writeString(file(), new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(settings()));
+        } catch (java.io.IOException e) {
+            CraftMaster.LOG.warn("[Caméra d'inventaire] écriture impossible : {}", e.toString());
+        }
+    }
+
+    /** Whether the viewers see this player's inventory now. */
+    public static boolean shown(ServerPlayer p) {
+        Settings st = settings();
+        if ("jamais".equals(st.mode)) return false;
+        fr.lordfinn.craftmaster.data.Manche m = CraftMaster.data() == null ? null : CraftMaster.data().currentManche();
+        Boolean round = m == null ? null : st.manches.get(m.id);
+        Arenas.Owner o = Arenas.ownerAt(p.level(), p.blockPosition());
+        Boolean arena = o == null ? null : o.arena().inventoryCam;
+        if (Boolean.FALSE.equals(round) || Boolean.FALSE.equals(arena)) return false;
+        if ("toujours".equals(st.mode)) return true;
+        return Boolean.TRUE.equals(round) || Boolean.TRUE.equals(arena);
+    }
+
+    /** One line for the menus and the debug view. */
+    public static String describe() {
+        Settings st = settings();
+        StringBuilder b = new StringBuilder(switch (st.mode) {
+            case "jamais" -> "jamais";
+            case "epreuves" -> "seulement les manches et arènes qui la demandent";
+            default -> "tous les candidats";
+        });
+        long on = st.manches.values().stream().filter(v -> v).count(), off = st.manches.size() - on;
+        if (on > 0) b.append(", ").append(on).append(" manche(s) oui");
+        if (off > 0) b.append(", ").append(off).append(" manche(s) non");
+        return b.toString();
+    }
+
+    /** {@code /cm tv inventaire [toujours|epreuves|jamais]}. */
+    public static com.mojang.brigadier.tree.LiteralCommandNode<net.minecraft.commands.CommandSourceStack> command() {
+        var root = net.minecraft.commands.Commands.literal("inventaire").requires(Permissions.CAMERA)
+                .executes(c -> {
+                    c.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal("Caméra d'inventaire : " + describe() + ".")
+                            .withStyle(net.minecraft.ChatFormatting.GOLD), false);
+                    return 1;
+                });
+        for (String mode : MODES) root.then(net.minecraft.commands.Commands.literal(mode).executes(c -> {
+            settings().mode = mode;
+            save();
+            c.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal("Caméra d'inventaire : " + describe() + ".")
+                    .withStyle(net.minecraft.ChatFormatting.GOLD), true);
+            return 1;
+        }));
+        return root.build();
+    }
+
+    /** {@code /cm manche camerainventaire <manche> <oui|non|defaut>}. */
+    public static com.mojang.brigadier.tree.LiteralCommandNode<net.minecraft.commands.CommandSourceStack> mancheCommand() {
+        var choice = net.minecraft.commands.Commands.argument("manche", fr.lordfinn.craftmaster.command.WordArgument.word())
+                .suggests((c, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(mancheNames(), b));
+        for (String v : List.of("oui", "non", "defaut")) choice.then(net.minecraft.commands.Commands.literal(v).executes(c -> {
+            String name = c.getArgument("manche", String.class);
+            var data = CraftMaster.data();
+            var season = data == null ? null : data.activeSeason();
+            fr.lordfinn.craftmaster.data.Manche m = season == null ? null : data.manche(season.id, name);
+            if (m == null) {
+                c.getSource().sendFailure(net.minecraft.network.chat.Component.literal("Manche « " + name + " » introuvable dans la saison active."));
+                return 0;
+            }
+            if (v.equals("defaut")) settings().manches.remove(m.id);
+            else settings().manches.put(m.id, v.equals("oui"));
+            save();
+            String what = v.equals("defaut") ? "comme le réglage général (" + describe() + ")" : v.equals("oui") ? "montrée aux viewers" : "jamais montrée";
+            c.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal("Caméra d'inventaire de « " + m.name + " » : " + what + ".")
+                    .withStyle(net.minecraft.ChatFormatting.GOLD), true);
+            return 1;
+        }));
+        return net.minecraft.commands.Commands.literal("camerainventaire").requires(Permissions.ADMIN).then(choice).build();
+    }
+
+    private static List<String> mancheNames() {
+        var s = CraftMaster.data() == null ? null : CraftMaster.data().activeSeason();
+        var p = s == null ? null : s.activePartie();
+        return p == null ? List.of() : p.activeManches().stream()
+                .map(r -> r.name.matches("[A-Za-z0-9_.+-]+") ? r.name : "\"" + r.name.replace("\"", "\\\"") + "\"").toList();
     }
 
     private static boolean same(View a, View b) {

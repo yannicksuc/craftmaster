@@ -82,7 +82,7 @@ public final class Look {
     /**
      * The stage's plan. The stage itself is the trial zone {@link #scene} ("scene"), the audience the zone
      * {@link #publicZone} ("public"); {@link #devant} is the direction the audience looks toward the stage (a yaw,
-     * set by standing in the audience: /plateau devant), which gives left and right for mirrors and waves.
+     * set by standing in the audience: /cm plateau devant), which gives left and right for mirrors and waves.
      */
     public static final class Plateau {
         public String scene = "scene";

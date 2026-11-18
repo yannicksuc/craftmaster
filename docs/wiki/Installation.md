@@ -1,7 +1,7 @@
 # Installation
 
 1. Serveur : Fabric Loader ≥ 0.19.5 pour Minecraft 26.3, Fabric API, et `craftmaster-<version>.jar` dans `mods/`.
-2. Facultatif, pour les **vidéos** des écrans du studio (`/image <lien YouTube, MP4…>`) : WaterMedia et WaterMedia
+2. Facultatif, pour les **vidéos** des écrans du studio (`/cm media image <lien YouTube, MP4…>`) : WaterMedia et WaterMedia
    Binaries (Minecraft 26.2) dans le jeu des joueurs (voir [Plateau](Plateau.md#image--images-et-vidéos-sur-les-écrans)).
    Sans eux, les écrans montrent les images seulement.
 3. Joueurs : le même jar et Fabric API (le mod ajoute des blocs, une entité et un écran : le jeu des joueurs doit
@@ -25,7 +25,7 @@ Détail : [Fichier de données](Donnees.md).
 | Permission `craftmaster.admin` | `craftmaster:admin` (LuckPerms…) ou opérateur niveau 2 |
 | Monde `world`, `world_nether`, `world_the_end` | Compris ; les nouveaux busts écrivent `minecraft:overworld`… |
 | Placeholders `%cfscore_…%` | Retirés (choix fait au portage) |
-| `/image` (ImageFrame) | Retirée : ImageFrame n'existe pas sur Fabric |
+| `/cm media image` (ImageFrame) | Retirée : ImageFrame n'existe pas sur Fabric |
 
 Différences de comportement (corrections) :
 - Les tâches ajoutées en jeu ne sont plus perdues au redémarrage (le plugin gardait deux copies du fichier).

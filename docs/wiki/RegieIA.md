@@ -38,11 +38,11 @@ l'émission, la régie vocale rapide reste disponible.
 ## Ce que l'agent sait faire
 | Domaine | Comment (commandes qu'il emploie) |
 |---|---|
-| Ambiances | `/ambiance modifier <nom> <cible> <ordre>` : couleur, intensité, cône, poursuite, visée, fondu, rideau — **sans jouer l'ambiance** |
+| Ambiances | `/cm ambiance modifier <nom> <cible> <ordre>` : couleur, intensité, cône, poursuite, visée, fondu, rideau — **sans jouer l'ambiance** |
 | Timelines | il lit la séquence (JSON), ajoute / décale / retire des clés (lumière, rideau, tableaux, écran, **caméra**, commande), la réécrit entière |
-| Caméras | `/cam placer <n> <x y z> vers <x y z>` (nouvelle ou déplacée, d'après les points du plateau), `/cam name`, `zoom`, `role`, `motion` |
-| Travellings | `/cam trajet <nom> duree / pause / courbe / zoom / suppr …` |
-| Conduites, lancements | `/conduite ajouter / inserer / retirer`, `/conduite auto`, `/conduite manche` |
+| Caméras | `/cm cam placer <n> <x y z> vers <x y z>` (nouvelle ou déplacée, d'après les points du plateau), `/cm cam nom`, `zoom`, `role`, `motion` |
+| Travellings | `/cm cam trajet <nom> duree / pause / courbe / zoom / suppr …` |
+| Conduites, lancements | `/cm conduite ajouter / inserer / retirer`, `/cm conduite auto`, `/cm conduite manche` |
 
 Il **ne lance rien à l'antenne** (ni ambiance, ni séquence, ni coupe) sauf si on le lui demande.
 
@@ -53,12 +53,12 @@ Il **ne lance rien à l'antenne** (ni ambiance, ni séquence, ni coupe) sauf si 
   `plateau`, `cmtele`, `cfpt`, `fx`). Une ligne ajoutée à une conduite ou à une timeline (qui s'exécutera plus tard)
   est vérifiée de même (plus `attendre`, `noir`, `playsound`, `title`, `particle`). Le reste est refusé.
 - **Supprimer** une ambiance, une séquence, une conduite, une caméra ou un travelling attend une **confirmation** :
-  le chat affiche « Régie IA veut : /ambiance supprimer pause **[Confirmer] [Refuser]** », l'agent pose la question ;
+  le chat affiche « Régie IA veut : /cm ambiance supprimer pause **[Confirmer] [Refuser]** », l'agent pose la question ;
   on clique, ou on répond « oui » au micro (une demande suivante : l'agent ne peut pas se confirmer lui-même).
 - **Annuler** : **[Annuler]** au bout de la réponse, ou « annule ce que tu as fait » : la scénographie (ambiances,
   conduites, séquences, lancements auto), les caméras et les travellings reviennent à l'état d'avant la demande.
-- **Journal** : chaque demande et ses changements dans `/modo journal` (origine « ia »), le journal du serveur
-  (« Régie IA (LordFinn) : /ambiance modifier … ») et `tools/voice-regie/logs/regie.log` ; **[détail]** (survol)
+- **Journal** : chaque demande et ses changements dans `/cm modo journal` (origine « ia »), le journal du serveur
+  (« Régie IA (LordFinn) : /cm ambiance modifier … ») et `tools/voice-regie/logs/regie.log` ; **[détail]** (survol)
   liste ce qui a été fait.
 - **Rien à l'image** : les messages ne vont que dans le chat de LordFinn, jamais dans un jeu en mode diffusion.
 - **Jamais d'adresse** : toute adresse IP qui passerait dans une réponse est masquée (« ‹adresse masquée› »), côté

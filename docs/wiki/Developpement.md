@@ -68,7 +68,7 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
   portrait/               tableaux suspendus : PortraitEntity, Portraits (galeries, publication, illumination),
                           PortraitRanking (seule source des scores), GalleryPlanner (colonnes, plans, sans croisement),
                           PortraitGeometry (proportions bébé, centre de gravité, nœud), PortraitAnimation, Pose,
-                          PoseLibrary (poses.json), PortraitNetwork, PortraitCommands (/cfpt), PortraitItem
+                          PoseLibrary (poses.json), PortraitNetwork, PortraitCommands (/cm plateau portrait), PortraitItem
   camera/                 réalisation TV (chantier E) : CameraSpot (une caméra : numéro, nom, rôle, objectif, zoom,
                           mouvement), CameraList (recherche « caméra 2 » / « plan large » / « trône »…, pur),
                           CameraMotion (respiration, travelling, panoramique : maths pures), TargetTracker (suivi
@@ -95,18 +95,18 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
     TaskContent, -Components  objets / blocs / composants (enveloppe, sceau, note, bouteille, lampe UV,
                           EnvelopeBlock + entité de bloc, PinnedNoteBlock), WaxColor, TwitchIrc (lecture du chat)
   curtain/Curtains        animation d'ouverture / fermeture (file d'attente par tick)
-                          PoseLibrary (poses.json), PortraitNetwork, PortraitCommands (/cfpt), PortraitItem,
+                          PoseLibrary (poses.json), PortraitNetwork, PortraitCommands (/cm plateau portrait), PortraitItem,
                           PoseEditing (miroir, copie, remise à zéro, glissers), PoseHistory (annuler / refaire),
                           PoseHitTest (partie sous la souris dans l'aperçu), SkinFormat (tailles de skins HD)
   curtain/Curtains        animation d'ouverture / fermeture (file d'attente par tick), paquet de glissement
   curtain/CurtainCloth    forme du tissu pendant le glissement (plis, paquets sur les côtés, adoucissement), pur
   curtain/CurtainBlockEntity  bloc-entité vide : le client dessine le tissu (CurtainNetwork : paquet curtain_slide)
-  garage/GarageDoors      moteur de porte de garage (bloc, bloc-entité), portes nommées (garages.json), /cfga
+  garage/GarageDoors      moteur de porte de garage (bloc, bloc-entité), portes nommées (garages.json), /cm plateau garage
   garage/GarageMotorBlockEntity  panneau gardé, mouvement, barrières libérées rangée par rangée, joueurs poussés,
                           redstone (impulsion = bascule, signal tenu), camouflage ; synchronisé aux clients
   garage/GaragePanel      détection du panneau (même bloc que sous le moteur, plan le plus large) ou zone donnée
   garage/GarageMotion     mouvement adouci, part visible de chaque bloc sous le linteau, cases libres : pur, testé
-  compat/WorldEditPerf    WorldEdit sans voisins ni mises à jour à la connexion (réflexion, worldedit.json, /cfwe)
+  compat/WorldEditPerf    WorldEdit sans voisins ni mises à jour à la connexion (réflexion, worldedit.json, /cm worldedit)
   block/                  ChairBlock, CurtainBlock, Shapes4 (formes tournées dans les 4 sens)
   entity/SeatEntity       l'entité invisible sur laquelle on s'assoit
   item/CurtainRemoteItem  la télécommande
@@ -122,7 +122,7 @@ src/main/java/fr/lordfinn/craftmaster/      commun (serveur + client)
                           SpotlightBlock / BlockEntity (+ SpotlightAim, Spotlights), TimerDisplayBlock / BlockEntity
                           (+ SevenSegment, StudioTimer), ImageScreenEntity / Item (+ ImageRequest), DeskBlock,
                           PrizeTableBlock (JoiningBlock + SideJoins, StudioStorage), GongBlock (+ GongSwing), DeskBellBlock, DecorBlock, StanchionBlock,
-                          StudioNetwork (paquets), StudioCommands (/image, /cfsp, /cfdk, /cfgo)
+                          StudioNetwork (paquets), StudioCommands (/cm media image, /cm projecteur, /cm plateau pupitre, /cm plateau gong)
   mixin/                  accès aux setters privés des text_display
 src/client/java/…/client/                   client uniquement (jamais chargé par un serveur dédié)
   CraftMasterClient       touche K, rendu (vide) du siège, réception du classement
@@ -181,7 +181,7 @@ tools/voice-regie/                          service local de la régie vocale (P
   golf, ballons, œufs), `Balloons` (bouffées, limite d'éclatement), `GlassLevel` (mL, trait, comparateur) ; monde —
   `Toys` (registre, onglet créatif, distributeurs, impulsions redstone, boutons « noter »), `ToyEntity` /
   `ToyItem`, `BalloonEntity` / `BalloonItem`, `CatchTargetBlock` (+ entité de bloc conteneur), `GolfHoleBlock`,
-  `GolfClubItem`, `MeasuringGlassBlock` (+ entité), `ToyCommands` (`/craftMasterToys`). Branché par une ligne dans
+  `GolfClubItem`, `MeasuringGlassBlock` (+ entité), `ToyCommands` (`/cm epreuve jouets`). Branché par une ligne dans
   `CraftMaster` ; côté client `client/toy/ToysClient` (rendus : le modèle de l'objet, teint par sa couleur).
 - Ressources : `scripts/gen_toys.py` (seul : `python scripts/gen_toys.py`, écrit ses fichiers et **ajoute** ses
   textes à `lang/*.json` et ses sons à `sounds.json` sans toucher au reste ; sons synthétisés avec numpy + ffmpeg).
@@ -189,7 +189,7 @@ tools/voice-regie/                          service local de la régie vocale (P
 ### Effets d'écran (fx/)
 - `fx/ScreenFx` (ids, ordre de dessin, alias français, combinaisons), `fx/FxMixer` (fondus) : logique pure, testée.
 - `fx/FxContent` (composant `craftmaster:screen_fx`, objets à porter), `fx/ScreenEffectsServer` (ordres, mémoire
-  pour les reconnexions, `/fx porter`), `fx/FxNetwork` (`craftmaster:screen_fx`), `command/FxCommands`.
+  pour les reconnexions, `/cm fx porter`), `fx/FxNetwork` (`craftmaster:screen_fx`), `command/FxCommands`.
 - Client `client/fx/` : `ScreenEffects` (couches diffusion / imposé / porté / essai, API `setBroadcastEffect`),
   `FxUniforms` (uniformes vivants), `FxOverlay` (citrouille vanille), `FxClient`.
 - Rendu : chaque effet est un post effect vanille `assets/craftmaster/post_effect/fx/<id>.json` (généré par

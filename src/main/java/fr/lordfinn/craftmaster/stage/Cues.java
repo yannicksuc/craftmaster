@@ -211,7 +211,7 @@ public final class Cues {
         if (Scenography.book().cues.containsKey(k)) return "La conduite « " + k + " » existe déjà.";
         Scenography.book().cues.put(k, new ArrayList<>());
         Scenography.save();
-        return "Conduite « " + k + " » créée : ajoute ses lignes avec /conduite ajouter " + k + " <ligne>.";
+        return "Conduite « " + k + " » créée : ajoute ses lignes avec /cm conduite ajouter " + k + " <ligne>.";
     }
 
     /** Adds a line at the end (or at position {@code at}, 1-based); creates the cue list if needed. */

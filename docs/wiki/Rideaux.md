@@ -17,7 +17,7 @@ la couleur → 2 rideaux. Ils sont aussi dans l'onglet créatif « CraftMaster �
   la lier (et l'ouvrir / le fermer), puis clic droit n'importe où, à n'importe quelle distance, pour l'actionner.
   L'objet brille une fois lié, son infobulle donne la position.
 - **Créatif** : clic droit main vide sur le rideau.
-- **Commande** : `/craftMasterCurtain open|close|toggle <x y z>`.
+- **Commande** : `/cm plateau rideau bloc ouvrir|close|toggle <x y z>`.
 
 ## L'animation
 Le tissu **glisse en continu** : les deux moitiés partent du milieu et vont se ranger sur les côtés, où elles se

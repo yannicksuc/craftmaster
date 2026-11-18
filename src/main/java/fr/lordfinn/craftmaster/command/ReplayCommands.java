@@ -23,17 +23,17 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 /**
- * Replays (Server Replay, optional): {@code /craftMasterReplay} (alias {@code /cmreplay}). Organisers only.
+ * Replays (Server Replay, optional): {@code /cm replay} (alias {@code /cm replay}). Organisers only.
  * <ul>
- *   <li>{@code /cmreplay} — status: Server Replay found, mode, what is being recorded</li>
- *   <li>{@code /cmreplay mode manche|partie|off} — automatic recording of each round, each game, or never</li>
- *   <li>{@code /cmreplay start} / {@code stop} — by hand (the current round, else the active game)</li>
- *   <li>{@code /cmreplay joueurs on|off}, {@code zone on|off}, {@code marge <chunks>} — what is recorded</li>
- *   <li>{@code /cmreplay drapeau [texte]} — a flag now (coloured by who is on air), as the "flag" key does</li>
- *   <li>{@code /cmreplay repere <texte>} — a marker on the timeline of the files being recorded</li>
- *   <li>{@code /cmreplay disque}, {@code garder <jours>}, {@code max <Go>}, {@code alerte <Go>}, {@code purge <jours>} —
+ *   <li>{@code /cm replay} — status: Server Replay found, mode, what is being recorded</li>
+ *   <li>{@code /cm replay mode manche|partie|off} — automatic recording of each round, each game, or never</li>
+ *   <li>{@code /cm replay lancer} / {@code stop} — by hand (the current round, else the active game)</li>
+ *   <li>{@code /cm replay joueurs on|off}, {@code zone on|off}, {@code marge <chunks>} — what is recorded</li>
+ *   <li>{@code /cm replay drapeau [texte]} — a flag now (coloured by who is on air), as the "flag" key does</li>
+ *   <li>{@code /cm replay repere <texte>} — a marker on the timeline of the files being recorded</li>
+ *   <li>{@code /cm replay disque}, {@code garder <jours>}, {@code max <Go>}, {@code alerte <Go>}, {@code purge <jours>} —
  *   the disk: used and free space, automatic purge, warning, deleting old replays now</li>
- *   <li>{@code /cmreplay voir [n [zone|joueur]]} — the recordings, newest first; watch one (Server Replay's viewer)</li>
+ *   <li>{@code /cm replay voir [n [zone|joueur]]} — the recordings, newest first; watch one (Server Replay's viewer)</li>
  * </ul>
  * Reference: docs/wiki/Replays.md.
  */
@@ -156,7 +156,7 @@ public final class ReplayCommands {
                     .append(Component.literal(e.label()).withStyle(ChatFormatting.WHITE))
                     .append(Component.literal(" · " + fmt.format(e.started()) + " · " + e.seconds() / 60 + ":" + String.format("%02d", e.seconds() % 60) + " ").withStyle(ChatFormatting.GRAY));
             for (ReplayViewing.View v : e.views()) {
-                String cmd = "/craftMasterReplay voir " + n + " " + v.name();
+                String cmd = "/cm replay voir " + n + " " + v.name();
                 line.append(Component.literal("[" + v.name() + "] ").withStyle(s -> s.withColor(v.name().equals("zone") ? ChatFormatting.AQUA : ChatFormatting.YELLOW)
                         .withClickEvent(new ClickEvent.RunCommand(cmd)).withHoverEvent(new HoverEvent.ShowText(Component.literal(cmd)))));
             }
@@ -178,7 +178,7 @@ public final class ReplayCommands {
         return say(c, switch (mode) {
             case Replays.MANCHE -> "Chaque manche sera enregistrée, de son lancement à sa fin.";
             case Replays.PARTIE -> "Chaque partie sera enregistrée, de sa première manche jusqu'à la partie suivante ou terminée.";
-            default -> "Plus d'enregistrement automatique (/cmreplay start pour lancer à la main).";
+            default -> "Plus d'enregistrement automatique (/cm replay lancer pour lancer à la main).";
         } + (Replays.available() ? "" : " (Server Replay n'est pas installé : rien ne sera enregistré.)"));
     }
 

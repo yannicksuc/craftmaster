@@ -49,7 +49,7 @@ public final class FxClient {
     }
 
     private static void registerCommands(CommandDispatcher<FabricClientCommandSource> d) {
-        for (String name : List.of("craftMasterFxTry", "craftmasterfxtry", "essaifx")) d.register(tree(name));
+        for (String name : List.of("essaifx")) d.register(tree(name));
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> tree(String name) {

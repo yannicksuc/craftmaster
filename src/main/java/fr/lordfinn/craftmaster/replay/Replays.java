@@ -455,8 +455,8 @@ public final class Replays {
     }
 
     /**
-     * The épreuve's zones: those given to the round ({@code /cfma zones}), else the trial zones its cameras film
-     * ({@code /cam lieu … <zone>}); one recording each. Without any: one area deduced from its cameras and teleport
+     * The épreuve's zones: those given to the round ({@code /cm manche zones}), else the trial zones its cameras film
+     * ({@code /cm cam lieu … <zone>}); one recording each. Without any: one area deduced from its cameras and teleport
      * points (or around its players), named "zone".
      */
     static List<Zone> zonesOf(Manche m) {

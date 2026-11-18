@@ -274,16 +274,16 @@ public final class TrialCommands {
             boolean on = m == current;
             info(c, Component.literal(on ? " ● " : " ○ ").withStyle(on ? ChatFormatting.GOLD : ChatFormatting.GRAY)
                     .append(Component.literal("[" + m.label + "]").withStyle(st -> st.withColor(on ? ChatFormatting.GOLD : ChatFormatting.YELLOW)
-                            .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/craftMasterBuzzer mode " + m.id))
+                            .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/cm epreuve buzzer mode " + m.id))
                             .withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(Component.literal(m.help)))))
                     .append(Component.literal("  " + m.help).withStyle(ChatFormatting.GRAY)));
         }
         info(c, Component.literal(" Réarmement automatique : " + Buzzers.rearmSeconds() + " s ").withStyle(ChatFormatting.GRAY)
                 .append(Component.literal("[changer]").withStyle(st -> st.withColor(ChatFormatting.YELLOW)
-                        .withClickEvent(new net.minecraft.network.chat.ClickEvent.SuggestCommand("/craftMasterBuzzer rearm ")))));
+                        .withClickEvent(new net.minecraft.network.chat.ClickEvent.SuggestCommand("/cm epreuve buzzer rearmer ")))));
         info(c, Component.literal(" Remise à zéro : ").withStyle(ChatFormatting.GRAY)
                 .append(Component.literal("[maintenant]").withStyle(st -> st.withColor(ChatFormatting.GREEN)
-                        .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/craftMasterBuzzer reset"))))
+                        .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/cm epreuve buzzer reset"))))
                 .append(Component.literal(", la voix, accroupi + clic sur un buzzer, ou un signal redstone dans un buzzer").withStyle(ChatFormatting.GRAY)));
         return 1;
     }
@@ -359,7 +359,7 @@ public final class TrialCommands {
         if (p == null) return 0;
         BlockPos[] pts = MeasuringTapeItem.lastPoints(p.getUUID());
         if (pts == null) {
-            fail(c, "Mesure d'abord les deux coins opposés avec le mètre ruban, ou donne-les : /craftMasterZone create <nom> <de> <à>.");
+            fail(c, "Mesure d'abord les deux coins opposés avec le mètre ruban, ou donne-les : /cm epreuve zone creer <nom> <de> <à>.");
             return 0;
         }
         return createZone(c, name, pts[0], pts[1]);
@@ -450,7 +450,7 @@ public final class TrialCommands {
                             int n = fr.lordfinn.craftmaster.compat.VoiceGroups.gather(c.getSource().getServer(),
                                     pl -> Judging.contestant(pl) != null || Permissions.isAdmin(pl));
                             if (n < 0) fail(c, "Le chat vocal n'est pas prêt.");
-                            else ok(c, "Canal vocal commun : " + n + " joueur(s) (candidats et organisateurs). Fermé par /cftr chrono ou /cftr vocal fin.");
+                            else ok(c, "Canal vocal commun : " + n + " joueur(s) (candidats et organisateurs). Fermé par /cm epreuve chrono ou /cm epreuve vocal fin.");
                             return n < 0 ? 0 : 1;
                         }))
                         .then(literal("fin").executes(c -> {

@@ -223,11 +223,11 @@ les entiers, booléens ou "true"/"oui", listes JSON ou texte séparé par des vi
 `secondsSinceLastScore`, `timer {manche, remaining}`, `revealRunning`, `seasons[]` (avec `players[]`,
 `parties[].manches[]` dont `status` = current | played | todo, `live[]`, `publishedRanking[]`, `unpublished`,
 `scores`), `players[]` (joueurs de la saison active, `online`), `onlinePlayers`, `curtains`, `scenes`,
-`currentScene`, `history[]` (10 dernières {at, description}), `you`. Visible en jeu : `/craftMasterStatus context`.
+`currentScene`, `history[]` (10 dernières {at, description}), `you`. Visible en jeu : `/cm statut contexte`.
 
 **Événements** : `fr.lordfinn.craftmaster.show.ShowEvents.register(Listener)` ; `Listener` a deux méthodes par
-défaut `onPublished(MinecraftServer, int season)` (après `scores.publish`, `/craftMasterPublish`,
-`/craftMasterHideRanking … false` et l'étape de publication de la révélation) et
+défaut `onPublished(MinecraftServer, int season)` (après `scores.publish`, `/cm scores publier`,
+`/cm classement cacher … false` et l'étape de publication de la révélation) et
 `onRevealStep(MinecraftServer, int season, int rank)` (du dernier rang au premier, rang du classement publié).
 Appelés sur le thread serveur, données déjà à jour (`CraftMaster.data().ranking(season, true)`).
 
@@ -240,7 +240,7 @@ published), `Partie` (manches, scores), `Manche`, `SeasonPlayer`, `Stage`, `Live
 **Écarts avec les sections 1–2** :
 - Titre de manche : « Manche 3 » en grand, le nom (et le chrono) en sous-titre — « Manche 3 — Le Pont » en
   titre dépassait de l'écran.
-- Journal d'annulation en mémoire (perdu au redémarrage / `/craftMasterReloadScores`) ; il annule les données
+- Journal d'annulation en mémoire (perdu au redémarrage / `/cm scores recharger`) ; il annule les données
   (scores, manches, manche en cours, plateau…), pas ce qui s'est passé dans le monde (TP, titres, rideaux, décors).
 - `RemoveTask` (plugin) archive la manche (ses points restent, comme dans le plugin) ; un score sur une tâche
   inconnue crée une manche archivée.

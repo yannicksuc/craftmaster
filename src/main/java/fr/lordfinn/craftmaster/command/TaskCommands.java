@@ -43,9 +43,9 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 /**
- * Tasks, envelopes and hidden notes (chantier D). {@code /craftMasterTask} (alias {@code /tache}) shows the task
+ * Tasks, envelopes and hidden notes (chantier D). {@code /cm tache} (alias {@code /cm tache}) shows the task
  * of the moment to anyone; its sub-commands are for the organisers and go through {@link ActionExecutor} like the
- * voice control. {@code /craftMasterNote} manages the hidden notes. Reference: docs/wiki/Taches.md.
+ * voice control. {@code /cm note} manages the hidden notes. Reference: docs/wiki/Taches.md.
  */
 public final class TaskCommands {
 
@@ -105,7 +105,7 @@ public final class TaskCommands {
         info(c, Component.literal(line).withStyle(ChatFormatting.GRAY));
     }
 
-    // ---------------------------------------------------------------- /craftMasterTask
+    // ---------------------------------------------------------------- /cm tache
 
     private static LiteralArgumentBuilder<CommandSourceStack> task(String name) {
         return literal(name)
@@ -269,7 +269,7 @@ public final class TaskCommands {
         return 1;
     }
 
-    // ---------------------------------------------------------------- /craftMasterNote
+    // ---------------------------------------------------------------- /cm note
 
     private static LiteralArgumentBuilder<CommandSourceStack> note(String name) {
         return literal(name).requires(ADMIN)
@@ -322,8 +322,8 @@ public final class TaskCommands {
         if (p == null) return 0;
         Note n = Tasks.store().createNote(str(c, "title"), System.currentTimeMillis());
         Notes.order(p, n.id, "give");
-        CraftMasterCommands.ok(c, "Note « " + n.title + " » créée (id " + n.id + ") : écris son texte avec /craftMasterNote text " + n.id
-                + " <texte>, ou /craftMasterNote edit " + n.id + ".");
+        CraftMasterCommands.ok(c, "Note « " + n.title + " » créée (id " + n.id + ") : écris son texte avec /cm note texte " + n.id
+                + " <texte>, ou /cm note editer " + n.id + ".");
         return 1;
     }
 
@@ -382,7 +382,7 @@ public final class TaskCommands {
     private static int listNotes(CommandContext<CommandSourceStack> c) {
         Map<String, Note> notes = Tasks.store().notes();
         info(c, Component.literal("— Notes cachées —").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
-        if (notes.isEmpty()) info(c, "Aucune note : /craftMasterNote create <titre>");
+        if (notes.isEmpty()) info(c, "Aucune note : /cm note creer <titre>");
         for (Note n : notes.values()) {
             long taken = n.spots.stream().filter(s -> s.takenBy != null).count();
             String flags = (n.once ? " · prise unique" : "") + (n.ink ? " · encre invisible" : "") + (n.pieces > 1 ? " · " + n.pieces + " morceaux" : "")

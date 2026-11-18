@@ -150,15 +150,15 @@ public class CameraEntity extends Entity {
                     .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
             if (spot != null) sp.sendSystemMessage(Component.literal("   " + spot.describe()).withStyle(ChatFormatting.GRAY));
             sp.sendSystemMessage(Component.literal("   ")
-                    .append(link("[À l'antenne]", "/cam cut " + key, "Passer à l'antenne sur cette caméra"))
+                    .append(link("[À l'antenne]", "/cm cam couper " + key, "Passer à l'antenne sur cette caméra"))
                     .append(Component.literal(" "))
-                    .append(link("[Viser comme moi]", "/cam aim " + key, "Elle regarde là où tu regardes (elle reste en place)"))
+                    .append(link("[Viser comme moi]", "/cm cam viser " + key, "Elle regarde là où tu regardes (elle reste en place)"))
                     .append(Component.literal(" "))
-                    .append(suggest("[Renommer]", "/cam name " + key + " ", "Donner un nom à la caméra"))
+                    .append(suggest("[Renommer]", "/cm cam nom " + key + " ", "Donner un nom à la caméra"))
                     .append(Component.literal(" "))
-                    .append(suggest("[Rôle]", "/cam role " + key + " ", "large, trone, podium ou aucun"))
+                    .append(suggest("[Rôle]", "/cm cam role " + key + " ", "large, trone, podium ou aucun"))
                     .append(Component.literal(" "))
-                    .append(suggest("[Lieu]", "/cam lieu " + key + " ", "studio, ou une manche et sa zone (ex. : pont ensuri)")));
+                    .append(suggest("[Lieu]", "/cm cam lieu " + key + " ", "studio, ou une manche et sa zone (ex. : pont ensuri)")));
         }
         return InteractionResult.SUCCESS;
     }

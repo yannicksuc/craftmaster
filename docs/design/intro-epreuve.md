@@ -167,7 +167,7 @@ In Use.
 | inserts d'objets qui annoncent la tâche | caméras qui visent un sujet précis : bloc, objet d'épreuve, entité |
 | ouverture à l'envers, fin sur le lieu et la tâche | ordre imposé : détails d'abord, puis la caméra « lieu de la tâche » (point de TP et enveloppe posée dans le cadre) |
 | bascule de mise au point | effet de flou selon la profondeur, dont la mise au point glisse d'une distance à une autre pendant le plan |
-| faible profondeur de champ, macro | champ de vision réduit (`/cam zoom 20`) et fond flou |
+| faible profondeur de champ, macro | champ de vision réduit (`/cm cam zoom 20`) et fond flou |
 | plans en couches | caméra placée pour qu'un bloc ou une entité soit entre elle et le sujet |
 | contre-plongée à ras du sol | caméra à 0,2-0,5 bloc du sol, visant vers le haut |
 | fisheye, oculaire | effets `fisheye` et `masque_rond` (existent) |
@@ -222,14 +222,14 @@ générée.
 Fait (13/11/2026) :
 - intro de manche (plans, durées, transitions, effets) et coupe sur les temps de la musique ;
 - lancement enchaîné (noir, TP, titre tapé, révélation) ;
-- look intro (`look_intro` : deux teintes, grain, vignette, bords flous), sur toute l'intro (`/tv intro <m> look`) ;
+- look intro (`look_intro` : deux teintes, grain, vignette, bords flous), sur toute l'intro (`/cm tv intro <m> look`) ;
 - profondeur de champ par le tampon de profondeur : `macro` et bascule de mise au point (`mise_au_point`) ;
 - `stop_motion`, `timelapse` (temps du monde accéléré sur la diffusion seulement) ;
 - transitions `miroir` (kaléidoscope), `flash`, `surimpression` ;
 - plan « lieu de la tâche » (point de TP + enveloppe posée la plus proche, caméra sans trépied) ;
 - consigne tapée en bas de l'image (première phrase de la tâche, si elle est révélée au lancement) ;
-- mode automatique (`/tv intro <m> construire`) sur une musique d'intro courte (120 BPM, 20 s, finit sur un accord) ;
-- éditeur dans le chat (`/tv intro <m> voir` : frise sur la musique, essayer à partir d'un plan, déplacer, changer
+- mode automatique (`/cm tv intro <m> construire`) sur une musique d'intro courte (120 BPM, 20 s, finit sur un accord) ;
+- éditeur dans le chat (`/cm tv intro <m> voir` : frise sur la musique, essayer à partir d'un plan, déplacer, changer
   la caméra, l'effet, la transition, la durée) ;
 - enveloppe posée, lisible sur place, récupérée en la cassant.
 

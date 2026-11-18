@@ -43,6 +43,8 @@ public final class CraftMasterClient implements ClientModInitializer {
         fr.lordfinn.craftmaster.client.regie.RegieAgent.init();
         // Moderators' director (key ;): orders checked by the server, never shown on the broadcast
         fr.lordfinn.craftmaster.client.regie.ModoDeskClient.init();
+        // The CraftMaster menu (key N, /cm menu) and the organisers' debug lines (docs/wiki/Commandes.md)
+        fr.lordfinn.craftmaster.client.menu.MenuClient.init();
         fr.lordfinn.craftmaster.client.stage.TimelineClient.init();
         fr.lordfinn.craftmaster.client.studio.SpotlightScreen.registerClient();
         fr.lordfinn.craftmaster.client.studio.CameraScreen.registerClient();

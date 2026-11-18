@@ -16,7 +16,7 @@ franche pour une révélation, 3-5 s pour revenir. Caméras : des plans seuls de
 plans croisés des candidats par-dessus l'épaule du CraftMaster, un large, une plongée ; tenir les plans plutôt que
 couper sans arrêt ; les mouvements lents pour l'ouverture, le suspense, les retours.
 
-## Caméras (touches 1-9 du client de diffusion, `/cam cut <n>`)
+## Caméras (touches 1-9 du client de diffusion, `/cm cam couper <n>`)
 | n | Plan | Usage |
 |---|---|---|
 | 1 | Plan large (rôle large) | du fond, en hauteur, toute la salle jusqu'à la scène |
@@ -30,20 +30,20 @@ couper sans arrêt ; les mouvements lents pour l'ouverture, le suspense, les ret
 | 13 | Galerie serrée | les tableaux, de près |
 | 14 | Les prix | les 3 socles du fond |
 
-Pas de trépied dans le monde : ce sont des points de vue (rien ne gêne les joueurs). Pour en avoir un : `/cam here
+Pas de trépied dans le monde : ce sont des points de vue (rien ne gêne les joueurs). Pour en avoir un : `/cm cam ici
 <n>` depuis l'endroit voulu, ou l'objet Caméra de studio.
 
-## Travellings (`/cam jouer <nom>`)
+## Travellings (`/cm cam jouer <nom>`)
 `survol` (grue du fond vers la scène, caméra 1) · `galerie` (latéral devant les tableaux, 8) · `tour-de-table`
 (arc autour des candidats, 12) · `approche-trone` (avancée sur le CraftMaster, 2) · `recul` (de la scène vers le
 fond, 1).
 
-## Ambiances (états de base, `/ambiance lancer <nom> [fondu]`)
+## Ambiances (états de base, `/cm ambiance lancer <nom> [fondu]`)
 `salle` (accueil, chaud et bas) · `discussion` (l'état de travail) · `tension` (bleu froid) · `revelation` (la
 galerie en blanc) · `vainqueur` (or, poursuites sur le premier) · `studio` (épreuve en direct, clair) · `attente`
-(les candidats sont ailleurs) · `pause`. Plus `/ambiance noir [fondu]`.
+(les candidats sont ailleurs) · `pause`. Plus `/cm ambiance noir [fondu]`.
 
-## Timelines (`/sequence lancer <nom>`)
+## Timelines (`/cm sequence lancer <nom>`)
 | Nom | Quand |
 |---|---|
 | `ouverture` | début : noir, le trône en silhouette, les candidats s'allument, le rideau s'ouvre sur la galerie, plongée → grue → plan large, puis discussion |
@@ -55,14 +55,14 @@ galerie en blanc) · `vainqueur` (or, poursuites sur le premier) · `studio` (é
 | `depart-epreuve` · `retour-plateau` | lancées toutes seules au début / à la fin d'une manche |
 | `revelation` · `podium` | lancées toutes seules par la révélation des scores |
 | `fin` | sous le générique de fin : salle, rideau qui se ferme, noir |
-| `rideau-chenillard` | couche en boucle sur le rideau (`/sequence stop rideau-chenillard`) |
+| `rideau-chenillard` | couche en boucle sur le rideau (`/cm sequence stop rideau-chenillard`) |
 
 ## Conduites
-`/conduite lancer ouverture` (la timeline d'ouverture puis le générique), `/conduite lancer fin` (générique de fin
-et lumières de fin). Lancements automatiques : `/conduite auto`. Pour une manche jouée sur le plateau :
-`/conduite manche <manche> epreuve-studio`.
+`/cm conduite lancer ouverture` (la timeline d'ouverture puis le générique), `/cm conduite lancer fin` (générique de fin
+et lumières de fin). Lancements automatiques : `/cm conduite auto`. Pour une manche jouée sur le plateau :
+`/cm conduite manche <manche> epreuve-studio`.
 
-## Projecteurs (`/cfsp groupe <nom> …`)
+## Projecteurs (`/cm projecteur groupe <nom> …`)
 `face1-4` portique de l'avant-scène (2-3 : face du CraftMaster ; 1 et 4 : contre-jour des candidats) · `table1-2`
 plafond près du trône (face des candidats) · `contre1-2` mur du fond (contre-jour du trône) · `rampe1-4` au sol
 devant le rideau · `galerie1-3` au-dessus des tableaux · `poursuite1-2` murs de côté · `assise1-5` plafond, une

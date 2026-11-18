@@ -107,7 +107,7 @@ public final class TaskNetwork {
 
     /** Flags of a {@link Paper}. */
     public static final int ENVELOPE = 1, INK = 2, LIT = 4, SECRET = 8, CAN_REVEAL = 16, FOUND = 32, CAN_EDIT = 64,
-    /** An organiser's preview of a letter (/tache apercu): nothing is revealed. */
+    /** An organiser's preview of a letter (/cm tache apercu): nothing is revealed. */
     PREVIEW = 128,
     /** The reader must click « Commencer l'épreuve » to play (RoundStart, button mode). */
     START = 256;

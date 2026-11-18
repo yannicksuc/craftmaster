@@ -196,7 +196,7 @@ public final class RegieAgent {
         }
         if (summary != null && summary.has("changed") && summary.get("changed").getAsBoolean())
             line.append(Component.literal(" [Annuler]").withStyle(st -> st.withColor(ChatFormatting.RED)
-                    .withClickEvent(new ClickEvent.RunCommand("/regieia annuler " + job))
+                    .withClickEvent(new ClickEvent.RunCommand("/cm ia annuler " + job))
                     .withHoverEvent(new HoverEvent.ShowText(Component.literal("Remettre comme avant cette demande")))));
         chat(line);
     }

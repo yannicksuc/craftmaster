@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The referee's score entry (organisers: key U, /craftMasterScores, StreamDeck /menu). Design:
+ * The referee's score entry (organisers: key U, /cm scores saisie, StreamDeck /menu). Design:
  * docs/design/saisie-ux.md (phase 1).
  *
  * <p><b>One round</b>: the places are <b>steps</b> with their base painted on them ("1st · 5"); each player is a

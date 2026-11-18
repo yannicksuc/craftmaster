@@ -26,7 +26,7 @@ import net.minecraft.world.phys.Vec3;
  * Studio screen ({@code craftmaster:studio_screen}): a flat screen on a wall, several blocks wide, showing an image
  * downloaded from a URL by every player's game (see client/studio/ScreenImages), or a video (YouTube, Twitch, MP4...)
  * played by WaterMedia when the players have it (client/studio/ScreenVideos). Replaces the Paper plugin's
- * {@code /image} (ImageFrame). The entity's position is the centre of the picture; its size is in blocks.
+ * {@code /cm media image} (ImageFrame). The entity's position is the centre of the picture; its size is in blocks.
  * Without an image (or while it loads, or if it cannot be shown) the screen shows the CraftMaster test card. The
  * address {@code chat:twitch}, {@code chat:jeu} or {@code chat:tout} makes it a chat wall (media/ChatWall).
  *

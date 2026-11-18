@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * What happened with the task objects since the server started (buttons pressed, buzzers, props touched first,
- * zone exits), newest first, for {@code /craftMasterTrial log}. In memory only, like the undo journal.
+ * zone exits), newest first, for {@code /cm epreuve journal}. In memory only, like the undo journal.
  */
 public final class TrialLog {
 

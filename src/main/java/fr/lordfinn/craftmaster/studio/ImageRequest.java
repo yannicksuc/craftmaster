@@ -4,7 +4,7 @@ import java.net.URI;
 import java.util.Locale;
 
 /**
- * What {@code /image <URL> [width] [height]} asks for, checked: an http(s) address and a size in blocks (default
+ * What {@code /cm media image <URL> [width] [height]} asks for, checked: an http(s) address and a size in blocks (default
  * 5 × 3 like the plugin's ImageFrame command). Pure, unit tested.
  */
 public record ImageRequest(String url, int width, int height) {
@@ -24,8 +24,8 @@ public record ImageRequest(String url, int width, int height) {
     /** "URL", "URL 4", "URL 4 2" (sizes are clamped to 1..16 × 1..9; a missing height keeps the 5:3 look). */
     public static ImageRequest parse(String text) throws Invalid {
         String[] parts = text == null ? new String[0] : text.trim().split("\\s+");
-        if (parts.length == 0 || parts[0].isEmpty()) throw new Invalid("Usage : /image <URL> [largeur] [hauteur]");
-        if (parts.length > 3) throw new Invalid("Trop d'arguments : /image <URL> [largeur] [hauteur] (l'adresse ne doit pas contenir d'espace).");
+        if (parts.length == 0 || parts[0].isEmpty()) throw new Invalid("Usage : /cm media image <URL> [largeur] [hauteur]");
+        if (parts.length > 3) throw new Invalid("Trop d'arguments : /cm media image <URL> [largeur] [hauteur] (l'adresse ne doit pas contenir d'espace).");
         String url = parts[0];
         String error = urlError(url);
         if (error != null) throw new Invalid(error);
@@ -59,7 +59,7 @@ public record ImageRequest(String url, int width, int height) {
             return fr.lordfinn.craftmaster.media.ChatWall.mode(url) != null ? null : "Mur de chat invalide : chat:twitch, chat:jeu ou chat:tout.";
         // A clip recorded in the game and kept by the server (media/ClipStore)
         if (lower.startsWith(fr.lordfinn.craftmaster.media.ClipLinks.SCHEME))
-            return fr.lordfinn.craftmaster.media.ClipLinks.id(url) != null ? null : "Clip invalide (cmclip:<id>, voir /cmclip liste).";
+            return fr.lordfinn.craftmaster.media.ClipLinks.id(url) != null ? null : "Clip invalide (cmclip:<id>, voir /cm media clip liste).";
         if (!lower.startsWith("http://") && !lower.startsWith("https://")) return "Adresse invalide : http:// ou https:// attendu.";
         try {
             URI uri = URI.create(url);

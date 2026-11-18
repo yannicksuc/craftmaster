@@ -40,11 +40,12 @@ import java.util.function.Supplier;
  * /replay/toggle · play · pause · back?s=10 · forward?s=10 · goto?s=75 · start · faster · slower · speed?x=2 ·
  *   marker/next · marker/prev · view?name=zone|Ensuri · mode?m=direct|auto|manuel|libre (libre&camera=2) · camera?camera=2 ·
  *   follow?player=Ensuri · pov?player=Ensuri · filter?kind=morts&player=Ensuri&zone=B · filter/clear · close
- *   (while a replay plays, /cmreplay voir) · /replay/flag (?text=) live: a flag on the recording's timeline
+ *   (while a replay plays, /cm replay voir) · /replay/flag (?text=) live: a flag on the recording's timeline
  * /clip/start · /clip/stop · /clip/toggle · /clip/status   in-game clip of this game's view (media/Clips)
  * /tele?nom=gauche&amp;clip=dernier (or lien=URL, direct=Ensuri, image=URL, chat=twitch|jeu|tout, chat, off)   what a studio screen shows
  * /stage/look?name=plateau(&amp;fade=3) · /stage/cue?name=ouverture · /stage/stop · /stage/noir(?fade=2)   stage looks and cue lists
  * /spot?target=face&amp;color=rouge&amp;intensity=60&amp;cone=8&amp;follow=@scene&amp;fade=2&amp;on=true   spotlights (any subset)
+ * /cm?c=manche%20lancer%20next   any /cm command, sent as typed in the chat (the server checks the rights)
  * /status       JSON: connected, organiser, open screen, season, undo / redo available
  * </pre>
  * Every answer is JSON {@code {"ok": true|false, ...}}; the game does the work on its own thread. Requests from a
@@ -240,6 +241,22 @@ public final class StreamDeckServer {
                 }
                 return points(query(uri, "player"), delta);
             }
+            case "/cm", "/command" -> {
+                // Any /cm command, as if typed in the chat by this game's player (the server checks the rights)
+                String line = query(uri, "c").trim();
+                if (line.startsWith("/")) line = line.substring(1);
+                if (line.startsWith("cm ")) line = line.substring(3);
+                if (line.isEmpty() || line.length() > 240 || line.indexOf('\n') >= 0) return error("give ?c=<the command after /cm>");
+                String cmd = "cm " + line;
+                return onGame(() -> {
+                    Minecraft mc = Minecraft.getInstance();
+                    if (mc.player == null || !connected()) return error("not connected");
+                    mc.player.connection.sendCommand(cmd);
+                    JsonObject o = ok();
+                    o.addProperty("sent", "/" + cmd);
+                    return o;
+                });
+            }
             case "/round/next" -> {
                 return send(action("manche.start", "manche", "next"));
             }
@@ -263,7 +280,7 @@ public final class StreamDeckServer {
                 return onGame(() -> {
                     Minecraft mc = Minecraft.getInstance();
                     if (!connected() || mc.player == null) return error("not connected");
-                    mc.player.connection.sendCommand("craftMasterReprise reprendre" + (force ? " force" : ""));
+                    mc.player.connection.sendCommand("cm reprise reprendre" + (force ? " force" : ""));
                     return ok();
                 });
             }
@@ -328,7 +345,7 @@ public final class StreamDeckServer {
     // ---------------------------------------------------------------- replay (run on this game)
 
     /**
-     * {@code /replay/<what>} while a replay plays (Server Replay's viewer, {@code /cmreplay voir}): toggle, play,
+     * {@code /replay/<what>} while a replay plays (Server Replay's viewer, {@code /cm replay voir}): toggle, play,
      * pause, back?s=10, forward?s=10, goto?s=75, start, faster, slower, speed?x=2, marker/next, marker/prev,
      * view?name=zone|Ensuri (that file, same instant), mode?m=direct|auto|manuel|libre, camera?camera=2|large,
      * filter?kind=morts|résultats|chronos|cloches|drapeaux|points|manches&player=&zone= (tout = cleared), filter/clear,
@@ -376,7 +393,7 @@ public final class StreamDeckServer {
 
     private static JsonObject replayAction(JsonObject a) {
         return onGame(() -> {
-            if (!fr.lordfinn.craftmaster.client.replay.ReplayClient.active()) return error("no replay playing (/cmreplay voir)");
+            if (!fr.lordfinn.craftmaster.client.replay.ReplayClient.active()) return error("no replay playing (/cm replay voir)");
             var r = fr.lordfinn.craftmaster.client.replay.ReplayControl.run(a);
             JsonObject o = r.ok() ? ok() : error(r.line());
             if (r.ok()) o.addProperty("did", r.line());
@@ -463,7 +480,7 @@ public final class StreamDeckServer {
      */
     private static JsonObject tele(URI uri) {
         String name = query(uri, "nom").isEmpty() ? query(uri, "tele") : query(uri, "nom");
-        if (!name.matches("[A-Za-z0-9_-]{1,32}")) return error("nom=<télé> needed (/cmtele liste)");
+        if (!name.matches("[A-Za-z0-9_-]{1,32}")) return error("nom=<télé> needed (/cm media tele liste)");
         String q = uri.getRawQuery() == null ? "" : uri.getRawQuery();
         JsonObject a;
         if (!query(uri, "clip").isEmpty()) a = action("tele.show", "tele", name, "clip", query(uri, "clip"));

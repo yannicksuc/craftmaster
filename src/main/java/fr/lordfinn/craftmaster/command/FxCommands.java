@@ -36,14 +36,14 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 /**
- * Screen effects: {@code /craftMasterFx} (alias {@code /fx}). Organisers only (or craftmaster:camera for the
+ * Screen effects: {@code /cm fx} (alias {@code /cm fx}). Organisers only (or craftmaster:camera for the
  * broadcast view, like the cameras). Effects go through {@link ActionExecutor} (actions {@code fx.set} /
  * {@code fx.clear}), like the voice control. Reference: docs/wiki/Effets.md.
  * <ul>
- *   <li>{@code /fx <diffusion|tous|candidats|joueur> <effet[+effet]|aucun> [secondes]}</li>
- *   <li>{@code /fx aucun} — every effect off (broadcast and players)</li>
- *   <li>{@code /fx porter <joueurs> <objet> [verrouille]} — puts glasses / a mask on, optionally locked</li>
- *   <li>{@code /fx retirer <joueurs>}, {@code /fx liste}, {@code /fx etat}</li>
+ *   <li>{@code /cm fx <diffusion|tous|candidats|joueur> <effet[+effet]|aucun> [secondes]}</li>
+ *   <li>{@code /cm fx aucun} — every effect off (broadcast and players)</li>
+ *   <li>{@code /cm fx porter <joueurs> <objet> [verrouille]} — puts glasses / a mask on, optionally locked</li>
+ *   <li>{@code /cm fx retirer <joueurs>}, {@code /cm fx liste}, {@code /cm fx etat}</li>
  * </ul>
  */
 public final class FxCommands {
@@ -156,7 +156,7 @@ public final class FxCommands {
             lines.add(p.getName().getString() + " : " + (forced.isEmpty() ? "" : "imposé " + ScreenFx.describe(ScreenFx.parseLenient(forced)))
                     + (!forced.isEmpty() && !worn.isEmpty() ? " · " : "") + (worn.isEmpty() ? "" : "porte " + ScreenFx.describe(ScreenFx.parseLenient(worn))));
         }
-        lines.add("/fx <diffusion|tous|candidats|joueur> <effet[+effet]|aucun> [secondes] · /fx liste");
+        lines.add("/cm fx <diffusion|tous|candidats|joueur> <effet[+effet]|aucun> [secondes] · /cm fx liste");
         for (String l : lines) c.getSource().sendSuccess(() -> Component.literal(l).withStyle(ChatFormatting.GOLD), false);
         return 1;
     }

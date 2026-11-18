@@ -48,7 +48,7 @@ public final class TaskContent {
 
     /** Items of the CraftMaster creative tab (built when the tab is shown: components are bound by then). */
     public static List<ItemStack> tabItems() {
-        // A blank free-text envelope and a red seal; notes come from /craftMasterNote (they need a text)
+        // A blank free-text envelope and a red seal; notes come from /cm note (they need a text)
         ItemStack seal = new ItemStack(WAX_SEAL);
         TaskComponents.setSealColor(seal, WaxColor.RED);
         return List.of(TaskComponents.setEnvelope(new ItemStack(ENVELOPE), TaskComponents.Envelope.BLANK), seal, new ItemStack(UV_LAMP));

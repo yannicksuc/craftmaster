@@ -14,7 +14,7 @@ import java.util.List;
 import static net.minecraft.commands.Commands.literal;
 
 /**
- * /craftMasterReprise (/cfrp): the show frozen after a crash ({@link Reprise}). Without argument or {@code statut}:
+ * /cm reprise (/cm reprise): the show frozen after a crash ({@link Reprise}). Without argument or {@code statut}:
  * frozen or not, the clocks, who is missing; {@code reprendre [force]}: the go (refused while a contestant is
  * missing, unless forced); {@code geler}: freezes the show by hand. Organisers only.
  */
@@ -38,7 +38,7 @@ public final class RepriseCommands {
                         return 0;
                     }
                     c.getSource().sendSuccess(() -> Component.literal("⏸ Show gelé : joueurs, entités et chronos arrêtés. "
-                            + "/craftMasterReprise reprendre pour repartir.").withStyle(ChatFormatting.GOLD), true);
+                            + "/cm reprise reprendre pour repartir.").withStyle(ChatFormatting.GOLD), true);
                     return 1;
                 }));
     }
@@ -56,7 +56,7 @@ public final class RepriseCommands {
         List<String> missing = Reprise.resume(c.getSource().getServer(), force);
         if (!missing.isEmpty()) {
             c.getSource().sendFailure(Component.literal("Pas de reprise : manque encore " + String.join(", ", missing)
-                    + ". /craftMasterReprise reprendre force pour repartir quand même."));
+                    + ". /cm reprise reprendre force pour repartir quand même."));
             return 0;
         }
         c.getSource().sendSuccess(() -> Component.literal("▶ Reprise : chaque chrono repart avec le temps qui lui restait.")

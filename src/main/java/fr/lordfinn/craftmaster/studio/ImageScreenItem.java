@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 
 /**
  * "Écran du studio": used on a wall, hangs a 3 × 2 screen showing the test card. Organisers then give it an image
- * (right click on the screen, or {@code /image <URL>} while looking at it).
+ * (right click on the screen, or {@code /cm media image <URL>} while looking at it).
  */
 public class ImageScreenItem extends Item {
 

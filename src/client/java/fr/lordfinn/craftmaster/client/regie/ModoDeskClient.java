@@ -35,7 +35,7 @@ public final class ModoDeskClient {
         ClientPlayConnectionEvents.DISCONNECT.register((h, mc) -> asked = false);
         ClientPlayNetworking.registerGlobalReceiver(ModoDesk.DeskState.TYPE, (p, ctx) -> accept(ctx.client(), p.json()));
         net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback.EVENT.register((d, ctx) -> {
-            for (String name : java.util.List.of("regie", "craftMasterRegie", "craftmasterregie"))
+            for (String name : java.util.List.of("regie"))
                 d.register(net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal(name).executes(c -> {
                     open(Minecraft.getInstance());
                     return 1;

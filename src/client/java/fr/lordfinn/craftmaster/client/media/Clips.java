@@ -26,8 +26,8 @@ import java.util.ArrayDeque;
 
 /**
  * In-game clips: F9 starts recording the current view, F10 stops it; the MP4 stays in {@code craftmaster/clips/} and
- * is sent to the server, which then lists it ({@code /cmclip liste}) and lets any studio screen show it ({@code
- * /cmtele <tele> clip dernier}). The Stream Deck ({@code /clip/start}, {@code /clip/stop}) and the voice do the same.
+ * is sent to the server, which then lists it ({@code /cm media clip liste}) and lets any studio screen show it ({@code
+ * /cm media tele <tele> clip dernier}). The Stream Deck ({@code /clip/start}, {@code /clip/stop}) and the voice do the same.
  * On screen: nothing in broadcast mode (the viewers see the picture), else a small red dot and the time in a corner.
  */
 public final class Clips {
@@ -275,7 +275,7 @@ public final class Clips {
                 case "done" -> {
                     QUEUE.poll();
                     ClipCache.adopt(it.file, p.clip());
-                    say(true, "Clip « " + p.message() + " » sur le serveur : /cmtele <tele> clip dernier.");
+                    say(true, "Clip « " + p.message() + " » sur le serveur : /cm media tele <tele> clip dernier.");
                 }
                 default -> {
                     QUEUE.poll();

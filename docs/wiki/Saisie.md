@@ -1,7 +1,7 @@
 # Saisie des points (arbitre), StreamDeck, cadre joueur
 
 ## L'écran de saisie (organisateurs)
-Touche **U** (modifiable dans Options > Commandes > CraftMaster), `/craftMasterScores [saison]` (`/cfsc`) ou le
+Touche **U** (modifiable dans Options > Commandes > CraftMaster), `/cm scores saisie [saison]` (`/cm scores saisie`) ou le
 bouton `/menu` du StreamDeck. S'ouvre sur l'épreuve en cours, sinon sur « Toutes les épreuves ». Conception :
 [docs/design/saisie-ux.md](../design/saisie-ux.md) (phase 1 faite).
 
@@ -11,7 +11,7 @@ on le retrouve en rouvrant, et le cadre du HUD rappelle « ✎ brouillon : Chât
 ✕ oublie le brouillon. Il est perdu seulement à la déconnexion.
 - **◁ ▷** (Ctrl+Z / Ctrl+Y) : défaire / refaire **le dernier geste** du brouillon.
 - **Annuler : …** dit ce qu'il va défaire sur le serveur (« Annuler : Steve : 5 pts (Château) ; … », l'infobulle
-  donne l'heure) ; ▷ à côté refait. C'est le même journal que `/cfun` et `/cfrf`.
+  donne l'heure) ; ▷ à côté refait. C'est le même journal que `/cm annuler` et `/cm refaire`.
 - L'écran se met à jour sur place après chaque modification (la sienne comme celles des autres). Changer de saison
   avec un brouillon est refusé, avec la raison.
 

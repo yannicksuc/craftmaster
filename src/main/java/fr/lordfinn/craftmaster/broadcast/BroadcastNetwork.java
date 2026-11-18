@@ -210,7 +210,7 @@ public final class BroadcastNetwork {
      * {@code title_card} (big centred card: title, subtitle), {@code contestant} (opening credits: player, title =
      * "1/4"), {@code credits} (closing credits roll), {@code theme} (play the theme, or the sound id in subtitle;
      * title "stop" stops it), {@code clear} (removes every card), {@code broadcast} (title "on" / "off": switches
-     * that game's broadcast mode, sent to one player by {@code /tv broadcast}), {@code path_preview} (title = path
+     * that game's broadcast mode, sent to one player by {@code /cm tv diffusion}), {@code path_preview} (title = path
      * name: this game previews the travelling on its own screen, sent to one organiser).
      */
     public record ShowCue(String kind, String title, String subtitle, String player, int ticks) implements CustomPacketPayload {

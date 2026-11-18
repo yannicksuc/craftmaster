@@ -20,7 +20,7 @@ public final class TabletClock {
         STOPWATCH,
         /** The time of day (the viewer's clock). */
         CLOCK,
-        /** The show's round timer (the same as the giant timer: /craftMasterManche start, the voice). */
+        /** The show's round timer (the same as the giant timer: /cm manche lancer, the voice). */
         SHOW
     }
 
@@ -100,11 +100,11 @@ public final class TabletClock {
         /** Anyone's right click starts / pauses it (organisers open the settings unless they sneak). */
         public boolean clickToggles = false;
         public Redstone redstone = Redstone.TOGGLE;
-        /** Restarts when a round starts (/craftMasterManche start, the voice). */
+        /** Restarts when a round starts (/cm manche lancer, the voice). */
         public boolean startOnRound = false;
         /** Pauses when a round ends. */
         public boolean stopOnRoundEnd = false;
-        /** Pauses when the show's timer is stopped (/timer/stop, "arrête le chrono", /craftMasterTimer stop). */
+        /** Pauses when the show's timer is stopped (/timer/stop, "arrête le chrono", /cm manche chrono stop). */
         public boolean stopWithTimer = true;
         /** Gives a redstone signal (comparator) once the timer is over. */
         public boolean signalWhenDone = true;

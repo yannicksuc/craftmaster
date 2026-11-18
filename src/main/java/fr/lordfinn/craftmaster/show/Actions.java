@@ -1014,7 +1014,7 @@ public final class Actions {
             names.removeIf(n -> n.isEmpty() || n.equalsIgnoreCase("aucune") || n.equalsIgnoreCase("none"));
             List<String> known = new ArrayList<>(fr.lordfinn.craftmaster.trial.TrialZones.zones().keySet());
             for (String n : names)
-                if (!known.contains(n)) throw new Invalid("Pas de zone « " + n + " » (" + (known.isEmpty() ? "aucune zone : /craftMasterZone create" : String.join(", ", known)) + ").");
+                if (!known.contains(n)) throw new Invalid("Pas de zone « " + n + " » (" + (known.isEmpty() ? "aucune zone : /cm epreuve zone creer" : String.join(", ", known)) + ").");
             f.manche().zones.clear();
             f.manche().zones.addAll(names);
             line(names.isEmpty() ? "« " + f.manche().name + " » n'a plus de zone : ses replays prendront la zone déduite de ses caméras."
@@ -1048,7 +1048,7 @@ public final class Actions {
             if (r.task != null && r.task.revealOnStart && !r.task.isEmpty()) effects.add(new TaskRevealed(s.id, r.id, false));
             line("Manche " + p.number(r) + " — " + r.name + " lancée" + (r.timer > 0 ? " (chrono " + clock(r.timer)
                     + (start.equals(fr.lordfinn.craftmaster.task.RoundStart.LAUNCH) ? "" : ", départ " + fr.lordfinn.craftmaster.task.RoundStart.describe(start)
-                    + (start.equals(fr.lordfinn.craftmaster.task.RoundStart.BUTTON) ? "" : ", /cfti go pour le lancer avant")) + ")"
+                    + (start.equals(fr.lordfinn.craftmaster.task.RoundStart.BUTTON) ? "" : ", /cm manche chrono go pour le lancer avant")) + ")"
                     : start.equals(fr.lordfinn.craftmaster.task.RoundStart.BUTTON) ? " (joueurs figés jusqu'au bouton « Commencer »)" : "") + ".");
         }
 
@@ -1178,7 +1178,7 @@ public final class Actions {
             line((open ? "Ouverture" : "Fermeture") + " du rideau « " + name + " ».");
         }
 
-        /** garage.open / garage.close / garage.toggle {name?}: a door named with /craftMasterGarage nom (the only one if none given). */
+        /** garage.open / garage.close / garage.toggle {name?}: a door named with /cm plateau garage nom (the only one if none given). */
         private void garage(Map<String, Object> a, Boolean open) {
             String asked = str(a, "name");
             String name = fr.lordfinn.craftmaster.garage.GarageDoors.resolve(asked);
@@ -1615,7 +1615,7 @@ public final class Actions {
                     + (wide == null ? "pas de caméra dans le lieu" : "large " + wide.key()) + ", " + Math.min(4, inserts.size()) + " insert(s), "
                     + (throne == null ? "pas de caméra trône" : "trône " + throne.key()) + ", lieu de la tâche à la fin)."
                     + (wide == null ? " Placez des caméras dans le lieu de la manche pour plus de plans." : "")
-                    + " Jouée au lancement, enchaînée ; /tv intro " + r.id + " voir pour la retoucher.");
+                    + " Jouée au lancement, enchaînée ; /cm tv intro " + r.id + " voir pour la retoucher.");
         }
 
         /** intro.play {manche?}: nothing changes in the data, the director plays it. */

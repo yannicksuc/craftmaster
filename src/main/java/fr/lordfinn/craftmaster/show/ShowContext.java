@@ -144,18 +144,7 @@ public final class ShowContext {
             paths.add(m);
         }
         out.put("paths", paths);
-        fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Shot shot = fr.lordfinn.craftmaster.broadcast.Director.shot();
-        out.put("onAir", switch (shot.kind()) {
-            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_CAMERA -> "camera " + shot.camera();
-            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_FOLLOW -> "follow " + shot.player();
-            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_PATH -> "path " + shot.camera();
-            // Split screen: its layout and its cameras, the main shot first ("mosaic principal studio:3,studio:5")
-            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_MOSAIC -> "mosaic " + fr.lordfinn.craftmaster.broadcast.SplitLayouts.of(shot.player())
-                    + " " + String.join(",", shot.tiles().stream().map(fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Tile::camera).toList());
-            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_POV -> "pov " + shot.player();
-            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_FREE -> "free";
-            default -> "none";
-        });
+        out.put("onAir", onAir());
         out.put("autoDirection", fr.lordfinn.craftmaster.broadcast.Director.autoDirection());
 
         List<Object> history = new ArrayList<>();
@@ -300,5 +289,21 @@ public final class ShowContext {
             out.add(e);
         }
         return out;
+    }
+
+    /** What is on air, as the voice control reads it ("camera 3", "follow Ensuri", "mosaic …", "none"). */
+    public static String onAir() {
+        fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Shot shot = fr.lordfinn.craftmaster.broadcast.Director.shot();
+        return switch (shot.kind()) {
+            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_CAMERA -> "camera " + shot.camera();
+            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_FOLLOW -> "follow " + shot.player();
+            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_PATH -> "path " + shot.camera();
+            // Split screen: its layout and its cameras, the main shot first ("mosaic principal studio:3,studio:5")
+            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_MOSAIC -> "mosaic " + fr.lordfinn.craftmaster.broadcast.SplitLayouts.of(shot.player())
+                    + " " + String.join(",", shot.tiles().stream().map(fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Tile::camera).toList());
+            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_POV -> "pov " + shot.player();
+            case fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.SHOT_FREE -> "free";
+            default -> "none";
+        };
     }
 }

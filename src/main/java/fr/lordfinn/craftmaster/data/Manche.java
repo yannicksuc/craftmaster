@@ -28,7 +28,7 @@ public final class Manche {
     public String timerStart = "lettre";
     /** Where the season's players are teleported when it starts (shared out in turn). */
     public final List<Spot> tp = new ArrayList<>();
-    /** Its trial zones (TrialZones names, /craftMasterZone): what its replays record, one file each. */
+    /** Its trial zones (TrialZones names, /cm epreuve zone): what its replays record, one file each. */
     public final List<String> zones = new ArrayList<>();
     /** Put away: no longer listed nor "next", its points still count. */
     public boolean archived;

@@ -273,7 +273,7 @@ public final class MediaServer {
         if (targets.isEmpty()) {
             List<String> names = screenNames(server);
             return Result.error("Aucune télé nommée « " + screen + " »" + (names.isEmpty()
-                    ? " (nomme-en une : /cmtele nommer <nom>, en la regardant)." : ". Télés : " + String.join(", ", names) + "."));
+                    ? " (nomme-en une : /cm media tele nommer <nom>, en la regardant)." : ". Télés : " + String.join(", ", names) + "."));
         }
         String url;
         String what;
@@ -292,13 +292,13 @@ public final class MediaServer {
             case CLIP -> {
                 ClipStore.Clip c = clip(arg);
                 if (c == null) return Result.error(clips().list().isEmpty() ? "Aucun clip sur le serveur (enregistre-en un : F9 puis F10)."
-                        : "Clip « " + arg + " » introuvable (/cmclip liste).");
+                        : "Clip « " + arg + " » introuvable (/cm media clip liste).");
                 url = ClipLinks.of(c.id);
                 what = "le clip « " + c.name + " »";
             }
             case LIVE -> {
                 String channel = liveChannel(server, arg);
-                if (channel == null) return Result.error("Pas de chaîne Twitch pour « " + arg + " » : /cmchaine lier <joueur> <chaîne>.");
+                if (channel == null) return Result.error("Pas de chaîne Twitch pour « " + arg + " » : /cm media chaine lier <joueur> <chaîne>.");
                 if (channel.isEmpty()) return Result.error(arg + " n'est pas connecté.");
                 url = "https://www.twitch.tv/" + channel;
                 what = "le direct de " + channel;

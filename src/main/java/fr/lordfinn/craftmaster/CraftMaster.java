@@ -77,9 +77,16 @@ public final class CraftMaster implements ModInitializer {
         // Garage doors that slide up into the lintel (garage/), WorldEdit without block updates at login (compat/)
         fr.lordfinn.craftmaster.garage.GarageDoors.register();
         fr.lordfinn.craftmaster.compat.WorldEditPerf.register();
-        // Screen effects (fx/): post-processing of the view, wearable glasses and masks, /fx
+        // The one command /craftmaster (/cm), put together from the trees above once they are all registered,
+        // the CraftMaster menu (key N) and the organisers' debug mode (docs/wiki/Commandes.md)
+        fr.lordfinn.craftmaster.network.MenuNetwork.register();
+        fr.lordfinn.craftmaster.trial.Debug.register();
+        Identifier lastCommands = id("commandes_cm");
+        CommandRegistrationCallback.EVENT.addPhaseOrdering(net.fabricmc.fabric.api.event.Event.DEFAULT_PHASE, lastCommands);
+        CommandRegistrationCallback.EVENT.register(lastCommands, (dispatcher, ctx, selection) -> fr.lordfinn.craftmaster.command.CommandTree.register(dispatcher));
+        // Screen effects (fx/): post-processing of the view, wearable glasses and masks, /cm fx
         fr.lordfinn.craftmaster.fx.ScreenEffectsServer.register();
-        // Clips recorded in the game, videos and Twitch on the studio screens (media/): /cmtele, /cmclip, /cmchaine
+        // Clips recorded in the game, videos and Twitch on the studio screens (media/): /cm media tele, /cm media clip, /cm media chaine
         fr.lordfinn.craftmaster.media.MediaServer.register();
 
         // Synced to the players' game (the mod is on both sides), so it parses the same way there
@@ -132,7 +139,7 @@ public final class CraftMaster implements ModInitializer {
         // Camera tripods follow the camera registry (a removed or replaced camera's tripod goes)
         ServerEntityEvents.ENTITY_LOAD.register(Cameras::onEntityLoad);
         ServerTickEvents.END_SERVER_TICK.register(Curtains::tick);
-        // Dust line of the travellings being recorded or shown (/cam trajet)
+        // Dust line of the travellings being recorded or shown (/cm cam trajet)
         ServerTickEvents.END_SERVER_TICK.register(fr.lordfinn.craftmaster.camera.PathRecording::tick);
         // Round timer, countdown and staged reveal
         ServerTickEvents.END_SERVER_TICK.register(Show::tick);
