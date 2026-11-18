@@ -249,7 +249,7 @@ public final class Debug {
         if (!a.walls) o.add("sans murs");
         if (a.clearInventory) o.add("inventaire vidé");
         if (a.solFin) o.add(a.alphabet ? "sol=fin, alphabet" : "sol=fin");
-        if (a.field != null) o.add("champ");
+        if (a.field != null) o.add(a.field.blind ? "champ à l'aveugle" : "champ");
         if (a.inventoryCam != null) o.add(a.inventoryCam ? "cam. inventaire" : "sans cam. inventaire");
         return String.join(", ", o);
     }

@@ -64,6 +64,8 @@ public final class Arena {
     public static final class Field {
         /** Floor of the field in the reference: the blocks walked on (inclusive x/z, one y). */
         public int x0, z0, x1, z1, y;
+        /** Nothing shows while they walk: the path is only recorded, and becomes a picture at the end. */
+        public boolean blind;
         /** Block of the blank field, block of the ink. */
         public String paper = "minecraft:white_concrete", ink = "minecraft:black_concrete";
     }

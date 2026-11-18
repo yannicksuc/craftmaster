@@ -118,6 +118,7 @@ public final class MenuNetwork {
             o.addProperty("solFin", a.solFin);
             o.addProperty("alphabet", a.alphabet);
             o.addProperty("champ", a.field != null);
+            o.addProperty("aveugle", a.field != null && a.field.blind);
             o.addProperty("kit", a.kit.size());
             if (a.inventoryCam != null) o.addProperty("cameraInventaire", a.inventoryCam);
             o.addProperty("resume", Debug.describe(a));

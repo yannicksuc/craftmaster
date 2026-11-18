@@ -191,6 +191,8 @@ public class MainMenuScreen extends Screen {
                 b.shift("Reset", "Maj+clic : toutes les copies refaites comme la référence", () -> MenuClient.command("arene reset " + n));
                 b.button("Comparer", "Chaque copie comparée bloc à bloc à la référence", () -> MenuClient.command("arene comparer " + n));
                 b.button("Panneaux", "Le texte des panneaux de chaque copie", () -> MenuClient.command("arene panneaux " + n));
+                if (bool(a, "champ")) b.button("Jury", "Tous les dessins sur l'écran « jury » de la salle (puis un par un avec les boutons du chat)",
+                        () -> MenuClient.command("arene jury " + n + " tous"));
             });
             r.row(Component.literal("Options").withStyle(ChatFormatting.GRAY), b -> {
                 b.toggle("Chrono lettre", "Le chrono de chacun démarre quand il ouvre la lettre", bool(a, "chronoLettre"),
@@ -211,6 +213,8 @@ public class MainMenuScreen extends Screen {
                 b.toggle("Cam. inventaire", "Les viewers voient l'inventaire des candidats de cette arène"
                         + (cam == null ? " (pas réglé : le réglage général décide)" : ""), cam != null && cam,
                         v -> MenuClient.command("arene option " + n + " cameraInventaire " + v));
+                if (bool(a, "champ")) b.toggle("Aveugle", "Le dessin ne se voit pas pendant qu'on marche ; image à la fin", bool(a, "aveugle"),
+                        v -> MenuClient.command("arene option " + n + " aveugle " + v));
                 int suite = a.has("chronoSuite") ? a.get("chronoSuite").getAsInt() : 0;
                 b.wheel("Suite : " + (suite == 0 ? "non" : clock(suite)),
                         "Chrono lancé à la révélation de la suite. Clic : +30 s, Maj+clic : −30 s, molette : ±10 s", suite,

@@ -65,8 +65,25 @@ et ciré (les candidats ne peuvent pas le changer).
 ### Champ à dessiner en marchant
 `/cm arene champ <nom> [bloc d'encre]` : le sol entre les deux points du mètre ruban (le bloc du premier point est le
 « papier », l'encre est le béton noir par défaut). Le candidat **plante sa bannière rouge** dans le champ : le dessin
-commence ; chaque bloc où il marche devient noir ; **sa bannière verte** le termine. La fin du chrono arrête tous
-les dessins. Il faut être en **survie** (pour planter les bannières et toucher le sol).
+commence ; **sa bannière verte** le termine. La fin du chrono arrête tous les dessins. Il faut être en **survie**
+(pour planter les bannières et toucher le sol).
+- **À l'aveugle** (`/cm arene option <nom> aveugle true`, réglé d'office par `/cm arene animal`) : rien ne se voit pendant
+  qu'il marche, son chemin est seulement enregistré (un saut ou une sortie du champ lève le crayon).
+- Sinon : chaque bloc où il marche devient noir.
+- Dans les deux cas, à la fin, son chemin devient une **image** (vue de dessus, nord en haut, trait d'encre lissé sur
+  papier), gardée dans `config/craftmaster/dessins/<arène>/<joueur>.png`. `/cm arene reset` les efface.
+
+### Écran du jury
+Les images sont faites par le serveur et arrivent dans les jeux par leur connexion, comme les photos de CrazyPhone
+(pas de site web, adresse `cmimg://…`), sur les **écrans du studio** : n'importe quelle taille, jusqu'à l'écran
+géant.
+1. Un écran du studio dans la salle principale, agrandi (`/cm media image taille 12 7` en le regardant), nommé « jury »
+   (`/cm media tele nommer jury`). Plusieurs écrans du même nom montrent la même chose.
+2. `/cm arene jury <arène> tous` : tous les dessins côte à côte, le nom de chacun dessous. `/cm arene jury <arène>
+   <joueur>` : son dessin en grand, son nom au-dessus. `suivant` / `precedent` : le dessin d'après / d'avant.
+3. Pour changer en direct en parlant : la ligne de boutons dans le chat **[Tous] [Ensuri] [Cyllu]… [◀] [▶]**, un clic
+   par changement. Elle arrive à chaque dessin terminé et après chaque `/cm arene jury` (`/cm arene jury <arène>` seul la
+   redonne). Un autre écran : `/cm arene jury <arène> tous <nom de l'écran>`.
 
 ### Objet marqué (« la pomme »)
 Objet en main : `/cm epreuve marquer <but>`. Le manger termine l'essai de celui qui le mange (seulement cet objet-là : une
@@ -125,13 +142,14 @@ part, ailleurs dans la salle.
 > Votre tâche commence maintenant.
 
 1. Debout devant l'emplacement : `/cm arene animal <nom>` pose un champ blanc de 21 × 21, un panneau à l'entrée, et crée
-   l'arène : champ à dessiner, kit bannière rouge + bannière verte, panneaux verrouillés et chrono de 10 min à la
-   révélation de la suite.
+   l'arène : champ à dessiner **à l'aveugle**, kit bannière rouge + bannière verte, panneaux verrouillés et chrono de
+   10 min à la révélation de la suite.
 2. La manche, sa tâche avec la seconde partie entre `[secret]…[/secret]`, `/cm epreuve feuille mesure note`, `/cm arene manche`.
 3. `/cm arene copier`, lancer, `/cm arene placer` (en **survie**).
 4. Chacun écrit son animal sur son panneau. Quand tout le monde a écrit : « révèle la suite » ou `/cm tache suite` :
    panneaux verrouillés (les animaux arrivent dans ton chat), chrono de 10 min.
-5. Le jury : `/cm arene tp <nom> <joueur> dessus`, puis la note sur la feuille.
+5. Le jury : `/cm arene jury <nom> tous` sur l'écran « jury » de la salle principale, puis chaque dessin en grand avec
+   les boutons du chat ; la note sur la feuille.
 
 ### La pomme
 > Mangez la pomme. Le plus rapide l'emporte. Votre tâche commence maintenant.

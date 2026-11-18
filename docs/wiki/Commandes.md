@@ -114,9 +114,10 @@ Restent à part, parce qu'elles vivent dans le jeu de chacun (pas sur le serveur
 | `/cm arene liste` · `creer <nom>` · `spawn <nom>` · `manche <nom> <manche>` | Les arènes, en créer, départ, manche liée |
 | `/cm arene copier <nom> [joueurs\|tous]` · `placer <nom> [joueurs]` · `reset <nom>` | Une copie par candidat · chacun à son départ · tout refaire |
 | `/cm arene tp <nom> <joueur> [dessus]` · `kit <nom> [vide]` · `champ <nom> [encre]` | Voir une copie · kit · champ à dessiner |
-| `/cm arene option <nom> <option> <valeur>` | `chronoLettre`, `panneauxSuite`, `murs`, `inventaireVide`, `solFin`, `alphabet`, `cameraInventaire` (true/false), `chronoSuite` (s) — en direct, aussi dans le [menu des épreuves](#épreuves-en-direct) |
+| `/cm arene option <nom> <option> <valeur>` | `chronoLettre`, `panneauxSuite`, `murs`, `inventaireVide`, `solFin`, `alphabet`, `aveugle`, `cameraInventaire` (true/false), `chronoSuite` (s) — en direct, aussi dans le [menu des épreuves](#épreuves-en-direct) |
 | `/cm arene panneaux <nom> [verrouiller]` · `comparer <nom> [noter]` | Panneaux des copies · comparaison bloc à bloc |
 | `/cm arene fleurs <nom>` · `animal <nom>` | Installe les fleurs de Jeremy / le champ d'Animal devant toi |
+| `/cm arene jury <nom> [tous\|<joueur>\|suivant\|precedent] [écran]` | Les dessins (Animal, à l'aveugle) sur l'écran « jury » de la salle : tous, ou un en grand ; boutons dans le chat |
 | `/cm arene retirer <nom> <joueur>` · `supprimer <nom>` | Oublie une copie / l'arène |
 
 ### Le plateau (admin) — [Plateau](Plateau.md), [Rideaux](Rideaux.md), [Portes de garage](PortesGarage.md), [Tableaux](Tableaux.md)
