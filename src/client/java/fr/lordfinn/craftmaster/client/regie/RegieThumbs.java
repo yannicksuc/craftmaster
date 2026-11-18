@@ -19,6 +19,13 @@ public final class RegieThumbs {
     private RegieThumbs() {}
 
     private static final Map<String, Identifier> TEXTURES = new HashMap<>();
+    /** The same previews as PNG files (the Stream Deck's camera keys read them, see StreamDeckServer). */
+    private static final Map<String, byte[]> PNGS = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Camera {@code key}'s preview as a PNG, or null. */
+    public static byte[] png(String key) {
+        return PNGS.get(key);
+    }
 
     public static void register() {
         ClientPlayNetworking.registerGlobalReceiver(Thumbnails.Image.TYPE, (p, ctx) -> ctx.client().execute(() -> load(p.key(), p.png())));
@@ -36,6 +43,7 @@ public final class RegieThumbs {
             Identifier id = CraftMaster.id("regie_thumb/" + key.replaceAll("[^a-z0-9_.-]", "_"));
             Minecraft.getInstance().getTextureManager().register(id, new DynamicTexture(() -> "craftmaster preview " + key, image));
             TEXTURES.put(key, id);
+            PNGS.put(key, png);
         } catch (Exception e) {
             CraftMaster.LOG.warn("[Régie] Vignette de {} illisible", key, e);
         }
@@ -44,5 +52,6 @@ public final class RegieThumbs {
     private static void clear() {
         for (Identifier id : TEXTURES.values()) Minecraft.getInstance().getTextureManager().release(id);
         TEXTURES.clear();
+        PNGS.clear();
     }
 }

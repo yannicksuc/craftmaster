@@ -213,11 +213,17 @@ Le dossier **CraftMaster** (touche de la page principale) est généré par `Str
 (relançable, sauvegarde du profil avant) ; chaque touche lance `StreamTools/craftmaster.mjs "<commande /cm>"`, qui lit
 le port dans l'instance Modrinth CraftMaster la plus récente et affiche une bulle rouge si le jeu ne rép`/cm tv tache [s]` · `scores [show|auto|on|off]`d pas.
 
+Les touches à état viennent du plugin **CraftMaster Caméras** (`StreamTools/streamdeck-craftmaster`, installé par le
+même script) : **Caméra** (l'aperçu de la caméra, renouvelé toutes les 30 s, cadre rouge quand elle est à l'antenne ;
+appui = couper dessus), **Interrupteur** (auto, debug, bandes, spots, caméra d'inventaire : une seule touche, verte
+quand c'est allumé) et **À confirmer** (Publier, Révélation : le 1er appui arme la touche, orange « Encore ? », le 2e
+dans les 3 s agit). Il lit `/cameras`, `/thumb?camera=N` et `/state` de l'API du jeu.
+
 | Page | Touches |
 |---|---|
-| CraftMaster | Manches ▸ · Épreuves ▸ · Lumières ▸ · Caméras ▸ · Menu · Manche suivante · Fin de manche · Chr`/cm tv tache [s]` · `scores [show|auto|on|off]`o go · Chrono stop · Annuler · Publier (2 appuis) · Révélation (2 appuis) · Debug · Serveur ▸ |
+| CraftMaster | Manches ▸ · Épreuves ▸ · Lumières ▸ · Caméras ▸ · Menu · Manche suivante · Fin de manche · Chr`/cm tv tache [s]` · `scores [show|auto|on|off]`o go · Chrono stop · Annuler · Publier · Révélation (à confirmer) · Debug (interrupteur) · Serveur ▸ |
 | Manches | Saisie (U) · Classement · Résultats · Menu manches · Tâche à l'écran · Révéler la tâche · Suite · Fermer les cartes · Bandeau des scores · Refaire · Joueurs · Carte tâche TV · Statut · Historique |
 | Épreuves | Menu épreuves · Journal · Buzzers · Chr`/cm tv tache [s]` · `scores [show|auto|on|off]`os · Vocal commun · Vocal fin · Objets · Faire briller · Reset épreuve · Feuille · Barème · Caméra d'inventaire toujours / épreuves / jamais |
-| Lumières | les 8 ambiances (salle, discussi`/cm tv tache [s]` · `scores [show|auto|on|off]`, tension, revelation, vainqueur, studio, attente, pause) · Noir · conduites ouverture / fin · Stop conduite · Spots on / off |
+| Lumières | les 8 ambiances (salle, discussi`/cm tv tache [s]` · `scores [show|auto|on|off]`, tension, revelation, vainqueur, studio, attente, pause) · Noir · conduites ouverture / fin · Stop conduite · Spots (interrupteur) · Séquences |
 | Caméras | Auto `/cm tv tache [s]` · `scores [show|auto|on|off]` / off · Plan large · Menu caméra · Caméras 1 à 5 · Précédente · Suivante · Bandes on / off · Stop habillage |
 | Serveur | Statut · Reprise ? · Reprendre · Geler · Debug `/cm tv tache [s]` · `scores [show|auto|on|off]` / off · Annuler · Refaire · Historique · Aide · Saisons · Joueurs · Manches · Arènes |

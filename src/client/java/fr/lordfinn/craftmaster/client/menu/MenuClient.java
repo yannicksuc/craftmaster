@@ -91,7 +91,12 @@ public final class MenuClient {
         mc.gui.setScreen(new MainMenuScreen(page));
     }
 
-    static void request() {
+    /** The last state the server sent (null before the first), for the Stream Deck's camera keys. */
+    public static JsonObject state() {
+        return state;
+    }
+
+    public static void request() {
         if (available()) ClientPlayNetworking.send(new MenuNetwork.Request());
     }
 

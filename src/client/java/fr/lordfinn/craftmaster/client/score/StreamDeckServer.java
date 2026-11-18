@@ -46,6 +46,9 @@ import java.util.function.Supplier;
  * /stage/look?name=plateau(&amp;fade=3) · /stage/cue?name=ouverture · /stage/stop · /stage/noir(?fade=2)   stage looks and cue lists
  * /spot?target=face&amp;color=rouge&amp;intensity=60&amp;cone=8&amp;follow=@scene&amp;fade=2&amp;on=true   spotlights (any subset)
  * /cm?c=manche%20lancer%20next   any /cm command, sent as typed in the chat (the server checks the rights)
+ * /state        JSON: autoDirection, debug, inventoryCam {mode}, onAir, frozen... (the plugin's toggle keys)
+ * /cameras      JSON: the cameras {number, name, role, key, preview} and onAir ("camera 3"...)
+ * /thumb?camera=3   the camera's preview (PNG, 192 × 108, renewed by the server every 30 s or when it moves)
  * /status       JSON: connected, organiser, open screen, season, undo / redo available
  * </pre>
  * Every answer is JSON {@code {"ok": true|false, ...}}; the game does the work on its own thread. Requests from a
@@ -106,9 +109,25 @@ public final class StreamDeckServer {
                 code = 403;
                 out = error("bad token");
             } else {
-                out = route(uri, uri.getPath().replaceAll("/+$", ""), query(uri, "group"));
-                if (!out.get("ok").getAsBoolean()) code = out.has("code") ? out.get("code").getAsInt() : 409;
-                out.remove("code");
+                if (uri.getPath().equals("/thumb")) {
+                    // A camera's preview, as a PNG (the keys of the Stream Deck's camera plugin)
+                    byte[] png = thumb(query(uri, "camera"));
+                    if (png != null) {
+                        e.getResponseHeaders().add("Content-Type", "image/png");
+                        e.getResponseHeaders().add("Cache-Control", "no-store");
+                        e.sendResponseHeaders(200, png.length);
+                        try (OutputStream o = e.getResponseBody()) {
+                            o.write(png);
+                        }
+                        return;
+                    }
+                    code = 404;
+                    out = error("no preview of this camera yet");
+                } else {
+                    out = route(uri, uri.getPath().replaceAll("/+$", ""), query(uri, "group"));
+                    if (!out.get("ok").getAsBoolean()) code = out.has("code") ? out.get("code").getAsInt() : 409;
+                    out.remove("code");
+                }
             }
         } catch (RuntimeException ex) {
             code = 500;
@@ -257,6 +276,38 @@ public final class StreamDeckServer {
                     return o;
                 });
             }
+            case "/state" -> {
+                // The show's state as the menu has it: autoDirection, debug, inventoryCam.mode, onAir... (toggle keys)
+                return onGame(() -> {
+                    if (!connected()) return error("not connected");
+                    fr.lordfinn.craftmaster.client.menu.MenuClient.request();
+                    JsonObject st = fr.lordfinn.craftmaster.client.menu.MenuClient.state();
+                    JsonObject o = ok();
+                    if (st != null) for (String k : new String[]{"autoDirection", "debug", "inventoryCam", "onAir", "frozen", "waiting", "currentMancheInfo", "timer"})
+                        if (st.has(k)) o.add(k, st.get(k));
+                    return o;
+                });
+            }
+            case "/cameras" -> {
+                // The cameras (number, name, role, key, preview or not) and what is on air, from the menu's state
+                return onGame(() -> {
+                    if (!connected()) return error("not connected");
+                    fr.lordfinn.craftmaster.client.menu.MenuClient.request();
+                    JsonObject st = fr.lordfinn.craftmaster.client.menu.MenuClient.state();
+                    JsonObject o = ok();
+                    com.google.gson.JsonArray cams = new com.google.gson.JsonArray();
+                    if (st != null && st.has("cameras") && st.get("cameras").isJsonArray())
+                        for (com.google.gson.JsonElement el : st.getAsJsonArray("cameras")) {
+                            JsonObject c = el.getAsJsonObject().deepCopy();
+                            String key = c.has("key") ? c.get("key").getAsString() : "";
+                            c.addProperty("preview", fr.lordfinn.craftmaster.client.regie.RegieThumbs.png(key) != null);
+                            cams.add(c);
+                        }
+                    o.add("cameras", cams);
+                    o.addProperty("onAir", st != null && st.has("onAir") && st.get("onAir").isJsonPrimitive() ? st.get("onAir").getAsString() : "none");
+                    return o;
+                });
+            }
             case "/round/next" -> {
                 return send(action("manche.start", "manche", "next"));
             }
@@ -389,6 +440,22 @@ public final class StreamDeckServer {
             }
         }
         return replayAction(a);
+    }
+
+    /** The preview of a camera given by number, name or key, or null. */
+    private static byte[] thumb(String camera) {
+        if (camera.isEmpty()) return null;
+        byte[] direct = fr.lordfinn.craftmaster.client.regie.RegieThumbs.png(camera);
+        if (direct != null) return direct;
+        JsonObject st = fr.lordfinn.craftmaster.client.menu.MenuClient.state();
+        if (st == null || !st.has("cameras") || !st.get("cameras").isJsonArray()) return null;
+        for (com.google.gson.JsonElement el : st.getAsJsonArray("cameras")) {
+            JsonObject c = el.getAsJsonObject();
+            boolean match = c.has("number") && c.get("number").getAsString().equals(camera)
+                    || c.has("name") && c.get("name").isJsonPrimitive() && c.get("name").getAsString().equalsIgnoreCase(camera);
+            if (match && c.has("key")) return fr.lordfinn.craftmaster.client.regie.RegieThumbs.png(c.get("key").getAsString());
+        }
+        return null;
     }
 
     private static JsonObject replayAction(JsonObject a) {
