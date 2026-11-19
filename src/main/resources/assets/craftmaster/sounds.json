@@ -64,5 +64,49 @@
       "craftmaster:toy/puff1",
       "craftmaster:toy/puff2"
     ]
+  },
+  "pomme.cocori": {
+    "category": "block",
+    "subtitle": "subtitles.craftmaster.pomme.cocori",
+    "sounds": [
+      {
+        "name": "craftmaster:pomme/cocori",
+        "volume": 1.0,
+        "pitch": 1.0
+      }
+    ]
+  },
+  "pomme.cot": {
+    "category": "block",
+    "subtitle": "subtitles.craftmaster.pomme.cot",
+    "sounds": [
+      {
+        "name": "craftmaster:pomme/cot",
+        "volume": 1.0,
+        "pitch": 1.0
+      }
+    ]
+  },
+  "pomme.cotcot": {
+    "category": "block",
+    "subtitle": "subtitles.craftmaster.pomme.cotcot",
+    "sounds": [
+      {
+        "name": "craftmaster:pomme/cotcot",
+        "volume": 1.0,
+        "pitch": 1.0
+      }
+    ]
+  },
+  "pomme.cocotcot": {
+    "category": "block",
+    "subtitle": "subtitles.craftmaster.pomme.cocotcot",
+    "sounds": [
+      {
+        "name": "craftmaster:pomme/cocotcot",
+        "volume": 1.0,
+        "pitch": 1.0
+      }
+    ]
   }
 }

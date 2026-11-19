@@ -372,8 +372,8 @@ fn("salle/poules", ["tag @s add p_poules"] + summ + [
     "execute as %s at @s run playsound minecraft:entity.player.levelup master @s ~ ~ ~ 1 1.2" % PLAYERS])
 SONS = {1: ("cocori", 1.6), 2: ("cot", 1.0), 3: ("cotcot", 1.2), 4: ("cocotcot", 0.8)}
 for k, (mot, pitch) in SONS.items():
-    fn("son/%d" % k, ["# « %s » : son provisoire du jeu, à remplacer par l'enregistrement de LordFinn" % mot,
-                      "playsound minecraft:entity.chicken.ambient master %s ~49 ~4 ~%d 1 %.1f" % (PLAYERS, 27 + k, pitch)])
+    fn("son/%d" % k, ["# « %s » : l'enregistrement de LordFinn (sons du mod CraftMaster, assets/craftmaster/sounds/pomme)" % mot,
+                      "playsound craftmaster:pomme.%s master %s ~49 ~4 ~%d 1 1" % (mot, PLAYERS, 27 + k)])
 fn("salle/bouton_rouge", [
     "execute as %s run function pomme:petit/normal" % PLAYERS,
     "clear %s" % PLAYERS,

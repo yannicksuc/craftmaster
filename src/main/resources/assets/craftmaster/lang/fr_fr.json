@@ -1152,5 +1152,9 @@
   "screen.craftmaster.modo_desk.voice_on": "Voix : oui",
   "screen.craftmaster.modo_desk.voice_off": "Voix : non",
   "screen.craftmaster.modo_desk.voice.tip": "L'auto coupe aussi sur qui parle (chat vocal)",
-  "screen.craftmaster.regie.no_preview": "pas encore d'aperçu"
+  "screen.craftmaster.regie.no_preview": "pas encore d'aperçu",
+  "subtitles.craftmaster.pomme.cocori": "Poule : « cocori »",
+  "subtitles.craftmaster.pomme.cot": "Poule : « cot »",
+  "subtitles.craftmaster.pomme.cotcot": "Poule : « cotcot »",
+  "subtitles.craftmaster.pomme.cocotcot": "Poule : « cocotcot »"
 }

@@ -1152,5 +1152,9 @@
   "screen.craftmaster.modo_desk.voice_on": "Voice: on",
   "screen.craftmaster.modo_desk.voice_off": "Voice: off",
   "screen.craftmaster.modo_desk.voice.tip": "Auto also cuts to whoever speaks (voice chat)",
-  "screen.craftmaster.regie.no_preview": "no preview yet"
+  "screen.craftmaster.regie.no_preview": "no preview yet",
+  "subtitles.craftmaster.pomme.cocori": "Hen: \"cocori\"",
+  "subtitles.craftmaster.pomme.cot": "Hen: \"cot\"",
+  "subtitles.craftmaster.pomme.cotcot": "Hen: \"cotcot\"",
+  "subtitles.craftmaster.pomme.cocotcot": "Hen: \"cocotcot\""
 }
