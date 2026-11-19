@@ -15,12 +15,20 @@ while i < len(raw):
         b = raw[i]; i += 1; v |= (b & 0x7f) << s; s += 7
         if not b & 0x80: break
     arr.append(v)
-def blk(x, y, z): return pal[arr[x + z * W + y * W * L]]
+# Les blocs de commande du schéma sont les consignes écrites de LordFinn (mises en œuvre par ce pack) :
+# chacun est remplacé par le bloc qui l'entoure, pour qu'aucun ne reste visible.
+OVERRIDE = {
+    (49, 2, 28): "minecraft:dirt", (49, 2, 29): "minecraft:dirt", (49, 2, 30): "minecraft:dirt",   # « jouer son 1..4 »
+    (49, 2, 31): "minecraft:dirt", (49, 2, 32): "minecraft:dirt",                                  # riricococo + bouton bleu
+    (27, 3, 17): "minecraft:stripped_spruce_log[axis=y]",       # bouton rouge, code de l'étagère, porte
+    (38, 12, 31): "minecraft:beehive[facing=north,honey_level=0]",   # bouton du plafond : petit 10 s
+}
+def blk(x, y, z): return OVERRIDE.get((x, y, z)) or pal[arr[x + z * W + y * W * L]]
 def name(x, y, z): return blk(x, y, z).split('[')[0].replace('minecraft:', '')
 MIN = (-361, -64, -167)          # coin du schéma dans le monde d'origine (Origin + Offset)
 REF = (0, 60, 0)                 # coin de la salle de référence dans minecraft:pomme
 STRIDE = 65                      # copies : 60 de large + écart 3 + murs 2 (comme le mod)
-COPIES = 4
+COPIES = 5                       # Arreaubaz, Cyllu, SuneeToo, le_toad_jaune, LordFinn (arenas.json)
 DIM = "minecraft:pomme"
 
 if os.path.exists(OUT): shutil.rmtree(OUT)
@@ -32,28 +40,41 @@ def j(o): return json.dumps(o, ensure_ascii=False, separators=(',', ':'))
 
 # ------------------------------------------------------------ règles des objets (mode aventure)
 RULES = {
-    "iron_hoe":      {"can_break": {"blocks": ["wheat"]}, "can_place_on": {"blocks": ["dirt", "coarse_dirt", "rooted_dirt", "grass_block"]}},
-    "iron_pickaxe":  {"can_break": {"blocks": ["iron_ore", "coal_ore", "raw_iron_block"]}},
-    "iron_axe":      {"can_break": {"blocks": ["acacia_log", "acacia_wood", "stripped_acacia_log", "stripped_acacia_wood"]}},
-    "bucket":        {"can_place_on": {"blocks": ["cauldron", "water_cauldron"]}},
-    "water_bucket":  {"can_place_on": {"blocks": ["yellow_terracotta"]}},
-    "glass_bottle":  {"can_place_on": {"blocks": ["cauldron", "water_cauldron", "beehive", "bee_nest"]}},
-    "potion":        {"can_place_on": {"blocks": ["cauldron", "water_cauldron"]}},
-    "wooden_hoe":    {"can_break": {"blocks": ["oak_leaves"]}},
-    "wooden_axe":    {"can_break": {"blocks": ["crafting_table"]}},
-    "crafting_table": {"can_place_on": {"blocks": ["pale_oak_wall_sign"]}},
-    "mace":          {"can_break": {"blocks": ["light_gray_stained_glass_pane"]}},
-    "stone_pickaxe": {"can_break": {"blocks": ["iron_ore"]}},
-    "wheat_seeds":   {"can_place_on": {"blocks": ["farmland"]}},
-    "bone_meal":     {"can_place_on": {"blocks": ["wheat"]}},
-    "cow_spawn_egg": {"can_place_on": [{}]},
+    "iron_hoe":      ({"can_break": {"blocks": ["wheat"]}, "can_place_on": {"blocks": ["dirt", "coarse_dirt", "rooted_dirt", "grass_block"]}},
+                      ["Casse : blé", "Laboure : terre, terre stérile, terre racinée"]),
+    "iron_pickaxe":  ({"can_break": {"blocks": ["iron_ore", "coal_ore", "raw_iron_block"]}}, ["Casse : minerai de fer, minerai de charbon,", "bloc de fer brut"]),
+    "iron_axe":      ({"can_break": {"blocks": ["acacia_log", "acacia_wood", "stripped_acacia_log", "stripped_acacia_wood"]}}, ["Casse : bois d'acacia"]),
+    "bucket":        ({"can_place_on": {"blocks": ["cauldron", "water_cauldron"]}}, ["Utilisable sur : chaudron, vache"]),
+    "water_bucket":  ({"can_place_on": {"blocks": ["yellow_terracotta"]}}, ["Se vide sur : terre cuite jaune"]),
+    "glass_bottle":  ({"can_place_on": {"blocks": ["cauldron", "water_cauldron", "beehive", "bee_nest"]}}, ["Utilisable sur : chaudron, ruche"]),
+    "potion":        ({"can_place_on": {"blocks": ["cauldron", "water_cauldron"]}}, ["Utilisable sur : chaudron"]),
+    "wooden_hoe":    ({"can_break": {"blocks": ["oak_leaves"]}}, ["Casse : feuilles de chêne"]),
+    "wooden_axe":    ({"can_break": {"blocks": ["crafting_table"]}}, ["Casse : table de craft"]),
+    "crafting_table": ({"can_place_on": {"blocks": ["pale_oak_wall_sign"]}}, ["Se pose contre : panneau blanc"]),
+    "mace":          ({"can_break": {"blocks": ["light_gray_stained_glass_pane"]}}, ["Casse : vitres gris clair"]),
+    "stone_pickaxe": ({"can_break": {"blocks": ["iron_ore"]}}, ["Casse : minerai de fer"]),
+    "wheat_seeds":   ({"can_place_on": {"blocks": ["farmland"]}}, ["Se plante sur : terre labourée"]),
+    # « consumable » sans fin, muet : rester appuyé sur une canne la fait pousser (voir canne/*), le blé reste vanilla
+    "bone_meal":     ({"can_place_on": {"blocks": ["wheat", "sugar_cane"]},
+                       "consumable": {"consume_seconds": 1000000, "animation": "none", "has_consume_particles": False,
+                                      "sound": "minecraft:intentionally_empty"}}, ["Utilisable sur : blé, canne à sucre"]),
+    "sugar_cane":    ({"can_place_on": {"blocks": ["dirt", "grass_block", "coarse_dirt", "rooted_dirt", "moss_block", "mud"]}},
+                      ["Accepte la Farine", "Se plante sur la terre, au bord de l'eau"]),
+    "cow_spawn_egg": ({"can_place_on": [{}]}, []),
 }
+HIDE = {"hidden_components": ["minecraft:can_break", "minecraft:can_place_on"]}
+def rule_components(item):
+    c, lore = RULES[item]
+    out = {"minecraft:" + k: v for k, v in c.items()}
+    out["minecraft:tooltip_display"] = HIDE
+    if lore: out["minecraft:lore"] = [{"text": t, "italic": False, "color": "gray"} for t in lore]
+    return out
 def comp_snbt(c):
     return ",".join("%s=%s" % (k, re.sub(r'"(\w+)":', r'\1:', j(v))) for k, v in c.items())
 mods = []
-for item, c in RULES.items():
+for item in RULES:
     mods.append({"function": "minecraft:filtered", "item_filter": {"items": "minecraft:" + item},
-                 "on_pass": {"function": "minecraft:set_components", "components": {"minecraft:" + k: v for k, v in c.items()}}})
+                 "on_pass": {"function": "minecraft:set_components", "components": rule_components(item)}})
 F_JSON = {"data/pomme/item_modifier/regles.json": mods}
 
 def with_rules(item_tag):
@@ -61,14 +82,14 @@ def with_rules(item_tag):
     iid = str(item_tag['id']).replace('minecraft:', '')
     if iid in RULES:
         comps = item_tag.setdefault('components', nbtlib.Compound())
-        for k, v in RULES[iid].items():
-            comps['minecraft:' + k] = nbtlib.parse_nbt(re.sub(r'"(\w+)":', r'\1:', j(v)))
+        for k, v in rule_components(iid).items():
+            comps[k] = nbtlib.parse_nbt(re.sub(r'"([A-Za-z_]\w*)":', r'\1:', j(v)).replace(':true', ':1b').replace(':false', ':0b'))
     return item_tag
 
 # ------------------------------------------------------------ blocs (collage sans aucune mise à jour)
 be = {}
 for e in sch['Blocks']['BlockEntities']:
-    be[tuple(int(x) for x in e['Pos'])] = e['Data']
+    if tuple(int(x) for x in e['Pos']) not in OVERRIDE: be[tuple(int(x) for x in e['Pos'])] = e['Data']
 DROP = {'id', 'x', 'y', 'z', 'keepPacked', 'PublicBukkitValues', 'Bukkit.MaxEntities'}
 def be_snbt(pos):
     d = be.get(pos)
@@ -76,6 +97,9 @@ def be_snbt(pos):
     d = nbtlib.Compound({k: v for k, v in d.items() if k not in DROP and not k.startswith('Bukkit') and not k.startswith('Paper')})
     if 'Items' in d:
         for it in d['Items']: with_rules(it)
+    if pos == (28, 4, 27):   # une seule canne à sucre
+        for it in d['Items']:
+            if str(it['id']) == 'minecraft:sugar_cane': it['count'] = nbtlib.Int(1)
     if pos == (38, 2, 25):   # la tête de Steve du coffre
         for it in d['Items']:
             if str(it['id']) == 'minecraft:player_head':
@@ -244,7 +268,7 @@ fn("salle/refaire", [
 # ------------------------------------------------------------ mécaniques (tick)
 VOL = "dx=%d,dy=%d,dz=%d" % (W - 1, H - 1, L - 1)
 fn("tick", [
-    "execute in %s as @e[type=marker,tag=pomme_salle,x=0,y=0,z=0,dx=%d,dy=200,dz=100] at @s align xyz run function pomme:salle/tick" % (DIM, STRIDE * (COPIES + 1)),
+    "execute in %s as @e[type=marker,tag=pomme_salle,x=-1,y=0,z=-1,dx=%d,dy=200,dz=100] at @s align xyz run function pomme:salle/tick" % (DIM, STRIDE * (COPIES + 4)),
     "execute in %s positioned 150 64 20 run function pomme:monde" % DIM,
 ])
 fn("monde", [
@@ -260,11 +284,13 @@ fn("monde", [
     "clear @a[distance=..600] iron_spear",
     "# Petit pendant 10 s",
     "scoreboard players remove @a[distance=..600,scores={pomme_petit=1..}] pomme_petit 1",
+    "scoreboard players remove @a[distance=..600,scores={pomme_farine=1..}] pomme_farine 1",
     "execute as @a[distance=..600,scores={pomme_petit=1}] at @s run function pomme:petit/grandir",
 ])
 fn("charger", [
     "scoreboard objectives add pomme_t dummy",
     "scoreboard objectives add pomme_petit dummy",
+    "scoreboard objectives add pomme_farine dummy",
 ])
 F_JSON["data/pomme/predicate/bebe.json"] = {"condition": "minecraft:entity_properties", "entity": "this", "predicate": {"flags": {"is_baby": True}}}
 F_JSON["data/minecraft/tags/function/tick.json"] = {"values": ["pomme:tick"]}
@@ -396,6 +422,38 @@ fn("petit/normal", ["attribute @s minecraft:scale base set 1", "scoreboard playe
 fn("code/ouvrir", ["cm arene demander poules"])
 # Tout remettre à zéro (organisateur) : la référence ne bouge pas, les 4 salles sont refaites
 fn("tout_refaire", ["execute in %s run function pomme:construire/copies" % DIM])
+
+# ------------------------------------------------------------ la Farine sur la canne à sucre
+# Le jeu ne fait pas pousser la canne à la poudre d'os : rester appuyé avec la Farine (progrès « using_item ») en visant
+# une canne la fait grandir d'un bloc toutes les 8 ticks, jusqu'à 3 de haut, et use une Farine par bloc.
+in_pomme = {"condition": "minecraft:location_check", "predicate": {"dimension": DIM}}
+F_JSON["data/pomme/advancement/farine_canne.json"] = {
+    "criteria": {"canne": {"trigger": "minecraft:using_item", "conditions": {"item": {"items": "minecraft:bone_meal"}}}},
+    "rewards": {"function": "pomme:canne/pousser"}}
+F_JSON["data/pomme/item_modifier/moins_un.json"] = {"function": "minecraft:set_count", "count": -1, "add": True}
+fn("canne/pousser", ["advancement revoke @s only pomme:farine_canne",
+                     "execute if score @s pomme_farine matches 1.. run return 0",
+                     "scoreboard players set @s pomme_farine 8",
+                     "scoreboard players set #pas pomme_t 0",
+                     "execute anchored eyes positioned ^ ^ ^ run function pomme:canne/rayon"])
+fn("canne/rayon", ["execute if block ~ ~ ~ sugar_cane align xyz run return run function pomme:canne/bas",
+                   "scoreboard players add #pas pomme_t 1",
+                   "execute if score #pas pomme_t matches ..60 positioned ^ ^ ^0.1 run function pomme:canne/rayon"])
+fn("canne/bas", ["execute if block ~ ~-1 ~ sugar_cane positioned ~ ~-1 ~ run return run function pomme:canne/bas",
+                 "execute unless block ~ ~1 ~ sugar_cane if block ~ ~1 ~ #pomme:libre positioned ~ ~1 ~ run return run function pomme:canne/grandir",
+                 "execute if block ~ ~1 ~ sugar_cane unless block ~ ~2 ~ sugar_cane if block ~ ~2 ~ #pomme:libre positioned ~ ~2 ~ run return run function pomme:canne/grandir"])
+fn("canne/grandir", ["setblock ~ ~ ~ sugar_cane strict",
+                     "particle minecraft:happy_villager ~0.5 ~0.5 ~0.5 0.3 0.4 0.3 0 12",
+                     "playsound minecraft:item.bone_meal.use block @a ~0.5 ~0.5 ~0.5 1 1",
+                     "execute unless entity @s[gamemode=creative] run item modify entity @s weapon.mainhand pomme:moins_un"])
+
+# ------------------------------------------------------------ vérification bloc à bloc (0 attendu)
+ver = ["scoreboard players set #diff pomme_t 0"]
+for y in range(H):
+    for z in range(L):
+        for x in range(W):
+            ver.append("execute unless block ~%d ~%d ~%d %s run scoreboard players add #diff pomme_t 1" % (x, y, z, blk(x, y, z)))
+fn("verif", ver)
 
 # ------------------------------------------------------------ écriture
 F_JSON["pack.mcmeta"] = {"pack": {"description": "CraftMaster — La pomme (escape room, vanilla)", "min_format": [107, 0], "max_format": [107, 1]}}
