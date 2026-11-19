@@ -136,6 +136,9 @@ for e in sch['Entities']:
     nb = nbtlib.Compound({k: v for k, v in d.items() if k not in ENT_DROP and not k.startswith(('Bukkit', 'Paper', 'Spigot'))})
     if 'block_pos' in d:
         bp = [int(d['block_pos'][k]) - MIN[k] for k in range(3)]
+        # A painting of even height (Pos on a whole block) is stored one block above where it hung: lowered back
+        # (« pond », 3×4, then hides the niche of the chest below it as built).
+        if eid == 'minecraft:painting' and abs(float(d['Pos'][1]) - round(float(d['Pos'][1]))) < 1e-6: bp[1] -= 1
         px, py, pz = bp[0] + 0.5, bp[1] + 0.5, bp[2] + 0.5
     else:
         ap = [float(x) for x in d['Pos']]
@@ -169,8 +172,8 @@ POMME = ("golden_apple", {"custom_name": {"text": "Pomme d'or", "italic": False,
 VILLAGEOIS = [
     ("Monique la boulangère", "plains", "farmer", [
         (FARINE, 16, 1, 13), (("bread",), 6, 1, 4), (("cookie",), 3, 1, 3), (("pumpkin_pie",), 7, 1, 2),
-        (("wheat",), 3, 1, 5), (("wheat_seeds",), 8, 1, 2), (("sugar_cane",), 16, 1, 4), (("sugar",), 16, 1, 2),
-        (("egg",), 32, 1, 4), (("cake",), 1, 5, 1)]),
+        (("wheat",), 3, 1, 5), (("wheat_seeds",), 8, 1, 2),
+        (("egg",), 16, 1, 4), (("cake",), 1, 5, 1)]),
     ("Gaston le boucher", "taiga", "butcher", [
         (("cooked_beef",), 1, 1, 5), (("beef",), 1, 1, 5), (("baked_potato",), 2, 1, 3), (("potato",), 2, 1, 3),
         (("milk_bucket",), 1, 2, 3), (("apple",), 1, 2, 4)]),
@@ -193,7 +196,7 @@ VILLAGEOIS = [
 ]
 PRIX_POMME = (64, 16)   # 80 émeraudes
 def villager_nbt(nom, typ, metier, offers, rot=90.0, tags=()):
-    return {"CustomName": nom, "CustomNameVisible": True, "NoAI": True, "Invulnerable": True, "PersistenceRequired": True, "Silent": True,
+    return {"CustomName": nom, "CustomNameVisible": False, "NoAI": True, "Invulnerable": True, "PersistenceRequired": True, "Silent": True,
             "VillagerData": {"type": "minecraft:" + typ, "profession": "minecraft:" + metier, "level": 5}, "Xp": 250,
             "Offers": {"Recipes": offers}, "Rotation": [rot, 0.0], "Tags": ["pomme_e"] + list(tags)}
 def to_snbt(o):
@@ -225,15 +228,35 @@ MANNEQUINS = [
     ("Mireille", "slim/sunny", {"chest": leather("chestplate", ROUGE), "feet": leather("boots", BRUN)}),
     ("Gégé", "wide/zuri", {"head": leather("helmet", JAUNE), "legs": leather("leggings", GRIS)}),
 ]
-mspots = [p for p in [(17, 14), (17, 15), (20, 15), (17, 27), (17, 28), (20, 27), (13, 21), (20, 21), (14, 21), (19, 21)] if free(*p)]
-print("places mannequins libres :", mspots, file=sys.stderr)
-for k, (nom, skin, eq) in enumerate(MANNEQUINS):
-    x, z = mspots[k]
+# (nom, x, y, z, yaw, pitch, assis) ; assis = sur un support invisible au ras du siège (marche basse de l'escalier)
+PLACES = {
+    "Remy":     (15.5, 4.5, 13.75, 0.0, 12.0, True),     # chaise nord de la table 1, penché vers la table, casquette bien visible
+    "Lucie":    (19.5, 4.5, 16.25, 165.0, -4.0, True),   # chaise sud, tournée vers Remy, haut vert visible
+    "Mireille": (16.5, 4.5, 26.75, 10.0, 18.0, True),    # chaise nord de la table 2, tête baissée vers la table
+    "Gégé":     (18.5, 4.5, 29.25, 195.0, 0.0, True),    # chaise sud, en face de Mireille
+    "Patoche":  (18.8, 4.0, 21.5, -95.0, 6.0, False),    # debout au milieu, pantalon rose bien visible, parle à Zoé
+    "Zoé":      (20.3, 4.0, 21.4, 80.0, 10.0, False),    # debout en face de lui, chaussures noires bien visibles
+}
+for nom, skin, eq in MANNEQUINS:
+    x, y, z, yaw, pitch, assis = PLACES[nom]
     model = "slim" if skin.startswith("slim") else "wide"
-    m = {"CustomName": nom, "CustomNameVisible": True, "Invulnerable": True, "immovable": True, "hide_description": True,
-         "profile": {"texture": "entity/player/" + skin, "model": model}, "equipment": eq, "Rotation": [180.0 if z < 21 else 0.0, 0.0], "Tags": ["pomme_e"]}
-    ents.append("summon mannequin ~%.1f ~4 ~%.1f %s" % (x + 0.5, z + 0.5, to_snbt(m)))
+    m = {"id": "minecraft:mannequin", "CustomName": nom, "CustomNameVisible": True, "Invulnerable": True, "immovable": True,
+         "hide_description": True, "profile": {"texture": "entity/player/" + skin, "model": model}, "equipment": eq,
+         "Rotation": [yaw, pitch], "Tags": ["pomme_e"]}
+    if assis:
+        seat = {"Rotation": [yaw, 0.0], "Tags": ["pomme_e", "pomme_siege"], "Passengers": [m]}
+        ents.append("summon item_display ~%.2f ~%.2f ~%.2f %s" % (x, y, z, to_snbt(seat)))
+    else:
+        del m["id"]
+        ents.append("summon mannequin ~%.2f ~%.2f ~%.2f %s" % (x, y, z, to_snbt(m)))
 fn("construire/entites", ents)
+# Échanges et noms des villageois remis à jour sans refaire la salle (à lancer positionné au coin d'une salle)
+maj = []
+for nom, typ, met, offers in vlist:
+    maj.append("execute as @e[type=villager,name=\"%s\",%s] run data merge entity @s {CustomNameVisible:0b,Offers:{Recipes:%s}}"
+               % (nom, "dx=59,dy=17,dz=41", to_snbt(offers)))
+maj.append("execute as @e[type=villager,tag=pomme_baptiste,dx=59,dy=17,dz=41] run data merge entity @s {CustomNameVisible:0b}")
+fn("salle/echanges", maj)
 
 # ------------------------------------------------------------ construction et copies
 fn("construire/reference", [
