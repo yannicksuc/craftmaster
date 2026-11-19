@@ -81,6 +81,8 @@ public final class Show {
 
     /** The round's teleports: the season's online players on its TP points, shared out in turn. */
     public static int teleport(MinecraftServer server, Actions.MancheStarted m) {
+        // Where everyone stands before (back there at the end of the trial)
+        fr.lordfinn.craftmaster.trial.kit.TrialRun.rememberCast(server, m);
         int moved = 0;
         if (!m.tp().isEmpty()) {
             int i = 0;
@@ -96,6 +98,8 @@ public final class Show {
                 moved++;
             }
         }
+        // A trial: each contestant at the start of their arena copy, in its game mode, with its kit
+        moved += fr.lordfinn.craftmaster.trial.kit.TrialRun.placeCast(server, m);
         return moved;
     }
 

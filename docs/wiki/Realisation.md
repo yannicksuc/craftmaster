@@ -300,10 +300,12 @@ prend le relais.
   cécité pendant le noir et le titre habituel. `enchaine off` : la manche démarre tout de suite et l'intro joue
   par-dessus (ancien comportement).
 - **Intro construite toute seule** (`construire`, « fais l'intro du pont toute seule ») : sur la musique d'intro
-  d'épreuve (120 BPM, 20 s, finit sur un accord), 40 temps en tout. Le plan large de la manche en timelapse, sorti du
-  plateau par la transition miroir ; jusqu'à 4 autres caméras du lieu en inserts, longs et courts en alternance
-  (macro, bascule de mise au point, stop motion) ; la caméra trône du studio, courte et sombre ; puis le **lieu de
-  la tâche** sur un flash blanc, le plan le plus long, la consigne tapée en bas (pas de titre par-dessus : le nom de la manche est tapé sur le noir juste après). Look « vieux reportage »
+  d'épreuve (120 BPM, 5 mesures, 20 temps = 10 s), calée sur sa structure : un plan par mesure sur les mesures 1 à 4
+  (une affirmation du motif chacune) — le plan large de la manche en timelapse, sorti du plateau par la transition
+  miroir, puis jusqu'à 4 autres caméras du lieu (macro, bascule de mise au point, stop motion ; le premier plan prend
+  les mesures que personne n'occupe, un 5e plan partage la mesure 4) ; la caméra trône du studio (« regard du
+  maître ») sur le dernier temps de la mesure 4, celui du coup sombre ; puis, à 8 s, le **lieu de la tâche** sur un
+  flash blanc pendant l'accord final, la consigne tapée en bas (pas de titre par-dessus : le nom de la manche est tapé sur le noir juste après). Look « vieux reportage »
   (`look_intro`) sur tout, jouée au lancement et enchaînée. Tout se retouche ensuite plan par plan (`voir`, `plan …`).
 - **Lieu de la tâche** (`ajouter tache`) : le plan qui montre où les joueurs vont arriver et l'enveloppe qui les y
   attend. Sa caméra est faite la première fois : le premier point de TP de la manche, l'enveloppe posée la plus
@@ -314,8 +316,22 @@ prend le relais.
 - **Consigne tapée** (`consigne on`, le défaut) : si la tâche de la manche est révélée au lancement, sa première
   phrase (sans titre, sans partie secrète, 110 caractères au plus) est tapée à la machine en bas de l'image pendant
   le plan « lieu de la tâche » (ou le dernier plan), sur la diffusion seulement.
-- **Musique d'intro** (`musique intro`) : une petite pièce provisoire (pizzicato, basson, glockenspiel), générée par
-  `scripts/gen_intro_music.py`, remplaçable dans un pack de ressources (`assets/craftmaster/sounds/show/intro.ogg`).
+- **Musique d'intro d'épreuve** (`musique intro`, son `craftmaster:show.intro`) : « intro-epreuve-v2 », composée pour
+  CraftMaster avec des sons de blocs musicaux (aucun droit à payer) : 10,1 s, 120 BPM, stéréo, −20,7 LUFS, crête
+  −1 dBFS. Mesures 1 à 3 : le motif, une fois par mesure (2 s) ; mesure 4 : roulement montant puis un coup sombre sur
+  le dernier demi-temps ; à 8 s : l'accord final de ré, tenu ≈ 2 s puis qui s'éteint. Fichier
+  `assets/craftmaster/sounds/show/intro.ogg` (remplaçable dans un pack de ressources) ; source, MIDI et script de
+  génération : `scripts/musique/intro-epreuve-v2.mid` et `intro_epreuve2.py` dans le dépôt (originaux et rendus wav/mp3
+  chez LordFinn, `Downloads/fanfare-craftmaster/`).
+- **Fanfare d'ouverture** (son `craftmaster:show.ouverture`, catégorie « Musique/Jukebox ») : jouée une fois par le
+  **générique d'ouverture** (`/cm tv intro` seul, « générique »), sur tous les jeux avec le mod (diffusion et joueurs).
+  « fanfare-v4 » : 17,4 s, 112 BPM (le tempo du thème : `rythme theme` reste calé), ré, stéréo, −19 LUFS, crête
+  −1 dBFS, sons de blocs musicaux composés pour CraftMaster. Rien ne la coupe à la fin du générique (plus court
+  qu'elle avec peu de candidats) ; une intro de manche ou `/cm tv stop` l'arrête. Le générique de fin garde le thème.
+  Fichier `assets/craftmaster/sounds/show/ouverture.ogg` ; MIDI et script : `scripts/musique/fanfare-v4.mid` et
+  `fanfare_v4.py` (originaux et rendus wav/mp3 chez LordFinn, `Downloads/fanfare-craftmaster/`).
+- **Niveaux** : ces deux musiques sont masterisées plus bas que le thème (−12 LUFS) et l'ancienne intro (−15 LUFS),
+  ≈ 6 dB de moins, pour laisser passer les voix ; elles suivent le volume « Musique/Jukebox » du jeu de chacun.
 - **Éditeur** : `/cm tv intro <m> voir` montre la frise de l'intro sur la musique (un pavé par temps, une couleur par
   plan ; survoler = le plan, cliquer = l'essayer) et dit si elle finit sur l'accord de la musique d'intro. Chaque
   plan a ses boutons : ▶ (jouer à partir de lui, sans la musique), ↑ ↓ (changer sa place), caméra, effet,

@@ -33,8 +33,12 @@ public final class MancheIntro {
     /** Wanted length of a shot cut on the music when none is given (seconds; rounded to whole beats). */
     public static final double BEAT_SHOT_SECONDS = 3;
     public static final double MIN_BPM = 40, MAX_BPM = 240;
-    /** The task intro music ({@code craftmaster:show.intro}, scripts/gen_intro_music.py): tempo and length. */
-    public static final double INTRO_BPM = 120, INTRO_MUSIC_SECONDS = 20;
+    /**
+     * The task intro music ({@code craftmaster:show.intro}, intro-epreuve-v2: note blocks, 5 bars at 120 BPM): tempo,
+     * length in whole beats (20; the file rings 0.1 s longer), and when its final chord comes (the task location
+     * shot); the dark hit just before it is on the last half-beat of bar 4 (the master's look, its last beat).
+     */
+    public static final double INTRO_BPM = 120, INTRO_MUSIC_SECONDS = 10, INTRO_CHORD_SECONDS = 8;
     /** Music cue of the task intro music. */
     public static final String INTRO_MUSIC = "intro";
 
@@ -275,14 +279,16 @@ public final class MancheIntro {
 
     /**
      * The intro made from what the round already has (docs/design/intro-epreuve.md, "Mode automatique"), on the task
-     * intro music: 40 beats at {@link #INTRO_BPM} ending on its sting.
+     * intro music (20 beats at {@link #INTRO_BPM}):
      * <ol>
-     *   <li>ambiance: the round's wide camera, timelapse, out of the studio with the "miroir" transition (8 beats,
-     *       more when there are few inserts);</li>
-     *   <li>up to 4 inserts (the round's other cameras), long and short in turn, macro / focus pull / stop motion;</li>
-     *   <li>the master's look: the studio's throne camera, short and dark (4 beats), when there is one;</li>
-     *   <li>the task location shot ({@link #TASK}), the longest, on a white flash, the task typed at the bottom (no
-     *       title card: the round's name is typed on black at the launch that follows).</li>
+     *   <li>bars 1 to 4, one motif per bar: the round's wide camera (timelapse, out of the studio with the "miroir"
+     *       transition), then its other cameras (up to 4), macro / focus pull / stop motion; the first shot takes the
+     *       bars nobody else needs, a 5th shot shares bar 4;</li>
+     *   <li>the master's look: the studio's throne camera on the last beat of bar 4 (its dark hit), when there is
+     *       one;</li>
+     *   <li>the task location shot ({@link #TASK}) on the final chord, from {@link #INTRO_CHORD_SECONDS} to the end,
+     *       on a white flash, the task typed at the bottom (no title card: the round's name is typed on black at the
+     *       launch that follows).</li>
      * </ol>
      * Plays chained (black, teleports, title) and by itself at the round's start. Pure: the caller gives the cameras.
      *
@@ -300,25 +306,26 @@ public final class MancheIntro {
         // No card over the last shot (it would hide the task): the round's name is typed on black right after
         i.titleCard = false;
         double beat = 60 / INTRO_BPM;
+        double chord = INTRO_CHORD_SECONDS / beat;       // 16 beats: the 4 bars before the final chord
         List<String> ins = inserts == null ? List.of() : inserts.subList(0, Math.min(4, inserts.size()));
-        int[] pattern = switch (ins.size()) {
-            case 0 -> new int[0];
-            case 1 -> new int[]{8};
-            case 2 -> new int[]{8, 8};
-            case 3 -> new int[]{6, 4, 6};
-            default -> new int[]{6, 2, 6, 2};
-        };
-        int used = 0;
-        for (int b : pattern) used += b;
-        int ambiance = wide == null ? 0 : 8 + (16 - used);
-        int throneBeats = throne == null ? 0 : 4;
-        int task = 40 - ambiance - used - throneBeats;
-        if (wide != null) i.shots.add(new Shot(CAMERA, wide, ambiance * beat, "miroir", "timelapse", NO_CARD, ""));
-        for (int k = 0; k < ins.size(); k++)
-            i.shots.add(new Shot(CAMERA, ins.get(k), pattern[k] * beat, k == 0 && wide == null ? "miroir" : "coupe",
-                    AUTO_INSERT_EFFECTS.get(k), NO_CARD, ""));
-        if (throne != null) i.shots.add(new Shot(CAMERA, throne, throneBeats * beat, "coupe", "vignette", NO_CARD, ""));
-        i.shots.add(new Shot(TASK, "", task * beat, i.shots.isEmpty() ? "miroir" : "flash", "", NO_CARD, ""));
+        List<String> before = new java.util.ArrayList<>();
+        if (wide != null) before.add(wide);
+        before.addAll(ins);
+        double throneBeats = throne == null ? 0 : before.isEmpty() ? chord : 1;
+        int n = before.size();
+        double[] beats = new double[n];
+        if (n == 5) beats = new double[]{4, 4, 4, 2, 2};
+        else for (int k = 0; k < n; k++) beats[k] = k == 0 ? chord - 4 * (n - 1) : 4;
+        if (n > 0) beats[n - 1] -= throneBeats;
+        for (int k = 0; k < n; k++) {
+            boolean ambiance = k == 0 && wide != null;
+            int insert = wide != null ? k - 1 : k;
+            i.shots.add(new Shot(CAMERA, before.get(k), beats[k] * beat, k == 0 ? "miroir" : "coupe",
+                    ambiance ? "timelapse" : AUTO_INSERT_EFFECTS.get(insert), NO_CARD, ""));
+        }
+        if (throne != null) i.shots.add(new Shot(CAMERA, throne, throneBeats * beat, i.shots.isEmpty() ? "miroir" : "coupe", "vignette", NO_CARD, ""));
+        double task = i.shots.isEmpty() ? INTRO_MUSIC_SECONDS : INTRO_MUSIC_SECONDS - INTRO_CHORD_SECONDS;
+        i.shots.add(new Shot(TASK, "", task, i.shots.isEmpty() ? "miroir" : "flash", "", NO_CARD, ""));
         return i;
     }
 

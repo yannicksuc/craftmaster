@@ -4,6 +4,6 @@
   "compatibilityLevel": "JAVA_21",
   "client": ["CameraMixin", "EntityRenderDispatcherMixin", "AvatarRendererNameTagMixin", "GameRendererMixin", "GuiGraphicsExtractorAccessor", "ContainerScreenAccessor", "HandsRendererMixin",
     "MouseHandlerMixin", "ToastManagerMixin", "SectionOcclusionGraphMixin",
-    "FxGameRendererMixin", "FxPostChainMixin", "FxCameraMixin", "FxTimelapseClockMixin", "FxTimelapseCloudsMixin", "PostChainAccessor", "PostPassAccessor", "HudInvoker", "DevWindowMixin", "BossHealthOverlayMixin", "GuiSetScreenMixin", "MinecraftPickMixin", "SoundEngineListenerMixin", "ClientLevelSoundDelayMixin", "KitButtonMixin"],
+    "FxGameRendererMixin", "FxPostChainMixin", "FxCameraMixin", "FxTimelapseClockMixin", "FxTimelapseCloudsMixin", "PostChainAccessor", "PostPassAccessor", "HudInvoker", "DevWindowMixin", "BossHealthOverlayMixin", "GuiSetScreenMixin", "MinecraftPickMixin", "SoundEngineListenerMixin", "ClientLevelSoundDelayMixin", "KitButtonMixin", "DevFrameGrabMixin"],
   "injectors": { "defaultRequire": 1 }
 }

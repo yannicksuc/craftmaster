@@ -59,6 +59,16 @@ public final class MancheIntros {
         AT_REVEAL.clear();
     }
 
+    /**
+     * The next intro starts behind a black already on screen (« lancer l'épreuve » drew its shots first): its first
+     * shot cuts in under the black, which then opens (no second dip to black).
+     */
+    private static boolean fromBlack;
+
+    public static void fromBlack(boolean on) {
+        fromBlack = on;
+    }
+
     private MancheIntros() {}
 
     /** Id of the round whose intro is playing, or null. */
@@ -149,6 +159,7 @@ public final class MancheIntros {
             CraftMaster.LOG.info("[Réalisation] Consigne tapée à {} s : {}", Math.round((typeAt - shift) * 10) / 10.0, typed);
         }
         at(server, end - shift, () -> finish(server, true));
+        fromBlack = false;
         Director.sync(server);
         CraftMaster.LOG.info("[Réalisation] Intro de la manche {} lancée", m.id);
         int count = timeline.size() - first;
@@ -189,7 +200,7 @@ public final class MancheIntros {
             transition = BroadcastNetwork.CROSSFADE;
         }
         // The first shot comes out of whatever was on air: a dip to black reads better than a dissolve
-        if (index == 0 && s.transition().isEmpty()) transition = BroadcastNetwork.FADE;
+        if (index == 0 && s.transition().isEmpty()) transition = fromBlack ? BroadcastNetwork.CUT : BroadcastNetwork.FADE;
         String effect = BroadcastActions.effectId(shotEffect);
         switch (s.kind()) {
             case MancheIntro.PATH -> {
@@ -248,30 +259,48 @@ public final class MancheIntros {
 
     /** Fade to black, in the dark, the round's title on black (ticks). */
     public static final int BLACK_IN = 12, BLACK_HOLD = 64, BLACK_OUT = 26;
+    /** Longest the black waits for the games to be ready after the teleport (ticks), on top of {@link #BLACK_HOLD}. */
+    public static final int READY_WAIT = 200;
 
     /**
-     * The round's start after its intro: everyone's picture fades to black (players and broadcast), the players are
-     * teleported in the dark and the broadcast cuts to the round's wide shot, the round's name is typed on black,
-     * then the picture opens on them with the horn and the timer.
+     * The round's start after its intro (or at once for a trial: {@code /cm epreuve lancer}): everyone's picture fades
+     * to black (players and broadcast), the players are teleported in the dark (into their arena copies) and the
+     * broadcast cuts to the round's wide shot, the round's name is typed on black; the picture opens on them with
+     * the horn and the timer once every game with the mod has received and drawn what it will show
+     * ({@link fr.lordfinn.craftmaster.trial.kit.LaunchGate#check}), at most {@link #READY_WAIT} ticks later.
      */
-    static void launch(MinecraftServer server, Actions.MancheStarted start) {
+    public static void launch(MinecraftServer server, Actions.MancheStarted start) {
         boolean withMusic = music;
         music = false;
         Director.cue(server, new ShowCue(Cues.CLEAR, "", "", "", 0));
+        // The hold sent is the longest wait: the picture opens earlier, when everyone is ready (BLACKOUT_OPEN)
+        int maxHold = BLACK_HOLD + READY_WAIT;
         Director.cue(server, new ShowCue(Cues.BLACKOUT, start.name(), "Manche " + start.number(),
-                BLACK_IN + "," + BLACK_HOLD + "," + BLACK_OUT, BLACK_IN + BLACK_HOLD + BLACK_OUT));
+                BLACK_IN + "," + maxHold + "," + BLACK_OUT, BLACK_IN + maxHold + BLACK_OUT));
         // Games without the mod: no black screen, so blindness over the teleport and the usual title
         for (net.minecraft.server.level.ServerPlayer p : server.getPlayerList().getPlayers())
             if (!net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(p, ShowCue.TYPE))
-                p.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.BLINDNESS, BLACK_IN + BLACK_HOLD + 10, 0, false, false));
+                p.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.BLINDNESS, BLACK_IN + maxHold + 10, 0, false, false));
         launching = true;
         at(server, BLACK_IN / 20.0, () -> {
             if (withMusic) Director.cue(server, new ShowCue(Cues.THEME, "stop", "", "", 0));
             Show.teleport(server, start);
             Director.wide(server, BroadcastNetwork.CUT);
+            Director.nudgeBroadcasters(server);
             Director.sync(server);
+            // The title is typed meanwhile (at least BLACK_HOLD), then the picture opens once every game is ready
+            fr.lordfinn.craftmaster.trial.kit.LaunchGate.check(server, fr.lordfinn.craftmaster.trial.kit.LaunchGate.everyone(server),
+                    BLACK_HOLD, BLACK_HOLD + READY_WAIT, "Ouverture de « " + start.name() + " »", () -> reveal(server, start));
         });
-        at(server, (BLACK_IN + BLACK_HOLD) / 20.0, () -> {
+    }
+
+    /** The picture opens on the players: horn, timer, the task revealed with the start. */
+    private static void reveal(MinecraftServer server, Actions.MancheStarted start) {
+        {
+            Director.cue(server, new ShowCue(Cues.BLACKOUT_OPEN, "", "", "", BLACK_OUT));
+            for (net.minecraft.server.level.ServerPlayer p : server.getPlayerList().getPlayers())
+                if (!net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(p, ShowCue.TYPE))
+                    p.removeEffect(net.minecraft.world.effect.MobEffects.BLINDNESS);
             launching = false;
             for (net.minecraft.server.level.ServerPlayer p : server.getPlayerList().getPlayers())
                 if (!net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(p, ShowCue.TYPE)) Show.roundTitle(p, start);
@@ -285,7 +314,44 @@ public final class MancheIntros {
             // The round's banner comes back with the picture
             Director.sync(server);
             CraftMaster.LOG.info("[Réalisation] Manche « {} » lancée après son intro", start.name());
-        });
+        }
+    }
+
+    /**
+     * The shots of a round's intro, in order, cut (no transition): what a broadcast game must have drawn before the
+     * intro plays (« lancer l'épreuve » shows each of them behind a black first).
+     */
+    public static List<Director.ShotRequest> shots(MinecraftServer server, String mancheId) {
+        Manche m = Lieux.manche(mancheId);
+        List<Director.ShotRequest> out = new ArrayList<>();
+        if (m == null || !m.intro.auto || !m.intro.chained) return out;
+        List<String> problems = new ArrayList<>();
+        int i = 0;
+        for (MancheIntro.Shot s : m.intro.shots) {
+            Director.ShotRequest r = request(server, m, s, "", problems, i++);
+            if (r != null) out.add(new Director.ShotRequest(r.kind(), r.camera(), r.player(), BroadcastNetwork.CUT, "", r.tiles(), r.source()));
+        }
+        return out;
+    }
+
+    /** Where the intro's shots stand ({world, x, z} as strings), for the chunks to load before it. */
+    public static List<Object[]> shotPlaces(MinecraftServer server, String mancheId) {
+        List<Object[]> out = new ArrayList<>();
+        for (Director.ShotRequest r : shots(server, mancheId)) {
+            if (r.kind() == BroadcastNetwork.SHOT_CAMERA) {
+                fr.lordfinn.craftmaster.camera.CameraSpot c = fr.lordfinn.craftmaster.camera.Cameras.list().get(r.camera());
+                if (c != null) out.add(new Object[]{c.world(), c.x(), c.z()});
+            } else if (r.kind() == BroadcastNetwork.SHOT_PATH) {
+                CameraPath p = CameraPaths.get(r.camera());
+                if (p == null || p.isEmpty()) continue;
+                double d = Math.max(0.1, p.duration());
+                for (double t = 0; t <= d + 1e-6; t += Math.max(1, d / 8)) {
+                    CameraPath.Pose pose = p.sample(t);
+                    out.add(new Object[]{p.world(), pose.x(), pose.z()});
+                }
+            }
+        }
+        return out;
     }
 
     /** Is a round's intro playing? */

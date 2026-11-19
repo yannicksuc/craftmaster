@@ -119,10 +119,18 @@ public final class ActionExecutor {
                 ShowEvents.onScoreGiven(server, s.season(), s.player(), s.delta(), s.manche());
             }
             case Actions.MancheStarted m -> {
+                // Its arenas' copies follow the cast and are rebuilt before anyone is sent there
+                lines.addAll(fr.lordfinn.craftmaster.trial.kit.TrialRun.prepare(server, m.season(), m.mancheId(), m.cast()));
                 // A chained intro plays first: the round itself starts at its end (black, teleports, title, reveal)
                 String chained = fr.lordfinn.craftmaster.broadcast.MancheIntros.playThenStart(server, m);
                 if (chained != null) {
                     lines.add(chained);
+                    return;
+                }
+                // A round played in arenas: black, teleports into the copies, reveal once every game is ready
+                if (!fr.lordfinn.craftmaster.trial.kit.TrialRun.arenas(m.mancheId()).isEmpty()) {
+                    fr.lordfinn.craftmaster.broadcast.MancheIntros.launch(server, m);
+                    lines.add("Noir, candidats dans leurs copies, ouverture quand tout est chargé.");
                     return;
                 }
                 int moved = Show.startManche(server, m);

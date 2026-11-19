@@ -235,6 +235,8 @@ public final class BroadcastNetwork {
                 BROADCAST = "broadcast", PATH_PREVIEW = "path_preview",
                 /** Everyone's picture to black and back (title = round name, subtitle = "Manche 2", player = "in,hold,out" ticks). */
                 BLACKOUT = "blackout",
+                /** The black opens now (its hold ends; ticks = fade-out): the launch waited until every game was ready. */
+                BLACKOUT_OPEN = "blackout_open",
                 /** The task typed at the bottom of the broadcast picture (title = text, ticks = how long it stays). */
                 TASK_TYPE = "task_type",
                 /** The show's feed forced on the players (title = off, freeze or move): see {@link ShowFeed}. */

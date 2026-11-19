@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * Opening and closing credits, played on the server so every broadcast game sees the same thing at the same time
- * with the theme ({@code craftmaster:show.theme}).
+ * with the opening fanfare ({@code craftmaster:show.ouverture}) or the closing theme ({@code craftmaster:show.theme}).
  * <p>Opening: the studio cameras one after the other in cross-fades under the CraftMaster title and the season,
  * then each contestant (followed if connected, wide shot otherwise) with their name card, then the game's name.
  * Closing: the credits roll (host, cast, published ranking) over slow cross-fades between the cameras.
@@ -49,7 +49,8 @@ public final class Credits {
         running = intro ? "intro" : "outro";
         ShowState state = Director.build(server);
         Director.cue(server, new ShowCue(Cues.CLEAR, "", "", "", 0));
-        Director.cue(server, new ShowCue(Cues.THEME, "play", "", "", 0));
+        // The opening on its own fanfare (note blocks, 17 s, 112 BPM like the theme), the closing on the theme
+        Director.cue(server, new ShowCue(Cues.THEME, "play", intro ? CraftMaster.id("show.ouverture").toString() : "", "", 0));
         List<CameraSpot> cams = studioShots();
         long t;
         if (intro) {

@@ -74,6 +74,9 @@ public final class Thumbnails {
         ServerPlayNetworking.registerGlobalReceiver(Image.TYPE, (p, ctx) -> received(ctx.server(), ctx.player(), p));
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             if (server.getTickCount() % 20 != 0) return;
+            // Not during a launch or an intro: the broadcast game draws only what is on air (no extra frames)
+            if (fr.lordfinn.craftmaster.broadcast.MancheIntros.playing() || fr.lordfinn.craftmaster.broadcast.MancheIntros.launching()
+                    || fr.lordfinn.craftmaster.trial.kit.LaunchGate.busy()) return;
             String cams = signature();
             boolean moved = !cams.equals(lastCameras);
             if (moved || server.getTickCount() - lastRequest >= REFRESH_TICKS) {

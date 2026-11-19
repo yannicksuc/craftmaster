@@ -24,6 +24,27 @@ menu **N** (onglet Épreuves, ligne « Direct ») ou en commande :
 4. les **enveloppes** de la manche distribuées (voir [Tâches](Taches.md#enveloppes)) : le **chrono à la lettre** part
    quand chacun ouvre la sienne.
 
+### Rien ne s'affiche avant d'être prêt
+- **Serveur** : avant tout, les lieux de l'épreuve sont **chargés et gardés chargés** (copies et référence élargies de
+  16 blocs, départs, points de TP de la manche, positions des plans de l'intro, plan large), blocs **et entités**
+  (mannequins, villageois, cadres). La manche ne part qu'ensuite ; au bout de 15 s les organisateurs lisent « Zones pas
+  chargées à temps … » avec **[Lancer quand même]** (`/cm epreuve lancer <manche> force`). Réglable par arène :
+  `/cm arene chargement <arène> [marge <blocs> | ajouter x0 z0 x1 z1 | vider]`. Les chunks sont relâchés quand les
+  joueurs sont sur place (ou à « Terminer »).
+- **Diffusion** : derrière un noir (sur les jeux de diffusion seulement), chaque plan de l'intro est montré le temps
+  que la diffusion l'ait **reçu et dessiné** ; l'intro démarre sous ce noir, qui s'ouvre sur son premier plan.
+- **Lancement** : noir, téléportation dans les copies **dans le noir**, titre tapé ; l'image s'ouvre quand **chaque
+  jeu avec le mod** (candidats, diffusion) a reçu les chunks autour de ce qu'il montre et construit leur rendu (10 s
+  au plus de plus ; les organisateurs lisent qui n'était pas prêt). Les jeux sans le mod restent aveuglés jusqu'à
+  l'ouverture.
+- Pendant un lancement et une intro, les **aperçus des caméras** (site, Stream Deck) attendent : la diffusion ne
+  dessine que ce qui est à l'antenne.
+- **Show gelé** (`/cm reprise`) : le lancement est refusé (la reprise ramènerait aussitôt les candidats à leur place).
+
+Vérifié en dev image par image (candidat venant de loin, client de diffusion) : aucun chunk manquant, aucune image
+isolée, un seul fondu à chaque ouverture. `rec <secondes> [ticks]` dans `dev-input.txt` enregistre l'image finale
+(monde, effets, interface) tous les N ticks ([Tests](Tests.md)).
+
 Lancer une manche autrement (`/cm manche lancer`, la voix, le site) fait la même mise en place : la touche
 « Lancer » ajoute seulement la fin de la manche d'avant.
 

@@ -49,6 +49,20 @@ public final class Blackout {
         start = System.currentTimeMillis();
     }
 
+    /**
+     * The hold ends now, the picture opens over {@code fade} ticks (the server waited for every game to be ready, so
+     * the hold it sent was only a maximum).
+     */
+    public static void open(int fade) {
+        if (start == 0) return;
+        double a = (System.currentTimeMillis() - start) / 1000.0;
+        double i = in / 20.0;
+        // Still fading in: the fade-in ends first
+        hold = (int) Math.max(0, Math.round((a - i) * 20));
+        if (fade > 0) out = fade;
+        if (a < i) hold = 0;
+    }
+
     public static void reset() {
         start = 0;
     }
@@ -89,7 +103,8 @@ public final class Blackout {
         int w = g.guiWidth(), h = g.guiHeight();
         g.fill(0, 0, w, h, (int) (b * 255) << 24);
 
-        // The text: typed during the black, fades with the reveal
+        // The text: typed during the black, fades with the reveal (a black without title: nothing written)
+        if (title.isEmpty()) return;
         double i = in / 20.0, holdS = hold / 20.0;
         double typing = a - i - 0.25;
         if (typing < 0) return;

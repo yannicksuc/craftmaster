@@ -9,6 +9,16 @@
       }
     ]
   },
+  "show.ouverture": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.show.ouverture",
+    "sounds": [
+      {
+        "name": "craftmaster:show/ouverture",
+        "stream": true
+      }
+    ]
+  },
   "show.intro": {
     "category": "record",
     "subtitle": "subtitles.craftmaster.show.intro",

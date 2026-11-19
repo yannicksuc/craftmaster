@@ -109,13 +109,17 @@ class MancheIntroTest {
         assertEquals(MancheIntro.INTRO_MUSIC, full.music);
         assertEquals(MancheIntro.INTRO_BPM, full.bpm);
         assertEquals("look_intro", full.look);
-        // Ambiance, 4 inserts, the throne, the task location: 7 shots ending on the sting (40 beats = 20 s)
+        // Ambiance, 4 inserts, the throne on the dark hit, the task location on the final chord: 7 shots, 20 beats
         assertEquals(7, full.shots.size());
         assertEquals(MancheIntro.INTRO_MUSIC_SECONDS, full.duration(n -> 0), 1e-9);
         assertEquals("pont:1", full.shots.getFirst().ref());
         assertEquals("timelapse", full.shots.getFirst().effect());
         assertEquals("miroir", full.shots.getFirst().transition());
         assertEquals("studio:4", full.shots.get(5).ref());
+        List<MancheIntro.Timed> times = full.timeline(n -> 0);
+        assertEquals(7.5, times.get(5).start(), 1e-9, "the throne on the last beat of bar 4 (its dark hit)");
+        assertEquals(MancheIntro.INTRO_CHORD_SECONDS, times.get(6).start(), 1e-9, "the task location on the final chord");
+        assertEquals(2.0, times.get(1).start(), 1e-9, "one motif per bar");
         MancheIntro.Shot last = full.shots.getLast();
         assertEquals(MancheIntro.TASK, last.kind());
         assertEquals("flash", last.transition());
@@ -130,9 +134,11 @@ class MancheIntroTest {
         MancheIntro bare = MancheIntro.autoBuild(null, List.of(), null);
         assertEquals(1, bare.shots.size());
         assertEquals(MancheIntro.TASK, bare.shots.getFirst().kind());
-        assertEquals(20, bare.duration(n -> 0), 1e-9);
-        // Two cameras: still 40 beats
-        assertEquals(20, MancheIntro.autoBuild("a", List.of("b"), null).duration(n -> 0), 1e-9);
+        assertEquals(MancheIntro.INTRO_MUSIC_SECONDS, bare.duration(n -> 0), 1e-9);
+        // Two cameras: still the whole music, the chord on the task location
+        MancheIntro two = MancheIntro.autoBuild("a", List.of("b"), null);
+        assertEquals(MancheIntro.INTRO_MUSIC_SECONDS, two.duration(n -> 0), 1e-9);
+        assertEquals(MancheIntro.INTRO_CHORD_SECONDS, two.timeline(n -> 0).getLast().start(), 1e-9);
     }
 
     @Test

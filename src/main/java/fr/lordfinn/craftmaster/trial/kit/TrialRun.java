@@ -19,6 +19,7 @@ import fr.lordfinn.craftmaster.task.EnvelopeItem;
 import fr.lordfinn.craftmaster.task.TaskComponents;
 import fr.lordfinn.craftmaster.task.Tasks;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -221,77 +222,234 @@ public final class TrialRun {
 
     // ---------------------------------------------------------------- lancer
 
-    /** {@code /cm epreuve lancer <manche>}: the previous round ends, this one starts (and its set-up follows). */
-    public static ActionExecutor.Result launch(MinecraftServer server, String manche) {
+    /** Longest wait for the server to load the trial's places (ticks). */
+    private static final int LOAD_TIMEOUT = 300;
+    /** "season:manche" whose copies are ready for its start (prepared by the launch, used by the start). */
+    private static String prepared;
+    /** What the set-up did, told to the organisers when the picture opens. */
+    private static final List<String> REPORT = new ArrayList<>();
+
+    /**
+     * {@code /cm epreuve lancer <manche> [force]}: the previous round ends, the copies are prepared, the places the
+     * trial will show are loaded on the server (copies, starts, teleport points, the intro's shots), the broadcast
+     * draws the intro's shots behind a black, and only then the round starts (intro, black, teleports, reveal when
+     * every game is ready). {@code force}: without waiting for the loads.
+     */
+    public static ActionExecutor.Result launch(MinecraftServer server, String manche, boolean force) {
         List<String> lines = new ArrayList<>();
-        Manche now = fr.lordfinn.craftmaster.trial.Judging.currentManche();
         Tasks.Located found = Tasks.locateActive(manche);
         Manche target = found == null ? null : found.manche();
         if (target == null) return new ActionExecutor.Result(List.of("Manche « " + manche + " » introuvable dans la saison active."), false);
-        if (now != null && !now.id.equals(target.id)) {
-            ActionExecutor.Result end = ActionExecutor.execute(server, List.of(Map.of("type", "manche.end")));
-            lines.addAll(end.lines());
+        // A frozen show holds the contestants where they are: the teleports would be undone at once
+        if (fr.lordfinn.craftmaster.reprise.Reprise.frozen())
+            return new ActionExecutor.Result(List.of("Le show est gelé (/cm reprise) : reprends-le d'abord (/cm reprise reprendre), puis relance."), false);
+        if (LaunchGate.busy() && !force) return new ActionExecutor.Result(List.of("Un lancement est déjà en préparation (/cm epreuve lancer "
+                + target.id + " force pour passer outre)."), false);
+        LaunchGate.cancel();
+        Manche now = fr.lordfinn.craftmaster.trial.Judging.currentManche();
+        if (now != null && !now.id.equals(target.id))
+            lines.addAll(ActionExecutor.execute(server, List.of(Map.of("type", "manche.end"))).lines());
+        Season s = found.season();
+        List<String> cast = cast();
+        lines.addAll(prepare(server, s.id, target.id, cast));
+        Map<ServerLevel, Set<net.minecraft.world.level.ChunkPos>> chunks = places(server, target);
+        int count = chunks.values().stream().mapToInt(Set::size).sum();
+        if (force) {
+            LaunchGate.hold(chunks);
+            lines.add("Lancement sans attendre le chargement (" + count + " chunks demandés).");
+            afterLoad(server, target.id);
+            return new ActionExecutor.Result(lines, true);
         }
-        ActionExecutor.Result r = ActionExecutor.execute(server, List.of(Map.of("type", "manche.start", "manche", target.id)));
-        lines.addAll(r.lines());
-        return new ActionExecutor.Result(lines, r.ok());
+        lines.add("Chargement de « " + target.name + " » (" + count + " chunks) : la manche part dès que tout est prêt.");
+        LaunchGate.preload(server, chunks, LOAD_TIMEOUT, () -> afterLoad(server, target.id), () -> {
+            Component force1 = Component.literal("[Lancer quand même]").withStyle(st -> st.withColor(ChatFormatting.RED)
+                    .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/cm epreuve lancer " + target.id + " force"))
+                    .withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(Component.literal("/cm epreuve lancer " + target.id + " force"))));
+            Finish.tellOrganisers(server, null, Component.literal("« " + target.name + " » n'est pas lancée. ").withStyle(ChatFormatting.GOLD)
+                    .append(force1), "[Épreuve] « " + target.name + " » pas lancée : chargement trop long");
+        });
+        return new ActionExecutor.Result(lines, true);
+    }
+
+    /** Everything is loaded: the broadcast draws the intro's shots behind a black, then the round starts. */
+    private static void afterLoad(MinecraftServer server, String mancheId) {
+        List<fr.lordfinn.craftmaster.broadcast.Director.ShotRequest> shots =
+                fr.lordfinn.craftmaster.broadcast.MancheIntros.shots(server, mancheId);
+        List<ServerPlayer> broadcast = broadcasters(server);
+        if (shots.isEmpty() || broadcast.isEmpty()) {
+            start(server, mancheId);
+            return;
+        }
+        // Behind a black on the broadcast games only: each shot once (the first one last: it stays on air)
+        var black = new fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowCue(
+                fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Cues.BLACKOUT, "", "", "12,6000,20", 6032);
+        for (ServerPlayer p : broadcast) if (ServerPlayNetworking.canSend(p, black.type())) ServerPlayNetworking.send(p, black);
+        List<fr.lordfinn.craftmaster.broadcast.Director.ShotRequest> order = new ArrayList<>(shots);
+        java.util.Collections.reverse(order);
+        LaunchGate.check(server, List.of(), 12, 12, "Noir", () -> prewarm(server, mancheId, order, 0));
+    }
+
+    private static void prewarm(MinecraftServer server, String mancheId, List<fr.lordfinn.craftmaster.broadcast.Director.ShotRequest> order, int i) {
+        if (i >= order.size()) {
+            // The intro's first shot is already on air under the black: it cuts in, and the black opens on it
+            fr.lordfinn.craftmaster.broadcast.MancheIntros.fromBlack(true);
+            start(server, mancheId);
+            fr.lordfinn.craftmaster.broadcast.MancheIntros.fromBlack(false);
+            // The intro's first shot goes on air at its next tick: the black opens once it is there
+            LaunchGate.check(server, broadcasters(server), 4, 40, "Premier plan de l'intro", () -> {
+                var open = new fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowCue(
+                        fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Cues.BLACKOUT_OPEN, "", "", "", 20);
+                for (ServerPlayer p : broadcasters(server)) if (ServerPlayNetworking.canSend(p, open.type())) ServerPlayNetworking.send(p, open);
+            });
+            return;
+        }
+        fr.lordfinn.craftmaster.broadcast.Director.take(server, order.get(i));
+        fr.lordfinn.craftmaster.broadcast.Director.nudgeBroadcasters(server);
+        LaunchGate.check(server, broadcasters(server), 4, 100, "Plan " + (order.size() - i) + " de l'intro sur la diffusion",
+                () -> prewarm(server, mancheId, order, i + 1));
+    }
+
+    private static List<ServerPlayer> broadcasters(MinecraftServer server) {
+        List<ServerPlayer> out = new ArrayList<>();
+        for (java.util.UUID id : fr.lordfinn.craftmaster.broadcast.Director.broadcasters()) {
+            ServerPlayer p = server.getPlayerList().getPlayer(id);
+            if (p != null) out.add(p);
+        }
+        return out;
+    }
+
+    private static void start(MinecraftServer server, String mancheId) {
+        ActionExecutor.Result r = ActionExecutor.execute(server, List.of(Map.of("type", "manche.start", "manche", mancheId)));
+        for (String l : r.lines())
+            Finish.tellOrganisers(server, null, Component.literal("▶ " + l).withStyle(r.ok() ? ChatFormatting.GOLD : ChatFormatting.RED), "[Épreuve] " + l);
+        if (!r.ok()) LaunchGate.release(server);
     }
 
     /**
-     * A round started (however: command, menu, Stream Deck, voice, intro): its arenas are set up and its envelopes
-     * given. Told to the organisers.
+     * Before a round starts (launch, or {@code /cm manche lancer}): its arenas' copies follow the cast and are
+     * rebuilt from the reference, once per start.
+     */
+    public static List<String> prepare(MinecraftServer server, int season, String mancheId, List<String> cast) {
+        List<String> lines = new ArrayList<>();
+        List<Arena> arenas = arenas(mancheId);
+        if (arenas.isEmpty() || key(season, mancheId).equals(prepared)) return lines;
+        if (state.manche == null || !state.manche.equals(mancheId) || state.season != season) {
+            state.back.clear();
+            state.step = 0;
+        }
+        state.manche = mancheId;
+        state.season = season;
+        REPORT.clear();
+        for (Arena a : arenas) {
+            REPORT.addAll(syncCopies(server, a, false));
+            if (!a.copies.isEmpty()) REPORT.add("« " + a.name + " » : " + Arenas.rebuild(server, a) + " copie(s) remise(s) à neuf.");
+        }
+        prepared = key(season, mancheId);
+        save();
+        lines.addAll(REPORT);
+        return lines;
+    }
+
+    /** The places a round's trial shows, as chunks per level: its arenas (copies, starts, other zones), TP points, intro. */
+    static Map<ServerLevel, Set<net.minecraft.world.level.ChunkPos>> places(MinecraftServer server, Manche m) {
+        Map<ServerLevel, Set<net.minecraft.world.level.ChunkPos>> out = new LinkedHashMap<>();
+        for (Arena a : arenas(m.id)) {
+            ServerLevel level = Arenas.level(server, a);
+            int g = Math.max(0, a.chargementMarge);
+            area(out, level, a.x0 - g, a.z0 - g, a.x1 + g, a.z1 + g);
+            for (int[] off : a.copies.values()) {
+                area(out, level, a.x0 + off[0] - g, a.z0 + off[2] - g, a.x1 + off[0] + g, a.z1 + off[2] + g);
+                double[] sp = Arenas.spawn(a, off);
+                around(out, level, sp[0], sp[2]);
+            }
+            double[] ref = Arenas.spawn(a, null);
+            around(out, level, ref[0], ref[2]);
+            for (int[] z : a.chargementZones) if (z.length >= 4) area(out, level, z[0], z[1], z[2], z[3]);
+        }
+        for (fr.lordfinn.craftmaster.data.Spot sp : m.tp) {
+            ServerLevel level = fr.lordfinn.craftmaster.bust.Busts.level(server, sp.world());
+            if (level != null) around(out, level, sp.x(), sp.z());
+        }
+        for (Object[] sh : fr.lordfinn.craftmaster.broadcast.MancheIntros.shotPlaces(server, m.id)) {
+            ServerLevel level = fr.lordfinn.craftmaster.bust.Busts.level(server, String.valueOf(sh[0]));
+            if (level != null) around(out, level, (double) sh[1], (double) sh[2]);
+        }
+        fr.lordfinn.craftmaster.camera.CameraSpot wide = fr.lordfinn.craftmaster.camera.Lieux.resolve(server, "large", m.id);
+        if (wide != null) {
+            ServerLevel level = fr.lordfinn.craftmaster.bust.Busts.level(server, wide.world());
+            if (level != null) around(out, level, wide.x(), wide.z());
+        }
+        return out;
+    }
+
+    private static void area(Map<ServerLevel, Set<net.minecraft.world.level.ChunkPos>> out, ServerLevel level, int x0, int z0, int x1, int z1) {
+        Set<net.minecraft.world.level.ChunkPos> set = out.computeIfAbsent(level, k -> new LinkedHashSet<>());
+        for (int cx = Math.min(x0, x1) >> 4; cx <= Math.max(x0, x1) >> 4; cx++)
+            for (int cz = Math.min(z0, z1) >> 4; cz <= Math.max(z0, z1) >> 4; cz++) set.add(new net.minecraft.world.level.ChunkPos(cx, cz));
+    }
+
+    /** Two chunks around a point (what a player or a camera there sees first). */
+    private static void around(Map<ServerLevel, Set<net.minecraft.world.level.ChunkPos>> out, ServerLevel level, double x, double z) {
+        area(out, level, (int) Math.floor(x) - 32, (int) Math.floor(z) - 32, (int) Math.floor(x) + 32, (int) Math.floor(z) + 32);
+    }
+
+    /** At the round's teleports: where the cast stands now (back there at the end). */
+    public static void rememberCast(MinecraftServer server, Actions.MancheStarted m) {
+        if (arenas(m.mancheId()).isEmpty()) return;
+        for (String name : m.cast()) {
+            ServerPlayer p = server.getPlayerList().getPlayerByName(name);
+            if (p != null) remember(p);
+        }
+        save();
+    }
+
+    /** At the round's teleports: each online contestant to the start of their copy, game mode, kit. */
+    public static int placeCast(MinecraftServer server, Actions.MancheStarted m) {
+        int n = 0;
+        for (Arena a : arenas(m.mancheId())) {
+            List<String> online = new ArrayList<>();
+            for (String name : m.cast()) if (server.getPlayerList().getPlayerByName(name) != null) online.add(name);
+            List<String> placed = Arenas.place(server, a, online);
+            GameType mode = gameType(a);
+            for (String name : placed) {
+                ServerPlayer p = server.getPlayerList().getPlayerByName(name);
+                if (p != null) {
+                    p.setGameMode(mode);
+                    p.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+                    p.resetFallDistance();
+                }
+            }
+            REPORT.add("« " + a.name + " » : " + (placed.isEmpty() ? "aucun candidat connecté" : String.join(", ", placed) + " en place")
+                    + " (" + (mode == GameType.SURVIVAL ? "survie" : "aventure") + (a.kit.isEmpty() ? "" : ", kit donné") + ").");
+            n += placed.size();
+        }
+        return n;
+    }
+
+    /**
+     * The picture opened on the round (however it started): common voice if asked, envelopes, the loaded places let
+     * go (the players are there). Told to the organisers.
      */
     public static void onRoundStarted(MinecraftServer server, Actions.MancheStarted m) {
-        List<String> lines = new ArrayList<>();
+        List<String> lines = new ArrayList<>(REPORT);
+        REPORT.clear();
+        prepared = null;
         try {
-            List<Arena> arenas = arenas(m.mancheId());
-            if (!arenas.isEmpty()) {
-                if (state.manche == null || !state.manche.equals(m.mancheId()) || state.season != m.season()) {
-                    state.back.clear();
-                    state.step = 0;
+            for (Arena a : arenas(m.mancheId()))
+                if (a.vocalLancement && voice()) {
+                    int v = fr.lordfinn.craftmaster.compat.VoiceGroups.gather(server, pl -> fr.lordfinn.craftmaster.trial.Judging.contestant(pl) != null || Permissions.isAdmin(pl));
+                    if (v >= 0) lines.add("Canal vocal commun ouvert (" + v + " joueur(s)).");
                 }
-                state.manche = m.mancheId();
-                state.season = m.season();
-                for (Arena a : arenas) lines.addAll(setUp(server, a, m.cast()));
-            }
             int given = autoEnvelopes(server, m.season(), m.mancheId(), null);
             if (given > 0) lines.add(given + " enveloppe(s) distribuée(s).");
         } catch (RuntimeException e) {
             CraftMaster.LOG.warn("[Épreuve] mise en place de « {} »", m.name(), e);
             lines.add("⚠ Mise en place incomplète : " + e);
         }
+        LaunchGate.release(server);
         save();
         for (String l : lines)
             Finish.tellOrganisers(server, null, Component.literal("▶ " + l).withStyle(ChatFormatting.GOLD), "[Épreuve] " + l);
-    }
-
-    /** One arena of the round: copies, reset, everyone at their start in its game mode with the kit. */
-    private static List<String> setUp(MinecraftServer server, Arena a, List<String> cast) {
-        List<String> lines = new ArrayList<>(syncCopies(server, a, false));
-        if (!a.copies.isEmpty()) {
-            int n = Arenas.rebuild(server, a);
-            lines.add("« " + a.name + " » : " + n + " copie(s) remise(s) à neuf.");
-        }
-        List<String> online = new ArrayList<>();
-        for (String name : cast) {
-            ServerPlayer p = server.getPlayerList().getPlayerByName(name);
-            if (p == null) continue;
-            remember(p);
-            online.add(name);
-        }
-        List<String> placed = Arenas.place(server, a, online);
-        GameType mode = gameType(a);
-        for (String name : placed) {
-            ServerPlayer p = server.getPlayerList().getPlayerByName(name);
-            if (p != null) p.setGameMode(mode);
-        }
-        lines.add("« " + a.name + " » : " + (placed.isEmpty() ? "aucun candidat connecté" : String.join(", ", placed) + " en place")
-                + " (" + (mode == GameType.SURVIVAL ? "survie" : "aventure") + (a.kit.isEmpty() ? "" : ", kit donné") + ").");
-        if (a.vocalLancement && voice()) {
-            int v = fr.lordfinn.craftmaster.compat.VoiceGroups.gather(server, pl -> fr.lordfinn.craftmaster.trial.Judging.contestant(pl) != null || Permissions.isAdmin(pl));
-            if (v >= 0) lines.add("Canal vocal commun ouvert (" + v + " joueur(s)).");
-        }
-        return lines;
     }
 
     public static GameType gameType(Arena a) {
@@ -495,6 +653,9 @@ public final class TrialRun {
             moved++;
         }
         if (voice()) fr.lordfinn.craftmaster.compat.VoiceGroups.disband(server);
+        LaunchGate.cancel();
+        LaunchGate.release(server);
+        prepared = null;
         lines.add(moved + " candidat(s) revenu(s) à leur place d'avant l'épreuve.");
         for (Arena a : arenas)
             if (!a.copies.isEmpty()) lines.add("« " + a.name + " » : " + Arenas.rebuild(server, a) + " copie(s) remise(s) à neuf.");
@@ -527,7 +688,8 @@ public final class TrialRun {
         LiteralArgumentBuilder<CommandSourceStack> launch = Commands.literal("lancer").requires(Permissions.ADMIN)
                 .then(Commands.argument("manche", fr.lordfinn.craftmaster.command.WordArgument.word())
                         .suggests((c, b) -> SharedSuggestionProvider.suggest(mancheNames(), b))
-                        .executes(c -> say(c, launch(c.getSource().getServer(), c.getArgument("manche", String.class)))));
+                        .executes(c -> say(c, launch(c.getSource().getServer(), c.getArgument("manche", String.class), false)))
+                        .then(Commands.literal("force").executes(c -> say(c, launch(c.getSource().getServer(), c.getArgument("manche", String.class), true)))));
         LiteralArgumentBuilder<CommandSourceStack> next = Commands.literal("suite").requires(Permissions.ADMIN)
                 .executes(c -> say(c, next(c.getSource().getServer())));
         LiteralArgumentBuilder<CommandSourceStack> end = Commands.literal("terminer").requires(Permissions.ADMIN)

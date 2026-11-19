@@ -773,6 +773,11 @@ public final class Director {
      * Spectator broadcast games are moved under the shot's position so the server sends them its chunks and
      * entities (their view comes from the camera, not from where they stand). Other games are left alone.
      */
+    /** Moves the broadcast games under the shot on air now (not at the next second), for a launch waiting for them. */
+    public static void nudgeBroadcasters(MinecraftServer server) {
+        keepBroadcastersNear(server);
+    }
+
     private static void keepBroadcastersNear(MinecraftServer server) {
         if (broadcasters.isEmpty()) return;
         ServerLevel level = null;

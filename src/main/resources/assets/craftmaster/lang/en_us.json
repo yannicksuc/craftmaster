@@ -118,6 +118,7 @@
   "entity.craftmaster.camera": "Studio Camera",
   "key.craftmaster.broadcast": "Broadcast mode (TV picture)",
   "subtitles.craftmaster.show.theme": "CraftMaster theme plays",
+  "subtitles.craftmaster.show.ouverture": "CraftMaster opening fanfare",
   "subtitles.craftmaster.show.intro": "Task intro music plays",
   "fx.craftmaster.look_intro": "intro look",
   "fx.craftmaster.macro": "macro",

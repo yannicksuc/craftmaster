@@ -83,6 +83,7 @@ public final class Broadcast {
             /*? if >=26.3 {*/VanillaHudElements.INFO_BAR_FOREGROUND, /*?}*/VanillaHudElements.HELD_ITEM_TOOLTIP);
 
     public static void init() {
+        ReadyClient.init();
         KeyMappingHelper.registerKeyMapping(TOGGLE_KEY);
         KeyMappingHelper.registerKeyMapping(ZONE_KEY);
         KeyMappingHelper.registerKeyMapping(MOSAIC_KEY);
@@ -106,6 +107,8 @@ public final class Broadcast {
                 set("on".equals(payload.title()));
             } else if (Cues.BLACKOUT.equals(payload.kind())) {
                 Blackout.start(payload);
+            } else if (Cues.BLACKOUT_OPEN.equals(payload.kind())) {
+                Blackout.open(payload.ticks());
             } else if (Cues.FEED.equals(payload.kind())) {
                 ShowFeedClient.force(payload.title());
             } else if (Cues.TASK_TYPE.equals(payload.kind())) {

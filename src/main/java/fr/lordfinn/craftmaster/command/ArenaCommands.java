@@ -310,6 +310,42 @@ public final class ArenaCommands {
                                     ok(c, "Suite de « " + a.name + " » : " + String.join(" → ", steps.isEmpty() ? List.of("revele") : steps) + ".");
                                     return 1;
                                 }))))
+                // What « lancer l'épreuve » loads first: the boxes widened by a margin, the starts, other zones
+                .then(literal("chargement").then(argument("arene", word()).suggests(ARENAS).executes(c -> {
+                            Arena a = arena(c);
+                            if (a == null) return 0;
+                            StringBuilder z = new StringBuilder();
+                            for (int[] r : a.chargementZones) z.append(" [").append(r[0]).append(" ").append(r[1]).append(" → ").append(r[2]).append(" ").append(r[3]).append("]");
+                            ok(c, "Chargé avant le lancement de « " + a.name + " » : référence et copies + " + a.chargementMarge + " blocs autour, départs"
+                                    + (z.isEmpty() ? "" : ", zones" + z) + ".");
+                            return 1;
+                        })
+                        .then(literal("marge").then(argument("blocs", IntegerArgumentType.integer(0, 256)).executes(c -> {
+                            Arena a = arena(c);
+                            if (a == null) return 0;
+                            a.chargementMarge = IntegerArgumentType.getInteger(c, "blocs");
+                            Arenas.save();
+                            ok(c, "« " + a.name + " » : " + a.chargementMarge + " blocs chargés autour de la référence et des copies.");
+                            return 1;
+                        })))
+                        .then(literal("ajouter").then(argument("x0", IntegerArgumentType.integer()).then(argument("z0", IntegerArgumentType.integer())
+                                .then(argument("x1", IntegerArgumentType.integer()).then(argument("z1", IntegerArgumentType.integer()).executes(c -> {
+                                    Arena a = arena(c);
+                                    if (a == null) return 0;
+                                    a.chargementZones.add(new int[]{IntegerArgumentType.getInteger(c, "x0"), IntegerArgumentType.getInteger(c, "z0"),
+                                            IntegerArgumentType.getInteger(c, "x1"), IntegerArgumentType.getInteger(c, "z1")});
+                                    Arenas.save();
+                                    ok(c, "« " + a.name + " » : zone ajoutée au chargement (" + a.chargementZones.size() + ").");
+                                    return 1;
+                                }))))))
+                        .then(literal("vider").executes(c -> {
+                            Arena a = arena(c);
+                            if (a == null) return 0;
+                            a.chargementZones.clear();
+                            Arenas.save();
+                            ok(c, "« " + a.name + " » : plus de zone en plus au chargement.");
+                            return 1;
+                        }))))
                 // Copies = the active season's contestants (new ones built, removed ones' ground put back)
                 .then(literal("synchroniser").executes(c -> syncCopies(c, null))
                         .then(argument("arene", word()).suggests(ARENAS).executes(c -> syncCopies(c, str(c, "arene")))))

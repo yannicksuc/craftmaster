@@ -64,6 +64,14 @@ public final class Arena {
      */
     public List<String> etapes = new ArrayList<>();
 
+    /**
+     * What « lancer l'épreuve » loads before anyone goes there: the reference and the copies, widened by this many
+     * blocks, their start points, plus {@link #chargementZones}.
+     */
+    public int chargementMarge = 16;
+    /** Other places to load first, in the arena's world: {x0, z0, x1, z1}. */
+    public List<int[]> chargementZones = new ArrayList<>();
+
     /** The drawing field (walked on between the red and the green banner), or null. */
     public Field field;
     /** Items each contestant receives (vanilla item JSON). */

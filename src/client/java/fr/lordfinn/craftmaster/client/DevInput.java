@@ -29,6 +29,7 @@ import java.util.Locale;
  * hold NAME seconds              the key reads as held down ({@link #held}) for that long (pressed once too)
  * quit                           closes the game (stops a test client cleanly)
  * screenshot                     saves the picture to screenshots/ like F2 (any screen, no world needed)
+ * rec SECONDS [TICKS]            a screenshot every TICKS ticks (2) for SECONDS: a transition frame by frame
  * hover x y                      screens that follow the mouse read this position instead ("hover" alone: the real one)
  * slowmo factor                  animations that ask {@link #timeScale} run this many times slower (1 = normal)
  * chat TEXT                     opens the chat with TEXT typed (spaces as _): the command suggestions show
@@ -64,6 +65,21 @@ public final class DevInput {
         return 1 / slow;
     }
 
+    private static int recTicks, recEvery = 2;
+    private static long lastGrab;
+
+    /**
+     * "rec": a screenshot of the finished frame (world, effects and interface: what the window shows) every
+     * {@code recEvery} ticks' worth of time, from the end of {@code GameRenderer.render}.
+     */
+    public static void afterFrame() {
+        if (recTicks <= 0) return;
+        long now = System.currentTimeMillis();
+        if (now - lastGrab < recEvery * 50L) return;
+        lastGrab = now;
+        net.minecraft.client.Screenshot.grab(net.minecraft.client.Minecraft.getInstance(), false);
+    }
+
     public static void init() {
         if (!FabricLoader.getInstance().isDevelopmentEnvironment()) return;
         Path file = FabricLoader.getInstance().getGameDir().resolve("dev-input.txt");
@@ -72,6 +88,7 @@ public final class DevInput {
                 mc.options.keyUse.setDown(false);
                 useUntil = 0;
             }
+            if (recTicks > 0) recTicks--;
             if (!Files.exists(file)) return;
             List<String> lines;
             try {
@@ -88,6 +105,12 @@ public final class DevInput {
                 }
                 if (line.strip().toLowerCase(Locale.ROOT).startsWith("slowmo")) {
                     slow = Math.max(0.01f, Float.parseFloat(line.strip().split("\\s+")[1]));
+                    continue;
+                }
+                if (line.strip().toLowerCase(Locale.ROOT).startsWith("rec ")) {
+                    String[] r = line.strip().split("\s+");
+                    recEvery = r.length > 2 ? Math.max(1, Integer.parseInt(r[2])) : 2;
+                    recTicks = (int) Math.round(Double.parseDouble(r[1]) * 20);
                     continue;
                 }
                 if (line.strip().toLowerCase(Locale.ROOT).startsWith("screenshot")) {
