@@ -55,11 +55,11 @@ RULES = {
     "stone_pickaxe": ({"can_break": {"blocks": ["iron_ore"]}}, ["Casse : minerai de fer"]),
     "wheat_seeds":   ({"can_place_on": {"blocks": ["farmland"]}}, ["Se plante sur : terre labourée"]),
     # « consumable » sans fin, muet : rester appuyé sur une canne la fait pousser (voir canne/*), le blé reste vanilla
-    "bone_meal":     ({"can_place_on": {"blocks": ["wheat", "sugar_cane"]},
+    "bone_meal":     ({"can_place_on": {"blocks": ["wheat", "carrots", "beetroots", "sugar_cane"]},
                        "consumable": {"consume_seconds": 1000000, "animation": "none", "has_consume_particles": False,
-                                      "sound": "minecraft:intentionally_empty"}}, ["Utilisable sur : blé, canne à sucre"]),
+                                      "sound": "minecraft:intentionally_empty"}}, ["Utilisable sur : blé, carottes, betteraves,", "canne à sucre"]),
     "sugar_cane":    ({"can_place_on": {"blocks": ["dirt", "grass_block", "coarse_dirt", "rooted_dirt", "moss_block", "mud"]}},
-                      ["Accepte la Farine", "Se plante sur la terre, au bord de l'eau"]),
+                      ["Accepte la poudre d'os", "Se plante sur la terre, au bord de l'eau"]),
     "cow_spawn_egg": ({"can_place_on": [{}]}, []),
 }
 HIDE = {"hidden_components": ["minecraft:can_break", "minecraft:can_place_on"]}
