@@ -129,7 +129,7 @@ Restent à part, parce qu'elles vivent dans le jeu de chacun (pas sur le serveur
 | `/cm plateau ancre [x y z]` · `decor poser <décor>` · `decor enregistrer <nom> <de> <à>` · `decor supprimer <nom>` | Ancre et décors de scène |
 | `/cm plateau devant` · `point <nom>` · `retirerpoint <nom>` | Sens du public · points visés par les projecteurs (`@point:nom`) |
 | `/cm plateau garage ouvrir\|fermer\|basculer <x y z>` · `garage porte <nom> …` | Portes de garage |
-| `/cm plateau pupitre nom <nom\|->` · `gong` · `tablette lancer\|pause\|basculer\|reset\|relancer` | Pupitre regardé · gong · tablettes chrono |
+| `/cm plateau pupitre nom <nom\|->` · `gong` · `tablette lancer\|pause\|basculer\|reset\|relancer [groupe]` | Pupitre regardé · gong · tablettes chrono et chronos géants (du groupe) |
 | `/cm plateau portrait poser\|regler\|editer\|retirer\|poses\|publier\|illuminer\|hisser …` | Tableaux suspendus |
 | `/cm plateau buste ajouter\|retirer <saison> <rang>` | Busts (en regardant une tête de joueur) |
 

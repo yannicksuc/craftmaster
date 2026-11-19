@@ -77,6 +77,7 @@ class TabletClockTest {
         assertEquals(TabletClock.Mode.CLOCK, back.mode);
         assertEquals("plateau", back.group);
         assertEquals(4, back.size);
+        assertEquals(6, TabletClock.Settings.fromJson(s.toJson(), 6).size, "giant timer: up to 6");
         TabletClock.Settings bad = TabletClock.Settings.fromJson("{\"mode\":\"NOPE\",\"seconds\":-5}");
         assertEquals(TabletClock.Mode.TIMER, bad.mode, "unknown value → default");
         assertEquals(1, bad.seconds);

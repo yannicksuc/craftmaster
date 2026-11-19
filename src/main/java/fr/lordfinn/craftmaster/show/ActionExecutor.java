@@ -131,14 +131,14 @@ public final class ActionExecutor {
             }
             case Actions.MancheEnded m -> {
                 Show.endManche(server, m.name());
-                fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundEnd(server);
+                fr.lordfinn.craftmaster.studio.ClockBlockEntity.onRoundEnd(server);
                 ShowEvents.onMancheEnded(server, m.name());
             }
             case Actions.TimerGo g -> lines.add(fr.lordfinn.craftmaster.task.RoundStart.goNow(server)
                     ? "Chrono lancé, joueurs libérés." : "Aucune manche n'attend son départ.");
             case Actions.ReplayFlagged f -> lines.add(fr.lordfinn.craftmaster.replay.ReplayMoments.flag(null, f.text()));
             case Actions.TabletOrder t -> {
-                int n = fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.controlAll(t.group(), t.order());
+                int n = fr.lordfinn.craftmaster.studio.ClockBlockEntity.controlAll(t.group(), t.order());
                 lines.add(n == 0 ? "Aucune tablette chargée" + (t.group().isEmpty() ? "." : " dans le groupe « " + t.group() + " ».")
                         : "Tablettes : " + t.order() + " (" + n + ")");
             }
@@ -146,7 +146,7 @@ public final class ActionExecutor {
                 boolean held = fr.lordfinn.craftmaster.task.RoundStart.waiting();
                 fr.lordfinn.craftmaster.task.RoundStart.clear(server);
                 lines.add(Show.stopTimer(server) ? "Chrono arrêté." : held ? "Départ annulé, joueurs libérés." : "Aucun chrono ne tournait.");
-                fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onTimerStopped(server);
+                fr.lordfinn.craftmaster.studio.ClockBlockEntity.onTimerStopped(server);
             }
             case Actions.Published p -> {
                 Show.announcePublished(server, p.season());

@@ -24,9 +24,10 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * The giant timer: a gold-framed black panel (2.5 × 1 times its size, standing on the block and against the wall)
- * with the round's title on a velvet band and the time in big seven-segment digits. Gold while it runs, red and
- * pulsing for the last ten seconds, "0:00" blinking red when the time is up, the set duration dimmed before the
- * start. Unlit segments stay faintly visible, like a real display.
+ * with a title on a velvet band and the time in big seven-segment digits — what and how as its settings say
+ * ({@link TabletView}, like the tablet). By default the show's timer: gold while it runs, red and pulsing for the
+ * last ten seconds, "0:00" blinking red when the time is up, the set duration dimmed before the start. Unlit
+ * segments stay faintly visible, like a real display (setting).
  */
 public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlockEntity, TimerDisplayRenderer.State> {
 
@@ -36,15 +37,16 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
     private static final float PW = 40, PH = 16;
 
     /** The title band: centre and usable height / width (panel pixels), height of the font's capitals. */
-    private static final float BAND_CENTRE = 13f, BAND_TEXT = 1.5f, BAND_WIDTH = 34f, CAPS = 7f;
+    private static final float BAND_CENTRE = 13f, BAND_TEXT = 1.5f, BAND_WIDTH = 31f, CAPS = 7f;
 
-    private static final int GOLD = 0xFFC83C, RED = 0xFF3A30, CREAM = 0xE8D9B0, OFF = 0x2A1C14;
+    private static final int OFF = TabletView.GIANT_OFF;
 
     public static class State extends BlockEntityRenderState {
         float yaw;
         int size;
-        StudioTimerClient.View view;
-        float pulse;
+        TabletView.View view;
+        String band;
+        boolean ghost;
     }
 
     private final Font font;
@@ -63,8 +65,9 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
         BlockEntityRenderer.super.extractRenderState(be, s, partialTick, camera, crumbling);
         s.yaw = be.getBlockState().getValue(TimerDisplayBlock.FACING).toYRot();
         s.size = be.size();
-        s.view = StudioTimerClient.view();
-        s.pulse = (float) (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 1000.0 * Math.PI * 2));
+        s.view = TabletView.of(be.settings(), be.clock(), be.overAt(), be.bellAt(), System.currentTimeMillis());
+        s.band = TabletView.giantBand(be.settings());
+        s.ghost = be.settings().ghostSegments;
     }
 
     @Override
@@ -85,29 +88,20 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
             Geo.box(c, p, TEX, -PW / 2, 0, 0, PW / 2, PH, 1, new float[][]{gold, face, gold, gold, gold, gold}, 0xFFFFFFFF, light);
         });
 
-        StudioTimerClient.View v = s.view;
-        int color = switch (v.mode()) {
-            case RUNNING -> v.seconds() <= 10 ? RED : GOLD;
-            case TIME_UP -> RED;
-            case READY -> CREAM;
-            case IDLE -> GOLD;
-        };
-        int alpha = switch (v.mode()) {
-            case RUNNING -> v.seconds() <= 10 ? (int) (170 + 85 * s.pulse) : 255;
-            case TIME_UP -> s.pulse > 0.5 ? 255 : 60;
-            case READY -> 200;
-            case IDLE -> 130;
-        };
-        int lit = blend(color, alpha);
-        int unlit = 0xFF000000 | OFF;
+        TabletView.View v = s.view;
+        int lit = TabletView.lit(v.rgb(), v.bright(), OFF);
+        int unlit = s.ghost ? 0xFF000000 | OFF : 0;
         // Same opaque pass as the panel: the translucent text pass drew nothing once the other chantiers' renderers
         // were in the game (the digits vanished in the merged build)
-        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (p, c) -> digits(c, p, v.clock(), lit, unlit));
+        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (p, c) -> digits(c, p, v.text(), lit, unlit));
 
         // Title on the velvet band (panel y 12..14): "3 · Le Pont" (or the show's name). Sized on the capitals
         // (7 of the font's 9 px line), centred on the band, never wider than the band
-        Component title = Component.literal(v.title().isEmpty() ? "CraftMaster" : v.title());
-        FormattedCharSequence text = title.getVisualOrderText();
+        if (s.band.isEmpty()) {
+            poseStack.popPose();
+            return;
+        }
+        FormattedCharSequence text = Component.literal(s.band).getVisualOrderText();
         int w = Math.max(1, font.width(text));
         float scale = Math.min(BAND_TEXT / CAPS, BAND_WIDTH / w);
         poseStack.pushPose();
@@ -118,22 +112,14 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
         poseStack.popPose();
     }
 
-    /** Opaque colour of a lit segment: the colour scaled toward the unlit one by {@code alpha} (0..255). */
-    private static int blend(int rgb, int alpha) {
-        float t = alpha / 255f;
-        int r = (int) (((rgb >> 16) & 255) * t + ((OFF >> 16) & 255) * (1 - t));
-        int g = (int) (((rgb >> 8) & 255) * t + ((OFF >> 8) & 255) * (1 - t));
-        int b = (int) ((rgb & 255) * t + (OFF & 255) * (1 - t));
-        return 0xFF000000 | (r << 16) | (g << 8) | b;
-    }
-
-    /** The clock in the digits area (x -19..19, y 1.5..11.5 in panel pixels), centred, scaled down to fit. */
+    /** The clock in the digits area (x -16..16, y 1.5..11.5 in panel pixels), centred, scaled down to fit. */
     private static void digits(VertexConsumer c, PoseStack.Pose p, String clock, int lit, int unlit) {
-        float dw = 6, dh = 10, gap = 1.2f, colon = 2.4f;
+        float dw = 6, dh = 10, gap = 1.2f, colon = 2.4f, dot = 2f;
         float total = 0;
-        for (char ch : clock.toCharArray()) total += (ch == ':' ? colon : dw) + gap;
+        for (char ch : clock.toCharArray()) total += (ch == ':' ? colon : ch == '.' ? dot : dw) + gap;
         total -= gap;
-        float scale = Math.min(1f, 37f / total);
+        // Inside the gold frame (3 px each side), with a margin
+        float scale = Math.min(1f, 32f / total);
         float x = -total * scale / 2, y0 = 1.5f + (10 - dh * scale) / 2;
         // In front of the panel face (z = 1) by enough not to flicker from far away
         float z = 1.25f;
@@ -143,6 +129,12 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
                 rect(c, p, cx - d, y0 + 2.6f * scale, cx + d, y0 + 2.6f * scale + 2 * d, z, lit);
                 rect(c, p, cx - d, y0 + 6.2f * scale, cx + d, y0 + 6.2f * scale + 2 * d, z, lit);
                 x += (colon + gap) * scale;
+                continue;
+            }
+            if (ch == '.') {
+                float cx = x + dot * scale / 2, d = 0.7f * scale;
+                rect(c, p, cx - d, y0, cx + d, y0 + 2 * d, z, lit);
+                x += (dot + gap) * scale;
                 continue;
             }
             digit(c, p, x, y0, dw * scale, dh * scale, SevenSegment.segments(ch), z, lit, unlit);
@@ -173,6 +165,7 @@ public class TimerDisplayRenderer implements BlockEntityRenderer<TimerDisplayBlo
             y0 += g;
             y1 -= g;
         }
+        if ((on & bit) == 0 && unlit == 0) return;
         rect(c, p, x0, y0, x1, y1, z + ((on & bit) != 0 ? 0.1f : 0), (on & bit) != 0 ? lit : unlit);
     }
 

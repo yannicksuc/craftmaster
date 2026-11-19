@@ -5,8 +5,8 @@ import fr.lordfinn.craftmaster.studio.TabletClock;
 import java.time.LocalTime;
 
 /**
- * What a timer tablet shows right now: the digits, their colour and brightness (blinking), the label. Shared by
- * the renderer and the settings screen's preview.
+ * What a timer tablet or a giant timer shows right now: the digits, their colour and brightness (blinking), the
+ * label. Shared by the renderers and the settings screen's preview.
  */
 public final class TabletView {
 
@@ -60,6 +60,20 @@ public final class TabletView {
                 };
             }
         };
+    }
+
+    /** Unlit segments of the giant timer (dark brown on its black panel). */
+    public static final int GIANT_OFF = 0x2A1C14;
+
+    /**
+     * The giant timer's title band: its text, or else the current round ("3 · Le Pont"), or else "CraftMaster";
+     * "" when the band is hidden.
+     */
+    public static String giantBand(TabletClock.Settings s) {
+        if (!s.showLabel) return "";
+        if (!s.label.isEmpty()) return s.label;
+        String title = StudioTimerClient.view().title();
+        return title.isEmpty() ? "CraftMaster" : title;
     }
 
     /** The colour scaled toward the dark screen by {@code bright}. */

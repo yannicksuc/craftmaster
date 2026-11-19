@@ -118,7 +118,7 @@ public final class Show {
     /** What else starts with a round: the timer tablets set to, and the show's listeners (direction, recordings…). */
     public static void roundStarted(MinecraftServer server, Actions.MancheStarted m) {
         // Held timer: the tablets start with it (task.RoundStart)
-        if (!fr.lordfinn.craftmaster.task.RoundStart.waiting()) fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundStart(server);
+        if (!fr.lordfinn.craftmaster.task.RoundStart.waiting()) fr.lordfinn.craftmaster.studio.ClockBlockEntity.onRoundStart(server);
         ShowEvents.onMancheStarted(server, m.season(), m.number(), m.name());
     }
 

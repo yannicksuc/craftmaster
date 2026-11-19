@@ -8,7 +8,8 @@ import fr.lordfinn.craftmaster.client.ui.UiTabs;
 import fr.lordfinn.craftmaster.studio.SevenSegment;
 import fr.lordfinn.craftmaster.studio.StudioNetwork;
 import fr.lordfinn.craftmaster.studio.TabletClock;
-import fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity;
+import fr.lordfinn.craftmaster.studio.ClockBlockEntity;
+import fr.lordfinn.craftmaster.studio.TimerTabletBlock;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -23,24 +24,27 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Settings of a timer tablet (organisers, right click): a live preview with start / pause / reset, and four tabs —
- * what it counts (mode, duration, format, warning), how it looks (colours, frame, passe-partout, size, text), what
- * drives it (players' click, redstone, rounds, end sound and signal, group) and where it stands (pose, tilt). Every
- * change is sent at once and seen on the tablet in the world.
+ * Settings of a timer tablet or a giant timer (organisers, right click): a live preview with start / pause / reset,
+ * and tabs — what it counts (mode, duration, format, warning), how it looks (colours, frame, passe-partout, size,
+ * text), what drives it (players' click, redstone, rounds, end sound and signal, group) and, for a tablet, where it
+ * stands (pose, tilt). Every change is sent at once and seen in the world.
  */
 public class TabletScreen extends Screen {
 
-    private final TimerTabletBlockEntity tablet;
+    private final ClockBlockEntity tablet;
+    private final boolean giant;
     private TabletClock.Settings s;
     private int tab;
     private int left, top, w, h;
 
-    public TabletScreen(TimerTabletBlockEntity tablet) {
-        super(t("title"));
+    public TabletScreen(ClockBlockEntity tablet) {
+        super(t(tablet.giant() ? "title_giant" : "title"));
         this.tablet = tablet;
+        this.giant = tablet.giant();
         this.s = tablet.settings().copy();
         // The block's pose is the truth (a tablet placed by a command or a structure)
-        this.s.pose = tablet.getBlockState().getValue(fr.lordfinn.craftmaster.studio.TimerTabletBlock.POSE);
+        if (tablet.getBlockState().getBlock() instanceof TimerTabletBlock)
+            this.s.pose = tablet.getBlockState().getValue(TimerTabletBlock.POSE);
     }
 
     static Component t(String key, Object... args) {
@@ -65,7 +69,7 @@ public class TabletScreen extends Screen {
 
     /** A setting changed: sent at once, the buttons show the new values. */
     private void changed() {
-        s = TabletClock.Settings.fromJson(s.toJson());
+        s = tablet.read(s.toJson());
         send("");
         rebuildWidgets();
     }
@@ -86,7 +90,9 @@ public class TabletScreen extends Screen {
         addRenderableWidget(UiButton.of(cx, by + 22, 60, 18, t("reset"), () -> send("reset"))).setTooltip(Tooltip.create(t("reset.tip")));
         addRenderableWidget(UiButton.of(cx + 64, by + 22, 60, 18, t("restart"), () -> send("restart"))).setTooltip(Tooltip.create(t("restart.tip")));
 
-        UiTabs tabs = new UiTabs(font, left + 146, top + 22, 16, List.of(t("tab.mode"), t("tab.look"), t("tab.triggers"), t("tab.pose")),
+        UiTabs tabs = new UiTabs(font, left + 146, top + 22, 16, giant
+                        ? List.of(t("tab.mode"), t("tab.look"), t("tab.triggers"))
+                        : List.of(t("tab.mode"), t("tab.look"), t("tab.triggers"), t("tab.pose")),
                 () -> tab, i -> {
                     tab = i;
                     UiSounds.page();
@@ -102,7 +108,7 @@ public class TabletScreen extends Screen {
                     int sec = TabletClock.parseDuration(v);
                     if (sec > 0 && sec != s.seconds) {
                         s.seconds = sec;
-                        s = TabletClock.Settings.fromJson(s.toJson());
+                        s = tablet.read(s.toJson());
                         send("");
                     }
                 });
@@ -116,19 +122,23 @@ public class TabletScreen extends Screen {
             case 1 -> {
                 r.cycle("color", TabletClock.DigitColor.values(), () -> s.color, v -> s.color = v);
                 r.toggle("ghost", () -> s.ghostSegments, v -> s.ghostSegments = v);
-                r.cycle("frame", TabletClock.FrameColor.values(), () -> s.frame, v -> s.frame = v);
-                r.cycle("mat", TabletClock.Mat.values(), () -> s.mat, v -> s.mat = v);
-                r.steps("size", new int[]{1, 2, 3, 4}, () -> s.size, v -> s.size = v, v -> Component.literal("× " + v));
-                r.text("label", s.label, 40, v -> {
+                if (giant) {
+                    r.steps("size", new int[]{1, 2, 3, 4, 5, 6}, () -> s.size, v -> s.size = v, v -> t("blocks", v));
+                } else {
+                    r.cycle("frame", TabletClock.FrameColor.values(), () -> s.frame, v -> s.frame = v);
+                    r.cycle("mat", TabletClock.Mat.values(), () -> s.mat, v -> s.mat = v);
+                    r.steps("size", new int[]{1, 2, 3, 4}, () -> s.size, v -> s.size = v, v -> Component.literal("× " + v));
+                }
+                r.text(giant ? "band" : "label", s.label, 40, v -> {
                     if (!v.equals(s.label)) {
                         s.label = v;
                         send("");
                     }
                 });
-                r.toggle("show_label", () -> s.showLabel, v -> s.showLabel = v);
+                r.toggle(giant ? "show_band" : "show_label", () -> s.showLabel, v -> s.showLabel = v);
             }
             case 2 -> {
-                r.toggle("click", () -> s.clickToggles, v -> s.clickToggles = v);
+                r.toggle(giant ? "click_giant" : "click", () -> s.clickToggles, v -> s.clickToggles = v);
                 r.cycle("redstone", TabletClock.Redstone.values(), () -> s.redstone, v -> s.redstone = v);
                 r.toggle("round_start", () -> s.startOnRound, v -> s.startOnRound = v);
                 r.toggle("round_end", () -> s.stopOnRoundEnd, v -> s.stopOnRoundEnd = v);
@@ -265,8 +275,9 @@ public class TabletScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
-        Ui.panel(g, font, left, top, w, h, t("title").copy().withStyle(ChatFormatting.BOLD));
-        preview(g, left + 8, top + 24, 128, 96);
+        Ui.panel(g, font, left, top, w, h, getTitle().copy().withStyle(ChatFormatting.BOLD));
+        if (giant) giantPreview(g, left + 8, top + 24, 128, 96);
+        else preview(g, left + 8, top + 24, 128, 96);
         Component state = tablet.clock().running() ? t("state.running").copy().withStyle(ChatFormatting.GREEN)
                 : t("state.stopped").copy().withStyle(ChatFormatting.GRAY);
         g.centeredText(font, state, left + 72, top + 126, Theme.TEXT);
@@ -302,6 +313,27 @@ public class TabletScreen extends Screen {
             String text = font.plainSubstrByWidth(v.label(), sx1 - sx0 - 6);
             g.centeredText(font, text, (sx0 + sx1) / 2, sy1 - 12, TabletView.lit(v.rgb(), 0.85f, 0x0A0A0A));
         }
+    }
+
+    /**
+     * The giant timer's face as in the world, live: a gold-framed black panel 2.5 times as wide as high, the title
+     * band at the top, the digits below.
+     */
+    private void giantPreview(GuiGraphicsExtractor g, int x, int y, int pw, int ph) {
+        long now = System.currentTimeMillis();
+        TabletView.View v = TabletView.of(s, tablet.clock(), tablet.overAt(), tablet.bellAt(), now);
+        int h = Math.round(pw / 2.5f), y0 = y + (ph - h) / 2;
+        g.fill(x, y0, x + pw, y0 + h, 0xFFC8962C);
+        g.fill(x + 2, y0 + 2, x + pw - 2, y0 + h - 2, 0xFF141012);
+        String band = TabletView.giantBand(s);
+        int bandH = 11;
+        g.fill(x + 4, y0 + 4, x + pw - 4, y0 + 4 + bandH, 0xFF5A1020);
+        if (!band.isEmpty())
+            g.centeredText(font, font.plainSubstrByWidth(band, pw - 12), x + pw / 2, y0 + 6, 0xFFFFD86A);
+        int lit = TabletView.lit(v.rgb(), v.bright(), TabletView.GIANT_OFF);
+        int ghost = s.ghostSegments ? 0xFF000000 | TabletView.GIANT_OFF : 0;
+        int dTop = y0 + 4 + bandH + 3;
+        digits2d(g, v.text(), x + pw / 2, dTop, pw - 16, y0 + h - 5 - dTop, lit, ghost);
     }
 
     /** One 64 × 48 layer (size 4) of the tablet texture at the origin. */

@@ -64,7 +64,7 @@ public final class StudioNetwork {
         public Type<SaveScreen> type() { return TYPE; }
     }
 
-    /** Server → client: open the settings of a timer tablet. */
+    /** Server → client: open the settings of a timer tablet or a giant timer. */
     public record OpenTablet(net.minecraft.core.BlockPos pos) implements CustomPacketPayload {
         public static final Type<OpenTablet> TYPE = new Type<>(CraftMaster.id("timer_tablet_open"));
         public static final StreamCodec<RegistryFriendlyByteBuf, OpenTablet> CODEC = CustomPacketPayload.codec(
@@ -126,7 +126,7 @@ public final class StudioNetwork {
         player.sendOverlayMessage(Component.translatable("message.craftmaster.screen_saved").withStyle(ChatFormatting.GOLD));
     }
 
-    public static void openTablet(ServerPlayer player, TimerTabletBlockEntity tablet) {
+    public static void openTablet(ServerPlayer player, ClockBlockEntity tablet) {
         if (!ServerPlayNetworking.canSend(player, OpenTablet.TYPE)) {
             player.sendSystemMessage(Component.translatable("message.craftmaster.no_client_mod").withStyle(ChatFormatting.RED));
             return;
@@ -136,8 +136,8 @@ public final class StudioNetwork {
 
     private static void editTablet(ServerPlayer player, EditTablet p) {
         if (!Permissions.isAdmin(player) || player.blockPosition().distSqr(p.pos()) > 64 * 64) return;
-        if (!(player.level().getBlockEntity(p.pos()) instanceof TimerTabletBlockEntity tablet)) return;
-        if (!p.settings().isEmpty()) tablet.apply(TabletClock.Settings.fromJson(p.settings()));
+        if (!(player.level().getBlockEntity(p.pos()) instanceof ClockBlockEntity tablet)) return;
+        if (!p.settings().isEmpty()) tablet.apply(tablet.read(p.settings()));
         if (!p.control().isEmpty()) tablet.controlGroup(p.control());
     }
 }

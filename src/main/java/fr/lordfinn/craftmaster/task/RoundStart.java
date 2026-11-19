@@ -212,7 +212,7 @@ public final class RoundStart {
         timerStarted = true;
         Waiting w = waiting;
         if (w.seconds > 0) Show.startTimer(server, w.name, w.seconds);
-        fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity.onRoundStart(server);
+        fr.lordfinn.craftmaster.studio.ClockBlockEntity.onRoundStart(server);
         Show.soundAll(server, SoundEvents.NOTE_BLOCK_BELL, 1f, 1.2f);
         Component msg = Component.literal(by == null ? "Chrono lancé" : "Chrono lancé par " + by.getGameProfile().name()).withStyle(ChatFormatting.GOLD);
         for (ServerPlayer p : server.getPlayerList().getPlayers()) if (p != by) p.sendOverlayMessage(msg);

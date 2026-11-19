@@ -35,7 +35,7 @@ public final class StudioClient {
         });
         ClientPlayNetworking.registerGlobalReceiver(StudioNetwork.OpenTablet.TYPE, (payload, ctx) -> {
             Minecraft mc = ctx.client();
-            if (mc.level != null && mc.level.getBlockEntity(payload.pos()) instanceof fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity tablet)
+            if (mc.level != null && mc.level.getBlockEntity(payload.pos()) instanceof fr.lordfinn.craftmaster.studio.ClockBlockEntity tablet)
                 mc.gui.setScreen(new TabletScreen(tablet));
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {

@@ -20,7 +20,7 @@ public final class TabletClock {
         STOPWATCH,
         /** The time of day (the viewer's clock). */
         CLOCK,
-        /** The show's round timer (the same as the giant timer: /cm manche lancer, the voice). */
+        /** The show's round timer (/cm manche lancer, the voice: what the giant timer shows by default). */
         SHOW
     }
 
@@ -76,6 +76,9 @@ public final class TabletClock {
 
     /** Every setting (saved with the block, edited in the settings screen). */
     public static final class Settings {
+        /** Biggest tablet (the giant timer goes further: {@link #fromJson(String, int)}). */
+        public static final int MAX_SIZE = 4;
+
         public Mode mode = Mode.TIMER;
         public Format format = Format.AUTO;
         /** Timer duration. */
@@ -91,7 +94,7 @@ public final class TabletClock {
         public boolean ghostSegments = true;
         public FrameColor frame = FrameColor.BLACK;
         public Mat mat = Mat.WHITE;
-        /** 1 = 12 × 9 pixels of frame, up to 4. */
+        /** Tablet: 1 = 12 × 9 pixels of frame, up to 4; giant timer: blocks high, up to 6. */
         public int size = 1;
         public Pose pose = Pose.STAND;
         /** Easel tilt / wall tilt in degrees (EASEL and STAND only: 0 upright). */
@@ -115,15 +118,20 @@ public final class TabletClock {
         public String group = "";
 
         public Settings copy() {
-            return fromJson(toJson());
+            return fromJson(toJson(), Integer.MAX_VALUE);
         }
 
         public String toJson() {
             return GSON.toJson(this);
         }
 
-        /** Reads settings, every missing or unknown field keeping its default, values clamped. */
+        /** Reads a tablet's settings, every missing or unknown field keeping its default, values clamped. */
         public static Settings fromJson(String json) {
+            return fromJson(json, MAX_SIZE);
+        }
+
+        /** The same, the size up to {@code maxSize}. */
+        public static Settings fromJson(String json, int maxSize) {
             Settings s;
             try {
                 s = json == null || json.isBlank() ? new Settings() : GSON.fromJson(json, Settings.class);
@@ -148,7 +156,7 @@ public final class TabletClock {
             if (s.group.length() > 24) s.group = s.group.substring(0, 24);
             s.seconds = Math.max(1, Math.min(99 * 3600, s.seconds));
             s.warnSeconds = Math.max(0, Math.min(600, s.warnSeconds));
-            s.size = Math.max(1, Math.min(4, s.size));
+            s.size = Math.max(1, Math.min(maxSize, s.size));
             s.tilt = Math.max(0, Math.min(60, s.tilt));
             return s;
         }

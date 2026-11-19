@@ -11,7 +11,7 @@ import fr.lordfinn.craftmaster.data.SeasonPlayer;
 import fr.lordfinn.craftmaster.show.Actions;
 import fr.lordfinn.craftmaster.show.Show;
 import fr.lordfinn.craftmaster.studio.TabletClock;
-import fr.lordfinn.craftmaster.studio.TimerTabletBlockEntity;
+import fr.lordfinn.craftmaster.studio.ClockBlockEntity;
 import fr.lordfinn.craftmaster.trial.BuzzerLock;
 import fr.lordfinn.craftmaster.trial.Buzzers;
 import fr.lordfinn.craftmaster.trial.Judging;
@@ -277,7 +277,7 @@ public final class Reprise {
         Show.resumeTimer(server);
         Stopwatch.SHARED.thaw(now);
         Buzzers.LOCK.thaw(now);
-        for (TimerTabletBlockEntity t : serverTablets()) {
+        for (ClockBlockEntity t : serverTablets()) {
             GlobalPos g = key(t);
             if (tabletsToResume.remove(g)) t.control("start");
         }
@@ -301,16 +301,16 @@ public final class Reprise {
 
     /** Running tablets stand still (remembered to start again at the go). */
     private static void pauseTablets() {
-        for (TimerTabletBlockEntity t : serverTablets()) {
+        for (ClockBlockEntity t : serverTablets()) {
             if (!t.clock().running()) continue;
             tabletsToResume.add(key(t));
             t.control("pause");
         }
     }
 
-    private static List<TimerTabletBlockEntity> serverTablets() {
-        List<TimerTabletBlockEntity> out = new ArrayList<>();
-        for (TimerTabletBlockEntity t : TimerTabletBlockEntity.loaded())
+    private static List<ClockBlockEntity> serverTablets() {
+        List<ClockBlockEntity> out = new ArrayList<>();
+        for (ClockBlockEntity t : ClockBlockEntity.loaded())
             if (t.getLevel() instanceof ServerLevel && !t.isRemoved()) out.add(t);
         return out;
     }
@@ -386,7 +386,7 @@ public final class Reprise {
     /** Tablets away that have loaded get their time back (paused while frozen). */
     private static void applyAwayTablets() {
         long now = System.currentTimeMillis();
-        for (TimerTabletBlockEntity t : serverTablets()) {
+        for (ClockBlockEntity t : serverTablets()) {
             GlobalPos g = key(t);
             Away a = away.remove(g);
             if (a == null) continue;
@@ -451,7 +451,7 @@ public final class Reprise {
         s.sinceFirstBuzz = Buzzers.LOCK.sinceFirst(now);
         for (GlobalPos g : Buzzers.lit()) s.litBuzzers.add(place(g));
         Map<GlobalPos, RepriseState.Tablet> loaded = new HashMap<>();
-        for (TimerTabletBlockEntity t : serverTablets()) {
+        for (ClockBlockEntity t : serverTablets()) {
             GlobalPos g = key(t);
             RepriseState.Place p = place(g);
             RepriseState.Tablet saved = new RepriseState.Tablet(p.dim, p.x, p.y, p.z,
@@ -466,7 +466,7 @@ public final class Reprise {
         away.entrySet().removeIf(e -> {
             ServerLevel level = server.getLevel(e.getKey().dimension());
             BlockPos pos = e.getKey().pos();
-            return level == null || level.isLoaded(pos) && !(level.getBlockEntity(pos) instanceof TimerTabletBlockEntity);
+            return level == null || level.isLoaded(pos) && !(level.getBlockEntity(pos) instanceof ClockBlockEntity);
         });
         seen = loaded;
         seenAt = now;
@@ -566,7 +566,7 @@ public final class Reprise {
         if (Show.timerRunning())
             out.add(line("Chrono de manche : ", Actions.clock(Show.timerRemaining(server)) + (Show.timerPaused() ? " (en pause)" : "")));
         List<String> tablets = new ArrayList<>();
-        for (TimerTabletBlockEntity t : serverTablets()) {
+        for (ClockBlockEntity t : serverTablets()) {
             TabletClock.Settings st = t.settings();
             if (st.mode != TabletClock.Mode.TIMER && st.mode != TabletClock.Mode.STOPWATCH) continue;
             boolean running = t.clock().running() || tabletsToResume.contains(key(t));
@@ -612,7 +612,7 @@ public final class Reprise {
 
     // ---------------------------------------------------------------- positions
 
-    private static GlobalPos key(TimerTabletBlockEntity t) {
+    private static GlobalPos key(ClockBlockEntity t) {
         return GlobalPos.of(t.getLevel().dimension(), t.getBlockPos().immutable());
     }
 

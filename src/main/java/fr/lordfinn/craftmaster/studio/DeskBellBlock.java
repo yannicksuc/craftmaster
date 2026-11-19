@@ -57,11 +57,11 @@ public class DeskBellBlock extends DecorBlock {
         return InteractionResult.SUCCESS_SERVER;
     }
 
-    /** Stops the timer tablets within 2 blocks (like Taskmaster's bell); what the first one shows, or null. */
+    /** Stops the timer tablets and giant timers within 2 blocks (like Taskmaster's bell); what the first one shows, or null. */
     private static String stopTablets(ServerLevel level, BlockPos pos) {
         String shown = null;
         for (BlockPos p : BlockPos.betweenClosed(pos.offset(-2, -1, -2), pos.offset(2, 1, 2))) {
-            if (!(level.getBlockEntity(p) instanceof TimerTabletBlockEntity tablet)) continue;
+            if (!(level.getBlockEntity(p) instanceof ClockBlockEntity tablet)) continue;
             String s = tablet.bell();
             if (s != null && shown == null) {
                 shown = s;

@@ -90,7 +90,7 @@ son collier. Le plan de diffusion part toujours de son objectif.
 | Objet | Bloc / objet | Utilisation |
 |---|---|---|
 | Tablette chrono | `timer_tablet` | Cadre photo autour d'un écran à chiffres 7 segments (comme celui que tient l'assistant de Taskmaster), réglable de A à Z ([ci-dessous](#tablette-chrono)) |
-| Chrono géant | `timer_display` | Panneau doré « 1 · Le Pont » + le temps en grands chiffres à 7 segments. Se fixe à un mur (le panneau monte au-dessus du bloc). Clic droit : plus grand (1 à 6 : 2,5 × 1 à 15 × 6 blocs), accroupi : plus petit |
+| Chrono géant | `timer_display` | Panneau doré « 1 · Le Pont » + le temps en grands chiffres à 7 segments. Se fixe à un mur (le panneau monte au-dessus du bloc). Se règle comme la tablette ([ci-dessous](#ce-quaffiche-le-chrono-géant)) |
 | Écran du studio | `studio_screen` (objet) | Écran plat posé sur un mur, 3 × 2 blocs, qui montre une image téléchargée, ou une **vidéo** avec WaterMedia ; voir `/cm media image` |
 | Pupitre de candidat | `contestant_desk` | Pupitre en noyer et velours, plaque en laiton au nom du candidat, tournée vers le public (celui qui le pose). Nom : une **étiquette renommée** utilisée dessus (elle est gardée), ou `/cm plateau pupitre nom`. **Côte à côte** (même sens), les pupitres forment un seul long pupitre (plus de montants ni de bord doré entre eux). **Clic droit** (sauf étiquette) : son **tiroir**, 9 cases |
 | Sonnette de comptoir | `desk_bell` | « Ding » quand un candidat a fini : les organisateurs voient « ♪ Ensuri a sonné (1:42 restantes) » ; impulsion de redstone, une fois par demi-seconde |
@@ -99,12 +99,24 @@ son collier. Le plan de diffusion part toujours de son objectif.
 | Poteau à cordon | `stanchion` | Poteaux en laiton ; un cordon de velours pend jusqu'au poteau suivant sur la même ligne (est ou sud, jusqu'à 4 blocs, sans mur entre les deux) |
 
 ### Ce qu'affiche le chrono géant
-- Avant de lancer une manche à chrono : sa durée, en crème (« 3:00 »).
+Par défaut (et pour tous les chronos géants posés avant les réglages), il suit le chrono de l'émission (barre de boss,
+`/cm manche lancer`, la voix) :
+- Avant de lancer une manche à chrono : sa durée, en plus sombre (« 3:00 »).
 - Pendant : le temps restant en or, en **rouge clignotant** les 10 dernières secondes.
 - À la fin du temps : « 0:00 » rouge qui clignote 8 s.
 - Sans manche ni chrono : « -:-- » discret. Le bandeau donne « numéro · nom » de la manche en cours (« CraftMaster » sinon).
 
-Il suit le chrono de l'émission (barre de boss, `/cm manche lancer`, la voix), il n'a rien à régler.
+Il se règle **comme la tablette chrono** (mêmes réglages, même écran) :
+- **Clic droit (organisateurs, debout, main vide)** : l'écran de réglages, avec un aperçu en direct et ▶ Démarrer,
+  ⏸ Pause, Remettre, Relancer. **Accroupi + clic droit** : une taille plus petit (raccourci).
+- **Mode** : *Chrono de l'émission* (par défaut), *Minuteur*, *Chrono*, *Heure* ; durée, format, alerte et sa couleur.
+- **Apparence** : couleur des chiffres (or par défaut), segments éteints, **taille 1 à 6** (2,5 × 1 à 15 × 6 blocs),
+  **bandeau** (vide = « numéro · nom » de la manche, « CraftMaster » sans manche) et bandeau affiché ou non.
+- **Déclencheurs** : les mêmes que la tablette, **groupe** compris : tablettes et chronos géants d'un même groupe
+  démarrent et s'arrêtent ensemble (`/cm plateau tablette … <groupe>`, la sonnette, la redstone, le comparateur).
+- Les autres joueurs : clic droit = démarre / pause si « Clic des joueurs » est coché ; sinon, ceux qui peuvent
+  construire changent la taille comme avant (clic droit plus grand, accroupi plus petit).
+- Les chiffres et le bandeau rétrécissent pour rester dans le cadre doré (« 1:02:05 », « 1:07.42 », texte long).
 
 ### Tablette chrono
 Un cadre photo autour d'un passe-partout et d'un verre sombre à chiffres 7 segments, au pixel près (une case de
@@ -133,7 +145,8 @@ dégradé avec biseau. Chevalet de peintre en chêne : pieds derrière la tablet
   « ♪ Ensuri a sonné — tablette arrêtée à 25.7 ». Son impulsion redstone ne relance jamais la tablette.
 - **S'arrête avec le chrono** (coché par défaut) : arrêter le chrono de l'émission (StreamDeck `/timer/stop`, la voix,
   `/cm manche chrono stop`) met aussi la tablette en pause.
-- Commande : `/cm plateau tablette lancer|pause|toggle|reset|restart [groupe]` (`/cm plateau tablette`, organisateurs) ; StreamDeck :
+- Commande : `/cm plateau tablette lancer|pause|basculer|reset|relancer [groupe]` (organisateurs ; pilote aussi les
+  chronos géants du groupe, ou tous sans groupe) ; StreamDeck :
   `http://127.0.0.1:25710/tablet/start?group=plateau` ([Saisie](Saisie.md)).
 - Tenue en main, c'est un petit cadre « 25.7 » fixe : les chiffres vivants ne s'affichent que posée (à venir).
 

@@ -69,21 +69,21 @@ public final class StudioCommands {
 
     // ---------------------------------------------------------------- timer tablets
 
-    /** /cm plateau tablette lancer|pause|toggle|reset|restart [group]: every loaded tablet (of the group). */
+    /** /cm plateau tablette lancer|pause|toggle|reset|restart [group]: every loaded tablet and giant timer (of the group). */
     private static LiteralArgumentBuilder<CommandSourceStack> tablet(String name) {
         LiteralArgumentBuilder<CommandSourceStack> root = literal(name).requires(Permissions.ADMIN);
         for (String what : List.of("start", "pause", "toggle", "reset", "restart")) {
             root.then(literal(what)
-                    .executes(c -> tabletDone(c, what, TimerTabletBlockEntity.controlAll("", what)))
+                    .executes(c -> tabletDone(c, what, ClockBlockEntity.controlAll("", what)))
                     .then(argument("group", StringArgumentType.word())
-                            .executes(c -> tabletDone(c, what, TimerTabletBlockEntity.controlAll(StringArgumentType.getString(c, "group"), what)))));
+                            .executes(c -> tabletDone(c, what, ClockBlockEntity.controlAll(StringArgumentType.getString(c, "group"), what)))));
         }
         return root;
     }
 
     private static int tabletDone(com.mojang.brigadier.context.CommandContext<CommandSourceStack> c, String what, int n) {
         c.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(
-                n == 0 ? "Aucune tablette chargée (dans ce groupe)." : "Tablettes : " + what + " (" + n + ")"), false);
+                n == 0 ? "Aucune tablette ni chrono géant chargé (dans ce groupe)." : "Tablettes et chronos géants : " + what + " (" + n + ")"), false);
         return n;
     }
 
