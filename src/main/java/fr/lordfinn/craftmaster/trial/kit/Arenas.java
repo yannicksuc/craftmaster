@@ -191,6 +191,9 @@ public final class Arenas {
         return added;
     }
 
+    /** Block flags of a copy: sent to the players, no shape or neighbour updates, nothing placed reacts. */
+    private static final int NO_UPDATE = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_SKIP_ON_PLACE;
+
     /**
      * Builds (or rebuilds) every copy from the reference: blocks with their contents (chests, barrels, shelves...),
      * entities (item frames, golem, flowers of the path, vase...), nothing else left inside, walls around.
@@ -205,7 +208,8 @@ public final class Arenas {
         for (int[] off : a.copies.values()) {
             for (Entity e : level.getEntities((Entity) null, a.box(off), e -> !(e instanceof Player))) e.discard();
             BlockPos at = a.min().offset(off[0], off[1], off[2]);
-            t.placeInWorld(level, at, at, new StructurePlaceSettings(), level.getRandom(), Block.UPDATE_CLIENTS);
+            // No updates at all, like a WorldEdit paste: crops on stone, floating plants, unconnected panes stay as built
+            t.placeInWorld(level, at, at, new StructurePlaceSettings().setKnownShape(true), level.getRandom(), NO_UPDATE);
             if (a.walls) walls(level, a, off);
             n++;
         }
@@ -229,7 +233,7 @@ public final class Arenas {
                     boolean side = x == x0 || x == x1 || z == z0 || z == z1;
                     if (!side && y != y1) continue;
                     p.set(x, y, z);
-                    if (level.getBlockState(p).isAir()) level.setBlock(p, barrier, Block.UPDATE_CLIENTS);
+                    if (level.getBlockState(p).isAir()) level.setBlock(p, barrier, NO_UPDATE);
                 }
     }
 

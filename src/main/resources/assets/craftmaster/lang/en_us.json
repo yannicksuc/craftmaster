@@ -756,6 +756,8 @@
   "screen.craftmaster.tablet.redstone.toggle": "Start / pause",
   "screen.craftmaster.tablet.redstone.run_while_powered": "Runs while powered",
   "screen.craftmaster.tablet.redstone.restart": "Restarts",
+  "screen.craftmaster.tablet.follow": "Contestant's own time",
+  "screen.craftmaster.tablet.follow.tip": "Shows the time of the contestant playing in this arena copy: starts when they open their letter, stops at their finish. Stopwatch mode; no click, round or redstone",
   "screen.craftmaster.tablet.round_start": "Starts with the round",
   "screen.craftmaster.tablet.round_start.tip": "Restarts when a round starts (/cm manche lancer, the voice)",
   "screen.craftmaster.tablet.round_end": "Stops at round end",
@@ -1159,5 +1161,9 @@
   "screen.craftmaster.modo_desk.voice_on": "Voice: on",
   "screen.craftmaster.modo_desk.voice_off": "Voice: off",
   "screen.craftmaster.modo_desk.voice.tip": "Auto also cuts to whoever speaks (voice chat)",
-  "screen.craftmaster.regie.no_preview": "no preview yet"
+  "screen.craftmaster.regie.no_preview": "no preview yet",
+  "subtitles.craftmaster.pomme.cocori": "Hen: \"cocori\"",
+  "subtitles.craftmaster.pomme.cot": "Hen: \"cot\"",
+  "subtitles.craftmaster.pomme.cotcot": "Hen: \"cotcot\"",
+  "subtitles.craftmaster.pomme.cocotcot": "Hen: \"cocotcot\""
 }

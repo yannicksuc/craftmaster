@@ -756,6 +756,8 @@
   "screen.craftmaster.tablet.redstone.toggle": "Démarre / pause",
   "screen.craftmaster.tablet.redstone.run_while_powered": "Tourne tant qu'alimentée",
   "screen.craftmaster.tablet.redstone.restart": "Relance",
+  "screen.craftmaster.tablet.follow": "Chrono du candidat de la salle",
+  "screen.craftmaster.tablet.follow.tip": "Montre le temps du candidat qui joue dans cette copie d'arène : part à l'ouverture de sa lettre, s'arrête à sa fin. Mode chronomètre ; ni clic, ni manche, ni redstone",
   "screen.craftmaster.tablet.round_start": "Démarre avec la manche",
   "screen.craftmaster.tablet.round_start.tip": "Repart de zéro au lancement d'une manche (/cm manche lancer, la voix)",
   "screen.craftmaster.tablet.round_end": "S'arrête en fin de manche",
@@ -1159,5 +1161,9 @@
   "screen.craftmaster.modo_desk.voice_on": "Voix : oui",
   "screen.craftmaster.modo_desk.voice_off": "Voix : non",
   "screen.craftmaster.modo_desk.voice.tip": "L'auto coupe aussi sur qui parle (chat vocal)",
-  "screen.craftmaster.regie.no_preview": "pas encore d'aperçu"
+  "screen.craftmaster.regie.no_preview": "pas encore d'aperçu",
+  "subtitles.craftmaster.pomme.cocori": "Poule : « cocori »",
+  "subtitles.craftmaster.pomme.cot": "Poule : « cot »",
+  "subtitles.craftmaster.pomme.cotcot": "Poule : « cotcot »",
+  "subtitles.craftmaster.pomme.cocotcot": "Poule : « cocotcot »"
 }

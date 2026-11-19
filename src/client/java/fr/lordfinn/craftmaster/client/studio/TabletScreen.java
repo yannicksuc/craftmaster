@@ -138,6 +138,7 @@ public class TabletScreen extends Screen {
                 r.toggle(giant ? "show_band" : "show_label", () -> s.showLabel, v -> s.showLabel = v);
             }
             case 2 -> {
+                r.toggle("follow", () -> s.followContestant, v -> s.followContestant = v);
                 r.toggle(giant ? "click_giant" : "click", () -> s.clickToggles, v -> s.clickToggles = v);
                 r.cycle("redstone", TabletClock.Redstone.values(), () -> s.redstone, v -> s.redstone = v);
                 r.toggle("round_start", () -> s.startOnRound, v -> s.startOnRound = v);

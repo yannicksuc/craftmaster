@@ -115,6 +115,46 @@ public final class ArenaCommands {
         return new ArrayList<>(Arrays.asList(raw.trim().split("[ ,]+")));
     }
 
+    /** "riricococo | riri coco co co" → the answers, trimmed (separated by « | »). */
+    static List<String> splitAnswers(String raw) {
+        List<String> out = new ArrayList<>();
+        for (String s : raw.split("\\|")) if (!s.isBlank()) out.add(s.trim());
+        return out;
+    }
+
+    private static int showCode(CommandContext<CommandSourceStack> c) {
+        Arena a = arena(c);
+        if (a == null) return 0;
+        Arena.Code code = a.codes.get(str(c, "code"));
+        if (code == null) {
+            fail(c, "Pas de code « " + str(c, "code") + " » dans « " + a.name + " ». /cm arene code " + a.name + " " + str(c, "code") + " reponses <réponse | autre>");
+            return 0;
+        }
+        say(c, Component.literal("Code « " + str(c, "code") + " » de « " + a.name + " » (espaces, majuscules, accents et ponctuation ignorés)").withStyle(ChatFormatting.GOLD));
+        say(c, Component.literal(" Réponses : " + String.join(" | ", code.reponses)).withStyle(ChatFormatting.WHITE));
+        if (!code.syllabes.isEmpty()) {
+            say(c, Component.literal(" Lue en syllabes, dans l'ordre et en nombre exacts : " + String.join(", ", code.syllabes.keySet())).withStyle(ChatFormatting.WHITE));
+            for (Map.Entry<String, List<String>> e : code.syllabes.entrySet())
+                if (!e.getValue().isEmpty())
+                    say(c, Component.literal("  « " + e.getKey() + " » s'écrit aussi : " + String.join(" | ", e.getValue())).withStyle(ChatFormatting.GRAY));
+        }
+        for (Map.Entry<String, List<String>> e : code.variantes.entrySet())
+            say(c, Component.literal(" « " + e.getKey() + " » s'écrit aussi : " + String.join(" | ", e.getValue())).withStyle(ChatFormatting.GRAY));
+        return 1;
+    }
+
+    /** {@code syllabe <s> [orthographes | supprimer]}: the code is then read as syllables of its alphabet. */
+    private static int syllable(CommandContext<CommandSourceStack> c, String raw) {
+        Arena a = arena(c);
+        if (a == null) return 0;
+        Arena.Code code = a.codes.computeIfAbsent(str(c, "code"), k -> new Arena.Code());
+        List<String> v = splitAnswers(raw);
+        if (v.equals(List.of("supprimer"))) code.syllabes.remove(str(c, "syllabe"));
+        else code.syllabes.put(str(c, "syllabe"), v);
+        Arenas.save();
+        return showCode(c);
+    }
+
     private static Manche findManche(String name) {
         Season s = CraftMaster.data().activeSeason();
         if (s == null || s.activePartie() == null) return null;
@@ -234,6 +274,44 @@ public final class ArenaCommands {
                 .then(literal("jury").then(argument("arene", word()).suggests(ARENAS).executes(c -> jury(c, null, fr.lordfinn.craftmaster.trial.kit.JuryScreen.DEFAULT_SCREEN))
                         .then(argument("quoi", word()).suggests(JURY).executes(c -> jury(c, str(c, "quoi"), fr.lordfinn.craftmaster.trial.kit.JuryScreen.DEFAULT_SCREEN))
                                 .then(argument("ecran", word()).executes(c -> jury(c, str(c, "quoi"), str(c, "ecran")))))))
+                .then(literal("code").then(argument("arene", word()).suggests(ARENAS).then(argument("code", word()).executes(ArenaCommands::showCode)
+                        .then(literal("reponses").then(argument("texte", StringArgumentType.greedyString()).executes(c -> {
+                            Arena a = arena(c);
+                            if (a == null) return 0;
+                            Arena.Code code = a.codes.computeIfAbsent(str(c, "code"), k -> new Arena.Code());
+                            code.reponses = splitAnswers(str(c, "texte"));
+                            Arenas.save();
+                            return showCode(c);
+                        })))
+                        .then(literal("variante").then(argument("mot", word()).then(argument("texte", StringArgumentType.greedyString()).executes(c -> {
+                            Arena a = arena(c);
+                            if (a == null) return 0;
+                            Arena.Code code = a.codes.computeIfAbsent(str(c, "code"), k -> new Arena.Code());
+                            List<String> v = splitAnswers(str(c, "texte"));
+                            if (v.isEmpty() || v.equals(List.of("aucune"))) code.variantes.remove(str(c, "mot"));
+                            else code.variantes.put(str(c, "mot"), v);
+                            Arenas.save();
+                            return showCode(c);
+                        }))))
+                        .then(literal("syllabe").then(argument("syllabe", word()).executes(c -> syllable(c, ""))
+                                .then(argument("texte", StringArgumentType.greedyString()).executes(c -> syllable(c, str(c, "texte"))))))
+                        .then(literal("supprimer").executes(c -> {
+                            Arena a = arena(c);
+                            if (a == null) return 0;
+                            a.codes.remove(str(c, "code"));
+                            Arenas.save();
+                            ok(c, "Code « " + str(c, "code") + " » retiré de « " + a.name + " ».");
+                            return 1;
+                        })))))
+                .then(literal("demander").then(argument("code", word()).executes(c -> {
+                    ServerPlayer p = player(c);
+                    if (p == null) return 0;
+                    if (!fr.lordfinn.craftmaster.trial.kit.Codes.ask(p, str(c, "code"))) {
+                        fail(c, "Pas de code « " + str(c, "code") + " » dans l'arène où tu es.");
+                        return 0;
+                    }
+                    return 1;
+                })))
                 .then(literal("fleurs").then(argument("arene", word()).executes(ArenaCommands::installFlowers)))
                 .then(literal("animal").then(argument("arene", word()).executes(ArenaCommands::installAnimal)));
     }

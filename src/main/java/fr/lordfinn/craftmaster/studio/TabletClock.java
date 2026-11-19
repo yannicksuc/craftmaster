@@ -114,6 +114,11 @@ public final class TabletClock {
         public EndSound endSound = EndSound.BEEP;
         /** Blinks "0:00" when a timer is over. */
         public boolean blinkWhenDone = true;
+        /**
+         * Shows the time of the contestant who plays in this arena copy: their stopwatch, from their letter to their
+         * finish (« La pomme »), drawn like a stopwatch. No click, round, redstone or group control then.
+         */
+        public boolean followContestant = false;
         /** Tablets with the same group are started / paused together ("" = alone). */
         public String group = "";
 
