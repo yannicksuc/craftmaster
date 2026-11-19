@@ -258,7 +258,6 @@ fn("monde", [
     "item modify entity @a[distance=..600] player.cursor pomme:regles",
     "clear @a[distance=..600] iron_sword",
     "clear @a[distance=..600] iron_spear",
-    "scoreboard players enable @a[distance=..600] pomme_code",
     "# Petit pendant 10 s",
     "scoreboard players remove @a[distance=..600,scores={pomme_petit=1..}] pomme_petit 1",
     "execute as @a[distance=..600,scores={pomme_petit=1}] at @s run function pomme:petit/grandir",
@@ -266,7 +265,6 @@ fn("monde", [
 fn("charger", [
     "scoreboard objectives add pomme_t dummy",
     "scoreboard objectives add pomme_petit dummy",
-    "scoreboard objectives add pomme_code trigger",
 ])
 F_JSON["data/pomme/predicate/bebe.json"] = {"condition": "minecraft:entity_properties", "entity": "this", "predicate": {"flags": {"is_baby": True}}}
 F_JSON["data/minecraft/tags/function/tick.json"] = {"values": ["pomme:tick"]}
@@ -303,8 +301,8 @@ tick = [
     "# 4. Le code de la porte sur l'étagère : crâne de squelette, gâteau, coquelicot",
     "execute if entity @s[tag=!p_porte] if items block ~28 ~6 ~17 container.* skeleton_skull if items block ~28 ~6 ~17 container.* cake if items block ~28 ~6 ~17 container.* poppy run function pomme:salle/porte",
     "# 5. Le code « riricococo » (panneau « ? : ») puis le bouton bleu : 3 poules de chaque couleur",
-    "execute if entity @s[tag=!p_code] if entity @a[%s,scores={pomme_code=1}] run function pomme:salle/code_bon" % VOL,
-    "scoreboard players reset @a[%s,scores={pomme_code=1..}] pomme_code" % VOL,
+    "execute if entity @s[tag=!p_code] if entity @a[%s,tag=cm_code_poules] run function pomme:salle/code_bon" % VOL,
+    "tag @a[%s,tag=cm_code_poules] remove cm_code_poules" % VOL,
 ]
 tick += edge("p_bleu", "if block ~49 ~4 ~32 #minecraft:buttons[powered=true]", "function pomme:salle/bouton_bleu")
 tick.append("# 6. Les quatre boutons des poules : un son chacun")
@@ -377,6 +375,7 @@ for k, (mot, pitch) in SONS.items():
 fn("salle/bouton_rouge", [
     "execute as %s run function pomme:petit/normal" % PLAYERS,
     "clear %s" % PLAYERS,
+    "tag %s remove cm_code_poules" % PLAYERS,
     "tp %s ~31.5 ~4 ~15.5" % PLAYERS,
     "tag @s remove p_pioche", "tag @s remove p_blanc", "tag @s remove p_noir", "tag @s remove p_bulbs", "tag @s remove p_baptiste",
     "tag @s remove p_porte", "tag @s remove p_code", "tag @s remove p_poules", "scoreboard players reset @s pomme_t",
@@ -392,22 +391,9 @@ fn("petit/grandir", [
     "execute unless score @s pomme_petit matches 0 run scoreboard players set @s pomme_petit 20",
 ])
 fn("petit/normal", ["attribute @s minecraft:scale base set 1", "scoreboard players set @s pomme_petit 0"])
-fn("code/ouvrir", ["dialog show @s pomme:code_poules"])
-# La fenêtre du code : le mot tapé devient « trigger pomme_<mot> » ; seuls les objectifs du bon mot existent
-F_JSON["data/pomme/dialog/code_poules.json"] = {
-    "type": "minecraft:notice", "title": {"text": "? :"}, "can_close_with_escape": True,
-    "inputs": [{"type": "minecraft:text", "key": "mot", "label": {"text": "Écris ta réponse"}, "max_length": 32}],
-    "action": {"label": {"text": "Valider"}, "action": {"type": "minecraft:dynamic/run_command", "template": "trigger pomme_code_$(mot)"}}}
-fn("charger", ["scoreboard objectives add pomme_code_riricococo trigger", "scoreboard objectives add pomme_code_Riricococo trigger",
-               "scoreboard objectives add pomme_code_RIRICOCOCO trigger"])
-fn("monde", ["scoreboard players enable @a[distance=..600] pomme_code_riricococo", "scoreboard players enable @a[distance=..600] pomme_code_Riricococo",
-             "scoreboard players enable @a[distance=..600] pomme_code_RIRICOCOCO",
-             "execute as @a[distance=..600,scores={pomme_code_riricococo=1..}] run scoreboard players set @s pomme_code 1",
-             "execute as @a[distance=..600,scores={pomme_code_Riricococo=1..}] run scoreboard players set @s pomme_code 1",
-             "execute as @a[distance=..600,scores={pomme_code_RIRICOCOCO=1..}] run scoreboard players set @s pomme_code 1",
-             "scoreboard players reset @a[distance=..600,scores={pomme_code_riricococo=1..}] pomme_code_riricococo",
-             "scoreboard players reset @a[distance=..600,scores={pomme_code_Riricococo=1..}] pomme_code_Riricococo",
-             "scoreboard players reset @a[distance=..600,scores={pomme_code_RIRICOCOCO=1..}] pomme_code_RIRICOCOCO"])
+# Le panneau « ? : » : la fenêtre du mod CraftMaster (réponses et variantes : /cm arene code pomme poules ;
+# espaces, majuscules, accents et ponctuation ne comptent pas). Une bonne réponse met le tag cm_code_poules.
+fn("code/ouvrir", ["cm arene demander poules"])
 # Tout remettre à zéro (organisateur) : la référence ne bouge pas, les 4 salles sont refaites
 fn("tout_refaire", ["execute in %s run function pomme:construire/copies" % DIM])
 

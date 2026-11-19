@@ -4,6 +4,7 @@ import com.mojang.math.Transformation;
 import fr.lordfinn.craftmaster.mixin.DisplayAccessor;
 import fr.lordfinn.craftmaster.mixin.InteractionAccessor;
 import fr.lordfinn.craftmaster.mixin.ItemDisplayAccessor;
+import fr.lordfinn.craftmaster.trial.TextMatch;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -30,7 +31,6 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.text.Normalizer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -140,9 +140,9 @@ public final class Pickups {
         return l == null || l.isEmpty() ? "Objet" : l;
     }
 
+    /** What counts in a typed word (see {@link TextMatch}): letters and digits, no case, no accents. */
     public static String norm(String s) {
-        String n = Normalizer.normalize(s == null ? "" : s, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
-        return n.toLowerCase(Locale.ROOT).trim();
+        return TextMatch.key(s);
     }
 
     // ---------------------------------------------------------------- use
@@ -179,7 +179,7 @@ public final class Pickups {
         String name = Arenas.playerName(p);
         String word = norm(typed);
         Set<String> used = USED.computeIfAbsent(arena.toLowerCase(Locale.ROOT) + "|" + name.toLowerCase(Locale.ROOT), k -> new HashSet<>());
-        String why = check(rule, word, used);
+        String why = check(rule, typed, used);
         if (why != null) {
             fr.lordfinn.craftmaster.trial.TrialLog.add(p.level().getServer(), name + " — " + label + " : « " + typed + " » refusé (" + why + ")");
             ask(p, spot, "✗ « " + typed + " » : mauvais mot de passe");
@@ -189,15 +189,18 @@ public final class Pickups {
         take(p, spot, arena, label, typed);
     }
 
-    /** Why the word is refused (for the organisers' log), or null if it opens. */
-    static String check(String rule, String word, Set<String> used) {
+    /**
+     * Why the typed word is refused (for the organisers' log), or null if it opens. Compared with {@link TextMatch}:
+     * spaces, case, accents and punctuation don't count; {@code mot:a|b} accepts any of its spellings.
+     */
+    static String check(String rule, String typed, Set<String> used) {
+        String word = norm(typed);
         if (rule == null || rule.equals("libre")) return word.isEmpty() ? "vide" : null;
-        if (rule.startsWith("mot:")) return word.equals(norm(rule.substring(4))) ? null : "pas le mot";
+        if (rule.startsWith("mot:")) return TextMatch.matches(typed, List.of(rule.substring(4).split("\\|"))) ? null : "pas le mot";
         if (rule.startsWith("initiale:")) {
-            String letter = norm(rule.substring(9));
-            if (!word.matches("[a-z][a-z'\\-]*")) return "pas un mot";
+            String letter = TextMatch.initial(rule.substring(9));
             if (word.replaceAll("[^a-z]", "").length() < 3) return "moins de 3 lettres";
-            if (!word.startsWith(letter)) return "ne commence pas par " + letter.toUpperCase(Locale.ROOT);
+            if (!TextMatch.initial(typed).equals(letter)) return "ne commence pas par " + letter.toUpperCase(Locale.ROOT);
             if (used.contains(word)) return "déjà utilisé";
             return null;
         }

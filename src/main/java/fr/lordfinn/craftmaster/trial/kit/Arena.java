@@ -58,6 +58,18 @@ public final class Arena {
     public Field field;
     /** Items each contestant receives (vanilla item JSON). */
     public List<JsonElement> kit = new ArrayList<>();
+
+    /** Codes the contestants type in this set ({@link Codes}), by name ("poules"). */
+    public java.util.Map<String, Code> codes = new java.util.LinkedHashMap<>();
+
+    /**
+     * A code: its accepted answers and, per word, its other accepted spellings (« cot » : « cote », « cotte »).
+     * Compared by {@link fr.lordfinn.craftmaster.trial.TextMatch}: spaces, case, accents and punctuation don't count.
+     */
+    public static final class Code {
+        public List<String> reponses = new ArrayList<>();
+        public java.util.Map<String, List<String>> variantes = new java.util.LinkedHashMap<>();
+    }
     /** Contestant → offset of their copy from the reference. */
     public Map<String, int[]> copies = new LinkedHashMap<>();
 
