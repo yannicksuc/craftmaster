@@ -34,6 +34,7 @@ public class TimerTabletBlockEntity extends SyncedBlockEntity {
     /** When a bell stopped it (the frozen time flashes for a moment). */
     private long bellAt = Long.MIN_VALUE / 2;
     private boolean powered;
+    private int followTicks;
 
     public TimerTabletBlockEntity(BlockPos pos, BlockState state) {
         super(Studio.TIMER_TABLET_BE, pos, state);
@@ -182,7 +183,8 @@ public class TimerTabletBlockEntity extends SyncedBlockEntity {
     public static void serverTick(Level level, BlockPos pos, BlockState state, TimerTabletBlockEntity be) {
         long now = now();
         if (be.settings.followContestant) {
-            if (level.getGameTime() % 5 == 0) be.followContestant(level, now);
+            // Every 5 ticks (own counter: the game time stands still in some worlds of the worlds mod)
+            if (++be.followTicks % 5 == 0) be.followContestant(level, now);
             return;
         }
         if (be.settings.mode != TabletClock.Mode.TIMER || !be.clock.running() || be.over) return;
