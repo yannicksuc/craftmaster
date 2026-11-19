@@ -96,6 +96,7 @@ public class TimerTabletBlockEntity extends SyncedBlockEntity {
 
     /** start, pause, toggle, reset, restart. */
     public void control(String what) {
+        if (settings.followContestant) return;   // follows the contestant's stopwatch only
         long now = now();
         switch (what) {
             case "start" -> {
@@ -151,6 +152,10 @@ public class TimerTabletBlockEntity extends SyncedBlockEntity {
 
     /** Redstone on the block changed. */
     public void redstone(boolean nowPowered) {
+        if (settings.followContestant) {
+            powered = nowPowered;
+            return;
+        }
         boolean rising = nowPowered && !powered;
         boolean falling = !nowPowered && powered;
         powered = nowPowered;
@@ -176,6 +181,10 @@ public class TimerTabletBlockEntity extends SyncedBlockEntity {
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, TimerTabletBlockEntity be) {
         long now = now();
+        if (be.settings.followContestant) {
+            if (level.getGameTime() % 5 == 0) be.followContestant(level, now);
+            return;
+        }
         if (be.settings.mode != TabletClock.Mode.TIMER || !be.clock.running() || be.over) return;
         if (!be.clock.done(be.settings, now)) return;
         // Over: freeze at 0, sound, redstone signal, blink
@@ -192,6 +201,23 @@ public class TimerTabletBlockEntity extends SyncedBlockEntity {
         if (sound != null && level instanceof ServerLevel sl) sl.playSound(null, pos, sound, SoundSource.BLOCKS, 1.5f, 1f);
         be.sync();
         be.updateSignal();
+    }
+
+    /**
+     * The time of the contestant whose arena copy holds this tablet: running from their letter, frozen at their
+     * finish, 0 when they have no time (new round, reset stopwatch) or in a reference set.
+     */
+    private void followContestant(Level level, long now) {
+        fr.lordfinn.craftmaster.trial.kit.Arenas.Owner o = fr.lordfinn.craftmaster.trial.kit.Arenas.ownerAt(level, worldPosition);
+        String name = o == null ? null : o.player();
+        fr.lordfinn.craftmaster.trial.Stopwatch sw = fr.lordfinn.craftmaster.trial.Stopwatch.SHARED;
+        String known = name == null ? null : sw.find(name);
+        boolean running = known != null && sw.isRunning(known);
+        long elapsed = known == null ? 0 : running ? sw.peek(known, now) : Math.max(0, sw.last(known));
+        if (running != clock.running() || Math.abs(elapsed - clock.elapsed(now)) > 250) {
+            clock.set(running, elapsed, now);
+            sync();
+        }
     }
 
     // ---------------------------------------------------------------- saving and sync

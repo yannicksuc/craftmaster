@@ -24,8 +24,8 @@ OVERRIDE = {
     (38, 12, 31): "minecraft:beehive[facing=north,honey_level=0]",   # bouton du plafond : petit 10 s
     (36, 5, 16): "craftmaster:timer_tablet[pose=stand,rotation=2]",  # le minuteur posé par LordFinn dans sa salle (19/11)
 }
-# Réglages du minuteur, copiés de celui de LordFinn (arrêté ; il démarre avec la manche)
-TIMER = {"Settings": nbtlib.String('{"mode":"SHOW","format":"MINUTES","seconds":60,"label":"","showLabel":false,"color":"RED","warnSeconds":10,"warnColor":"RED","ghostSegments":true,"frame":"OAK","mat":"NONE","size":1,"pose":"STAND","tilt":15,"clickToggles":false,"redstone":"TOGGLE","startOnRound":true,"stopOnRoundEnd":false,"stopWithTimer":true,"signalWhenDone":true,"endSound":"BEEP","blinkWhenDone":true,"group":""}'),
+# Le minuteur de LordFinn (même aspect) : il montre le chrono du candidat de la salle, de sa lettre à sa pomme
+TIMER = {"Settings": nbtlib.String('{"mode":"STOPWATCH","format":"MINUTES","seconds":60,"label":"","showLabel":false,"color":"RED","warnSeconds":10,"warnColor":"RED","ghostSegments":true,"frame":"OAK","mat":"NONE","size":1,"pose":"STAND","tilt":15,"clickToggles":false,"redstone":"OFF","startOnRound":false,"stopOnRoundEnd":false,"stopWithTimer":false,"signalWhenDone":false,"endSound":"NONE","blinkWhenDone":false,"followContestant":true,"group":""}'),
          "Running": nbtlib.Byte(0), "Powered": nbtlib.Byte(0), "Banked": nbtlib.Long(0), "StartedAt": nbtlib.Long(0)}
 def blk(x, y, z): return OVERRIDE.get((x, y, z)) or pal[arr[x + z * W + y * W * L]]
 def name(x, y, z): return blk(x, y, z).split('[')[0].replace('minecraft:', '')
