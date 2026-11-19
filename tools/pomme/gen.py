@@ -22,7 +22,11 @@ OVERRIDE = {
     (49, 2, 31): "minecraft:dirt", (49, 2, 32): "minecraft:dirt",                                  # riricococo + bouton bleu
     (27, 3, 17): "minecraft:stripped_spruce_log[axis=y]",       # bouton rouge, code de l'étagère, porte
     (38, 12, 31): "minecraft:beehive[facing=north,honey_level=0]",   # bouton du plafond : petit 10 s
+    (36, 5, 16): "craftmaster:timer_tablet[pose=stand,rotation=2]",  # le minuteur posé par LordFinn dans sa salle (19/11)
 }
+# Réglages du minuteur, copiés de celui de LordFinn (arrêté ; il démarre avec la manche)
+TIMER = {"Settings": nbtlib.String('{"mode":"SHOW","format":"MINUTES","seconds":60,"label":"","showLabel":false,"color":"RED","warnSeconds":10,"warnColor":"RED","ghostSegments":true,"frame":"OAK","mat":"NONE","size":1,"pose":"STAND","tilt":15,"clickToggles":false,"redstone":"TOGGLE","startOnRound":true,"stopOnRoundEnd":false,"stopWithTimer":true,"signalWhenDone":true,"endSound":"BEEP","blinkWhenDone":true,"group":""}'),
+         "Running": nbtlib.Byte(0), "Powered": nbtlib.Byte(0), "Banked": nbtlib.Long(0), "StartedAt": nbtlib.Long(0)}
 def blk(x, y, z): return OVERRIDE.get((x, y, z)) or pal[arr[x + z * W + y * W * L]]
 def name(x, y, z): return blk(x, y, z).split('[')[0].replace('minecraft:', '')
 MIN = (-361, -64, -167)          # coin du schéma dans le monde d'origine (Origin + Offset)
@@ -117,11 +121,11 @@ for y in range(H):
         x = 0
         while x < W:
             b = blk(x, y, z); pos = (x, y, z)
-            nb = be_snbt(pos) if pos in be else ""
+            nb = be_snbt(pos) if pos in be else (snbt(nbtlib.Compound(TIMER)) if pos == (36, 5, 16) else "")
             if nb:
                 blocks.append("setblock ~%d ~%d ~%d %s%s strict" % (x, y, z, b, nb)); x += 1; continue
             x2 = x
-            while x2 + 1 < W and blk(x2 + 1, y, z) == b and (x2 + 1, y, z) not in be: x2 += 1
+            while x2 + 1 < W and blk(x2 + 1, y, z) == b and (x2 + 1, y, z) not in be and (x2 + 1, y, z) != (36, 5, 16): x2 += 1
             if x2 == x: blocks.append("setblock ~%d ~%d ~%d %s strict" % (x, y, z, b))
             else: blocks.append("fill ~%d ~%d ~%d ~%d ~%d ~%d %s strict" % (x, y, z, x2, y, z, b))
             x = x2 + 1
