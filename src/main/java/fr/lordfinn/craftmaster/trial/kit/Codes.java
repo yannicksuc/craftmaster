@@ -39,7 +39,8 @@ public final class Codes {
         Arena.Code c = a.codes.get(code);
         if (c == null || typed.isBlank()) return;
         String name = Arenas.playerName(p);
-        if (!TextMatch.matches(typed, c.reponses, c.variantes)) {
+        boolean right = c.syllabes.isEmpty() ? TextMatch.matches(typed, c.reponses, c.variantes) : TextMatch.matchesSyllables(typed, c.reponses, c.syllabes);
+        if (!right) {
             TrialLog.add(p.level().getServer(), name + " — code « " + code + " » : « " + typed + " » refusé");
             ask(p, code, "✗ « " + typed + " » : ce n'est pas ça");
             return;

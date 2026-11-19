@@ -69,6 +69,11 @@ public final class Arena {
     public static final class Code {
         public List<String> reponses = new ArrayList<>();
         public java.util.Map<String, List<String>> variantes = new java.util.LinkedHashMap<>();
+        /**
+         * When not empty, the answer is read as syllables of this alphabet only (syllable → its other spellings),
+         * and must have exactly the answer's syllables in the same order: « co », « cot » (« cote », « cotte »), « ri ».
+         */
+        public java.util.Map<String, List<String>> syllabes = new java.util.LinkedHashMap<>();
     }
     /** Contestant → offset of their copy from the reference. */
     public Map<String, int[]> copies = new LinkedHashMap<>();

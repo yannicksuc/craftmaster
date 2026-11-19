@@ -132,9 +132,27 @@ public final class ArenaCommands {
         }
         say(c, Component.literal("Code « " + str(c, "code") + " » de « " + a.name + " » (espaces, majuscules, accents et ponctuation ignorés)").withStyle(ChatFormatting.GOLD));
         say(c, Component.literal(" Réponses : " + String.join(" | ", code.reponses)).withStyle(ChatFormatting.WHITE));
+        if (!code.syllabes.isEmpty()) {
+            say(c, Component.literal(" Lue en syllabes, dans l'ordre et en nombre exacts : " + String.join(", ", code.syllabes.keySet())).withStyle(ChatFormatting.WHITE));
+            for (Map.Entry<String, List<String>> e : code.syllabes.entrySet())
+                if (!e.getValue().isEmpty())
+                    say(c, Component.literal("  « " + e.getKey() + " » s'écrit aussi : " + String.join(" | ", e.getValue())).withStyle(ChatFormatting.GRAY));
+        }
         for (Map.Entry<String, List<String>> e : code.variantes.entrySet())
             say(c, Component.literal(" « " + e.getKey() + " » s'écrit aussi : " + String.join(" | ", e.getValue())).withStyle(ChatFormatting.GRAY));
         return 1;
+    }
+
+    /** {@code syllabe <s> [orthographes | supprimer]}: the code is then read as syllables of its alphabet. */
+    private static int syllable(CommandContext<CommandSourceStack> c, String raw) {
+        Arena a = arena(c);
+        if (a == null) return 0;
+        Arena.Code code = a.codes.computeIfAbsent(str(c, "code"), k -> new Arena.Code());
+        List<String> v = splitAnswers(raw);
+        if (v.equals(List.of("supprimer"))) code.syllabes.remove(str(c, "syllabe"));
+        else code.syllabes.put(str(c, "syllabe"), v);
+        Arenas.save();
+        return showCode(c);
     }
 
     private static Manche findManche(String name) {
@@ -275,6 +293,8 @@ public final class ArenaCommands {
                             Arenas.save();
                             return showCode(c);
                         }))))
+                        .then(literal("syllabe").then(argument("syllabe", word()).executes(c -> syllable(c, ""))
+                                .then(argument("texte", StringArgumentType.greedyString()).executes(c -> syllable(c, str(c, "texte"))))))
                         .then(literal("supprimer").executes(c -> {
                             Arena a = arena(c);
                             if (a == null) return 0;

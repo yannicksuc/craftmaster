@@ -47,6 +47,50 @@ class TextMatchTest {
         assertFalse(TextMatch.matches("cote", List.of("cot"), Map.of()));
     }
 
+    /** La pomme: the code is an enigma of « co », « cot » and « ri »; « cote » and « cotte » are « cot ». */
+    private static final Map<String, List<String>> CO_COT_RI = new java.util.LinkedHashMap<>(Map.of(
+            "co", List.of(), "cot", List.of("cote", "cotte"), "ri", List.of()));
+
+    @Test
+    void syllablesWithFreeSeparators() {
+        assertEquals(List.of("co", "cot", "ri"), TextMatch.syllables("cocotri", CO_COT_RI));
+        assertEquals(List.of("co", "cot", "ri"), TextMatch.syllables("Co-Cot-Ri", CO_COT_RI));
+        assertEquals(List.of("co", "cot", "ri"), TextMatch.syllables(" co  côte  RI ", CO_COT_RI));
+        assertEquals(List.of("co", "cot", "ri"), TextMatch.syllables("co-cotte-ri", CO_COT_RI));
+        assertEquals(List.of("co", "co", "ri", "co"), TextMatch.syllables("cocorico", CO_COT_RI));
+        assertEquals(null, TextMatch.syllables("cotx", CO_COT_RI));
+        assertEquals(null, TextMatch.syllables("cocorica", CO_COT_RI));
+        assertEquals(null, TextMatch.syllables("  ", CO_COT_RI));
+    }
+
+    @Test
+    void theRoomCodeRightAnswers() {
+        List<String> code = List.of("riricococo");
+        for (String ok : List.of("riricococo", "Riricococo", "RI RI CO CO CO", "ri-ri-co-co-co", " riri coco co ", "Ri, ri, co, co, co !"))
+            assertTrue(TextMatch.matchesSyllables(ok, code, CO_COT_RI), ok);
+        List<String> withCot = List.of("co cot ri");
+        for (String ok : List.of("cocotri", "co côte ri", "CO-COTTE-RI", "cocoteri", "cocotteri"))
+            assertTrue(TextMatch.matchesSyllables(ok, withCot, CO_COT_RI), ok);
+    }
+
+    @Test
+    void theRoomCodeNearMissesFail() {
+        List<String> code = List.of("riricococo");
+        for (String wrong : List.of(
+                "riricoco",          // a syllable missing
+                "riricocococo",      // an extra syllable
+                "riricotcoco",       // cot instead of co
+                "ricoricoco",        // same syllables, other order
+                "cocorico",          // not the code
+                "riricococox",       // something left that is no syllable
+                "riricocoka",
+                ""))
+            assertFalse(TextMatch.matchesSyllables(wrong, code, CO_COT_RI), wrong);
+        List<String> withCot = List.of("co cot ri");
+        for (String wrong : List.of("cocori", "cotcotri", "cocotecot ri", "co cot ri ri", "cot co ri", "co coton ri"))
+            assertFalse(TextMatch.matchesSyllables(wrong, withCot, CO_COT_RI), wrong);
+    }
+
     @Test
     void firstLetterAfterNormalising() {
         assertEquals("e", TextMatch.initial("  Éléphant"));
