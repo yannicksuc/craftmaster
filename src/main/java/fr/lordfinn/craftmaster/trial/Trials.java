@@ -30,6 +30,7 @@ public final class Trials {
             fr.lordfinn.craftmaster.trial.kit.Arenas.load();
         });
         fr.lordfinn.craftmaster.trial.kit.Arenas.register();
+        fr.lordfinn.craftmaster.trial.kit.TrialRun.register();
         // The trial kit: banners of a drawing field, password-locked pickups and vases (vanilla entities)
         UseBlockCallback.EVENT.register(fr.lordfinn.craftmaster.trial.kit.Arenas::onUseBlock);
         UseEntityCallback.EVENT.register((player, level, hand, entity, hit) -> fr.lordfinn.craftmaster.trial.kit.Pickups.onUse(player, level, hand, entity));

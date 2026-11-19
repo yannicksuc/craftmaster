@@ -89,7 +89,14 @@ s'annulent avec `/cm annuler`.
 - **Sceau à cire** (organisateurs, `/cm tache outils` ou onglet créatif) : clic droit → choisir le contenu (la tâche
   d'une manche, ou un texte libre), la cire, le nom écrit dessus, combien (ou **une par candidat**, chacune à son
   nom), ouverture annoncée ou discrète → « Sceller ». Le sceau garde la dernière couleur.
-- `/cm tache enveloppe <manche> [joueurs|tous]` : enveloppes données directement (aux candidats connectés par défaut).
+- **Toutes seules** : au **lancement d'une manche** qui a une tâche écrite, chaque candidat connecté de la saison
+  active reçoit son enveloppe (à son nom) ; si la manche se joue dans une arène copiée, seuls ceux qui ont une copie.
+  Un candidat qui **se connecte pendant la manche** reçoit la sienne en arrivant. Jamais de doublon : ni pour qui en a
+  déjà une, ni pour qui l'a ouverte (même déchirée). Indispensable pour les manches **chrono à la lettre** : le chrono
+  de chacun part quand il ouvre la sienne. `/cm manche enveloppes <manche> manuel` coupe la distribution pour une
+  manche (`auto` la remet) ; voir le [déroulé du direct](Deroule-du-direct.md).
+- `/cm tache enveloppe <manche> [joueurs|tous]` : enveloppes données à la main (renvoi, candidat oublié…), aux
+  candidats connectés par défaut, même s'ils en ont déjà une.
 - **Ouvrir** : clic droit avec l'enveloppe en main, puis arracher le sceau (voir « Ouvrir la lettre »). L'enveloppe
   devient « ouverte » (lettre dépliée, cire brisée) et se relit d'un clic droit. Une enveloppe liée à une manche lit toujours la dernière version de la tâche.
   Annonce à tous (barre d'action + son) quand le sceau saute : « ✉ Ensuri ouvre sa tâche ».

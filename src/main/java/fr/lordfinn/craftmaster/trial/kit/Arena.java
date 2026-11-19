@@ -54,6 +54,16 @@ public final class Arena {
      */
     public Boolean inventoryCam;
 
+    /** Game mode of the contestants during the trial: "aventure" (default) or "survie". */
+    public String mode;
+    /** The common voice channel opens when the trial starts. */
+    public boolean vocalLancement;
+    /**
+     * The trial's « suite » steps, one per press of {@code /cm epreuve suite}: revele (next hidden part of the task),
+     * vocal, vocalfin, chrono:&lt;seconds&gt;, panneaux. Empty = one step, revele.
+     */
+    public List<String> etapes = new ArrayList<>();
+
     /** The drawing field (walked on between the red and the green banner), or null. */
     public Field field;
     /** Items each contestant receives (vanilla item JSON). */

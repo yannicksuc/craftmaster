@@ -28,6 +28,23 @@ chaque candidat : chacun joue seul dans **sa** copie.
 La **réapparition** suit aussi les points de TP des manches : un candidat téléporté au lancement d'une manche
 réapparaît là s'il meurt (pour toutes les épreuves).
 
+### Les copies suivent les candidats de la saison
+Les copies d'une arène sont toujours **une par candidat de la saison active** : au lancement de l'épreuve (au plus
+tard), ou tout de suite avec `/cm arene synchroniser [arène]` (bouton « Synchro » du menu), les nouveaux candidats ont
+leur copie (à la première place libre), celles des anciens sont **retirées et leur sol remis** (chaque bloc redevient
+ce qu'il y a à côté, entre deux copies : le sol du monde, l'air au-dessus). Les candidats déjà là **gardent leur place**.
+Une arène **sans copie** (l'inventaire alphabétique, une salle commune) est **partagée** : personne n'y touche.
+
+### Lancer l'épreuve en une action
+`/cm epreuve lancer <manche>` (Stream Deck, menu N) met tout en place : fin de la manche d'avant, manche lancée,
+copies synchronisées et **remises à neuf**, chaque candidat **au départ de sa copie** (réapparition là) dans le **mode
+de jeu de l'arène** avec son **kit**, puis les **enveloppes**. `/cm epreuve suite` fait l'étape suivante,
+`/cm epreuve terminer` ramène chacun où il était. Tout est dans le [déroulé du direct](Deroule-du-direct.md).
+- `option <nom> mode aventure|survie` : mode de jeu des candidats pendant l'épreuve (aventure par défaut) ;
+- `option <nom> vocalLancement true` : le canal vocal commun s'ouvre au lancement ;
+- `/cm arene etapes <nom> <étapes…>` : les étapes de la « suite », dans l'ordre (`revele`, `vocal`, `vocalfin`,
+  `chrono:<secondes>`, `panneaux` ; sans réglage : `revele`). Sans étape : `/cm arene etapes <nom>` les montre.
+
 ### Lien avec la manche
 `/cm arene manche <nom> <manche>` lie l'arène à sa manche, puis :
 - `option <nom> chronoLettre true` : le **chrono de chaque candidat part quand il ouvre sa lettre** ;
@@ -173,6 +190,9 @@ même chose sans copier (le premier qui la mange termine). `/cm epreuve feuille 
    <manche>`. Candidats en **survie**.
 3. Fin des 5 minutes : `/cm epreuve vocal commun`, tu annonces la suite, `/cm tache suite <manche>` (la lettre se complète).
 4. Quand tu veux : `/cm epreuve chrono 600` (chrono de 10 min, vocal commun fermé).
+
+   En direct, tout ça tient en touches : « Lancer village » (survie : `/cm arene option village mode survie`), puis
+   trois fois « Suite » avec `/cm arene etapes village vocal revele chrono:600`.
 5. À la fin : `/cm arene comparer village` : pour chacun, la part des blocs identiques à la référence (le contenu des
    coffres, tonneaux, étagères et cadres ne compte pas ; la bedrock et les barrières non plus) ;
    **[noter sur la feuille]** l'écrit (le plus grand gagne). Rejouer : `/cm arene reset village` (villages et objets

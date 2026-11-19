@@ -30,6 +30,8 @@ public final class Manche {
     public final List<Spot> tp = new ArrayList<>();
     /** Its trial zones (TrialZones names, /cm epreuve zone): what its replays record, one file each. */
     public final List<String> zones = new ArrayList<>();
+    /** Its envelope goes by itself to the contestants when it starts (and to those who arrive later). */
+    public boolean autoEnvelope = true;
     /** Put away: no longer listed nor "next", its points still count. */
     public boolean archived;
     // ---- chantier H: the judge's results sheet of this round (times, counts... → proposed points), undoable
@@ -58,6 +60,7 @@ public final class Manche {
         Maps.putIf(m, "tp", spots);
         Maps.putIf(m, "zones", new ArrayList<>(zones));
         Maps.putIf(m, "archived", archived);
+        if (!autoEnvelope) m.put("autoEnvelope", false);
         if (!results.isEmpty()) m.put("results", results.toYaml()); // chantier H
         if (task != null) m.put("task", task.toYaml());
         if (!intro.isEmpty()) m.put("intro", intro.toYaml()); // chantier E: intro of the round
@@ -79,6 +82,7 @@ public final class Manche {
         }
         r.zones.addAll(Maps.strings(m.get("zones")));
         r.archived = Maps.bool(m.get("archived"));
+        r.autoEnvelope = m.get("autoEnvelope") == null || Maps.bool(m.get("autoEnvelope"));
         r.results = fr.lordfinn.craftmaster.trial.ResultSheet.fromYaml(m.get("results")); // chantier H
         r.intro = MancheIntro.fromYaml(m.get("intro")); // chantier E: absent = no intro
         // Files written before v4 have no task: the round simply has none

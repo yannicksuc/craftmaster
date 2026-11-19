@@ -107,6 +107,9 @@ public final class MenuNetwork {
             JsonObject o = new JsonObject();
             o.addProperty("name", a.name);
             o.addProperty("manche", a.manche);
+            o.addProperty("mode", a.mode == null ? "aventure" : a.mode);
+            o.addProperty("vocalLancement", a.vocalLancement);
+            o.addProperty("etapes", String.join(" → ", a.etapes.isEmpty() ? java.util.List.of("revele") : a.etapes));
             JsonArray copies = new JsonArray();
             a.copies.keySet().forEach(copies::add);
             o.add("copies", copies);

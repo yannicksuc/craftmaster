@@ -230,6 +230,7 @@ public final class CommandTree {
         if (manche != null) {
             graftChildren(child(manche, "chrono", Permissions.ADMIN), old.get("craftmastertimer"), null);
             manche.addChild(fr.lordfinn.craftmaster.trial.kit.InventoryCam.mancheCommand());
+            manche.addChild(fr.lordfinn.craftmaster.trial.kit.TrialRun.mancheEnvelopeCommand());
         }
         graft(cm, "joueur", old.get("craftmasterplayer"), null);
 
@@ -256,6 +257,8 @@ public final class CommandTree {
             graft(trial, "zone", old.get("craftmasterzone"), null);
             graft(trial, "tableau", old.get("craftmasterboard"), null);
             graft(trial, "jouets", old.get("craftmastertoys"), null);
+            // The trial live in one action each: lancer <manche>, suite, terminer
+            for (var n : fr.lordfinn.craftmaster.trial.kit.TrialRun.trialCommands()) trial.addChild(n);
         }
         graft(cm, "arene", old.get("craftmasterarene"), null);
 

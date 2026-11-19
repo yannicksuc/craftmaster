@@ -201,11 +201,18 @@ public final class Arenas {
      * @return number of copies built
      */
     public static int rebuild(MinecraftServer server, Arena a) {
+        return rebuild(server, a, null);
+    }
+
+    /** The same for some contestants' copies only ({@code only} null = all). */
+    public static int rebuild(MinecraftServer server, Arena a, java.util.Collection<String> only) {
         ServerLevel level = level(server, a);
         StructureTemplate t = new StructureTemplate();
         t.fillFromWorld(level, a.min(), new net.minecraft.core.Vec3i(a.sizeX(), a.sizeY(), a.sizeZ()), true, List.of(Blocks.STRUCTURE_VOID));
         int n = 0;
-        for (int[] off : a.copies.values()) {
+        for (Map.Entry<String, int[]> c : a.copies.entrySet()) {
+            if (only != null && only.stream().noneMatch(w -> w.equalsIgnoreCase(c.getKey()))) continue;
+            int[] off = c.getValue();
             for (Entity e : level.getEntities((Entity) null, a.box(off), e -> !(e instanceof Player))) e.discard();
             BlockPos at = a.min().offset(off[0], off[1], off[2]);
             // No updates at all, like a WorldEdit paste: crops on stone, floating plants, unconnected panes stay as built
@@ -213,6 +220,7 @@ public final class Arenas {
             if (a.walls) walls(level, a, off);
             n++;
         }
+        if (only != null) return n;
         Pickups.forget(a.name);
         Drawing.forget(a.name);
         DrawingImages.clear(a.name);

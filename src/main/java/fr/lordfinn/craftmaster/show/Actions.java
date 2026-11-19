@@ -935,6 +935,14 @@ public final class Actions {
                 r.timer = Math.max(0, timer);
                 line("Chrono de « " + r.name + " » : " + (r.timer == 0 ? "aucun" : clock(r.timer)));
             }
+            Boolean autoEnvelope = bool(a, "autoEnvelope");
+            if (autoEnvelope != null) {
+                any = true;
+                r.autoEnvelope = autoEnvelope;
+                line("Enveloppes de « " + r.name + " » : " + (autoEnvelope
+                        ? "données toutes seules au lancement (et aux candidats qui arrivent pendant la manche)."
+                        : "à la main (/cm tache enveloppe)."));
+            }
             if (str(a, "timerStart") != null) {
                 any = true;
                 r.timerStart = timerStart(a);

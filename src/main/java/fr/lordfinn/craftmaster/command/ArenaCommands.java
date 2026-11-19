@@ -20,6 +20,7 @@ import fr.lordfinn.craftmaster.trial.kit.Finish;
 import fr.lordfinn.craftmaster.trial.kit.Pickups;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -78,7 +79,7 @@ public final class ArenaCommands {
         out.add("tous");
         return out;
     });
-    private static final SuggestionProvider<CommandSourceStack> OPTIONS = list(c -> List.of("chronoLettre", "panneauxSuite", "murs", "inventaireVide", "solFin", "alphabet", "aveugle", "cameraInventaire"));
+    private static final SuggestionProvider<CommandSourceStack> OPTIONS = list(c -> List.of("chronoLettre", "panneauxSuite", "murs", "inventaireVide", "solFin", "alphabet", "aveugle", "cameraInventaire", "vocalLancement"));
     private static final SuggestionProvider<CommandSourceStack> JURY = list(c -> {
         List<String> out = new ArrayList<>(List.of("tous", "suivant", "precedent"));
         try {
@@ -266,7 +267,52 @@ public final class ArenaCommands {
                             ok(c, a.chronoSuite == 0 ? "Pas de chrono à la révélation de la suite." : "Chrono de " + a.chronoSuite + " s lancé à la révélation de la suite.");
                             return 1;
                         })))
+                        // Game mode of the contestants during the trial
+                        .then(literal("mode").then(argument("mode", word()).suggests((c, b) -> SharedSuggestionProvider.suggest(List.of("aventure", "survie"), b))
+                                .executes(c -> {
+                                    Arena a = arena(c);
+                                    if (a == null) return 0;
+                                    String m = str(c, "mode").toLowerCase();
+                                    if (!m.equals("aventure") && !m.equals("survie")) {
+                                        fail(c, "Mode : aventure ou survie.");
+                                        return 0;
+                                    }
+                                    a.mode = m.equals("aventure") ? null : m;
+                                    Arenas.save();
+                                    ok(c, "« " + a.name + " » se joue en " + m + ".");
+                                    return 1;
+                                })))
                         .then(argument("option", word()).suggests(OPTIONS).then(argument("on", BoolArgumentType.bool()).executes(ArenaCommands::option)))))
+                // The steps of /cm epreuve suite, in order (none = one step: revele)
+                .then(literal("etapes").then(argument("arene", word()).suggests(ARENAS).executes(c -> {
+                            Arena a = arena(c);
+                            if (a == null) return 0;
+                            ok(c, "Suite de « " + a.name + " » : " + String.join(" → ", a.etapes.isEmpty() ? List.of("revele") : a.etapes)
+                                    + " (étapes : revele, vocal, vocalfin, chrono:<secondes>, panneaux).");
+                            return 1;
+                        })
+                        .then(argument("etapes", StringArgumentType.greedyString()).suggests((c, b) -> SharedSuggestionProvider.suggest(
+                                List.of("revele", "vocal", "vocalfin", "chrono:600", "panneaux", "aucune"), b.createOffset(b.getStart() + b.getRemaining().lastIndexOf(' ') + 1)))
+                                .executes(c -> {
+                                    Arena a = arena(c);
+                                    if (a == null) return 0;
+                                    List<String> steps = new java.util.ArrayList<>();
+                                    for (String w : str(c, "etapes").trim().toLowerCase().split("[\\s,>→]+")) {
+                                        if (w.isEmpty() || w.equals("aucune")) continue;
+                                        if (!w.matches("revele|vocal|vocalfin|panneaux|chrono:\\d{1,4}")) {
+                                            fail(c, "Étape « " + w + " » inconnue : revele, vocal, vocalfin, chrono:<secondes>, panneaux.");
+                                            return 0;
+                                        }
+                                        steps.add(w);
+                                    }
+                                    a.etapes = steps;
+                                    Arenas.save();
+                                    ok(c, "Suite de « " + a.name + " » : " + String.join(" → ", steps.isEmpty() ? List.of("revele") : steps) + ".");
+                                    return 1;
+                                }))))
+                // Copies = the active season's contestants (new ones built, removed ones' ground put back)
+                .then(literal("synchroniser").executes(c -> syncCopies(c, null))
+                        .then(argument("arene", word()).suggests(ARENAS).executes(c -> syncCopies(c, str(c, "arene")))))
                 .then(literal("panneaux").then(argument("arene", word()).suggests(ARENAS).executes(c -> signs(c, false))
                         .then(literal("verrouiller").executes(c -> signs(c, true)))))
                 .then(literal("comparer").then(argument("arene", word()).suggests(ARENAS).executes(c -> compare(c, false))
@@ -413,6 +459,24 @@ public final class ArenaCommands {
         return 1;
     }
 
+    private static int syncCopies(CommandContext<CommandSourceStack> c, String name) {
+        List<Arena> arenas = new java.util.ArrayList<>();
+        if (name != null) {
+            Arena a = arena(c);
+            if (a == null) return 0;
+            arenas.add(a);
+        } else arenas.addAll(Arenas.all());
+        int changed = 0;
+        for (Arena a : arenas) {
+            if (a.copies.isEmpty()) continue;
+            List<String> lines = fr.lordfinn.craftmaster.trial.kit.TrialRun.syncCopies(c.getSource().getServer(), a, true);
+            for (String l : lines) ok(c, l);
+            if (!lines.isEmpty()) changed++;
+        }
+        if (changed == 0) ok(c, "Les copies suivent déjà les candidats de la saison (" + String.join(", ", fr.lordfinn.craftmaster.trial.kit.TrialRun.cast()) + ").");
+        return 1;
+    }
+
     private static int option(CommandContext<CommandSourceStack> c) {
         Arena a = arena(c);
         if (a == null) return 0;
@@ -435,8 +499,9 @@ public final class ArenaCommands {
                 if (on) a.solFin = true;
             }
             case "camerainventaire" -> a.inventoryCam = on;
+            case "vocallancement" -> a.vocalLancement = on;
             default -> {
-                fail(c, "Option inconnue : chronoLettre, panneauxSuite, murs, inventaireVide, solFin, alphabet, aveugle, cameraInventaire (ou chronoSuite <secondes>).");
+                fail(c, "Option inconnue : chronoLettre, panneauxSuite, murs, inventaireVide, solFin, alphabet, aveugle, cameraInventaire, vocalLancement (ou chronoSuite <secondes>, mode aventure|survie).");
                 return 0;
             }
         }

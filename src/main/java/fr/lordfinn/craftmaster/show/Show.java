@@ -119,6 +119,8 @@ public final class Show {
     public static void roundStarted(MinecraftServer server, Actions.MancheStarted m) {
         // Held timer: the tablets start with it (task.RoundStart)
         if (!fr.lordfinn.craftmaster.task.RoundStart.waiting()) fr.lordfinn.craftmaster.studio.ClockBlockEntity.onRoundStart(server);
+        // Its trial set up (copies, contestants in place, kit) and its envelopes handed out
+        fr.lordfinn.craftmaster.trial.kit.TrialRun.onRoundStarted(server, m);
         ShowEvents.onMancheStarted(server, m.season(), m.number(), m.name());
     }
 

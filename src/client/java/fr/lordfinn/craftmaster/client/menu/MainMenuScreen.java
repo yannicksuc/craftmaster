@@ -167,6 +167,22 @@ public class MainMenuScreen extends Screen {
     }
 
     private void trials(Rows r) {
+        // The live: one button per trial (everything set up at once), then its « suite » and its end
+        JsonArray live = arr(s(), "arenas");
+        if (live != null && live.size() > 0) {
+            r.row(Component.literal("Direct").withStyle(ChatFormatting.GOLD), b -> {
+                for (JsonElement e : live) {
+                    JsonObject a = e.getAsJsonObject();
+                    String manche = str(a, "manche");
+                    if (manche == null) continue;
+                    b.button("▶ " + str(a, "name"), "Lance l'épreuve « " + manche + " » : fin de la manche d'avant, copies remises à neuf, "
+                            + "candidats en place (" + str(a, "mode") + ", kit), enveloppes", () -> MenuClient.command("epreuve lancer " + q(manche)));
+                }
+                b.button("Suite", "L'étape suivante de l'épreuve en cours (révélation, vocal commun, chrono…)", () -> MenuClient.command("epreuve suite"));
+                b.shift("Terminer", "Maj+clic : fin de la manche, candidats revenus à leur place d'avant, copies remises à neuf",
+                        () -> MenuClient.command("epreuve terminer"));
+            });
+        }
         r.row(Component.literal("Outils"), b -> {
             b.button("Journal", "Le journal de l'épreuve : boutons, buzzers, premiers, sorties de zone", () -> MenuClient.command("epreuve journal"));
             b.button("Buzzers", "Rallume la partie de buzzers", () -> MenuClient.command("epreuve buzzer reset"));
@@ -187,6 +203,8 @@ public class MainMenuScreen extends Screen {
                     + "  ·  " + (copies == null || copies.isEmpty() ? "pas de copie" : copies.size() + " copie(s)"));
             r.row(Component.literal("Le jeu").withStyle(ChatFormatting.GRAY), b -> {
                 b.button("Copier", "Une copie par candidat de la saison, côte à côte (refait celles qui existent)", () -> MenuClient.command("arene copier " + n));
+                b.button("Synchro", "Les copies suivent les candidats de la saison : nouvelles construites, anciennes retirées (sol remis)",
+                        () -> MenuClient.command("arene synchroniser " + n));
                 b.button("Placer", "Chaque candidat au départ de sa copie, réapparition là, avec le kit", () -> MenuClient.command("arene placer " + n));
                 b.shift("Reset", "Maj+clic : toutes les copies refaites comme la référence", () -> MenuClient.command("arene reset " + n));
                 b.button("Comparer", "Chaque copie comparée bloc à bloc à la référence", () -> MenuClient.command("arene comparer " + n));
@@ -203,7 +221,13 @@ public class MainMenuScreen extends Screen {
                         v -> MenuClient.command("arene option " + n + " murs " + v));
                 b.toggle("Vider inv.", "L'inventaire des candidats est vidé avant le kit", bool(a, "inventaireVide"),
                         v -> MenuClient.command("arene option " + n + " inventaireVide " + v));
+                boolean survival = "survie".equals(str(a, "mode"));
+                b.button(survival ? "Survie" : "Aventure", "Mode de jeu des candidats pendant l'épreuve (clic : " + (survival ? "aventure" : "survie") + ")",
+                        () -> MenuClient.command("arene option " + n + " mode " + (survival ? "aventure" : "survie")));
+                b.toggle("Vocal départ", "Le canal vocal commun s'ouvre au lancement de l'épreuve", bool(a, "vocalLancement"),
+                        v -> MenuClient.command("arene option " + n + " vocalLancement " + v));
             });
+            r.note("Suite : " + str(a, "etapes") + "   (/cm arene etapes " + name + " revele vocal chrono:600 …)");
             r.row(Component.literal(" "), b -> {
                 b.toggle("Sol = fin", "Toucher le sol hors de la copie termine l'essai et verrouille l'inventaire", bool(a, "solFin"),
                         v -> MenuClient.command("arene option " + n + " solFin " + v));

@@ -61,7 +61,8 @@ Restent à part, parce qu'elles vivent dans le jeu de chacun (pas sur le serveur
 ### Manches (admin)
 | Commande | Effet |
 |---|---|
-| `/cm manche lancer <manche\|next>` · `suivante` · `fin` | Lance (titre, son, TP, chrono, décor) · la suivante · fin de la manche |
+| `/cm manche lancer <manche\|next>` · `suivante` · `fin` | Lance (titre, son, TP, chrono, décor ; arènes liées en place, enveloppes) · la suivante · fin de la manche |
+| `/cm manche enveloppes <manche> auto\|manuel` | Enveloppes données toutes seules au lancement (défaut) ou à la main |
 | `/cm manche chrono go` · `chrono stop` | Lance tout de suite le chrono qui attend sa lettre ou son bouton · l'arrête (libère les figés) |
 | `/cm manche chrono <manche> <secondes>` | Durée du chrono (0 = aucun) |
 | `/cm manche depart <manche> <lancement\|lettre\|bouton>` | Quand le chrono démarre ([Tâches](Taches.md)) |
@@ -103,6 +104,7 @@ Restent à part, parce qu'elles vivent dans le jeu de chacun (pas sur le serveur
 | `/cm epreuve chrono lancer\|stop <joueur> [noter]` · `reset [joueur]` · `liste` · `<secondes>` | Chronos des candidats · lance le chrono de la manche maintenant |
 | `/cm epreuve buzzer reset\|statut` | Buzzers |
 | `/cm epreuve zone creer\|joueurs\|activer\|montrer\|retirer\|liste …` | Zones d'épreuve |
+| `/cm epreuve lancer <manche>` · `suite` · `terminer` | **L'épreuve en direct** : tout en place en une fois · étape suivante · fin et retour ([déroulé du direct](Deroule-du-direct.md)) |
 | `/cm epreuve journal` · `reset` · `objet` | Journal · remise à zéro · réglages de l'objet regardé |
 | `/cm epreuve motdepasse …` · `vase <n>` · `marquer <but>` · `panneau <texte>` · `vocal commun\|fin` | Objets d'épreuve ([Arènes](Arenes.md)) |
 | `/cm epreuve tableau taille\|effacer\|verrouiller\|texte …` | Tableau à dessin regardé |
@@ -114,7 +116,8 @@ Restent à part, parce qu'elles vivent dans le jeu de chacun (pas sur le serveur
 | `/cm arene liste` · `creer <nom>` · `spawn <nom>` · `manche <nom> <manche>` | Les arènes, en créer, départ, manche liée |
 | `/cm arene copier <nom> [joueurs\|tous]` · `placer <nom> [joueurs]` · `reset <nom>` | Une copie par candidat · chacun à son départ · tout refaire |
 | `/cm arene tp <nom> <joueur> [dessus]` · `kit <nom> [vide]` · `champ <nom> [encre]` | Voir une copie · kit · champ à dessiner |
-| `/cm arene option <nom> <option> <valeur>` | `chronoLettre`, `panneauxSuite`, `murs`, `inventaireVide`, `solFin`, `alphabet`, `aveugle`, `cameraInventaire` (true/false), `chronoSuite` (s) — en direct, aussi dans le [menu des épreuves](#épreuves-en-direct) |
+| `/cm arene option <nom> <option> <valeur>` | `chronoLettre`, `panneauxSuite`, `murs`, `inventaireVide`, `solFin`, `alphabet`, `aveugle`, `cameraInventaire`, `vocalLancement` (true/false), `chronoSuite` (s), `mode aventure\|survie` — en direct, aussi dans le [menu des épreuves](#épreuves-en-direct) |
+| `/cm arene etapes <nom> [étapes…]` · `synchroniser [nom]` | Étapes de « suite » (`revele vocal vocalfin chrono:600 panneaux`) · copies = candidats de la saison |
 | `/cm arene panneaux <nom> [verrouiller]` · `comparer <nom> [noter]` | Panneaux des copies · comparaison bloc à bloc |
 | `/cm arene fleurs <nom>` · `animal <nom>` | Installe les fleurs de Jeremy / le champ d'Animal devant toi |
 | `/cm arene jury <nom> [tous\|<joueur>\|suivant\|precedent] [écran]` | Les dessins (Animal, à l'aveugle) sur l'écran « jury » de la salle : tous, ou un en grand ; boutons dans le chat |
@@ -223,7 +226,7 @@ dans les 3 s agit). Il lit `/cameras`, `/thumb?camera=N` et `/state` de l'API du
 |---|---|
 | CraftMaster | Manches ▸ · Épreuves ▸ · Lumières ▸ · Caméras ▸ · Menu · Manche suivante · Fin de manche · Chrono go · Chrono stop · Annuler · Publier · Révélation (à confirmer) · Debug (interrupteur) · Serveur ▸ |
 | Manches | Saisie (U) · Classement · Résultats · Menu manches · Tâche à l'écran · Révéler la tâche · Suite · Fermer les cartes · Bandeau des scores · Refaire · Joueurs · Carte tâche TV · Statut · Historique |
-| Épreuves | Menu épreuves · Journal · Buzzers · Chronos · Vocal commun · Vocal fin · Objets · Faire briller · Reset épreuve · Feuille · Barème · Caméra d'inventaire toujours / épreuves / jamais |
+| Épreuves | **Lancer fleurs · Lancer animal · Lancer pomme · Lancer village · Lancer inventaire · Suite · Terminer (à confirmer)** · Menu épreuves · Chronos · Vocal commun · Vocal fin · Caméra d'inventaire (interrupteur) · Feuille · Journal |
 | Lumières | les 8 ambiances (salle, discussion, tension, revelation, vainqueur, studio, attente, pause) · Noir · conduites ouverture / fin · Stop conduite · Spots (interrupteur) · Séquences |
 | Caméras | Auto on / off · Plan large · Menu caméra · Caméras 1 à 5 · Précédente · Suivante · Bandes on / off · Stop habillage |
 | Serveur | Statut · Reprise ? · Reprendre · Geler · Debug on / off · Annuler · Refaire · Historique · Aide · Saisons · Joueurs · Manches · Arènes |

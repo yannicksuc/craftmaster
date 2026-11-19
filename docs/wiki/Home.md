@@ -17,6 +17,7 @@ Minecraft 26.3, à installer sur le serveur **et** chez les joueurs (avec Fabric
 - [Garde-robe : changer de tenue en un clic (vêtements Selfexpression, toute armure)](GardeRobe.md)
 - [Objets à manipuler : canards en plastique, balles, ballons, œuf fragile, golf, cibles qui comptent, verre gradué](Objets.md)
 - [Arènes d'épreuve : un parcours par joueur, mots de passe, vase, dessin au sol, village à refaire, inventaire alphabétique](Arenes.md)
+- [Déroulé du direct : une épreuve = une touche (lancer, suite, terminer)](Deroule-du-direct.md)
 - [Tâches, enveloppes scellées et notes cachées](Taches.md)
 - [Rideaux de scène](Rideaux.md)
 - [Scénographie : projecteurs (couleur, intensité, cône, poursuite auto), ambiances et conduites automatiques](Scenographie.md)
