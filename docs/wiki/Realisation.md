@@ -317,21 +317,22 @@ prend le relais.
   phrase (sans titre, sans partie secrète, 110 caractères au plus) est tapée à la machine en bas de l'image pendant
   le plan « lieu de la tâche » (ou le dernier plan), sur la diffusion seulement.
 - **Musique d'intro d'épreuve** (`musique intro`, son `craftmaster:show.intro`) : « intro-epreuve-v2 », composée pour
-  CraftMaster avec des sons de blocs musicaux (aucun droit à payer) : 10,1 s, 120 BPM, stéréo, −20,7 LUFS, crête
-  −1 dBFS. Mesures 1 à 3 : le motif, une fois par mesure (2 s) ; mesure 4 : roulement montant puis un coup sombre sur
+  CraftMaster avec des sons de blocs musicaux (aucun droit à payer) : 10,1 s, 120 BPM, stéréo, −13,6 LUFS, crête
+  −1,5 dBFS. Mesures 1 à 3 : le motif, une fois par mesure (2 s) ; mesure 4 : roulement montant puis un coup sombre sur
   le dernier demi-temps ; à 8 s : l'accord final de ré, tenu ≈ 2 s puis qui s'éteint. Fichier
   `assets/craftmaster/sounds/show/intro.ogg` (remplaçable dans un pack de ressources) ; source, MIDI et script de
   génération : `scripts/musique/intro-epreuve-v2.mid` et `intro_epreuve2.py` dans le dépôt (originaux et rendus wav/mp3
   chez LordFinn, `Downloads/fanfare-craftmaster/`).
 - **Fanfare d'ouverture** (son `craftmaster:show.ouverture`, catégorie « Musique/Jukebox ») : jouée une fois par le
   **générique d'ouverture** (`/cm tv intro` seul, « générique »), sur tous les jeux avec le mod (diffusion et joueurs).
-  « fanfare-v4 » : 17,4 s, 112 BPM (le tempo du thème : `rythme theme` reste calé), ré, stéréo, −19 LUFS, crête
-  −1 dBFS, sons de blocs musicaux composés pour CraftMaster. Rien ne la coupe à la fin du générique (plus court
+  « fanfare-v4 » : 17,4 s, 112 BPM (le tempo du thème : `rythme theme` reste calé), ré, stéréo, −12,7 LUFS, crête
+  −1,5 dBFS, sons de blocs musicaux composés pour CraftMaster. Rien ne la coupe à la fin du générique (plus court
   qu'elle avec peu de candidats) ; une intro de manche ou `/cm tv stop` l'arrête. Le générique de fin garde le thème.
   Fichier `assets/craftmaster/sounds/show/ouverture.ogg` ; MIDI et script : `scripts/musique/fanfare-v4.mid` et
   `fanfare_v4.py` (originaux et rendus wav/mp3 chez LordFinn, `Downloads/fanfare-craftmaster/`).
-- **Niveaux** : ces deux musiques sont masterisées plus bas que le thème (−12 LUFS) et l'ancienne intro (−15 LUFS),
-  ≈ 6 dB de moins, pour laisser passer les voix ; elles suivent le volume « Musique/Jukebox » du jeu de chacun.
+- **Niveaux** : ces deux musiques sont masterisées (compresseur doux, limiteur) au niveau du thème (≈ −12 LUFS) ;
+  elles suivent le volume « Musique/Jukebox » du jeu de chacun. Les versions masterisées sont dans
+  `Downloads/fanfare-craftmaster/master/` chez LordFinn.
 - **Éditeur** : `/cm tv intro <m> voir` montre la frise de l'intro sur la musique (un pavé par temps, une couleur par
   plan ; survoler = le plan, cliquer = l'essayer) et dit si elle finit sur l'accord de la musique d'intro. Chaque
   plan a ses boutons : ▶ (jouer à partir de lui, sans la musique), ↑ ↓ (changer sa place), caméra, effet,
