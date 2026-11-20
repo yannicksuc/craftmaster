@@ -29,6 +29,14 @@ OVERRIDE = {
     # deux dans le sol du couloir qui mène au poulailler (à la place des planches)
     (47, 3, 28): "minecraft:sand", (42, 3, 30): "minecraft:sand", (43, 3, 30): "minecraft:sand",
 }
+# Les changements que LordFinn fait ensuite dans la salle de référence du serveur (import_ref.py → modifs.json) :
+# blocs, contenus de conteneurs et décors (cadres, tableaux, displays), par-dessus le schéma et les surcharges ci-dessus
+def load_modifs():
+    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'modifs.json')
+    return json.load(open(p, encoding='utf-8')) if os.path.exists(p) else {}
+MODIFS = load_modifs()
+for _k, _v in MODIFS.get('blocks', {}).items():
+    OVERRIDE[tuple(int(c) for c in _k.split(','))] = _v
 # Le minuteur de LordFinn (même aspect) : il montre le chrono du candidat de la salle, de sa lettre à sa pomme
 TIMER = {"Settings": nbtlib.String('{"mode":"STOPWATCH","format":"MINUTES","seconds":60,"label":"","showLabel":false,"color":"RED","warnSeconds":10,"warnColor":"RED","ghostSegments":true,"frame":"OAK","mat":"NONE","size":1,"pose":"STAND","tilt":15,"clickToggles":false,"redstone":"OFF","startOnRound":false,"stopOnRoundEnd":false,"stopWithTimer":false,"signalWhenDone":false,"endSound":"NONE","blinkWhenDone":false,"followContestant":true,"group":""}'),
          "Running": nbtlib.Byte(0), "Powered": nbtlib.Byte(0), "Banked": nbtlib.Long(0), "StartedAt": nbtlib.Long(0)}
@@ -110,6 +118,8 @@ def be_snbt(pos):
     d = be.get(pos)
     if d is None: return ""
     d = nbtlib.Compound({k: v for k, v in d.items() if k not in DROP and not k.startswith('Bukkit') and not k.startswith('Paper')})
+    if '%d,%d,%d' % pos in MODIFS.get('contents', {}):
+        d['Items'] = nbtlib.parse_nbt(MODIFS['contents']['%d,%d,%d' % pos])
     if 'Items' in d:
         for it in d['Items']: with_rules(it)
     if pos in CACHETTES:
@@ -152,8 +162,10 @@ fn("construire/blocs", blocks)
 ENT_DROP = {'UUID', 'Pos', 'Motion', 'block_pos', 'Id', 'Paper.Origin', 'Paper.OriginWorld', 'WorldUUIDMost', 'WorldUUIDLeast',
             'Brain', 'HurtByTimestamp', 'FallFlying', 'fall_distance', 'OnGround', 'Air', 'PortalCooldown', 'Fire', 'DeathTime', 'HurtTime'}
 ents = []
+DECOR = {'minecraft:item_frame', 'minecraft:glow_item_frame', 'minecraft:painting', 'minecraft:block_display', 'minecraft:item_display'}
 for e in sch['Entities']:
     d = e['Data']; eid = str(e['Id'])
+    if MODIFS.get('decor') is not None and eid in DECOR: continue     # the decor as it is now in the reference (below)
     nb = nbtlib.Compound({k: v for k, v in d.items() if k not in ENT_DROP and not k.startswith(('Bukkit', 'Paper', 'Spigot'))})
     if 'block_pos' in d:
         bp = [int(d['block_pos'][k]) - MIN[k] for k in range(3)]
@@ -174,6 +186,14 @@ for e in sch['Entities']:
     tags = list(nb.get('Tags', [])) + ['pomme_e']
     nb['Tags'] = nbtlib.List[nbtlib.String](tags)
     ents.append("summon %s ~%.4f ~%.4f ~%.4f %s" % (eid, px, py, pz, snbt(nb)))
+
+# Les décors de la salle de référence tels que LordFinn les a laissés (modifs.json), à leur place exacte
+for dec in MODIFS.get('decor') or []:
+    nb = nbtlib.parse_nbt(dec['nbt'])
+    nb = nbtlib.Compound({k: v for k, v in nb.items() if k not in ENT_DROP})
+    if 'Item' in nb: with_rules(nb['Item'])
+    nb['Tags'] = nbtlib.List[nbtlib.String](list(nb.get('Tags', [])) + ['pomme_e'])
+    ents.append("summon %s ~%.4f ~%.4f ~%.4f %s" % ((dec['id'],) + tuple(dec['pos']) + (snbt(nb),)))
 
 def air(x, y, z): return name(x, y, z) in ('air', 'cave_air', 'light')
 def free(x, z, y=4): return air(x, y, z) and air(x, y + 1, z) and not air(x, y - 1, z)

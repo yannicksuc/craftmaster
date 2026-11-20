@@ -1,0 +1,841 @@
+{
+ "note": "Changements de LordFinn dans la salle de référence, relevés par import_ref.py : appliqués par gen.py par-dessus pomme.schem.",
+ "blocks": {
+  "45,3,19": "minecraft:sand",
+  "46,3,19": "minecraft:tuff_bricks",
+  "42,3,29": "minecraft:white_terracotta",
+  "43,3,30": "minecraft:coarse_dirt",
+  "42,3,31": "minecraft:white_terracotta",
+  "42,4,19": "minecraft:campfire[facing=west,lit=true,signal_fire=false,waterlogged=false]",
+  "44,4,19": "minecraft:campfire[facing=west,lit=true,signal_fire=false,waterlogged=false]",
+  "45,4,19": "minecraft:air",
+  "26,4,24": "minecraft:oak_trapdoor[facing=east,half=bottom,open=true,powered=false,waterlogged=false]",
+  "26,4,25": "minecraft:oak_trapdoor[facing=east,half=bottom,open=true,powered=false,waterlogged=false]",
+  "26,4,27": "minecraft:oak_trapdoor[facing=east,half=bottom,open=true,powered=false,waterlogged=false]",
+  "26,4,28": "minecraft:oak_trapdoor[facing=east,half=bottom,open=true,powered=false,waterlogged=false]",
+  "15,5,15": "minecraft:light[level=15,waterlogged=false]",
+  "16,5,15": "minecraft:potted_torchflower",
+  "18,5,15": "minecraft:light[level=15,waterlogged=false]",
+  "22,5,16": "placeable_food:bread[facing=east,stage=0]",
+  "22,5,18": "placeable_food:bread[facing=east,stage=0]",
+  "22,5,19": "blahaj:bread[facing=east]",
+  "36,5,21": "placeable_food:bread[facing=west,stage=0]",
+  "37,5,24": "placeable_food:bread[facing=west,stage=0]",
+  "36,5,25": "placeable_food:bread[facing=north,stage=0]",
+  "22,5,26": "minecraft:air",
+  "19,5,27": "minecraft:light[level=15,waterlogged=false]",
+  "37,5,27": "blahaj:bread[facing=north]",
+  "15,5,28": "minecraft:light[level=15,waterlogged=false]",
+  "26,7,24": "placeable_food:bread[facing=west,stage=0]",
+  "26,7,25": "placeable_food:bread[facing=west,stage=0]",
+  "26,7,27": "placeable_food:bread[facing=west,stage=0]",
+  "26,7,28": "placeable_food:bread[facing=west,stage=0]"
+ },
+ "contents": {
+  "43,6,20": "[{Slot:0b,id:\"minecraft:beef\",count:1},{Slot:1b,id:\"minecraft:beef\",count:1}]",
+  "44,6,20": "[{Slot:0b,id:\"minecraft:beef\",count:1},{Slot:1b,id:\"minecraft:beef\",count:1}]"
+ },
+ "decor": [
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    22.0,
+    5.5,
+    18.0
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,block_state:{Name:\"connectedglass:borderless_glass_white_pane\",Properties:{waterlogged:\"false\",west:\"true\",east:\"true\",south:\"false\",north:\"false\"}},transformation:{translation:[-0.5f,-0.5f,3.9999990463256836f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[7.999999523162842f,1.0000004768371582f,0.9999999403953552f],left_rotation:[0.0f,0.7071068286895752f,0.0f,0.7071068286895752f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    24.6494,
+    5.9962,
+    13.6447
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:cake\",Properties:{bites:\"0\"}},transformation:{translation:[-0.5f,-0.5f,-0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.7037481665611267f,0.6874999403953552f,0.7148157954216003f],left_rotation:[0.0f,0.0f,0.0f,1.0f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    29.5,
+    5.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"bottom\",powered:\"false\",open:\"true\",facing:\"north\"}},transformation:{translation:[0.5f,-0.5000002384185791f,-0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999999403953552f,1.0000003576278687f,0.9999999403953552f],left_rotation:[0.0f,-0.7071068286895752f,0.0f,0.7071068286895752f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    29.5,
+    6.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"bottom\",powered:\"false\",open:\"true\",facing:\"north\"}},transformation:{translation:[0.5f,-0.5000001788139343f,-0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999999403953552f,1.0000003576278687f,0.9999999403953552f],left_rotation:[0.0f,-0.7071068286895752f,0.0f,0.7071068286895752f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    29.5,
+    7.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_stairs\",Properties:{waterlogged:\"false\",half:\"top\",facing:\"north\",shape:\"straight\"}},transformation:{translation:[-0.5f,-0.5000001788139343f,0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999999403953552f,1.0000003576278687f,0.9999999403953552f],left_rotation:[0.0f,0.7071068286895752f,0.0f,0.7071068286895752f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    30.5,
+    7.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"top\",powered:\"false\",open:\"false\",facing:\"north\"}},transformation:{translation:[-0.5f,-0.5f,-0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[1.0f,1.0f,1.0f],left_rotation:[0.0f,0.0f,0.0f,1.0f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    31.5,
+    7.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"top\",powered:\"false\",open:\"false\",facing:\"north\"}},transformation:{translation:[-0.5f,-0.5f,-0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[1.0f,1.0f,1.0f],left_rotation:[0.0f,0.0f,0.0f,1.0f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    32.5,
+    7.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"top\",powered:\"false\",open:\"false\",facing:\"north\"}},transformation:{translation:[0.49999988079071045f,-0.5f,0.49999991059303284f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999998807907104f,1.0f,0.9999998807907104f],left_rotation:[0.0f,1.0f,0.0f,-2.980232594040899e-08f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    33.5,
+    5.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"bottom\",powered:\"false\",open:\"true\",facing:\"north\"}},transformation:{translation:[-0.5f,-0.5000003576278687f,0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999999403953552f,1.0000007152557373f,0.9999999403953552f],left_rotation:[0.0f,0.7071068286895752f,0.0f,0.7071068286895752f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    33.5,
+    6.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"bottom\",powered:\"false\",open:\"true\",facing:\"north\"}},transformation:{translation:[-0.5f,-0.5000003576278687f,0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999999403953552f,1.0000007152557373f,0.9999999403953552f],left_rotation:[0.0f,0.7071068286895752f,0.0f,0.7071068286895752f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    33.5,
+    7.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_stairs\",Properties:{waterlogged:\"false\",half:\"top\",facing:\"north\",shape:\"straight\"}},transformation:{translation:[0.5f,-0.5000003576278687f,-0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999999403953552f,1.0000007152557373f,0.9999999403953552f],left_rotation:[0.0f,-0.7071068286895752f,0.0f,0.7071068286895752f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    36.5,
+    5.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"bottom\",powered:\"false\",open:\"true\",facing:\"north\"}},transformation:{translation:[0.5f,-0.5000002384185791f,-0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999999403953552f,1.0000003576278687f,0.9999999403953552f],left_rotation:[0.0f,-0.7071068286895752f,0.0f,0.7071068286895752f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    36.5,
+    6.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"bottom\",powered:\"false\",open:\"true\",facing:\"north\"}},transformation:{translation:[0.5f,-0.5000001788139343f,-0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999999403953552f,1.0000003576278687f,0.9999999403953552f],left_rotation:[0.0f,-0.7071068286895752f,0.0f,0.7071068286895752f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    36.5,
+    7.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_stairs\",Properties:{waterlogged:\"false\",half:\"top\",facing:\"north\",shape:\"straight\"}},transformation:{translation:[-0.5f,-0.5000001788139343f,0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999999403953552f,1.0000003576278687f,0.9999999403953552f],left_rotation:[0.0f,0.7071068286895752f,0.0f,0.7071068286895752f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    37.5,
+    7.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"top\",powered:\"false\",open:\"false\",facing:\"north\"}},transformation:{translation:[-0.5f,-0.5f,-0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[1.0f,1.0f,1.0f],left_rotation:[0.0f,0.0f,0.0f,1.0f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    38.5,
+    7.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"top\",powered:\"false\",open:\"false\",facing:\"north\"}},transformation:{translation:[-0.5f,-0.5f,-0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[1.0f,1.0f,1.0f],left_rotation:[0.0f,0.0f,0.0f,1.0f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    39.5,
+    7.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"top\",powered:\"false\",open:\"false\",facing:\"north\"}},transformation:{translation:[0.49999988079071045f,-0.5f,0.49999991059303284f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999998807907104f,1.0f,0.9999998807907104f],left_rotation:[0.0f,1.0f,0.0f,-2.980232594040899e-08f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    40.5,
+    5.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"bottom\",powered:\"false\",open:\"true\",facing:\"north\"}},transformation:{translation:[-0.5f,-0.5000003576278687f,0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999999403953552f,1.0000007152557373f,0.9999999403953552f],left_rotation:[0.0f,0.7071068286895752f,0.0f,0.7071068286895752f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    40.5,
+    6.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_trapdoor\",Properties:{waterlogged:\"false\",half:\"bottom\",powered:\"false\",open:\"true\",facing:\"north\"}},transformation:{translation:[-0.5f,-0.5000003576278687f,0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999999403953552f,1.0000007152557373f,0.9999999403953552f],left_rotation:[0.0f,0.7071068286895752f,0.0f,0.7071068286895752f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:block_display",
+   "pos": [
+    40.5,
+    7.5,
+    12.5
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,Tags:[\"pomme_e\"],block_state:{Name:\"minecraft:spruce_stairs\",Properties:{waterlogged:\"false\",half:\"top\",facing:\"north\",shape:\"straight\"}},transformation:{translation:[0.5f,-0.5000003576278687f,-0.5f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.9999999403953552f,1.0000007152557373f,0.9999999403953552f],left_rotation:[0.0f,-0.7071068286895752f,0.0f,0.7071068286895752f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:item_display",
+   "pos": [
+    13.5,
+    6.5625,
+    15.75
+   ],
+   "nbt": "{teleport_duration:0,item:{id:\"minecraft:white_stained_glass_pane\",count:1},transformation:{translation:[0.0f,0.0f,0.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[5.000000476837158f,4.999999523162842f,5.000000476837158f],left_rotation:[0.0f,0.7071068286895752f,0.0f,0.7071068286895752f]},height:0.0f,Invulnerable:0b,interpolation_duration:0,shadow_strength:1.0f,Rotation:[0.0f,0.0f],glow_color_override:-1,Tags:[\"pomme_e\"],shadow_radius:0.0f,view_range:1.0f,billboard:\"fixed\",FrameworkDataHolder:{},width:0.0f,item_display:\"none\"}"
+  },
+  {
+   "id": "minecraft:item_display",
+   "pos": [
+    13.5,
+    6.5625,
+    27.25
+   ],
+   "nbt": "{teleport_duration:0,item:{id:\"minecraft:white_stained_glass_pane\",count:1},transformation:{translation:[0.0f,0.0f,0.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[5.000000476837158f,4.999999523162842f,5.000000476837158f],left_rotation:[0.0f,0.7071068286895752f,0.0f,0.7071068286895752f]},height:0.0f,Invulnerable:0b,interpolation_duration:0,shadow_strength:1.0f,Rotation:[0.0f,0.0f],glow_color_override:-1,Tags:[\"pomme_e\"],shadow_radius:0.0f,view_range:1.0f,billboard:\"fixed\",FrameworkDataHolder:{},width:0.0f,item_display:\"none\"}"
+  },
+  {
+   "id": "minecraft:item_display",
+   "pos": [
+    22.3584,
+    5.2307,
+    27.4375
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,item_display:\"none\",item:{id:\"minecraft:golden_apple\",count:1},transformation:{translation:[0.0f,0.0f,0.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.8125005960464478f,0.8125001192092896f,0.8124995827674866f],left_rotation:[-0.43323010206222534f,-0.10801926255226135f,-0.0932684987783432f,0.8899126648902893f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:item_display",
+   "pos": [
+    22.75,
+    5.0266,
+    27.6106
+   ],
+   "nbt": "{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,item_display:\"none\",item:{id:\"minecraft:golden_apple\",count:1},transformation:{translation:[0.0f,0.0f,0.0f],right_rotation:[0.007068583741784096f,-0.03347115218639374f,-0.00023673220130149275f,0.9994146227836609f],scale:[0.6875003576278687f,0.6875002980232239f,1.0000001192092896f],left_rotation:[-0.6745599508285522f,-0.21169903874397278f,-0.21206465363502502f,0.6746709942817688f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:item_display",
+   "pos": [
+    24.4584,
+    5.4375,
+    12.4789
+   ],
+   "nbt": "{teleport_duration:0,item:{id:\"minecraft:white_stained_glass_pane\",count:1},transformation:{translation:[0.0f,0.0f,0.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[5.6875f,5.6875f,5.6875f],left_rotation:[0.0f,0.0f,0.0f,1.0f]},height:0.0f,Invulnerable:0b,interpolation_duration:0,shadow_strength:1.0f,Rotation:[0.0f,0.0f],glow_color_override:-1,Tags:[\"pomme_e\"],shadow_radius:0.0f,view_range:1.0f,billboard:\"fixed\",FrameworkDataHolder:{},width:0.0f,item_display:\"none\"}"
+  },
+  {
+   "id": "minecraft:item_display",
+   "pos": [
+    26.125,
+    5.0,
+    24.625
+   ],
+   "nbt": "{teleport_duration:0,item:{id:\"blahaj:bread\",count:1},transformation:{translation:[0.0f,0.0f,0.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.7500001192092896f,0.7500001192092896f,0.7500001788139343f],left_rotation:[-0.3788917362689972f,0.6282174587249756f,0.46599313616752625f,0.494605153799057f]},height:0.0f,Invulnerable:0b,interpolation_duration:0,shadow_strength:1.0f,Rotation:[0.0f,0.0f],glow_color_override:-1,shadow_radius:0.0f,view_range:1.0f,billboard:\"fixed\",FrameworkDataHolder:{},width:0.0f,item_display:\"none\",Passengers:[{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,item_display:\"none\",item:{id:\"blahaj:bread\",count:1},transformation:{translation:[0.21381528675556183f,0.7652344107627869f,-0.06090690195560455f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.7500002384185791f,0.7500001192092896f,0.75f],left_rotation:[-0.3788917362689972f,0.6282173991203308f,0.46599331498146057f,0.49460503458976746f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f],id:\"minecraft:item_display\"}]}"
+  },
+  {
+   "id": "minecraft:item_display",
+   "pos": [
+    26.25,
+    5.5,
+    13.4478
+   ],
+   "nbt": "{teleport_duration:0,item:{id:\"minecraft:carrot\",count:1},transformation:{translation:[0.0f,0.0f,0.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.43749988079071045f,0.4374999403953552f,0.4375f],left_rotation:[-0.6903455257415771f,-0.15304593741893768f,-0.15304593741893768f,0.6903455257415771f]},height:0.0f,Invulnerable:0b,interpolation_duration:0,shadow_strength:1.0f,Rotation:[0.0f,0.0f],glow_color_override:-1,Tags:[\"pomme_e\"],shadow_radius:0.0f,view_range:1.0f,billboard:\"fixed\",FrameworkDataHolder:{},width:0.0f,item_display:\"none\"}"
+  },
+  {
+   "id": "minecraft:item_display",
+   "pos": [
+    26.375,
+    5.0,
+    24.9375
+   ],
+   "nbt": "{teleport_duration:0,item:{id:\"blahaj:bread\",count:1},transformation:{translation:[0.0f,0.0f,0.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.7500002384185791f,0.7500002384185791f,0.7500003576278687f],left_rotation:[-0.24058033525943756f,0.7375468611717224f,0.5502996444702148f,0.30873286724090576f]},height:0.0f,Invulnerable:0b,interpolation_duration:0,shadow_strength:1.0f,Rotation:[0.0f,0.0f],glow_color_override:-1,shadow_radius:0.0f,view_range:1.0f,billboard:\"fixed\",FrameworkDataHolder:{},width:0.0f,item_display:\"none\",Passengers:[{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,item_display:\"none\",item:{id:\"blahaj:bread\",count:1},transformation:{translation:[0.15190620720386505f,0.7652343511581421f,-0.1623302400112152f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.7500001788139343f,0.75f,0.7499997615814209f],left_rotation:[-0.24058036506175995f,0.7375468015670776f,0.5502997636795044f,0.3087328374385834f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f],id:\"minecraft:item_display\"}]}"
+  },
+  {
+   "id": "minecraft:item_display",
+   "pos": [
+    26.375,
+    5.0,
+    25.4375
+   ],
+   "nbt": "{teleport_duration:0,item:{id:\"blahaj:bread\",count:1},transformation:{translation:[0.0f,0.0f,0.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.7500004172325134f,0.7500004768371582f,0.7500004172325134f],left_rotation:[-0.5258664488792419f,0.3971906304359436f,0.2901260256767273f,0.6939243078231812f]},height:0.0f,Invulnerable:0b,interpolation_duration:0,shadow_strength:1.0f,Rotation:[0.0f,0.0f],glow_color_override:-1,shadow_radius:0.0f,view_range:1.0f,billboard:\"fixed\",FrameworkDataHolder:{},width:0.0f,item_display:\"none\",Passengers:[{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,item_display:\"none\",item:{id:\"blahaj:bread\",count:1},transformation:{translation:[0.19611531496047974f,0.7652342915534973f,0.10471589863300323f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.7500001788139343f,0.7500000596046448f,0.7499997019767761f],left_rotation:[-0.5258665680885315f,0.397190660238266f,0.29012614488601685f,0.6939242482185364f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f],id:\"minecraft:item_display\"}]}"
+  },
+  {
+   "id": "minecraft:item_display",
+   "pos": [
+    26.5,
+    5.0,
+    24.5
+   ],
+   "nbt": "{teleport_duration:0,item:{id:\"blahaj:bread\",count:1},transformation:{translation:[0.0f,0.0f,0.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.7500002384185791f,0.7500001192092896f,0.7500001192092896f],left_rotation:[-0.2705981135368347f,0.6532814502716064f,0.6532814502716064f,0.2705981135368347f]},height:0.0f,Invulnerable:0b,interpolation_duration:0,shadow_strength:1.0f,Rotation:[0.0f,0.0f],glow_color_override:-1,shadow_radius:0.0f,view_range:1.0f,billboard:\"fixed\",FrameworkDataHolder:{},width:0.0f,item_display:\"none\",Passengers:[{glow_color_override:-1,teleport_duration:0,shadow_radius:0.0f,item_display:\"none\",item:{id:\"blahaj:bread\",count:1},transformation:{translation:[0.0f,0.7968751788139343f,0.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.7500002980232239f,0.7499998807907104f,0.7499998807907104f],left_rotation:[-0.2705981135368347f,0.6532815098762512f,0.6532815098762512f,0.2705981135368347f]},view_range:1.0f,height:0.0f,width:0.0f,shadow_strength:1.0f,Invulnerable:0b,billboard:\"fixed\",interpolation_duration:0,FrameworkDataHolder:{},Rotation:[0.0f,0.0f],id:\"minecraft:item_display\"}]}"
+  },
+  {
+   "id": "minecraft:item_display",
+   "pos": [
+    26.625,
+    5.5,
+    13.3163
+   ],
+   "nbt": "{teleport_duration:0,item:{id:\"minecraft:carrot\",count:1},transformation:{translation:[0.0f,0.0f,0.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.4375f,0.4374999701976776f,0.4374999701976776f],left_rotation:[-0.7071068286895752f,0.0f,0.0f,0.7071068286895752f]},height:0.0f,Invulnerable:0b,interpolation_duration:0,shadow_strength:1.0f,Rotation:[0.0f,0.0f],glow_color_override:-1,Tags:[\"pomme_e\"],shadow_radius:0.0f,view_range:1.0f,billboard:\"fixed\",FrameworkDataHolder:{},width:0.0f,item_display:\"none\"}"
+  },
+  {
+   "id": "minecraft:item_display",
+   "pos": [
+    26.625,
+    5.5,
+    13.7216
+   ],
+   "nbt": "{teleport_duration:0,item:{id:\"minecraft:carrot\",count:1},transformation:{translation:[0.0f,0.0f,0.0f],right_rotation:[0.0f,0.0f,0.0f,1.0f],scale:[0.4374998211860657f,0.4374999403953552f,0.4375000298023224f],left_rotation:[-0.5456209778785706f,0.4497752785682678f,0.4497752785682678f,0.5456209778785706f]},height:0.0f,Invulnerable:0b,interpolation_duration:0,shadow_strength:1.0f,Rotation:[0.0f,0.0f],glow_color_override:-1,Tags:[\"pomme_e\"],shadow_radius:0.0f,view_range:1.0f,billboard:\"fixed\",FrameworkDataHolder:{},width:0.0f,item_display:\"none\"}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    29.5,
+    5.5,
+    25.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;29,5,25],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    29.5,
+    5.5,
+    26.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;29,5,26],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    29.5,
+    5.5,
+    27.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;29,5,27],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    29.5,
+    6.5,
+    25.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;29,6,25],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    29.5,
+    6.5,
+    26.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;29,6,26],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    29.5,
+    6.5,
+    27.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;29,6,27],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    29.5,
+    7.5,
+    25.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:cookie\",count:1},block_pos:[I;29,7,25],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    29.5,
+    7.5,
+    26.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:cookie\",count:1},block_pos:[I;29,7,26],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    29.5,
+    7.5,
+    27.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:cookie\",count:1},block_pos:[I;29,7,27],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    30.5,
+    5.5,
+    25.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;30,5,25],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    30.5,
+    5.5,
+    26.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;30,5,26],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    30.5,
+    5.5,
+    27.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;30,5,27],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    30.5,
+    6.5,
+    25.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;30,6,25],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    30.5,
+    6.5,
+    26.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;30,6,26],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    30.5,
+    6.5,
+    27.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;30,6,27],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    30.5,
+    7.5,
+    25.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:cookie\",count:1},block_pos:[I;30,7,25],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    30.5,
+    7.5,
+    26.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:cookie\",count:1},block_pos:[I;30,7,26],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    30.5,
+    7.5,
+    27.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:cookie\",count:1},block_pos:[I;30,7,27],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    31.5,
+    5.5,
+    25.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;31,5,25],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    31.5,
+    5.5,
+    26.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;31,5,26],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    31.5,
+    5.5,
+    27.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;31,5,27],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    31.5,
+    6.5,
+    25.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;31,6,25],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    31.5,
+    6.5,
+    26.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;31,6,26],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    31.5,
+    6.5,
+    27.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;31,6,27],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    31.5,
+    7.5,
+    25.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:cookie\",count:1},block_pos:[I;31,7,25],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    31.5,
+    7.5,
+    26.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:cookie\",count:1},block_pos:[I;31,7,26],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    31.5,
+    7.5,
+    27.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:cookie\",count:1},block_pos:[I;31,7,27],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    33.5,
+    5.5,
+    32.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;33,5,32],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    33.5,
+    5.5,
+    33.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;33,5,33],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    33.5,
+    6.5,
+    32.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;33,6,32],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    33.5,
+    6.5,
+    33.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;33,6,33],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    33.5,
+    6.5,
+    34.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;33,6,34],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    34.5,
+    5.5,
+    32.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;34,5,32],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    34.5,
+    5.5,
+    33.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;34,5,33],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    34.5,
+    6.5,
+    32.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;34,6,32],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    34.5,
+    6.5,
+    33.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;34,6,33],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    34.5,
+    6.5,
+    34.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;34,6,34],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    35.5,
+    5.5,
+    32.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;35,5,32],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    35.5,
+    5.5,
+    33.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;35,5,33],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    35.5,
+    6.5,
+    32.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;35,6,32],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    35.5,
+    6.5,
+    33.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;35,6,33],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    35.5,
+    6.5,
+    34.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;35,6,34],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    36.5,
+    5.5,
+    14.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:3b,Item:{id:\"minecraft:cocoa_beans\",count:1},block_pos:[I;36,5,14],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    36.5,
+    5.5,
+    15.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:cocoa_beans\",count:1},block_pos:[I;36,5,15],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    36.5,
+    5.5,
+    32.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;36,5,32],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    36.5,
+    5.5,
+    33.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:pumpkin_pie\",count:1},block_pos:[I;36,5,33],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    36.5,
+    6.5,
+    32.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;36,6,32],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    36.5,
+    6.5,
+    33.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;36,6,33],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    36.5,
+    6.5,
+    34.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:bread\",count:1},block_pos:[I;36,6,34],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    37.5,
+    5.5,
+    13.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:1b,Item:{id:\"minecraft:cocoa_beans\",count:1},block_pos:[I;37,5,13],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    37.5,
+    5.5,
+    14.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:cocoa_beans\",count:1},block_pos:[I;37,5,14],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[0.0f,-90.0f],Facing:1b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    39.5,
+    12.5,
+    16.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:leather_boots\",count:1,components:{\"minecraft:dyed_color\":15961002,\"minecraft:custom_name\":\"4\"}},block_pos:[I;39,12,16],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[270.0f,0.0f],Facing:5b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    39.5,
+    12.5,
+    17.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:leather_helmet\",count:1,components:{\"minecraft:dyed_color\":15961002,\"minecraft:custom_name\":\"3\"}},block_pos:[I;39,12,17],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[270.0f,0.0f],Facing:5b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    39.5,
+    12.5,
+    18.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:leather_chestplate\",count:1,components:{\"minecraft:dyed_color\":15961002,\"minecraft:custom_name\":\"2\"}},block_pos:[I;39,12,18],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[270.0f,0.0f],Facing:5b}"
+  },
+  {
+   "id": "minecraft:item_frame",
+   "pos": [
+    39.5,
+    12.5,
+    19.5
+   ],
+   "nbt": "{Invisible:1b,ItemDropChance:1.0f,Tags:[\"pomme_e\"],ItemRotation:0b,Item:{id:\"minecraft:leather_leggings\",count:1,components:{\"minecraft:dyed_color\":15961002,\"minecraft:custom_name\":\"1\"}},block_pos:[I;39,12,19],Invulnerable:0b,Fixed:0b,FrameworkDataHolder:{},Rotation:[270.0f,0.0f],Facing:5b}"
+  },
+  {
+   "id": "minecraft:painting",
+   "pos": [
+    17.5,
+    10.5,
+    20.5
+   ],
+   "nbt": "{variant:\"minecraft:meditative\",Tags:[\"pomme_e\"],block_pos:[I;17,10,20],Invulnerable:0b,facing:2b,FrameworkDataHolder:{},Rotation:[180.0f,0.0f]}"
+  },
+  {
+   "id": "minecraft:painting",
+   "pos": [
+    41.5,
+    7.5,
+    24.5
+   ],
+   "nbt": "{variant:\"minecraft:pond\",Tags:[\"pomme_e\"],block_pos:[I;41,7,24],Invulnerable:0b,facing:1b,FrameworkDataHolder:{},Rotation:[90.0f,0.0f]}"
+  }
+ ]
+}
