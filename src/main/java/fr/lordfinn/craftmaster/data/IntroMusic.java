@@ -48,10 +48,10 @@ public final class IntroMusic {
         }
     }
 
-    /** The music of an automatic intro when none is chosen. */
-    public static final String DEFAULT_AUTO = MancheIntro.INTRO_MUSIC;
     /** LordFinn's favourite of the theme's moods. */
     public static final String FAVOURITE = "maladresse";
+    /** The music of an automatic intro when none is chosen (LordFinn, 20/11: maladresse, in place of the task intro v2). */
+    public static final String DEFAULT_AUTO = FAVOURITE;
     /** Shortest shot of an automatic intro cut on the bars (seconds). */
     public static final double MIN_SHOT = 2.0;
 

@@ -60,6 +60,8 @@ class IntroMusicTest {
         MancheIntro bare = MancheIntro.autoBuild(null, List.of(), IntroMusic.find("maladresse"));
         assertEquals(1, bare.shots.size());
         assertEquals(17.2, bare.duration(n -> 0), 0.3);
+        // The default: maladresse
+        assertEquals("craftmaster:theme.maladresse", MancheIntro.autoBuild("a:1", List.of("a:2")).music);
     }
 
     @Test

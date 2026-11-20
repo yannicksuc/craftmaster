@@ -194,7 +194,7 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                    "du pont toute seule »). Remplace ses plans. Les coupes tombent sur les mesures de la musique, le plan "
                    "« lieu de la tâche » sur son « appel » final.",
                    [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
-                    f("music", STR, doc="Musique : maladresse (la préférée, défaut conseillé), base, reflexion, urgence, victoire, suspense, univers.futuriste, univers.grec, univers.japonais (zen), univers.steampunk, univers.medieval, univers.western (le thème CraftMaster, 13-19 s, finit par l'« appel » qui ouvre l'épreuve), intro. Absent = celle de l'intro si c'est une du thème, sinon l'intro d'épreuve v2.")]),
+                    f("music", STR, doc="Musique : maladresse (la préférée, défaut conseillé), base, reflexion, urgence, victoire, suspense, univers.futuriste, univers.grec, univers.japonais (zen), univers.steampunk, univers.medieval, univers.western (le thème CraftMaster, 13-19 s, finit par l'« appel » qui ouvre l'épreuve), intro. Absent = celle de l'intro si c'est une du thème, sinon maladresse (le défaut).")]),
     "intro.fit": ("Cale les plans de l'intro sur sa musique du thème : le dernier plan sur l'« appel » final, les autres "
                   "sur ses temps, en gardant leurs proportions (« cale l'intro du pont sur la musique »).",
                   [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours.")]),

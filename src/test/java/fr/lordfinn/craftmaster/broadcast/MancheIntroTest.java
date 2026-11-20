@@ -19,6 +19,9 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Round intros: the sequence's timing, the intro actions, the file and undo. */
 class MancheIntroTest {
 
+    /** The task intro v2, the automatic intro's music before maladresse. */
+    private static final fr.lordfinn.craftmaster.data.IntroMusic.Track V2 = fr.lordfinn.craftmaster.data.IntroMusic.find(MancheIntro.INTRO_MUSIC);
+
     @TempDir
     Path dir;
 
@@ -103,7 +106,7 @@ class MancheIntroTest {
 
     @Test
     void autoBuildFillsTheIntroMusic() {
-        MancheIntro full = MancheIntro.autoBuild("pont:1", List.of("pont:2", "pont:3", "pont:4", "pont:5", "pont:6"));
+        MancheIntro full = MancheIntro.autoBuild("pont:1", List.of("pont:2", "pont:3", "pont:4", "pont:5", "pont:6"), V2);
         assertTrue(full.auto);
         assertTrue(full.chained);
         assertEquals(MancheIntro.INTRO_MUSIC, full.music);
@@ -130,12 +133,12 @@ class MancheIntroTest {
         assertEquals(-1, full.autoCardShot(), "no title card over the task location");
 
         // Nothing in the lieu, no throne: only the task location, for the whole music
-        MancheIntro bare = MancheIntro.autoBuild(null, List.of());
+        MancheIntro bare = MancheIntro.autoBuild(null, List.of(), V2);
         assertEquals(1, bare.shots.size());
         assertEquals(MancheIntro.TASK, bare.shots.getFirst().kind());
         assertEquals(MancheIntro.INTRO_MUSIC_SECONDS, bare.duration(n -> 0), 1e-9);
         // Two cameras: still the whole music, the chord on the task location
-        MancheIntro two = MancheIntro.autoBuild("a", List.of("b"));
+        MancheIntro two = MancheIntro.autoBuild("a", List.of("b"), V2);
         assertEquals(MancheIntro.INTRO_MUSIC_SECONDS, two.duration(n -> 0), 1e-9);
         assertEquals(MancheIntro.INTRO_CHORD_SECONDS, two.timeline(n -> 0).getLast().start(), 1e-9);
     }
@@ -169,7 +172,7 @@ class MancheIntroTest {
         MancheIntro read = again.activeSeason().activePartie().manches.getFirst().intro;
         assertFalse(read.typedTask);
         assertEquals(MancheIntro.TASK, read.shots.getLast().kind());
-        assertEquals(MancheIntro.INTRO_MUSIC, read.music);
+        assertEquals("craftmaster:theme.maladresse", read.music, "construire: maladresse by default");
         assertTrue(run(a("undo")).ok());
         assertTrue(run(a("undo")).ok());
         assertEquals("look_intro", pont().intro.look);

@@ -323,6 +323,8 @@ public final class MancheIntro {
      *
      * @param wide    reference of the round's wide camera, or null
      * @param inserts references of the round's other cameras, in order (only the first 4 are used)
+     * This layout is the task intro v2's; without a music given, the intro is built on {@link IntroMusic#DEFAULT_AUTO}
+     * (maladresse since 20/11, {@link #autoBuild(String, List, IntroMusic.Track)}).
      */
     public static MancheIntro autoBuild(String wide, List<String> inserts) {
         return autoBuild(wide, inserts, IntroMusic.find(IntroMusic.DEFAULT_AUTO));

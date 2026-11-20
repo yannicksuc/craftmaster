@@ -1655,8 +1655,11 @@ public final class Actions {
                 music = fr.lordfinn.craftmaster.data.IntroMusic.find(String.valueOf(a.get("music")));
                 if (music == null) throw new Invalid("musique « " + a.get("music") + " » inconnue : " + String.join(", ", fr.lordfinn.craftmaster.data.IntroMusic.names()) + ".");
             } else {
+                // The intro's own when it is one of the theme's moods or worlds; else (none, the show's theme, the
+                // task intro v2 that was the default) the default: maladresse
                 music = fr.lordfinn.craftmaster.data.IntroMusic.ofCue(r.intro.music);
-                if (music == null) music = fr.lordfinn.craftmaster.data.IntroMusic.find(fr.lordfinn.craftmaster.data.IntroMusic.DEFAULT_AUTO);
+                if (music == null || music.key().equals(fr.lordfinn.craftmaster.data.MancheIntro.INTRO_MUSIC))
+                    music = fr.lordfinn.craftmaster.data.IntroMusic.find(fr.lordfinn.craftmaster.data.IntroMusic.DEFAULT_AUTO);
             }
             fr.lordfinn.craftmaster.data.MancheIntro built = fr.lordfinn.craftmaster.data.MancheIntro.autoBuild(
                     wide == null ? null : wide.key(), inserts, music);

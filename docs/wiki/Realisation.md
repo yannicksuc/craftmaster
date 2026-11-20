@@ -274,7 +274,7 @@ prend le relais.
 
 | Faire | Commande (`<m>` = la manche) |
 |---|---|
-| Faire l'intro toute seule | `/cm tv intro <m> construire [musique]` (à partir des caméras de la manche, sur la musique d'intro ou celle donnée ; remplace les plans) · `caler` (plans calés sur la musique, le dernier sur l'appel) |
+| Faire l'intro toute seule | `/cm tv intro <m> construire [musique]` (à partir des caméras de la manche, sur maladresse ou la musique donnée ; remplace les plans) · `caler` (plans calés sur la musique, le dernier sur l'appel) |
 | Ajouter un plan | `/cm tv intro <m> ajouter camera large 4` · `ajouter trajet survol` · `ajouter suivi Ensuri 5` (+ `[transition] [effet]`) · `ajouter tache [s]` (lieu de la tâche) |
 | Régler un plan | `/cm tv intro <m> plan 2 duree 3` · `plan 2 transition coupe` · `plan 2 effet sepia` · `plan 1 carte synthe Le Pont \| Épreuve 1` · `plan 3 retirer` |
 | Réglages | `/cm tv intro <m> musique maladresse\|japonais\|…\|intro\|theme\|aucune\|<son>` (musiques du thème plus bas) · `titre on\|off` · `auto on` (jouée toute seule au lancement de la manche) · `effacer` |
@@ -299,8 +299,9 @@ prend le relais.
   moment-là. `/cm tv stop` pendant l'intro la saute : on passe directement au noir. Un joueur sans le mod a une
   cécité pendant le noir et le titre habituel. `enchaine off` : la manche démarre tout de suite et l'intro joue
   par-dessus (ancien comportement).
-- **Intro construite toute seule** (`construire`, « fais l'intro du pont toute seule ») : sur la musique d'intro
-  d'épreuve (120 BPM, 5 mesures, 20 temps = 10 s), calée sur sa structure : un plan par mesure sur les mesures 1 à 4
+- **Intro construite toute seule** (`construire`, « fais l'intro du pont toute seule ») : sur **maladresse** par
+  défaut, coupée sur ses mesures, le lieu de la tâche sur l'appel (voir « Musiques du thème » plus bas). Avec l'intro
+  d'épreuve v2 (`construire intro` : 120 BPM, 5 mesures, 20 temps = 10 s), calée sur sa structure : un plan par mesure sur les mesures 1 à 4
   (une affirmation du motif chacune) — le plan large de la manche en timelapse, sorti du plateau par la transition
   miroir, puis jusqu'à 4 autres caméras du lieu (macro, bascule de mise au point, stop motion ; le premier plan prend
   les mesures que personne n'occupe, un 5e plan partage la mesure 4) ; puis, à 8 s, le **lieu de la tâche** en
@@ -356,7 +357,8 @@ prend le relais.
     accélère : plans à leur durée).
   - `/cm tv intro <m> construire japonais` refait l'intro sur ce morceau : les coupes tombent sur ses débuts de mesure
     (plans de 2 s au moins, le premier prend le reste), le lieu de la tâche sur l'appel, en fondu, jusqu'à la fin.
-    Sans nom : la musique de l'intro si c'est une du thème, sinon l'intro d'épreuve v2 (le défaut de `construire`).
+    Sans nom : la musique de l'intro si c'est une du thème, sinon **maladresse** (le défaut depuis le 20/11, à la place
+    de l'intro d'épreuve v2, qui reste au choix : `construire intro`).
   - `/cm tv intro <m> caler` (bouton [caler] de l'éditeur, à côté de [musique]) : une intro faite à la main est calée
     sur sa musique du thème, le dernier plan sur l'appel, les autres gardent leurs proportions et coupent sur les temps.
   - L'éditeur (`voir`) dit sous la frise : « plan final sur l'appel », « plan final 1,2 s avant l'appel »…
