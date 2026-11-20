@@ -98,6 +98,13 @@ public final class ZoneReader {
                 line = "pot de fleur : " + id.substring(7);
             } else if (id.equals("flower_pot")) {
                 line = "pot de fleur vide";
+            } else if (s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.LEVEL_HONEY)) {
+                int honey = s.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LEVEL_HONEY);
+                // Only the full ones fill a bottle: say which (the others are decor)
+                if (honey >= 5) line = id + " PLEINE (miel 5/5 : une fiole vide s'y remplit de miel, une seule fois)";
+            } else if (s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.LEVEL_CAULDRON)) {
+                int lvl = s.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LEVEL_CAULDRON);
+                line = id + " (eau " + lvl + "/3 ; un seau ne s'y remplit qu'à 3/3, une fiole d'eau versée ajoute 1, une fiole vide en prend 1)";
             } else if (s.is(BlockTags.BUTTONS)) {
                 line = "bouton (" + id + ")";
             } else if (id.equals("lever")) {
@@ -115,7 +122,14 @@ public final class ZoneReader {
             } else if (Set_INTERESTING.contains(id)) {
                 line = id;
             }
-            if (line != null) add(sectors, p.getX() - x0, p.getZ() - z0, rel(p.getX() - x0, p.getY() - y0, p.getZ() - z0) + " " + line);
+            if (line != null) {
+                // Far above the floor under it: out of a player's reach unless something lets them climb (4,5 blocs des yeux)
+                int up = 0;
+                BlockPos.MutableBlockPos q = p.mutable().move(net.minecraft.core.Direction.DOWN);
+                while (up < 16 && q.getY() >= y0 && level.getBlockState(q).getCollisionShape(level, q).isEmpty()) { up++; q.move(net.minecraft.core.Direction.DOWN); }
+                if (up >= 3) line += " [" + up + " blocs de vide sous lui jusqu'au sol]";
+                add(sectors, p.getX() - x0, p.getZ() - z0, rel(p.getX() - x0, p.getY() - y0, p.getZ() - z0) + " " + line);
+            }
         }
         // Entities: item frames, armour stands, items, villagers and their trades, the others counted
         Map<String, Integer> others = new TreeMap<>();

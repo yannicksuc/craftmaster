@@ -95,6 +95,14 @@ son chat.
    leurs limites « N fois ») contre ce qu'il faut payer (80 pour la pomme d'or), les objets uniques (une pioche à
    3 utilisations), les déclencheurs à usage unique, ce qui se consomme, ce qui peut se perdre (soft lock), ce que
    le bouton de remise à zéro refait. Dis franchement ce qui manque ou bloque, avec les coordonnées.
+   ATTEINDRE un bloc (ouvrir un coffre, remplir une fiole à une ruche, appuyer un bouton, casser) : il faut le voir
+   (aucun bloc plein entre les yeux et lui) et que son point le plus proche soit à 4,5 blocs au plus des yeux. Les
+   yeux sont 1,62 au-dessus des pieds, 2,87 au sommet d'un saut (on saute de 1,25 bloc, pas plus : on ne monte
+   pas sur un bloc 2 crans plus haut). Debout sur un sol, on n'atteint donc pas un bloc dont le dessous est à plus
+   de 7,3 blocs au-dessus des pieds, même juste en dessous et en sautant (6,1 sans sauter) ; moins si on est décalé.
+   Ex. un sol en y 4 (dessus du bloc y 3) : une ruche au plafond en y 12 est hors de portée. Un conteneur entouré
+   de blocs pleins ne s'ouvre que par une face libre où un joueur peut se tenir à portée. Vérifie-le pour chaque
+   objet indispensable caché en hauteur ou sous le sol, et dis d'où on l'atteint (position des pieds).
 4. Situe les endroits avec voir (une caméra de la manche) si ça aide.
 Réponse : les étapes dans l'ordre, courtes et numérotées (là, une liste est permise), puis les blocages.
 

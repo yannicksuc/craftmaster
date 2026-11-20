@@ -670,6 +670,10 @@ public final class AgentBridge {
                 if (FORBIDDEN.contains(r)) return Kind.REFUSED;
                 if (VANILLA_READ.contains(r) || (r.equals("time") && rest.size() >= 1 && rest.getFirst().equals("query"))
                         || (r.equals("data") && !rest.isEmpty() && rest.getFirst().equals("get"))) return Kind.READ;
+                // « execute in … if block … » without run nor store: only answers « Test passed / failed »
+                if (r.equals("execute") && w.stream().skip(1).map(x -> x.toLowerCase(Locale.ROOT)).noneMatch(x -> x.equals("run") || x.equals("store"))
+                        && w.stream().skip(1).map(x -> x.toLowerCase(Locale.ROOT)).anyMatch(x -> x.equals("if") || x.equals("unless")))
+                    return Kind.READ;
                 return Kind.CONFIRM;
             }
             String[] p = path.isEmpty() ? new String[0] : path.split(" ");

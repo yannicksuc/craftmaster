@@ -48,6 +48,9 @@ class AgentBridgeTest {
         assertEquals(AgentBridge.Kind.READ, kind("cm arene liste"));
         assertEquals(AgentBridge.Kind.READ, kind("cm statut"));
         assertEquals(AgentBridge.Kind.READ, kind("list"));
+        assertEquals(AgentBridge.Kind.READ, kind("execute in minecraft:pomme if block 28 72 13 minecraft:beehive[honey_level=5]"));
+        assertEquals(AgentBridge.Kind.CONFIRM, kind("execute in minecraft:pomme if block 28 72 13 beehive run setblock 28 72 13 air"));
+        assertEquals(AgentBridge.Kind.CONFIRM, kind("execute store result score #x t if block 0 0 0 air"));
         // Seen by the players or the stream, deleting, the console: a click first
         assertEquals(AgentBridge.Kind.CONFIRM, kind("cm tv intro la-pomme jouer"));
         assertEquals(AgentBridge.Kind.CONFIRM, kind("cm epreuve lancer la-pomme"));

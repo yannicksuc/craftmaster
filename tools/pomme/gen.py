@@ -51,10 +51,9 @@ def j(o): return json.dumps(o, ensure_ascii=False, separators=(',', ':'))
 RULES = {
     "iron_hoe":      ({"can_break": {"blocks": ["wheat"]}, "can_place_on": {"blocks": ["dirt", "coarse_dirt", "rooted_dirt", "grass_block"]}},
                       ["Casse : blé", "Laboure : terre, terre stérile, terre racinée"]),
-    # Le béton blanc (le béton en poudre au-dessus du coffre de la tête de Steve, durci au seau d'eau), puis le coffre
-    # en cuivre lui-même : sous lui, la shulker du crâne de squelette (le seul de la salle, pour le code de la porte)
-    "iron_pickaxe":  ({"can_break": {"blocks": ["iron_ore", "coal_ore", "raw_iron_block", "white_concrete", "oxidized_copper_chest"]}},
-                      ["Casse : minerai de fer, minerai de charbon,", "bloc de fer brut, béton blanc, coffre en cuivre"]),
+    # + le béton blanc : le béton en poudre au-dessus du coffre de la tête de Steve, durci au seau d'eau
+    "iron_pickaxe":  ({"can_break": {"blocks": ["iron_ore", "coal_ore", "raw_iron_block", "white_concrete"]}},
+                      ["Casse : minerai de fer, minerai de charbon,", "bloc de fer brut, béton blanc"]),
     "iron_shovel":   ({"can_break": {"blocks": ["sand"]}}, ["Casse : sable"]),
     "iron_axe":      ({"can_break": {"blocks": ["acacia_log", "acacia_wood", "stripped_acacia_log", "stripped_acacia_wood"]}}, ["Casse : bois d'acacia"]),
     "bucket":        ({"can_place_on": {"blocks": ["cauldron", "water_cauldron"]}}, ["Utilisable sur : chaudron, vache"]),

@@ -23,6 +23,6 @@ Commandes :
 - `… run function pomme:salle/cachettes` ajoute, une fois par salle, les objets de `CACHETTES` (gen.py ; vide pour l'instant) ;
 - `execute in minecraft:pomme positioned <x>.0 60 0.0 run function pomme:verif` puis `scoreboard players get #diff pomme_t` compte les blocs différents du schéma (0 attendu).
 
-Le sucre du gâteau vient du miel : pelle en fer → sable → four (deux parmi les hauts-fourneaux) → verre → fioles → ruches pleines (28-30 12 13-15) → fiole de miel → sucre. Le seau d'eau se vide sur le béton en poudre blanc (38 3 25), qui durcit ; la pioche en fer casse le béton blanc puis le coffre en cuivre de la tête de Steve, sous lequel est la shulker du crâne de squelette.
+Le sucre du gâteau vient du miel : pelle en fer → sable → four (deux parmi les hauts-fourneaux) → verre → fioles → ruches pleines (28-30 12 13-15) → fiole de miel → sucre. Le seau d'eau se vide sur le béton en poudre blanc (38 3 25), qui durcit ; la pioche en fer casse le béton blanc, ce qui ouvre le coffre en cuivre de la tête de Steve (38 2 25).
 
 Ne pas utiliser `/cm arene reset pomme` avec un mod plus ancien que le correctif « copie sans mise à jour ».
