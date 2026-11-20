@@ -42,7 +42,7 @@ TOOLS = [
      "description": "Lit l'état du show (rien n'est changé).",
      "input_schema": {"type": "object", "properties": {
          "sujet": {"type": "string", "enum": ["resume", "manches", "intro", "effets", "ambiance", "sequence", "conduite", "cameras",
-                                              "trajet", "projecteurs", "arenes", "zone", "mecaniques", "joueurs", "blocs", "commandes",
+                                              "trajet", "projecteurs", "arenes", "zone", "mecaniques", "musiques", "joueurs", "blocs", "commandes",
                                               "statut", "journal", "log"]},
          "nom": {"type": "string", "description": "Le nom de l'ambiance, de la séquence, de la conduite, du travelling, la manche de "
                                                   "l'intro (id ou nom : la-pomme, « La pomme »), l'arène, le groupe de commandes "

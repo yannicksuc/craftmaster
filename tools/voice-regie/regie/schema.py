@@ -183,7 +183,7 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                   "sur la musique, lancement enchaîné (noir, TP, titre, révélation).",
                   [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
                    f("auto", BOOL, doc="true = jouée au lancement de la manche."),
-                   f("music", STR, doc="theme, intro (musique d'intro d'épreuve), aucune, ou un id de son."),
+                   f("music", STR, doc="maladresse (la préférée, défaut conseillé), base, reflexion, urgence, victoire, suspense, univers.futuriste, univers.grec, univers.japonais (zen), univers.steampunk, univers.medieval, univers.western (le thème CraftMaster, 13-19 s, finit par l'« appel » qui ouvre l'épreuve), intro (intro d'épreuve v2, 10 s), theme (générique), aucune, ou un id de son. Une musique du thème met aussi les coupes sur son tempo."),
                    f("titleCard", BOOL, doc="Titre automatique sur le dernier plan."),
                    f("bpm", STR, doc="Couper sur la musique : tempo en BPM, « theme », « intro » (120) ou « off »."),
                    f("beats", INT, doc="Durée d'un plan en temps de musique (absent = environ 3 s)."),
@@ -191,8 +191,13 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                    f("look", STR, doc="Effet sur tous les plans (look_intro = look vieux reportage) ; aucun pour l'enlever."),
                    f("typedTask", BOOL, doc="true = la consigne est tapée en bas de l'image à la fin de l'intro.")]),
     "intro.auto": ("Construit l'intro d'une manche toute seule à partir de ses caméras, sur la musique d'intro (« fais l'intro "
-                   "du pont toute seule »). Remplace ses plans.",
-                   [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours.")]),
+                   "du pont toute seule »). Remplace ses plans. Les coupes tombent sur les mesures de la musique, le plan "
+                   "« lieu de la tâche » sur son « appel » final.",
+                   [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
+                    f("music", STR, doc="Musique : maladresse (la préférée, défaut conseillé), base, reflexion, urgence, victoire, suspense, univers.futuriste, univers.grec, univers.japonais (zen), univers.steampunk, univers.medieval, univers.western (le thème CraftMaster, 13-19 s, finit par l'« appel » qui ouvre l'épreuve), intro. Absent = celle de l'intro si c'est une du thème, sinon l'intro d'épreuve v2.")]),
+    "intro.fit": ("Cale les plans de l'intro sur sa musique du thème : le dernier plan sur l'« appel » final, les autres "
+                  "sur ses temps, en gardant leurs proportions (« cale l'intro du pont sur la musique »).",
+                  [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours.")]),
     "intro.shot.add": ("Ajoute un plan à l'intro d'une manche : une caméra, un trajet ou un joueur suivi.",
                        [f("manche", MANCHE, doc=MANCHE_DOC + " Absent = manche en cours."),
                         f("camera", STR, doc="Caméra (relative au lieu de la manche : « 2 », « large », « ensuri:1 »)."),

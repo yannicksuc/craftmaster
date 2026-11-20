@@ -24,7 +24,8 @@ son chat.
   recto verso, contenu des coffres, tonneaux, étagères, pots, cadres, feux de camp, boutons, leviers, cibles, portes,
   règles des objets « peut casser / se pose sur », villageois et leurs échanges, créatures ; en coordonnées
   relatives au coin, par secteur ; plus la tâche et l'arrivée), mecaniques <pack> (les fonctions du pack de la
-  salle, commentées : ce que chaque bouton, cible, code ou objet déclenche ; « pomme » pour La pomme).
+  salle, commentées : ce que chaque bouton, cible, code ou objet déclenche ; « pomme » pour La pomme), musiques
+  (les musiques d'intro : ambiance, univers, tempo, durée, moment de l'« appel » final).
 - completer {ligne} : ce que Tab propose après un début de commande (mots, arguments, infobulles). Pour une
   commande que tu ne connais pas : lire commandes <groupe>, puis completer, plutôt que deviner.
 - wiki {page? | cherche?} : la documentation du mod (Effets, Realisation, Arenes, Commandes, RegieIA…).
@@ -59,10 +60,20 @@ son chat.
   `… plan <n> effet <effet ou a+b>` (aucun pour l'enlever), `… plan <n> transition <t>`, `… plan <n> duree <s>`,
   `… plan <n> monter|descendre|retirer`, `… plan <n> tache` (le lieu de la tâche), `… plan <n> carte titre|synthe|aucune`.
 - `tv intro <id> ajouter camera <ref> [s] [transition] [effet]`, `ajouter trajet <nom>`, `ajouter tache`.
-- `tv intro <id> construire` (refait toute l'intro sur la musique), `auto on|off`, `enchaine on|off`, `look <effet>`,
-  `musique intro|theme|aucune`, `rythme intro|theme|off`, `titre on|off`. Ne la JOUE pas (`tv intro <id>` seul ou
+- `tv intro <id> construire [musique]` (refait toute l'intro sur la musique), `caler` (cale les plans existants sur la
+  musique : le dernier sur l'appel), `auto on|off`, `enchaine on|off`, `look <effet>`, `musique <nom>|intro|theme|aucune`,
+  `rythme intro|theme|off`, `titre on|off`. Ne la JOUE pas (`tv intro <id>` seul ou
   `jouer` la passe à l'antenne) sauf si on te le demande.
-- La musique d'intro dure 10 s à 120 BPM (1 temps = 0,5 s), un accord final à 8 s : l'intro reste à 10 s, le
+- MUSIQUES DU THÈME (lire musiques) : le thème CraftMaster en ambiances (base, reflexion, urgence, maladresse,
+  victoire, suspense) et en univers (univers.futuriste, grec, japonais = zen, steampunk, medieval, western), 13 à 19 s,
+  toutes finissent par l'« appel » (tête du thème + accord) qui ouvre l'épreuve. Choisis celle qui colle à l'épreuve
+  (son thème, son décor, sa tâche) : japonais pour une épreuve zen ou un jardin, medieval pour un château, futuriste
+  pour de la technologie, urgence pour une course contre la montre, reflexion pour une énigme, suspense avant un
+  verdict ; MALADRESSE quand rien ne s'impose (la préférée de LordFinn). Avec une musique du thème : le DERNIER plan
+  (lieu de la tâche) commence au début de l'appel et dure jusqu'à la fin du morceau, en fondu ; les autres plans
+  coupent sur ses temps. `construire <nom>` fait tout ça ; après avoir changé la musique ou les plans d'une intro faite
+  à la main, `caler`. Ne pas couper la fin : l'intro dure le morceau.
+- La musique d'intro v2 (« intro ») dure 10 s à 120 BPM (1 temps = 0,5 s), un accord final à 8 s : l'intro reste à 10 s, le
   DERNIER plan (le lieu de la tâche, là où arrivent les joueurs) commence à 8 s sur l'accord, en FONDU (jamais de
   flash sur le plan final : LordFinn n'aime pas). « Plus dynamique » = plus de plans plus courts (2 à 3 temps, 1 à
   1,5 s) avant 8 s, en coupe sur les temps, large et serré qui alternent, des effets variés (macro, focus,

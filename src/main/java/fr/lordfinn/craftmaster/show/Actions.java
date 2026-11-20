@@ -163,7 +163,7 @@ public final class Actions {
             "camera.pov", "camera.path", "camera.mosaic", "camera.focus", "camera.lieu", "camera.split",
             "camera.goto", "camera.stay", "camera.framing", "camera.avoid",
             // ... and the round intros, which are round data (undoable), and playing one
-            "intro.set", "intro.shot.add", "intro.shot.set", "intro.shot.remove", "intro.clear", "intro.play", "intro.auto", "intro.shot.move",
+            "intro.set", "intro.shot.add", "intro.shot.set", "intro.shot.remove", "intro.clear", "intro.play", "intro.auto", "intro.fit", "intro.shot.move",
             // Garage doors (garage/): no data change
             "garage.open", "garage.close", "garage.toggle");
 
@@ -425,6 +425,7 @@ public final class Actions {
                 case "intro.shot.remove" -> introShotRemove(a);
                 case "intro.clear" -> introClear(a);
                 case "intro.auto" -> introAuto(a);
+                case "intro.fit" -> introFit(a);
                 case "intro.shot.move" -> introShotMove(a);
                 case "intro.play" -> introPlay(a);
                 // Screen effects (fx/): world only, nothing in the data changes
@@ -1473,7 +1474,17 @@ public final class Actions {
             }
             if (a.containsKey("music")) {
                 in.music = fr.lordfinn.craftmaster.data.MancheIntro.normalizeMusic(a.get("music") == null ? "" : String.valueOf(a.get("music")));
-                changed.add(in.music.isEmpty() ? "sans musique" : "musique « " + in.music + " »");
+                fr.lordfinn.craftmaster.data.IntroMusic.Track t = fr.lordfinn.craftmaster.data.IntroMusic.ofCue(in.music);
+                changed.add(in.music.isEmpty() ? "sans musique" : t == null ? "musique « " + in.music + " »"
+                        : "musique « " + t.label() + " » (" + t.tempo() + " BPM, " + fr.lordfinn.craftmaster.data.MancheIntro.fmtNumber(t.seconds())
+                        + " s, appel à " + fr.lordfinn.craftmaster.data.MancheIntro.fmtNumber(t.appel()) + " s)");
+                // One of the theme's: the cuts on its tempo (unless a tempo comes with it)
+                if (t != null && !a.containsKey("bpm")) {
+                    in.bpm = t.bpm();
+                    in.offset = 0;
+                    changed.add(t.bpm() > 0 ? "coupes sur ses temps (" + t.tempo() + " BPM)" : "plans à leur durée (son tempo accélère)");
+                    if (!in.shots.isEmpty()) changed.add("/cm tv intro " + r.id + " caler pour mettre le dernier plan sur l'appel");
+                }
             }
             Boolean card = bool(a, "titleCard");
             if (card != null) {
@@ -1638,14 +1649,35 @@ public final class Actions {
                     if (wide == null) wide = c;
                     else if (!c.key().equals(wide.key())) inserts.add(c.key());
                 }
+            // The music: the one asked for, else the intro's own when it is one of the theme's, else the default
+            fr.lordfinn.craftmaster.data.IntroMusic.Track music;
+            if (a.get("music") != null && !String.valueOf(a.get("music")).isBlank()) {
+                music = fr.lordfinn.craftmaster.data.IntroMusic.find(String.valueOf(a.get("music")));
+                if (music == null) throw new Invalid("musique « " + a.get("music") + " » inconnue : " + String.join(", ", fr.lordfinn.craftmaster.data.IntroMusic.names()) + ".");
+            } else {
+                music = fr.lordfinn.craftmaster.data.IntroMusic.ofCue(r.intro.music);
+                if (music == null) music = fr.lordfinn.craftmaster.data.IntroMusic.find(fr.lordfinn.craftmaster.data.IntroMusic.DEFAULT_AUTO);
+            }
             fr.lordfinn.craftmaster.data.MancheIntro built = fr.lordfinn.craftmaster.data.MancheIntro.autoBuild(
-                    wide == null ? null : wide.key(), inserts);
+                    wide == null ? null : wide.key(), inserts, music);
             r.intro = built;
-            line("Intro de « " + r.name + " » construite : " + built.shots.size() + " plans sur la musique d'intro ("
+            line("Intro de « " + r.name + " » construite : " + built.shots.size() + " plans sur « " + music.label() + " » ("
                     + (wide == null ? "pas de caméra dans le lieu" : "large " + wide.key()) + ", " + Math.min(4, inserts.size()) + " insert(s), "
                     + "lieu de la tâche à la fin, en fondu)."
                     + (wide == null ? " Placez des caméras dans le lieu de la manche pour plus de plans." : "")
                     + " Jouée au lancement, enchaînée ; /cm tv intro " + r.id + " voir pour la retoucher.");
+        }
+
+        /** intro.fit {manche?}: the shots fitted to the intro's music, the last one on its « appel » ({@link fr.lordfinn.craftmaster.data.MancheIntro#fitToMusic}). */
+        private void introFit(Map<String, Object> a) {
+            Manche r = introManche(a);
+            String done = r.intro.fitToMusic(n -> {
+                fr.lordfinn.craftmaster.camera.CameraPath p = fr.lordfinn.craftmaster.camera.CameraPaths.get(n);
+                return p == null ? 0 : p.duration();
+            });
+            if (done == null) throw new Invalid(r.intro.shots.isEmpty() ? "« " + r.name + " » n'a pas de plan."
+                    : "la musique de l'intro n'est pas une des musiques du thème : /cm tv intro " + r.id + " musique <maladresse, japonais…>.");
+            line("Intro de « " + r.name + " » : " + done + ".");
         }
 
         /** intro.play {manche?}: nothing changes in the data, the director plays it. */

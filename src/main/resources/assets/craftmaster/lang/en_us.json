@@ -1166,5 +1166,17 @@
   "subtitles.craftmaster.pomme.cocori": "Hen: \"cocori\"",
   "subtitles.craftmaster.pomme.cot": "Hen: \"cot\"",
   "subtitles.craftmaster.pomme.cotcot": "Hen: \"cotcot\"",
-  "subtitles.craftmaster.pomme.cocotcot": "Hen: \"cocotcot\""
+  "subtitles.craftmaster.pomme.cocotcot": "Hen: \"cocotcot\"",
+  "subtitles.craftmaster.theme.base": "CraftMaster theme",
+  "subtitles.craftmaster.theme.reflexion": "CraftMaster theme, pondering",
+  "subtitles.craftmaster.theme.urgence": "CraftMaster theme, urgency",
+  "subtitles.craftmaster.theme.maladresse": "CraftMaster theme, clumsy",
+  "subtitles.craftmaster.theme.victoire": "CraftMaster theme, victory",
+  "subtitles.craftmaster.theme.suspense": "CraftMaster theme, suspense",
+  "subtitles.craftmaster.theme.univers.futuriste": "CraftMaster theme, futuristic",
+  "subtitles.craftmaster.theme.univers.grec": "CraftMaster theme, Greek",
+  "subtitles.craftmaster.theme.univers.japonais": "CraftMaster theme, Japanese",
+  "subtitles.craftmaster.theme.univers.steampunk": "CraftMaster theme, steampunk",
+  "subtitles.craftmaster.theme.univers.medieval": "CraftMaster theme, medieval",
+  "subtitles.craftmaster.theme.univers.western": "CraftMaster theme, western"
 }

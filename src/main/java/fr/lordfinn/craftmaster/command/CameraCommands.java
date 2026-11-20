@@ -140,7 +140,16 @@ public final class CameraCommands {
     private static final SuggestionProvider<CommandSourceStack> TRANSITIONS = list(c -> fr.lordfinn.craftmaster.broadcast.BroadcastActions.TRANSITION_IDS);
     private static final SuggestionProvider<CommandSourceStack> EFFECT_IDS = list(c -> EFFECTS);
     private static final SuggestionProvider<CommandSourceStack> CARDS = list(c -> List.of("titre", "synthe", "aucune"));
-    private static final SuggestionProvider<CommandSourceStack> MUSIC = list(c -> List.of("intro", "theme", "aucune", "minecraft:music_disc.otherside"));
+    /** The intro musics with a tooltip each (mood, world, tempo, length, appel), then the show's theme and silence. */
+    private static final SuggestionProvider<CommandSourceStack> MUSIC = (c, b) -> {
+        String typed = b.getRemaining().toLowerCase(java.util.Locale.ROOT);
+        for (fr.lordfinn.craftmaster.data.IntroMusic.Track t : fr.lordfinn.craftmaster.data.IntroMusic.ALL)
+            if (t.key().startsWith(typed) || t.key().replace("univers.", "").startsWith(typed))
+                b.suggest(t.key(), Component.literal(t.describe() + (t.key().equals(fr.lordfinn.craftmaster.data.IntroMusic.FAVOURITE) ? " · la préférée de LordFinn" : "")));
+        if ("theme".startsWith(typed)) b.suggest("theme", Component.literal("Le générique de l'émission (show.theme), pas calé"));
+        if ("aucune".startsWith(typed)) b.suggest("aucune", Component.literal("Sans musique"));
+        return b.buildFuture();
+    };
     private static final SuggestionProvider<CommandSourceStack> ON_OFF = list(c -> List.of("on", "off"));
     private static final SuggestionProvider<CommandSourceStack> SCORE_MODES = list(c -> List.of("show", "auto", "on", "off"));
     private static final SuggestionProvider<CommandSourceStack> ONLINE = list(c -> c.getSource().getOnlinePlayerNames());
@@ -816,7 +825,7 @@ public final class CameraCommands {
                                         .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "card", str(c, "card"), "text", str(c, "text")))))))))
                 .then(literal("auto").then(argument("enabled", word()).suggests(ON_OFF)
                         .executes(c -> run(c, intro(c, "intro.set", "auto", onOff(c, "enabled"))))))
-                .then(literal("musique").then(argument("music", word()).suggests(MUSIC)
+                .then(literal("musique").then(argument("music", StringArgumentType.string()).suggests(MUSIC)
                         .executes(c -> run(c, intro(c, "intro.set", "music", str(c, "music"))))))
                 .then(literal("titre").then(argument("enabled", word()).suggests(ON_OFF)
                         .executes(c -> run(c, intro(c, "intro.set", "titleCard", onOff(c, "enabled"))))))
@@ -831,7 +840,11 @@ public final class CameraCommands {
                 .then(literal("enchaine").then(argument("enabled", word()).suggests(ON_OFF)
                         .executes(c -> run(c, intro(c, "intro.set", "chained", onOff(c, "enabled"))))))
                 // Everything made from the round's cameras, on the intro music
-                .then(literal("construire").executes(c -> run(c, intro(c, "intro.auto"))))
+                .then(literal("construire").executes(c -> run(c, intro(c, "intro.auto")))
+                        .then(argument("music", StringArgumentType.string()).suggests(MUSIC)
+                                .executes(c -> run(c, intro(c, "intro.auto", "music", str(c, "music"))))))
+                // The shots fitted to the music: the last one on the « appel », the others on its beats
+                .then(literal("caler").executes(c -> run(c, intro(c, "intro.fit"))))
                 .then(literal("look").then(argument("effect", word()).suggests(EFFECT_IDS)
                         .executes(c -> run(c, intro(c, "intro.set", "look", str(c, "effect"))))))
                 .then(literal("consigne").then(argument("enabled", word()).suggests(ON_OFF)
@@ -870,13 +883,11 @@ public final class CameraCommands {
                     .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/cm tv intro " + m.id + " plan " + (t.index() + 1) + " essayer"))));
             if (cells >= 80) break;
         }
-        if (in.music.equals(MancheIntro.INTRO_MUSIC) && in.bpm == MancheIntro.INTRO_BPM) {
-            double total = timeline.isEmpty() ? 0 : timeline.getLast().start() + timeline.getLast().length();
-            double diff = total - MancheIntro.INTRO_MUSIC_SECONDS;
-            out.append(Component.literal(Math.abs(diff) < 0.01 ? "  ♪ finit sur l'accord" : diff < 0
-                    ? "  ♪ " + MancheIntro.fmtNumber(-diff) + " s avant l'accord" : "  ♪ " + MancheIntro.fmtNumber(diff) + " s après la musique")
-                    .withStyle(ChatFormatting.DARK_GRAY));
-        }
+        String fit = in.musicFit(n -> {
+            CameraPath p = CameraPaths.get(n);
+            return p == null ? 0 : p.duration();
+        });
+        if (!fit.isEmpty()) out.append(Component.literal("  ♪ " + fit).withStyle(ChatFormatting.DARK_GRAY));
         return out;
     }
 
@@ -899,6 +910,12 @@ public final class CameraCommands {
         return 1;
     }
 
+    /** "Maladresse (108 BPM, 17,2 s)" for a music of the theme, else the cue itself. */
+    private static String musicLabel(String music) {
+        fr.lordfinn.craftmaster.data.IntroMusic.Track t = fr.lordfinn.craftmaster.data.IntroMusic.ofCue(music);
+        return t == null ? music : t.label() + " (" + t.tempo() + " BPM, " + MancheIntro.fmtNumber(t.seconds()) + " s)";
+    }
+
     private static int showIntro(CommandContext<CommandSourceStack> c) {
         Manche m = Lieux.manche(str(c, "manche"));
         if (m == null) {
@@ -908,7 +925,7 @@ public final class CameraCommands {
         MancheIntro in = m.intro;
         c.getSource().sendSystemMessage(Component.literal("— Intro de « " + m.name + " » — "
                 + (in.auto ? in.chained ? "jouée au lancement, enchaînée (noir, TP, titre, révélation)" : "jouée au lancement" : "à la main (/cm tv intro " + m.id + ")")
-                + " · " + (in.music.isEmpty() ? "sans musique" : "musique " + in.music)
+                + " · " + (in.music.isEmpty() ? "sans musique" : "musique " + musicLabel(in.music))
                 + (in.bpm > 0 ? " · " + in.rhythmText() : "")
                 + (in.look.isEmpty() ? "" : " · look " + in.look)
                 + (in.typedTask ? "" : " · sans consigne tapée") + " · "
@@ -951,6 +968,8 @@ public final class CameraCommands {
                 .append(button("▶ tout jouer", base + "jouer", false, "Jouer l'intro entière, avec la musique", ChatFormatting.GREEN))
                 .append(button("+ caméra", base + "ajouter camera ", true, "Ajouter un plan sur une caméra", ChatFormatting.YELLOW))
                 .append(button("+ lieu de la tâche", base + "ajouter tache", false, "Ajouter le plan « lieu de la tâche »", ChatFormatting.YELLOW))
+                .append(button("musique", base + "musique ", true, "Choisir la musique (Tab : les ambiances et univers du thème, survolez pour le tempo et la durée)", ChatFormatting.LIGHT_PURPLE))
+                .append(button("caler", base + "caler", false, "Caler les plans sur la musique : le dernier sur l'« appel », les autres sur ses temps", ChatFormatting.LIGHT_PURPLE))
                 .append(button("construire", base + "construire", true, "Refaire toute l'intro à partir des caméras de la manche (remplace les plans)", ChatFormatting.GOLD))
                 .append(button("lieu", base + "lieu", false, "Replacer la caméra « lieu de la tâche » (TP ou enveloppe déplacés)", ChatFormatting.GOLD)));
         return in.shots.size();

@@ -246,7 +246,12 @@ public final class MancheIntro {
             case "", "aucune", "aucun", "non", "off", "none", "rien", "silence" -> "";
             case "theme", "thème", "generique", "générique", "craftmaster:show.theme" -> "theme";
             case "intro", "musique intro", "musique_intro", "craftmaster:show.intro" -> INTRO_MUSIC;
-            default -> k.contains(":") ? k : "minecraft:" + k;
+            default -> {
+                // The theme's moods and worlds (IntroMusic): « maladresse », « japonais », « theme.univers.grec »…
+                IntroMusic.Track t = IntroMusic.find(k);
+                if (t != null) yield t.key().equals(INTRO_MUSIC) ? INTRO_MUSIC : t.sound();
+                yield k.contains(":") ? k : "minecraft:" + k;
+            }
         };
     }
 
@@ -320,6 +325,17 @@ public final class MancheIntro {
      * @param inserts references of the round's other cameras, in order (only the first 4 are used)
      */
     public static MancheIntro autoBuild(String wide, List<String> inserts) {
+        return autoBuild(wide, inserts, IntroMusic.find(IntroMusic.DEFAULT_AUTO));
+    }
+
+    /**
+     * The same on one of the theme's musics ({@link IntroMusic}): the cuts on its bars (shots of {@link IntroMusic#MIN_SHOT}
+     * or more, the first one takes what is left), the task location shot from the start of its « appel » to its end, cut on
+     * its tempo (none for the Greek one, which speeds up: the shots keep their exact lengths). Null or the task intro v2:
+     * {@link #autoBuild(String, List)}'s 20 beats.
+     */
+    public static MancheIntro autoBuild(String wide, List<String> inserts, IntroMusic.Track music) {
+        if (music != null && !music.key().equals(INTRO_MUSIC)) return autoBuildOn(wide, inserts, music);
         MancheIntro i = new MancheIntro();
         i.auto = true;
         i.chained = true;
@@ -347,6 +363,93 @@ public final class MancheIntro {
         double task = i.shots.isEmpty() ? INTRO_MUSIC_SECONDS : INTRO_MUSIC_SECONDS - INTRO_CHORD_SECONDS;
         i.shots.add(new Shot(TASK, "", task, i.shots.isEmpty() ? "miroir" : "fondu", "", NO_CARD, ""));
         return i;
+    }
+
+    private static MancheIntro autoBuildOn(String wide, List<String> inserts, IntroMusic.Track t) {
+        MancheIntro i = new MancheIntro();
+        i.auto = true;
+        i.chained = true;
+        i.music = t.sound();
+        i.bpm = t.bpm();
+        i.look = AUTO_LOOK;
+        i.titleCard = false;
+        List<String> ins = inserts == null ? List.of() : inserts.subList(0, Math.min(4, inserts.size()));
+        List<String> before = new java.util.ArrayList<>();
+        if (wide != null) before.add(wide);
+        before.addAll(ins);
+        List<Double> starts = IntroMusic.cuts(t, before.size());
+        for (int k = 0; k < starts.size(); k++) {
+            double end = k + 1 < starts.size() ? starts.get(k + 1) : t.appel();
+            boolean ambiance = k == 0 && wide != null;
+            int insert = wide != null ? k - 1 : k;
+            i.shots.add(new Shot(CAMERA, before.get(k), end - starts.get(k), k == 0 ? "miroir" : "coupe",
+                    ambiance ? "timelapse" : AUTO_INSERT_EFFECTS.get(insert), NO_CARD, ""));
+        }
+        i.shots.add(new Shot(TASK, "", i.shots.isEmpty() ? t.seconds() : t.seconds() - t.appel(), i.shots.isEmpty() ? "miroir" : "fondu", "", NO_CARD, ""));
+        return i;
+    }
+
+    /**
+     * Fits the shots to the intro's music ({@link IntroMusic#ofCue}): the last shot from the start of the « appel » to
+     * the end of the music, the others share the time before it in their present proportions, each cut on the nearest
+     * beat (bar start for the Greek one), one beat at least; the tempo becomes the music's. Returns what was done, or
+     * null when the music is not one of the theme's (or there is no shot).
+     */
+    public String fitToMusic(ToDoubleFunction<String> pathSeconds) {
+        IntroMusic.Track t = IntroMusic.ofCue(music);
+        if (t == null || shots.isEmpty()) return null;
+        bpm = t.bpm();
+        offset = 0;
+        double beat = bpm > 0 ? 60 / bpm : 0;
+        int n = shots.size();
+        double[] lengths = new double[n];
+        double sum = 0;
+        for (int k = 0; k < n - 1; k++) {
+            Shot s = shots.get(k);
+            double len = s.seconds();
+            if (len <= 0 && s.kind().equals(PATH)) len = pathSeconds.applyAsDouble(s.ref());
+            if (len <= 0) len = DEFAULT_SECONDS;
+            lengths[k] = len;
+            sum += len;
+        }
+        double t0 = 0, acc = 0;
+        for (int k = 0; k < n - 1; k++) {
+            acc += lengths[k];
+            double end = sum <= 0 ? t.appel() : t.appel() * acc / sum;
+            if (k == n - 2) end = t.appel();
+            else end = snap(t, end, beat);
+            double min = beat > 0 ? beat : 0.5;
+            end = Math.max(t0 + min, Math.min(end, t.appel() - min * (n - 2 - k)));
+            Shot s = shots.get(k);
+            shots.set(k, s.withSeconds(end - t0));
+            t0 = end;
+        }
+        Shot last = shots.get(n - 1);
+        shots.set(n - 1, last.withSeconds(n == 1 ? t.seconds() : t.seconds() - t.appel()));
+        return n + " plan(s) calés sur « " + t.label() + " » (" + t.tempo() + " BPM) : le plan " + n + " sur l'appel, de "
+                + fmt(n == 1 ? 0 : t.appel()) + " à " + fmt(t.seconds());
+    }
+
+    private static double snap(IntroMusic.Track t, double time, double beat) {
+        if (beat > 0) return Math.round(time / beat) * beat;
+        double best = time, d = Double.MAX_VALUE;
+        for (double c : t.bars()) if (Math.abs(c - time) < d) { d = Math.abs(c - time); best = c; }
+        return best;
+    }
+
+    /** "plan final sur l'appel" / "plan final 1,2 s avant l'appel"… for the strip of the editor; "" when the music is not one of the theme's. */
+    public String musicFit(ToDoubleFunction<String> pathSeconds) {
+        IntroMusic.Track t = IntroMusic.ofCue(music);
+        List<Timed> tl = timeline(pathSeconds);
+        if (t == null || tl.isEmpty()) return "";
+        double last = tl.getLast().start(), total = last + tl.getLast().length();
+        double cue = t.key().equals(INTRO_MUSIC) ? t.chord() : t.appel();
+        String word = t.key().equals(INTRO_MUSIC) ? "l'accord" : "l'appel";
+        String start = tl.size() == 1 ? "" : Math.abs(last - cue) < 0.06 ? "plan final sur " + word
+                : "plan final " + fmt(Math.abs(last - cue)) + (last < cue ? " avant " : " après ") + word;
+        String end = Math.abs(total - t.seconds()) < 0.3 ? "" : total < t.seconds() ? ", coupe la musique " + fmt(t.seconds() - total) + " avant sa fin"
+                : ", " + fmt(total - t.seconds()) + " après la musique";
+        return (start.isEmpty() ? "dure " + fmt(total) : start) + end;
     }
 
     public MancheIntro copy() {

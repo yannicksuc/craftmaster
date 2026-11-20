@@ -25,6 +25,9 @@ public final class ThemeSound {
         playing = new SimpleSoundInstance(id != null ? id : CraftMaster.id("show.theme"), SoundSource.RECORDS, 1f, 1f, RandomSource.create(),
                 false, 0, SoundInstance.Attenuation.NONE, 0, 0, 0, true);
         Minecraft.getInstance().getSoundManager().play(playing);
+        // Which music, and whether the game knows it (a missing sound plays nothing, silently)
+        CraftMaster.LOG.info("[Réalisation] Musique {}{}", playing.getIdentifier(),
+                Minecraft.getInstance().getSoundManager().getSoundEvent(playing.getIdentifier()) == null ? " : son inconnu du jeu" : "");
     }
 
     static void stop() {

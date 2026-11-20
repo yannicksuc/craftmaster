@@ -274,10 +274,10 @@ prend le relais.
 
 | Faire | Commande (`<m>` = la manche) |
 |---|---|
-| Faire l'intro toute seule | `/cm tv intro <m> construire` (à partir des caméras de la manche, sur la musique d'intro ; remplace les plans) |
+| Faire l'intro toute seule | `/cm tv intro <m> construire [musique]` (à partir des caméras de la manche, sur la musique d'intro ou celle donnée ; remplace les plans) · `caler` (plans calés sur la musique, le dernier sur l'appel) |
 | Ajouter un plan | `/cm tv intro <m> ajouter camera large 4` · `ajouter trajet survol` · `ajouter suivi Ensuri 5` (+ `[transition] [effet]`) · `ajouter tache [s]` (lieu de la tâche) |
 | Régler un plan | `/cm tv intro <m> plan 2 duree 3` · `plan 2 transition coupe` · `plan 2 effet sepia` · `plan 1 carte synthe Le Pont \| Épreuve 1` · `plan 3 retirer` |
-| Réglages | `/cm tv intro <m> musique intro\|theme\|aucune\|<son>` · `titre on\|off` · `auto on` (jouée toute seule au lancement de la manche) · `effacer` |
+| Réglages | `/cm tv intro <m> musique maladresse\|japonais\|…\|intro\|theme\|aucune\|<son>` (musiques du thème plus bas) · `titre on\|off` · `auto on` (jouée toute seule au lancement de la manche) · `effacer` |
 | Look, consigne | `/cm tv intro <m> look look_intro\|aucun` (effet ajouté à tous les plans) · `consigne on\|off` (la tâche tapée en bas à la fin) |
 | Lieu de la tâche | `/cm tv intro <m> lieu` (replace la caméra du plan « lieu de la tâche ») |
 | Couper sur la musique | `/cm tv intro <m> rythme intro` (musique d'intro, 120 BPM) · `rythme theme` (tempo du thème, 112 BPM) · `rythme 96` · `rythme 120 4` (4 temps par plan) · `rythme 120 4 0,4` (1er temps à 0,4 s) · `rythme off` |
@@ -330,6 +330,41 @@ prend le relais.
   `assets/craftmaster/sounds/show/intro.ogg` (remplaçable dans un pack de ressources) ; source, MIDI et script de
   génération : `scripts/musique/intro-epreuve-v2.mid` et `intro_epreuve2.py` dans le dépôt (originaux et rendus wav/mp3
   chez LordFinn, `Downloads/fanfare-craftmaster/`).
+- **Musiques du thème** (`lire musiques` pour la régie IA, Tab sur `musique` avec une infobulle chacune) : le thème
+  CraftMaster (« ré mi♭ ré — la si♭ la — sol fa♯ mi♭ ré », blocs musicaux, composé pour l'émission) en ambiances et en
+  univers, 13 à 19 s, −14 LUFS. Toutes finissent par la même fin franche, l'**appel** (la tête du thème, une levée,
+  un grand accord de ré), qui annonce l'ouverture de l'épreuve : le **dernier plan (lieu de la tâche) commence au
+  début de l'appel** et dure jusqu'à la fin du morceau.
+
+  | Nom (`musique <nom>`) | Ambiance, univers | Tempo | Durée | Appel · accord |
+  |---|---|---|---|---|
+  | `maladresse` | **Maladresse** (la préférée) : le thème au xylophone, la reprise trébuche | 108 | 17,2 s | 15,6 s · 16,7 s |
+  | `base` | Thème de base, couleur fanfare | 112 | 14,5 s | 12,9 s · 13,9 s |
+  | `reflexion` | Réflexion : lent, en suspens (énigme, logique) | 92 | 15,7 s | 13,0 s · 14,3 s |
+  | `urgence` | Urgence : martelé (course, chrono) | 144 | 14,7 s | 13,3 s · 14,2 s |
+  | `victoire` | Victoire : en majeur, marche (finale, prestige) | 126 | 16,8 s | 15,2 s · 16,2 s |
+  | `suspense` | Suspense : monte d'un demi-ton (avant un verdict) | 84 | 16,3 s | 14,3 s · 15,7 s |
+  | `futuriste` | Maladresse **futuriste** (synthwave) | 124 | 15,4 s | 13,5 s · 14,5 s |
+  | `grec` | Maladresse **grecque** (sirtaki, accélère) | 72 → 176 | 15,7 s | 14,4 s · 15,1 s |
+  | `japonais` | Maladresse **japonaise**, zen (koto) | 66 | 19,2 s | 16,4 s · 18,2 s |
+  | `steampunk` | Maladresse **steampunk** (valse à 3 temps) | 168 | 13,4 s | 11,8 s · 12,5 s |
+  | `medieval` | Maladresse **médiévale** (barde, 6/8) | 252 (croches) | 14,4 s | 12,9 s · 13,8 s |
+  | `western` | Maladresse **western** (banjo) | 120 | 15,5 s | 14,0 s · 15,0 s |
+
+  - `/cm tv intro <m> musique maladresse` choisit la musique (son `craftmaster:theme.maladresse`,
+    `craftmaster:theme.univers.japonais`… ; `japonais` ou `zen` suffisent) et met les coupes sur son tempo (le grec
+    accélère : plans à leur durée).
+  - `/cm tv intro <m> construire japonais` refait l'intro sur ce morceau : les coupes tombent sur ses débuts de mesure
+    (plans de 2 s au moins, le premier prend le reste), le lieu de la tâche sur l'appel, en fondu, jusqu'à la fin.
+    Sans nom : la musique de l'intro si c'est une du thème, sinon l'intro d'épreuve v2 (le défaut de `construire`).
+  - `/cm tv intro <m> caler` (bouton [caler] de l'éditeur, à côté de [musique]) : une intro faite à la main est calée
+    sur sa musique du thème, le dernier plan sur l'appel, les autres gardent leurs proportions et coupent sur les temps.
+  - L'éditeur (`voir`) dit sous la frise : « plan final sur l'appel », « plan final 1,2 s avant l'appel »…
+  - Ailleurs (proposé, pas branché) : suspense avant un verdict ou les résultats, victoire à la remise du prix,
+    réflexion en attente entre deux manches.
+  - Fichiers `assets/craftmaster/sounds/theme/*.ogg` et `theme/univers/*.ogg` (catégorie « Musique/Jukebox »,
+    remplaçables dans un pack de ressources) ; partitions et MIDI : `scripts/musique/theme/` (temps lus par
+    `temps.py`, catalogue `data/IntroMusic.java`) ; originaux et rendus chez LordFinn, `Downloads/fanfare-craftmaster/`.
 - **Fanfare d'ouverture** (son `craftmaster:show.ouverture`, catégorie « Musique/Jukebox ») : jouée une fois par le
   **générique d'ouverture** (`/cm tv intro` seul, « générique »), sur tous les jeux avec le mod (diffusion et joueurs).
   « fanfare-v4 » : 17,4 s, 112 BPM (le tempo du thème : `rythme theme` reste calé), ré, stéréo, −12,7 LUFS, crête

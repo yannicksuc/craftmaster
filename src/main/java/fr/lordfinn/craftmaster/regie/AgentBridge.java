@@ -856,6 +856,20 @@ public final class AgentBridge {
                 }
                 return ZoneReader.read(server, found);
             }
+            case "musiques", "musique", "musics" -> {
+                StringBuilder b = new StringBuilder("Musiques d'intro (le thème CraftMaster « ré mi♭ ré — la si♭ la — sol fa♯ mi♭ ré »,"
+                        + " en blocs musicaux ; toutes finissent par l'« appel » : la tête du thème, une levée, un grand accord de ré qui"
+                        + " ouvre l'épreuve). Nom à donner à « tv intro <m> musique <nom> » ou « construire <nom> » ; temps en secondes"
+                        + " depuis le début du morceau.\n");
+                for (fr.lordfinn.craftmaster.data.IntroMusic.Track t : fr.lordfinn.craftmaster.data.IntroMusic.ALL) {
+                    b.append("- ").append(t.key()).append(" : ").append(t.describe());
+                    if (t.key().equals(fr.lordfinn.craftmaster.data.IntroMusic.FAVOURITE)) b.append(" · LA PRÉFÉRÉE DE LORDFINN (à prendre par défaut)");
+                    if (t.key().equals(fr.lordfinn.craftmaster.data.IntroMusic.DEFAULT_AUTO)) b.append(" · celle de « construire » sans musique");
+                    b.append(" · son ").append(t.sound()).append('\n');
+                }
+                b.append("Le générique de l'émission (« theme », show.theme) n'est pas calé pour une intro.");
+                return b.toString();
+            }
             case "mecaniques", "pack", "datapack" -> {
                 return ZoneReader.mechanics(server, name == null ? "" : name.trim().toLowerCase(Locale.ROOT));
             }

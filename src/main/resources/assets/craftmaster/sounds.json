@@ -118,5 +118,125 @@
         "pitch": 1.0
       }
     ]
+  },
+  "theme.base": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.theme.base",
+    "sounds": [
+      {
+        "name": "craftmaster:theme/base",
+        "stream": true
+      }
+    ]
+  },
+  "theme.reflexion": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.theme.reflexion",
+    "sounds": [
+      {
+        "name": "craftmaster:theme/reflexion",
+        "stream": true
+      }
+    ]
+  },
+  "theme.urgence": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.theme.urgence",
+    "sounds": [
+      {
+        "name": "craftmaster:theme/urgence",
+        "stream": true
+      }
+    ]
+  },
+  "theme.maladresse": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.theme.maladresse",
+    "sounds": [
+      {
+        "name": "craftmaster:theme/maladresse",
+        "stream": true
+      }
+    ]
+  },
+  "theme.victoire": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.theme.victoire",
+    "sounds": [
+      {
+        "name": "craftmaster:theme/victoire",
+        "stream": true
+      }
+    ]
+  },
+  "theme.suspense": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.theme.suspense",
+    "sounds": [
+      {
+        "name": "craftmaster:theme/suspense",
+        "stream": true
+      }
+    ]
+  },
+  "theme.univers.futuriste": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.theme.univers.futuriste",
+    "sounds": [
+      {
+        "name": "craftmaster:theme/univers/futuriste",
+        "stream": true
+      }
+    ]
+  },
+  "theme.univers.grec": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.theme.univers.grec",
+    "sounds": [
+      {
+        "name": "craftmaster:theme/univers/grec",
+        "stream": true
+      }
+    ]
+  },
+  "theme.univers.japonais": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.theme.univers.japonais",
+    "sounds": [
+      {
+        "name": "craftmaster:theme/univers/japonais",
+        "stream": true
+      }
+    ]
+  },
+  "theme.univers.steampunk": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.theme.univers.steampunk",
+    "sounds": [
+      {
+        "name": "craftmaster:theme/univers/steampunk",
+        "stream": true
+      }
+    ]
+  },
+  "theme.univers.medieval": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.theme.univers.medieval",
+    "sounds": [
+      {
+        "name": "craftmaster:theme/univers/medieval",
+        "stream": true
+      }
+    ]
+  },
+  "theme.univers.western": {
+    "category": "record",
+    "subtitle": "subtitles.craftmaster.theme.univers.western",
+    "sounds": [
+      {
+        "name": "craftmaster:theme/univers/western",
+        "stream": true
+      }
+    ]
   }
 }
