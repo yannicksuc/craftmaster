@@ -221,6 +221,7 @@ public final class Arenas {
             BlockPos at = a.min().offset(off[0], off[1], off[2]);
             // No updates at all, like a WorldEdit paste: crops on stone, floating plants, unconnected panes stay as built
             t.placeInWorld(level, at, at, new StructurePlaceSettings().setKnownShape(true), level.getRandom(), NO_UPDATE);
+            copyPassengers(level, a, off);
             copyMarkers(level, a, off);
             if (a.walls) walls(level, a, off);
             n++;
@@ -232,6 +233,38 @@ public final class Arenas {
         GroundEnd.forget();
         Finish.reset();
         return n;
+    }
+
+    /**
+     * The riders too: a structure places each entity alone, so a seat ({@code item_display}, minecart, boat…) arrives
+     * empty and whoever sat on it is lost (La pomme: the seated mannequins Remy, Lucie, Mireille, Gégé). Each mount of
+     * the reference that carries someone gets, in the copy, the same riders (and theirs), saved and loaded again with
+     * new UUIDs; a mount that already has its riders is left as it is.
+     */
+    private static void copyPassengers(ServerLevel level, Arena a, int[] off) {
+        net.minecraft.world.phys.AABB ref = a.box(null);
+        for (Entity mount : level.getEntities((Entity) null, ref, e -> !(e instanceof Player) && !e.isPassenger() && !e.getPassengers().isEmpty())) {
+            double x = mount.getX() + off[0], y = mount.getY() + off[1], z = mount.getZ() + off[2];
+            net.minecraft.world.phys.AABB near = new net.minecraft.world.phys.AABB(x - 0.3, y - 0.3, z - 0.3, x + 0.3, y + 0.3, z + 0.3);
+            Entity copy = level.getEntities((Entity) null, near, e -> e.getType() == mount.getType() && !e.isPassenger()).stream()
+                    .min(java.util.Comparator.comparingDouble(e -> e.distanceToSqr(x, y, z))).orElse(null);
+            if (copy == null || !copy.getPassengers().isEmpty()) continue;
+            for (Entity rider : mount.getPassengers()) {
+                net.minecraft.world.level.storage.TagValueOutput out = net.minecraft.world.level.storage.TagValueOutput.createWithContext(
+                        net.minecraft.util.ProblemReporter.DISCARDING, level.registryAccess());
+                if (!rider.saveAsPassenger(out)) continue;
+                Entity again = net.minecraft.world.entity.EntityType.loadEntityRecursive(
+                        net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING, level.registryAccess(), out.buildResult()),
+                        level, net.minecraft.world.entity.EntitySpawnReason.STRUCTURE, e -> {
+                            e.snapTo(e.getX() + off[0], e.getY() + off[1], e.getZ() + off[2], e.getYRot(), e.getXRot());
+                            e.setUUID(java.util.UUID.randomUUID());
+                            return e;
+                        });
+                if (again == null) continue;
+                level.addFreshEntityWithPassengers(again);
+                again.startRiding(copy, true, false);
+            }
+        }
     }
 
     /**

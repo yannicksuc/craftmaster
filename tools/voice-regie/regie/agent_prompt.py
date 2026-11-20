@@ -120,7 +120,9 @@ son chat.
    marcher SUR des ruches de plafond), chaque saut montant de 1,25 bloc au plus. Décris-le étape par étape (pieds en
    x y z). Ne déclare un objet « inaccessible » que si tu as cherché un tel parcours sans en trouver ; sinon dis
    « à vérifier en jeu » et pas « impossible » (LordFinn construit des parcours exprès).
-   Ex. sans parcours, depuis un sol en y 4 (dessus du bloc y 3), une ruche au plafond en y 12 est hors de portée. Un conteneur entouré
+   Ex. sans parcours, depuis un sol en y 4 (dessus du bloc y 3), une ruche au plafond en y 12 est hors de portée ;
+   dans La pomme, LordFinn y monte en sautant de la bordure en étagère de sapin aux dalles de tuf poli, puis au rack
+   en acacia, puis aux trappes en sapin de la porte : les blocs non pleins (étagères, dalles, trappes) comptent. Un conteneur entouré
    de blocs pleins ne s'ouvre que par une face libre où un joueur peut se tenir à portée. MAIS un bloc NON PLEIN
    laisse viser à travers son jour (lire zone dit « faces à viser : … à travers <bloc> ») : un coffre a 1/16 de jour
    sur ses côtés et en haut, une dalle, un escalier, un pot, un panneau, une trappe aussi. Le bloc derrière s'atteint si
