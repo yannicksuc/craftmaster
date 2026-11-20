@@ -364,6 +364,23 @@ public final class ArenaCommands {
                         .then(literal("verrouiller").executes(c -> signs(c, true)))))
                 .then(literal("comparer").then(argument("arene", word()).suggests(ARENAS).executes(c -> compare(c, false))
                         .then(literal("noter").executes(c -> compare(c, true)))))
+                // The drawings' pictures drawn again from their raw paths (after a change of the drawing algorithm)
+                .then(literal("redessiner").then(argument("arene", word()).suggests(ARENAS).executes(c -> {
+                    Arena a = arena(c);
+                    if (a == null) return 0;
+                    try {
+                        java.util.List<String> done = fr.lordfinn.craftmaster.trial.kit.DrawingImages.redraw(a.name);
+                        java.util.List<String> all = fr.lordfinn.craftmaster.trial.kit.DrawingImages.names(a.name);
+                        java.util.List<String> old = new java.util.ArrayList<>(all);
+                        old.removeAll(done);
+                        ok(c, done.size() + " dessin(s) de « " + a.name + " » redessiné(s)" + (done.isEmpty() ? "" : " : " + String.join(", ", done))
+                                + (old.isEmpty() ? "." : " ; sans chemin enregistré (gardés tels quels) : " + String.join(", ", old) + "."));
+                        return 1;
+                    } catch (Exception e) {
+                        fail(c, "Redessin impossible : " + e.getMessage());
+                        return 0;
+                    }
+                })))
                 .then(literal("jury").then(argument("arene", word()).suggests(ARENAS).executes(c -> jury(c, null, fr.lordfinn.craftmaster.trial.kit.JuryScreen.DEFAULT_SCREEN))
                         .then(argument("quoi", word()).suggests(JURY).executes(c -> jury(c, str(c, "quoi"), fr.lordfinn.craftmaster.trial.kit.JuryScreen.DEFAULT_SCREEN))
                                 .then(argument("ecran", word()).executes(c -> jury(c, str(c, "quoi"), str(c, "ecran")))))))
