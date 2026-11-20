@@ -23,8 +23,11 @@ OVERRIDE = {
     (27, 3, 17): "minecraft:stripped_spruce_log[axis=y]",       # bouton rouge, code de l'étagère, porte
     (38, 12, 31): "minecraft:beehive[facing=north,honey_level=0]",   # bouton du plafond : petit 10 s
     (36, 5, 16): "craftmaster:timer_tablet[pose=stand,rotation=2]",  # le minuteur posé par LordFinn dans sa salle (19/11)
-    # Deux fours parmi les hauts-fourneaux (20/11) : le sable caché ne cuit qu'au four (verre → fioles → miel → sucre)
+    # Deux fours parmi les hauts-fourneaux (20/11) : le sable ne cuit qu'au four (verre → fioles → miel → sucre)
     (34, 5, 37): "minecraft:furnace[facing=north,lit=false]", (35, 5, 37): "minecraft:furnace[facing=north,lit=false]",
+    # Trois sables (20/11), que casse la pelle en fer : un dans le trou du poulailler, sur la terre cuite jaune,
+    # deux dans le sol du couloir qui mène au poulailler (à la place des planches)
+    (47, 3, 28): "minecraft:sand", (42, 3, 30): "minecraft:sand", (43, 3, 30): "minecraft:sand",
 }
 # Le minuteur de LordFinn (même aspect) : il montre le chrono du candidat de la salle, de sa lettre à sa pomme
 TIMER = {"Settings": nbtlib.String('{"mode":"STOPWATCH","format":"MINUTES","seconds":60,"label":"","showLabel":false,"color":"RED","warnSeconds":10,"warnColor":"RED","ghostSegments":true,"frame":"OAK","mat":"NONE","size":1,"pose":"STAND","tilt":15,"clickToggles":false,"redstone":"OFF","startOnRound":false,"stopOnRoundEnd":false,"stopWithTimer":false,"signalWhenDone":false,"endSound":"NONE","blinkWhenDone":false,"followContestant":true,"group":""}'),
@@ -46,12 +49,16 @@ def j(o): return json.dumps(o, ensure_ascii=False, separators=(',', ':'))
 
 # ------------------------------------------------------------ règles des objets (mode aventure)
 RULES = {
-    "iron_hoe":      ({"can_break": {"blocks": ["wheat", "sugar_cane"]}, "can_place_on": {"blocks": ["dirt", "coarse_dirt", "rooted_dirt", "grass_block"]}},
-                      ["Casse : blé, canne à sucre", "Laboure : terre, terre stérile, terre racinée"]),
-    "iron_pickaxe":  ({"can_break": {"blocks": ["iron_ore", "coal_ore", "raw_iron_block"]}}, ["Casse : minerai de fer, minerai de charbon,", "bloc de fer brut"]),
+    "iron_hoe":      ({"can_break": {"blocks": ["wheat"]}, "can_place_on": {"blocks": ["dirt", "coarse_dirt", "rooted_dirt", "grass_block"]}},
+                      ["Casse : blé", "Laboure : terre, terre stérile, terre racinée"]),
+    # Le béton blanc (le béton en poudre au-dessus du coffre de la tête de Steve, durci au seau d'eau), puis le coffre
+    # en cuivre lui-même : sous lui, la shulker du crâne de squelette (le seul de la salle, pour le code de la porte)
+    "iron_pickaxe":  ({"can_break": {"blocks": ["iron_ore", "coal_ore", "raw_iron_block", "white_concrete", "oxidized_copper_chest"]}},
+                      ["Casse : minerai de fer, minerai de charbon,", "bloc de fer brut, béton blanc, coffre en cuivre"]),
+    "iron_shovel":   ({"can_break": {"blocks": ["sand"]}}, ["Casse : sable"]),
     "iron_axe":      ({"can_break": {"blocks": ["acacia_log", "acacia_wood", "stripped_acacia_log", "stripped_acacia_wood"]}}, ["Casse : bois d'acacia"]),
     "bucket":        ({"can_place_on": {"blocks": ["cauldron", "water_cauldron"]}}, ["Utilisable sur : chaudron, vache"]),
-    "water_bucket":  ({"can_place_on": {"blocks": ["yellow_terracotta"]}}, ["Se vide sur : terre cuite jaune"]),
+    "water_bucket":  ({"can_place_on": {"blocks": ["white_concrete_powder"]}}, ["Se vide sur : béton en poudre blanc"]),
     "glass_bottle":  ({"can_place_on": {"blocks": ["cauldron", "water_cauldron", "beehive", "bee_nest"]}}, ["Utilisable sur : chaudron, ruche"]),
     "potion":        ({"can_place_on": {"blocks": ["cauldron", "water_cauldron"]}}, ["Utilisable sur : chaudron"]),
     "wooden_hoe":    ({"can_break": {"blocks": ["oak_leaves"]}}, ["Casse : feuilles de chêne"]),
@@ -60,12 +67,7 @@ RULES = {
     "mace":          ({"can_break": {"blocks": ["light_gray_stained_glass_pane"]}}, ["Casse : vitres gris clair"]),
     "stone_pickaxe": ({"can_break": {"blocks": ["iron_ore"]}}, ["Casse : minerai de fer"]),
     "wheat_seeds":   ({"can_place_on": {"blocks": ["farmland"]}}, ["Se plante sur : terre labourée"]),
-    # « consumable » sans fin, muet : rester appuyé sur une canne la fait pousser (voir canne/*), le blé reste vanilla
-    "bone_meal":     ({"can_place_on": {"blocks": ["wheat", "carrots", "beetroots", "sugar_cane"]},
-                       "consumable": {"consume_seconds": 1000000, "animation": "none", "has_consume_particles": False,
-                                      "sound": "minecraft:intentionally_empty"}}, ["Utilisable sur : blé, carottes, betteraves,", "canne à sucre"]),
-    "sugar_cane":    ({"can_place_on": {"blocks": ["dirt", "grass_block", "coarse_dirt", "rooted_dirt", "moss_block", "mud"]}},
-                      ["Accepte la poudre d'os", "Se plante sur la terre, au bord de l'eau"]),
+    "bone_meal":     ({"can_place_on": {"blocks": ["wheat", "carrots", "beetroots"]}}, ["Utilisable sur : blé, carottes, betteraves"]),
     "cow_spawn_egg": ({"can_place_on": [{}]}, []),
 }
 HIDE = {"hidden_components": ["minecraft:can_break", "minecraft:can_place_on"]}
@@ -77,10 +79,15 @@ def rule_components(item):
     return out
 def comp_snbt(c):
     return ",".join("%s=%s" % (k, re.sub(r'"(\w+)":', r'\1:', j(v))) for k, v in c.items())
+# Composants que d'anciennes règles avaient mis et que les objets déjà distribués perdent (20/11 : la Farine
+# ne fait plus pousser la canne à sucre, retirée de la salle)
+STRIP = {"bone_meal": ["minecraft:consumable"]}
 mods = []
 for item in RULES:
+    comps = rule_components(item)
+    for k in STRIP.get(item, []): comps["!" + k] = {}
     mods.append({"function": "minecraft:filtered", "item_filter": {"items": "minecraft:" + item},
-                 "on_pass": {"function": "minecraft:set_components", "components": rule_components(item)}})
+                 "on_pass": {"function": "minecraft:set_components", "components": comps}})
 F_JSON = {"data/pomme/item_modifier/regles.json": mods}
 
 def with_rules(item_tag):
@@ -96,11 +103,9 @@ def with_rules(item_tag):
 be = {}
 for e in sch['Blocks']['BlockEntities']:
     if tuple(int(x) for x in e['Pos']) not in OVERRIDE: be[tuple(int(x) for x in e['Pos'])] = e['Data']
-# Objets ajoutés au schéma de LordFinn, cachés dans des tonneaux (20/11/2026) : le sucre du gâteau vient du miel
-# (fioles de verre ; le sable se cuit dans les deux fours parmi les hauts-fourneaux, voir OVERRIDE)
-CACHETTES = {
-    (29, 9, 13): [("sand", 1)], (33, 9, 13): [("sand", 1)], (39, 9, 13): [("sand", 1)],
-}
+# Objets ajoutés au schéma de LordFinn, cachés dans des conteneurs ({position: [(objet, nombre)]}). Vide depuis le
+# 20/11 : les 3 sables des tonneaux sont devenus des blocs (OVERRIDE), voir salle/sans_canne pour les salles construites
+CACHETTES = {}
 DROP = {'id', 'x', 'y', 'z', 'keepPacked', 'PublicBukkitValues', 'Bukkit.MaxEntities'}
 def be_snbt(pos):
     d = be.get(pos)
@@ -108,16 +113,15 @@ def be_snbt(pos):
     d = nbtlib.Compound({k: v for k, v in d.items() if k not in DROP and not k.startswith('Bukkit') and not k.startswith('Paper')})
     if 'Items' in d:
         for it in d['Items']: with_rules(it)
-    if pos in CACHETTES:     # 3 sables (verre → fioles → miel → sucre), cachés parmi la farine
+    if pos in CACHETTES:
         used = {int(it['Slot']) for it in d.get('Items', [])}
         items = d.setdefault('Items', nbtlib.List[nbtlib.Compound]())
         for iid, n in CACHETTES[pos]:
             slot = next(k for k in range(26, -1, -1) if k not in used)
             used.add(slot)
             items.append(nbtlib.Compound({'Slot': nbtlib.Byte(slot), 'id': nbtlib.String('minecraft:' + iid), 'count': nbtlib.Int(n)}))
-    if pos == (28, 4, 27):   # une seule canne à sucre
-        for it in d['Items']:
-            if str(it['id']) == 'minecraft:sugar_cane': it['count'] = nbtlib.Int(1)
+    if pos == (28, 4, 27):   # plus de canne à sucre (20/11) : le sucre du gâteau vient seulement du miel
+        d['Items'] = nbtlib.List[nbtlib.Compound]([it for it in d['Items'] if str(it['id']) != 'minecraft:sugar_cane'])
     if pos == (38, 2, 25):   # la tête de Steve du coffre
         for it in d['Items']:
             if str(it['id']) == 'minecraft:player_head':
@@ -327,13 +331,11 @@ fn("monde", [
     "clear @a[distance=..600] iron_spear",
     "# Petit pendant 10 s",
     "scoreboard players remove @a[distance=..600,scores={pomme_petit=1..}] pomme_petit 1",
-    "scoreboard players remove @a[distance=..600,scores={pomme_farine=1..}] pomme_farine 1",
     "execute as @a[distance=..600,scores={pomme_petit=1}] at @s run function pomme:petit/grandir",
 ])
 fn("charger", [
     "scoreboard objectives add pomme_t dummy",
     "scoreboard objectives add pomme_petit dummy",
-    "scoreboard objectives add pomme_farine dummy",
 ])
 F_JSON["data/pomme/predicate/bebe.json"] = {"condition": "minecraft:entity_properties", "entity": "this", "predicate": {"flags": {"is_baby": True}}}
 F_JSON["data/minecraft/tags/function/tick.json"] = {"values": ["pomme:tick"]}
@@ -466,30 +468,6 @@ fn("code/ouvrir", ["cm arene demander poules"])
 # Tout remettre à zéro (organisateur) : la référence ne bouge pas, les 4 salles sont refaites
 fn("tout_refaire", ["execute in %s run function pomme:construire/copies" % DIM])
 
-# ------------------------------------------------------------ la Farine sur la canne à sucre
-# Le jeu ne fait pas pousser la canne à la poudre d'os : rester appuyé avec la Farine (progrès « using_item ») en visant
-# une canne la fait grandir d'un bloc toutes les 8 ticks, jusqu'à 3 de haut, et use une Farine par bloc.
-in_pomme = {"condition": "minecraft:location_check", "predicate": {"dimension": DIM}}
-F_JSON["data/pomme/advancement/farine_canne.json"] = {
-    "criteria": {"canne": {"trigger": "minecraft:using_item", "conditions": {"item": {"items": "minecraft:bone_meal"}}}},
-    "rewards": {"function": "pomme:canne/pousser"}}
-F_JSON["data/pomme/item_modifier/moins_un.json"] = {"function": "minecraft:set_count", "count": -1, "add": True}
-fn("canne/pousser", ["advancement revoke @s only pomme:farine_canne",
-                     "execute if score @s pomme_farine matches 1.. run return 0",
-                     "scoreboard players set @s pomme_farine 8",
-                     "scoreboard players set #pas pomme_t 0",
-                     "execute anchored eyes positioned ^ ^ ^ run function pomme:canne/rayon"])
-fn("canne/rayon", ["execute if block ~ ~ ~ sugar_cane align xyz run return run function pomme:canne/bas",
-                   "scoreboard players add #pas pomme_t 1",
-                   "execute if score #pas pomme_t matches ..60 positioned ^ ^ ^0.1 run function pomme:canne/rayon"])
-fn("canne/bas", ["execute if block ~ ~-1 ~ sugar_cane positioned ~ ~-1 ~ run return run function pomme:canne/bas",
-                 "execute unless block ~ ~1 ~ sugar_cane if block ~ ~1 ~ #pomme:libre positioned ~ ~1 ~ run return run function pomme:canne/grandir",
-                 "execute if block ~ ~1 ~ sugar_cane unless block ~ ~2 ~ sugar_cane if block ~ ~2 ~ #pomme:libre positioned ~ ~2 ~ run return run function pomme:canne/grandir"])
-fn("canne/grandir", ["setblock ~ ~ ~ sugar_cane strict",
-                     "particle minecraft:happy_villager ~0.5 ~0.5 ~0.5 0.3 0.4 0.3 0 12",
-                     "playsound minecraft:item.bone_meal.use block @a ~0.5 ~0.5 ~0.5 1 1",
-                     "execute unless entity @s[gamemode=creative] run item modify entity @s weapon.mainhand pomme:moins_un"])
-
 # ------------------------------------------------------------ cachettes ajoutées dans des salles déjà construites
 # (à lancer positionné au coin d'une salle : function pomme:salle/cachettes ; le tag p_cachettes évite de doubler)
 cach = ["execute if entity @e[type=marker,tag=pomme_salle,tag=p_cachettes,distance=..1] run return 0"]
@@ -500,6 +478,15 @@ for (x, y, z), its in CACHETTES.items():
         cach.append("loot insert ~%d ~%d ~%d loot pomme:cachette/%s_%d" % (x, y, z, iid, n))
 cach.append("tag @e[type=marker,tag=pomme_salle,distance=..1,limit=1] add p_cachettes")
 fn("salle/cachettes", cach)
+
+# ------------------------------------------------------------ salles déjà construites : sans canne, avec les sables (20/11)
+# (positionné au coin d'une salle, référence comprise : function pomme:salle/sans_canne ; sans effet la 2e fois)
+fn("salle/sans_canne", [
+    "data remove block ~28 ~4 ~27 Items[{id:\"minecraft:sugar_cane\"}]",
+    "data remove block ~29 ~9 ~13 Items[{id:\"minecraft:sand\"}]",
+    "data remove block ~33 ~9 ~13 Items[{id:\"minecraft:sand\"}]",
+    "data remove block ~39 ~9 ~13 Items[{id:\"minecraft:sand\"}]",
+] + ["setblock ~%d ~%d ~%d %s strict" % (x, y, z, b) for (x, y, z), b in OVERRIDE.items() if b == "minecraft:sand"])
 
 # ------------------------------------------------------------ vérification bloc à bloc (0 attendu)
 ver = ["scoreboard players set #diff pomme_t 0"]

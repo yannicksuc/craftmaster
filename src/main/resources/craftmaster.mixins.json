@@ -2,6 +2,6 @@
   "required": true,
   "package": "fr.lordfinn.craftmaster.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": ["DisplayAccessor", "TextDisplayAccessor", "PickPortraitMixin", "PortraitReachMixin", "InteractionAccessor", "ItemDisplayAccessor", "BlockDisplayAccessor", "DialogClickMixin", "InventoryLockMixin", "ConsumeMixin", "LegacyCommandsMixin", "LegacyChatCommandMixin", "NoRandomTickMixin", "BareHandCaneMixin"],
+  "mixins": ["DisplayAccessor", "TextDisplayAccessor", "PickPortraitMixin", "PortraitReachMixin", "InteractionAccessor", "ItemDisplayAccessor", "BlockDisplayAccessor", "DialogClickMixin", "InventoryLockMixin", "ConsumeMixin", "LegacyCommandsMixin", "LegacyChatCommandMixin", "NoRandomTickMixin"],
   "injectors": { "defaultRequire": 1 }
 }

@@ -36,7 +36,8 @@ import java.util.Locale;
  * open CLASS                    opens that screen (no-argument constructor), e.g. another mod's menu
  * use seconds                    holds the "use" key in the world that long, then lets go (charge a throw, a bow…)
  * camera first|back|front        the point of view, as F5 cycles it (see the player's own model)
- * casse x y z                    a punch on that block (attack key, adventure rules included); result in the log
+ * saute seconds                 holds the jump key that long (swim up, climb out of a hole)
+ * casse x y z [ticks]            hits that block (attack key, adventure rules included), held that many ticks; result in the log
  * </pre>
  */
 public final class DevInput {
@@ -47,6 +48,10 @@ public final class DevInput {
     private static float slow = 1;
     /** A "use" line holds the use key until then (nanoTime), 0 when not holding. */
     private static long useUntil;
+    private static long jumpUntil;
+    /** "casse x y z ticks": the block being hit and the ticks left. */
+    private static net.minecraft.core.BlockPos breakPos;
+    private static int breakTicks;
 
     /** Is this key (InputConstants.KEY_*) held by a {@code hold} line? Always false outside development. */
     public static boolean held(int key) {
@@ -103,7 +108,19 @@ public final class DevInput {
                 mc.options.keyUse.setDown(false);
                 useUntil = 0;
             }
+            if (jumpUntil != 0 && System.nanoTime() > jumpUntil) {
+                mc.options.keyJump.setDown(false);
+                jumpUntil = 0;
+            }
             if (recTicks > 0) recTicks--;
+            if (breakPos != null && mc.gameMode != null && mc.level != null) {
+                if (--breakTicks > 0 && !mc.level.getBlockState(breakPos).isAir()) mc.gameMode.continueDestroyBlock(breakPos, net.minecraft.core.Direction.UP);
+                else {
+                    mc.gameMode.stopDestroyBlock();
+                    org.slf4j.LoggerFactory.getLogger("craftmaster").info("[dev-input] casse {} : fin -> {}", breakPos.toShortString(), mc.level.getBlockState(breakPos));
+                    breakPos = null;
+                }
+            }
             if (!Files.exists(file)) return;
             List<String> lines;
             try {
@@ -235,7 +252,8 @@ public final class DevInput {
                     net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos(Integer.parseInt(a[1]), Integer.parseInt(a[2]), Integer.parseInt(a[3]));
                     String before = mc.level.getBlockState(pos).toString();
                     boolean started = mc.gameMode.startDestroyBlock(pos, net.minecraft.core.Direction.UP);
-                    mc.gameMode.stopDestroyBlock();
+                    if (a.length > 4 && started) { breakPos = pos; breakTicks = Integer.parseInt(a[4]); }
+                    else mc.gameMode.stopDestroyBlock();
                     org.slf4j.LoggerFactory.getLogger("craftmaster").info("[dev-input] casse {} : {} -> {} (coup accepté : {})",
                             pos.toShortString(), before, mc.level.getBlockState(pos), started);
                     continue;
@@ -244,6 +262,12 @@ public final class DevInput {
                     String[] a = line.strip().split("\s+");
                     mc.player.setYRot(Float.parseFloat(a[1]));
                     mc.player.setXRot(Float.parseFloat(a[2]));
+                    continue;
+                }
+                if (line.strip().toLowerCase(Locale.ROOT).startsWith("saute")) {
+                    String[] a = line.strip().split("\s+");
+                    jumpUntil = System.nanoTime() + (long) (Double.parseDouble(a.length > 1 ? a[1] : "0.2") * 1e9);
+                    mc.options.keyJump.setDown(true);
                     continue;
                 }
                 if (line.strip().toLowerCase(Locale.ROOT).startsWith("use")) {

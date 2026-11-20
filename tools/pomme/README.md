@@ -19,9 +19,10 @@ Commandes :
   La réponse est lue en syllabes co / cot / ri : séparateurs libres, majuscules, accents et ponctuation ignorés, mais il faut les mêmes syllabes, dans le même ordre et en même nombre ;
 - `function pomme:construire/reference` colle la référence depuis le schéma : `setblock`/`fill … strict`, sans aucune mise à jour, puis les entités ;
 - `function pomme:tout_refaire` refait les 4 salles depuis la référence : `clone … strict` puis les entités ;
-- `execute in minecraft:pomme as @e[type=marker,tag=pomme_salle] at @s align xyz run function pomme:salle/cachettes` ajoute, une fois par salle, les objets cachés ajoutés au schéma après sa construction (3 sables : `CACHETTES` de gen.py ; ils cuisent dans les deux fours parmi les hauts-fourneaux) ;
+- `execute in minecraft:pomme as @e[type=marker,tag=pomme_salle] at @s align xyz run function pomme:salle/sans_canne` met à jour les salles construites avant le 20/11 (référence comprise) : plus de canne à sucre sur l'étagère ni de sable dans les tonneaux, les 3 sables posés (un sur la terre cuite jaune du poulailler, deux dans le sol du couloir qui y mène) ;
+- `… run function pomme:salle/cachettes` ajoute, une fois par salle, les objets de `CACHETTES` (gen.py ; vide pour l'instant) ;
 - `execute in minecraft:pomme positioned <x>.0 60 0.0 run function pomme:verif` puis `scoreboard players get #diff pomme_t` compte les blocs différents du schéma (0 attendu).
 
-La canne à sucre se casse à la houe en fer (règle `can_break` du pack) et aussi à main nue : c'est le mod qui le permet en aventure, dans le monde `minecraft:pomme` seulement (`mixin/BareHandCaneMixin`). Il faut donc le mod côté joueur.
+Le sucre du gâteau vient du miel : pelle en fer → sable → four (deux parmi les hauts-fourneaux) → verre → fioles → ruches pleines (28-30 12 13-15) → fiole de miel → sucre. Le seau d'eau se vide sur le béton en poudre blanc (38 3 25), qui durcit ; la pioche en fer casse le béton blanc puis le coffre en cuivre de la tête de Steve, sous lequel est la shulker du crâne de squelette.
 
 Ne pas utiliser `/cm arene reset pomme` avec un mod plus ancien que le correctif « copie sans mise à jour ».
