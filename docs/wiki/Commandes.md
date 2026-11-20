@@ -116,7 +116,7 @@ Restent à part, parce qu'elles vivent dans le jeu de chacun (pas sur le serveur
 |---|---|
 | `/cm arene liste` · `creer <nom>` · `spawn <nom>` · `manche <nom> <manche>` | Les arènes, en créer, départ, manche liée |
 | `/cm arene copier <nom> [joueurs\|tous]` · `placer <nom> [joueurs]` · `reset <nom>` | Une copie par candidat · chacun à son départ · tout refaire |
-| `/cm arene tp <nom> <joueur> [dessus]` · `kit <nom> [vide]` · `champ <nom> [encre]` | Voir une copie · kit · champ à dessiner |
+| `/cm arene tp <nom> <joueur>\|reference [dessus]` · `kit <nom> [vide]` · `champ <nom> [encre]` | Voir une copie ou la salle de référence · kit · champ à dessiner |
 | `/cm arene option <nom> <option> <valeur>` | `chronoLettre`, `panneauxSuite`, `murs`, `inventaireVide`, `solFin`, `alphabet`, `aveugle`, `cameraInventaire`, `vocalLancement` (true/false), `chronoSuite` (s), `mode aventure\|survie` — en direct, aussi dans le [menu des épreuves](#épreuves-en-direct) |
 | `/cm arene etapes <nom> [étapes…]` · `synchroniser [nom]` | Étapes de « suite » (`revele vocal vocalfin chrono:600 panneaux`) · copies = candidats de la saison |
 | `/cm arene panneaux <nom> [verrouiller]` · `comparer <nom> [noter]` | Panneaux des copies · comparaison bloc à bloc |

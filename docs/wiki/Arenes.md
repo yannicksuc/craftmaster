@@ -22,7 +22,11 @@ chaque candidat : chacun joue seul dans **sa** copie.
   (`/cm arene kit <nom>` = les objets de ton inventaire ; `kit <nom> vide` ; `option <nom> inventaireVide true` vide
   d'abord leur inventaire).
 - `/cm arene reset <nom>` : toutes les copies refaites comme la référence (objets cachés compris), prêtes à rejouer.
-- `/cm arene tp <nom> <joueur> [dessus]` : aller voir une copie (au-dessus, en vol, pour juger un dessin).
+- `/cm arene tp <nom> <joueur> [dessus]` : aller voir une copie (au-dessus, en vol, pour juger un dessin) ;
+  `/cm arene tp <nom> reference [dessus]` : la **salle de référence** (son point de départ, dans le monde de l'arène ;
+  bouton « Référence » du menu N). C'est là que se posent les caméras de l'intro : debout dans une arène,
+  `/cm cam ici <n>` et `/cm cam ajouter` rangent la caméra dans le lieu de **sa manche** (sans avoir à écrire
+  `pomme:3`).
 - `/cm arene retirer <nom> <joueur>` · `supprimer <nom>` · `liste`. Tout est gardé dans `config/craftmaster/arenas.json`.
 
 La **réapparition** suit aussi les points de TP des manches : un candidat téléporté au lancement d'une manche

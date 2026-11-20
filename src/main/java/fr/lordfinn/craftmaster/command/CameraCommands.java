@@ -343,6 +343,9 @@ public final class CameraCommands {
         ServerPlayer p = player(c);
         if (p == null) return 0;
         String ref = str(c, "camera");
+        // Standing in an arena, a bare number is a camera of its round (not of the studio in focus)
+        String here = groupHere(c);
+        if (ref.indexOf(':') < 0 && !here.equals(Director.focus())) ref = CameraSpot.lieuOf(here) + ":" + ref;
         CameraSpot old = Director.resolve(c.getSource().getServer(), ref);
         CameraSpot spot = old != null
                 ? old.withPlace(Busts.worldId(p.level()), p.getX(), p.getEyeY(), p.getZ(), p.getYRot(), p.getXRot())
@@ -357,7 +360,7 @@ public final class CameraCommands {
     private static int add(CommandContext<CommandSourceStack> c, String name) {
         ServerPlayer p = player(c);
         if (p == null) return 0;
-        String group = Director.focus();
+        String group = groupHere(c);
         CameraSpot spot = new CameraSpot(Cameras.list().nextFree(group), name, "", Busts.worldId(p.level()), p.getX(), p.getEyeY(), p.getZ(),
                 p.getYRot(), p.getXRot(), 0, CameraSpot.BREATHING, CameraSpot.lieuOf(group), CameraSpot.zoneOf(group));
         Cameras.place(c.getSource().getServer(), spot);
@@ -384,8 +387,21 @@ public final class CameraCommands {
     }
 
     /** A new camera for the ref {@code 3}, {@code pont:2}, {@code pont:ensuri:1}; null (said so) when the ref is not one. */
+    /**
+     * The lieu a new camera goes to without one in its name: the round of the arena the player stands in (its
+     * reference room or a copy: where intro cameras are placed), else the focus.
+     */
+    private static String groupHere(CommandContext<CommandSourceStack> c) {
+        ServerPlayer p = c.getSource().getPlayer();
+        if (p != null) {
+            var owner = fr.lordfinn.craftmaster.trial.kit.Arenas.ownerAt(p.level(), p.blockPosition());
+            if (owner != null && owner.arena().manche != null && Lieux.lieu(owner.arena().manche) != null) return Lieux.lieu(owner.arena().manche);
+        }
+        return Director.focus();
+    }
+
     private static CameraSpot newSpot(CommandContext<CommandSourceStack> c, String ref, String world, double x, double y, double z, float yaw, float pitch) {
-        String group = Director.focus();
+        String group = ref.lastIndexOf(':') > 0 ? Director.focus() : groupHere(c);
         String num = ref;
         int colon = ref.lastIndexOf(':');
         if (colon > 0) {

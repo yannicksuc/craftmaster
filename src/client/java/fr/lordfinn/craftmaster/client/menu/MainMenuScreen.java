@@ -247,8 +247,9 @@ public class MainMenuScreen extends Screen {
                         "Chrono lancé à la révélation de la suite. Clic : +30 s, Maj+clic : −30 s, molette : ±10 s", suite,
                         v -> MenuClient.command("arene option " + n + " chronoSuite " + Math.max(0, Math.min(7200, v))), 30, 10);
             });
-            if (copies != null && !copies.isEmpty()) r.row(Component.literal("Aller voir").withStyle(ChatFormatting.GRAY), b -> {
-                for (JsonElement c : copies) {
+            r.row(Component.literal("Aller voir").withStyle(ChatFormatting.GRAY), b -> {
+                b.button("Référence", "La salle de référence (son départ) : là où se posent les caméras de l'intro", () -> MenuClient.command("arene tp " + n + " reference"));
+                if (copies != null) for (JsonElement c : copies) {
                     String who = c.getAsString();
                     b.button(who, "Au-dessus de la copie de " + who + " (pour juger)", () -> MenuClient.command("arene tp " + n + " " + who + " dessus"));
                 }

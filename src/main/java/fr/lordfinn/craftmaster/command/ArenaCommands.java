@@ -79,6 +79,17 @@ public final class ArenaCommands {
         out.add("tous");
         return out;
     });
+    /** Where /cm arene tp goes: the reference room, then each copy (by its contestant). */
+    private static final SuggestionProvider<CommandSourceStack> PLACES = list(c -> {
+        List<String> out = new ArrayList<>(List.of("reference"));
+        try {
+            Arena a = Arenas.get(StringArgumentType.getString(c, "arene"));
+            if (a != null) out.addAll(a.copies.keySet());
+        } catch (IllegalArgumentException e) {
+            // no arena typed yet
+        }
+        return out;
+    });
     private static final SuggestionProvider<CommandSourceStack> OPTIONS = list(c -> List.of("chronoLettre", "panneauxSuite", "murs", "inventaireVide", "solFin", "alphabet", "aveugle", "cameraInventaire", "vocalLancement"));
     private static final SuggestionProvider<CommandSourceStack> JURY = list(c -> {
         List<String> out = new ArrayList<>(List.of("tous", "suivant", "precedent"));
@@ -226,7 +237,7 @@ public final class ArenaCommands {
                 }))))
                 .then(literal("placer").then(argument("arene", word()).suggests(ARENAS).executes(c -> place(c, null))
                         .then(argument("joueurs", StringArgumentType.greedyString()).suggests(CAST).executes(c -> place(c, str(c, "joueurs"))))))
-                .then(literal("tp").then(argument("arene", word()).suggests(ARENAS).then(argument("joueur", word()).suggests(CAST)
+                .then(literal("tp").then(argument("arene", word()).suggests(ARENAS).then(argument("joueur", word()).suggests(PLACES)
                         .executes(c -> tp(c, false)).then(literal("dessus").executes(c -> tp(c, true))))))
                 .then(literal("kit").then(argument("arene", word()).suggests(ARENAS).executes(c -> {
                     Arena a = arena(c);
@@ -452,13 +463,23 @@ public final class ArenaCommands {
         Arena a = arena(c);
         ServerPlayer p = player(c);
         if (a == null || p == null) return 0;
-        int[] off = null;
-        for (Map.Entry<String, int[]> e : a.copies.entrySet()) if (e.getKey().equalsIgnoreCase(str(c, "joueur"))) off = e.getValue();
+        String who = str(c, "joueur");
+        boolean reference = who.equalsIgnoreCase("reference") || who.equalsIgnoreCase("référence") || who.equalsIgnoreCase("ref");
+        int[] off = reference ? new int[]{0, 0, 0} : null;
+        String owner = null;
+        if (!reference) for (Map.Entry<String, int[]> e : a.copies.entrySet())
+            if (e.getKey().equalsIgnoreCase(who)) {
+                off = e.getValue();
+                owner = e.getKey();
+            }
         if (off == null) {
-            fail(c, str(c, "joueur") + " n'a pas de copie dans « " + a.name + " ».");
+            fail(c, who + " n'a pas de copie dans « " + a.name + " » (reference pour la salle de référence).");
             return 0;
         }
         ServerLevel level = Arenas.level(c.getSource().getServer(), a);
+        String world = level.dimension().identifier().getPath();
+        ok(c, (reference ? "Salle de référence de " + a.name : "Copie de " + owner + " dans « " + a.name + " »") + " (monde " + world + ")"
+                + (above ? ", vue d'en haut." : (reference && a.manche != null ? " : /cm cam ici <n> y pose une caméra de la manche." : ".")));
         if (above) {
             double x = (a.x0 + a.x1 + 1) / 2.0 + off[0], z = (a.z0 + a.z1 + 1) / 2.0 + off[2];
             double y = a.y1 + off[1] + 2 + Math.max(a.sizeX(), a.sizeZ()) * 0.6;
@@ -466,7 +487,7 @@ public final class ArenaCommands {
             p.getAbilities().flying = p.getAbilities().mayfly;
             p.onUpdateAbilities();
         } else {
-            double[] s = Arenas.spawn(a, off);
+            double[] s = Arenas.spawn(a, reference ? null : off);
             p.teleportTo(level, s[0], s[1], s[2], Set.of(), a.syaw, 0f, true);
         }
         return 1;
