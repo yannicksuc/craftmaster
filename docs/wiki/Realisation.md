@@ -422,7 +422,10 @@ pas dans l'émission (un spectateur ramené sous la caméra, parfois à plusieur
 qu'il montre, comme le micro d'une caméra de télé, et l'écoute suit chaque coupe en même temps que l'image.
 
 ## Le mode diffusion (client)
-- **F8** (touche réglable, catégorie CraftMaster) ou `/craftMasterBroadcast` (`/diffusion`) `[on|off]` ;
+- **F8** (touche réglable, catégorie CraftMaster) ou `/craftMasterBroadcast` (`/diffusion`) `[on|off]` : chez les
+  organisateurs et les comptes caméra seulement ; pour les autres, l'animateur le lance avec
+  `/cm tv diffusion tous|candidats|spectateurs|<pseudo> on|off` (voir Déroulé du direct). On s'y voit soi-même dès que
+  l'image ne vient pas de ses yeux ;
   `/diffusion chat on|off` montre ou cache le chat ; `/diffusion status`.
 - Cache : main et objet tenu, barre d'objets, cœurs, viseur, effets, barre de boss, barre d'action, liste des
   joueurs, sous-titres, notifications (« toasts »), panneau de la régie vocale. Les **titres** (manche, décompte des

@@ -109,6 +109,8 @@ public final class Broadcast {
                 Blackout.start(payload);
             } else if (Cues.BLACKOUT_OPEN.equals(payload.kind())) {
                 Blackout.open(payload.ticks());
+            } else if (Cues.RIGHTS.equals(payload.kind())) {
+                Rights.set("admin".equals(payload.title()), "feed".equals(payload.subtitle()));
             } else if (Cues.VOICE.equals(payload.kind())) {
                 VoiceHud.set(payload.title(), payload.subtitle());
             } else if (Cues.FEED.equals(payload.kind())) {
@@ -182,7 +184,13 @@ public final class Broadcast {
     }
 
     private static void tick(Minecraft mc) {
-        while (TOGGLE_KEY.consumeClick()) set(!on);
+        while (TOGGLE_KEY.consumeClick()) {
+            // The key is the organisers' (and the camera accounts'); the others get it from the master (/cm tv diffusion tous on)
+            if (Rights.admin()) set(!on);
+            else if (mc.player != null) mc.player.sendOverlayMessage(Component.literal(on
+                    ? "Le mode diffusion a été lancé par l'animateur : il le coupera."
+                    : "Le mode diffusion est lancé par l'animateur.").withStyle(ChatFormatting.GOLD));
+        }
         if (!active() || mc.gui.screen() != null) {
             // Keys pressed out of broadcast mode are not kept for later
             while (ZONE_KEY.consumeClick()) {}
@@ -266,20 +274,22 @@ public final class Broadcast {
         for (String name : List.of("diffusion")) d.register(tree(name));
     }
 
+    /** /diffusion on|off by the player himself: the organisers' and the camera accounts' only (the others get it from the master). */
+    private static int own(boolean value) {
+        Minecraft mc = Minecraft.getInstance();
+        if (!Rights.admin()) {
+            if (mc.player != null) mc.player.sendOverlayMessage(Component.literal("Le mode diffusion est lancé par l'animateur.").withStyle(ChatFormatting.GOLD));
+            return 0;
+        }
+        set(value);
+        return 1;
+    }
+
     private static LiteralArgumentBuilder<FabricClientCommandSource> tree(String name) {
         return literal(name)
-                .executes(c -> {
-                    set(!on);
-                    return 1;
-                })
-                .then(literal("on").executes(c -> {
-                    set(true);
-                    return 1;
-                }))
-                .then(literal("off").executes(c -> {
-                    set(false);
-                    return 1;
-                }))
+                .executes(c -> own(!on))
+                .then(literal("on").executes(c -> own(true)))
+                .then(literal("off").executes(c -> own(false)))
                 .then(literal("chat")
                         .then(literal("on").executes(c -> {
                             showChat = true;

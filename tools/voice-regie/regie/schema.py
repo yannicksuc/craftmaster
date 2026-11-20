@@ -92,6 +92,11 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                        "Interdire pendant l'épreuve renvoie les spectateurs à leur place.",
                        [f("enabled", BOOL, True, "true = autorisés, false = interdits."),
                         f("manche", MANCHE, doc="Pour cette épreuve seulement (id de manche). Absent = partout.")]),
+    "diffusion.set": ("Lance ou coupe le mode diffusion (F8 : l'image de l'émission à la place de leur vue) sur les jeux de "
+                      "tout le monde, des candidats, des spectateurs ou d'un joueur (« mets tout le monde en diffusion »). "
+                      "La touche F8 d'un joueur seul ne marche que pour les organisateurs.",
+                      [f("enabled", BOOL, True, "true = lancer, false = couper."),
+                       f("who", STR, doc="tous (défaut), candidats, spectateurs ou un pseudo.")]),
     "voice.mode": ("Le vocal de LordFinn, en modes exclusifs : off (chacun son vocal habituel), commentaire (avec les "
                    "spectateurs, ouvert ou fermé ; les candidats qui jouent ne l'entendent jamais), tous (annonce à tout le "
                    "monde, ou aux candidats ou aux spectateurs seulement), joueur (un candidat ou une équipe seul avec lui ; "
@@ -360,7 +365,7 @@ NO_SCOPE |= {"camera.path", "camera.focus", "camera.lieu", "camera.mosaic", "cam
 NO_SCOPE |= {"camera.goto", "camera.stay", "camera.framing", "camera.avoid"}
 NO_SCOPE |= {"fx.set", "fx.clear"}
 NO_SCOPE |= {"replay.control", "replay.flag", "tele.show", "clip.start", "clip.stop"}
-NO_SCOPE |= {"spectators.set", "voice.mode"}
+NO_SCOPE |= {"spectators.set", "voice.mode", "diffusion.set"}
 SCOPE_FIELDS = [f("season", SCOPE, doc="Saison (id ou nom). Absent = saison active."),
                 f("partie", SCOPE, doc="Partie (id ou nom). Absent = partie active.")]
 

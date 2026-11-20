@@ -747,19 +747,14 @@ public final class CameraCommands {
                         .then(argument("mode", word()).suggests(SCORE_MODES).executes(c -> run(c, action("broadcast.scores", "mode", str(c, "mode"))))))
                 .then(literal("letterbox").then(argument("enabled", word()).suggests(ON_OFF)
                         .executes(c -> run(c, action("broadcast.letterbox", "enabled", onOff(c, "enabled"))))))
-                .then(literal("broadcast").then(argument("player", word()).suggests(ONLINE)
-                        .then(argument("enabled", word()).suggests(ON_OFF).executes(c -> {
-                            // Switches a game's broadcast mode from here (the camera account's PC may be out of reach)
-                            ServerPlayer target = c.getSource().getServer().getPlayerList().getPlayerByName(str(c, "player"));
-                            if (target == null || !ServerPlayNetworking.canSend(target, BroadcastNetwork.ShowCue.TYPE)) {
-                                fail(c, str(c, "player") + " n'est pas connecté avec le mod.");
-                                return 0;
-                            }
-                            boolean on = onOff(c, "enabled");
-                            ServerPlayNetworking.send(target, new BroadcastNetwork.ShowCue(BroadcastNetwork.Cues.BROADCAST, on ? "on" : "off", "", "", 0));
-                            ok(c, "Mode diffusion " + (on ? "activé" : "désactivé") + " pour " + target.getGameProfile().name() + ".");
-                            return 1;
-                        }))))
+                // Broadcast mode (F8) on the games of everyone, the contestants, the spectators or one player
+                .then(literal("broadcast").then(argument("player", word()).suggests(list(c -> {
+                            List<String> who = new ArrayList<>(List.of("tous", "candidats", "spectateurs"));
+                            who.addAll(c.getSource().getOnlinePlayerNames());
+                            return who;
+                        }))
+                        .then(argument("enabled", word()).suggests(ON_OFF)
+                                .executes(c -> run(c, action("diffusion.set", "who", str(c, "player"), "enabled", onOff(c, "enabled")))))))
                 .then(literal("spotlight").then(argument("player", word()).suggests(ONLINE)
                         .executes(c -> spotlight(c, null))
                         .then(argument("reason", StringArgumentType.greedyString()).executes(c -> spotlight(c, str(c, "reason"))))))

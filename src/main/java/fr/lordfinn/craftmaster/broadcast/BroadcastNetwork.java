@@ -242,7 +242,9 @@ public final class BroadcastNetwork {
                 /** The show's feed forced on the players (title = off, freeze or move): see {@link ShowFeed}. */
                 FEED = "feed",
                 /** The game master's voice ({@code MasterVoice}): title = the line shown (empty = none), subtitle = host | player. */
-                VOICE = "voice";
+                VOICE = "voice",
+                /** A player's rights on the show's picture: title = "admin" or "", subtitle = "feed" when F7 is allowed. */
+                RIGHTS = "rights";
 
         private Cues() {}
     }

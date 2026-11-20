@@ -16,8 +16,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Broadcast mode: the view comes from the director's shot (studio camera or follow shot) instead of the player's
- * eyes. The camera stays attached to the player for everything else (chunks, culling); it is not "detached", so the
- * local player's body is not drawn. Field of view: the camera's own, or the player's setting without the dynamic
+ * eyes. The camera stays attached to the player for everything else (chunks, culling). It is "detached" (the local
+ * player's body drawn, as in third person) whenever the view is not his own eyes: a player sees himself on the
+ * broadcast (F8), the feed (F7), through a camera; not a broadcast game in spectator mode (kept under the lens, never
+ * in the picture), nor a point of view taken from his own head. Field of view: the camera's own, or the player's setting without the dynamic
  * effects (sprint, speed), which would make the picture breathe for no reason.
  */
 @Mixin(Camera.class)
@@ -47,7 +49,7 @@ public abstract class CameraMixin {
         DirectorCamera.Pose control = fr.lordfinn.craftmaster.client.studio.ControlView.pose(delta.getGameTimeDeltaPartialTick(true));
         if (control != null) {
             craftmaster$pose = control;
-            detached = false;
+            detached = craftmaster$drawSelf(control);
             setPosition(control.position());
             setRotation(control.yaw(), control.pitch());
             return;
@@ -58,10 +60,18 @@ public abstract class CameraMixin {
         DirectorCamera.Pose pose = DirectorCamera.pose(delta.getGameTimeDeltaPartialTick(true));
         if (pose == null) return;
         craftmaster$pose = pose;
-        // With the feed, the player is in the picture: their body is drawn (the broadcast game's never is)
-        detached = feed;
+        // The player is in the picture: his body is drawn (the broadcast game's, in spectator mode, never is)
+        detached = craftmaster$drawSelf(pose);
         setPosition(pose.position());
         setRotation(pose.yaw(), pose.pitch());
+    }
+
+    /** His own body drawn: the view is not from his eyes, and he is not a spectator (a broadcast game). */
+    @Unique
+    private static boolean craftmaster$drawSelf(DirectorCamera.Pose pose) {
+        net.minecraft.client.player.LocalPlayer me = Minecraft.getInstance().player;
+        if (me == null || me.isSpectator()) return false;
+        return pose.position().distanceToSqr(me.getEyePosition()) > 0.36;
     }
 
     @Inject(method = "calculateFov", at = @At("RETURN"), cancellable = true)

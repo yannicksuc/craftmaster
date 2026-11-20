@@ -17,7 +17,7 @@ spotlight.follow spotlight.stop spotlight.on spotlight.off
 camera.path camera.focus camera.lieu camera.mosaic camera.split camera.pov intro.play intro.set intro.shot.add intro.shot.remove intro.auto intro.fit intro.shot.move fx.set fx.clear replay.control replay.flag tele.show clip.start clip.stop
 spotlight.set look.play look.save cue.play cue.stop stage.blackout
 camera.goto camera.stay camera.framing camera.avoid
-spectators.set voice.mode""".split()
+spectators.set voice.mode diffusion.set""".split()
 
 
 def test_lieux_and_intro_actions_are_normalized(ctx):

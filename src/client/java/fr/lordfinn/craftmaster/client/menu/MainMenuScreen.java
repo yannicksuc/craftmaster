@@ -218,6 +218,9 @@ public class MainMenuScreen extends Screen {
                     b.toggle("Cette épreuve", "Autorisés pour l'épreuve en cours (« " + trial + " ») ; couper renvoie les spectateurs à leur place",
                             bool(sp, "trialAllowed"), v -> MenuClient.command("spectateurs autoriser " + (v ? "on" : "off") + " " + q(trial)));
                 b.button("Qui regarde", "Les spectateurs et ce qu'ils regardent", () -> MenuClient.command("spectateurs liste"));
+                b.button("F8 tous", "Le mode diffusion (l'image de l'émission) sur le jeu de tout le monde", () -> MenuClient.command("tv diffusion tous on"));
+                b.button("F8 spect.", "Le mode diffusion sur le jeu des spectateurs (ceux qui ne jouent pas)", () -> MenuClient.command("tv diffusion spectateurs on"));
+                b.button("F8 off", "Coupe le mode diffusion chez tout le monde", () -> MenuClient.command("tv diffusion tous off"));
             });
             String voice = str(sp, "voice");
             r.note(str(sp, "voiceStatus") + "   (touche Inser : mode suivant)");

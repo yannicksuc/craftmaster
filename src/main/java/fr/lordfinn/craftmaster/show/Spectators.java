@@ -93,6 +93,7 @@ public final class Spectators {
             MasterVoice.playersChanged(server);
         }));
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            RIGHTS.remove(handler.getPlayer().getUUID());
             if (WATCHING.containsKey(handler.getPlayer().getUUID())) stop(handler.getPlayer(), false);
             server.execute(() -> MasterVoice.playersChanged(server));
         });
@@ -271,7 +272,55 @@ public final class Spectators {
         return n;
     }
 
+    /** What each player was told of his rights (F8 his own, F7 allowed). */
+    private static final Map<UUID, String> RIGHTS = new java.util.HashMap<>();
+
+    /**
+     * May turn the show's feed on himself (F7): the organisers always; the others when they may watch (done or not a
+     * contestant, during a trial where it is allowed).
+     */
+    public static boolean feedAllowed(ServerPlayer p) {
+        return Permissions.isAdmin(p) || eligible(p);
+    }
+
+    private static void rights(MinecraftServer server) {
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            // « admin » here: may switch his own broadcast mode (organisers, and the camera accounts like the OBS game)
+            boolean own = Permissions.isAdmin(p) || Permissions.canDriveCameras(p);
+            String r = (own ? "admin" : "") + "|" + (feedAllowed(p) ? "feed" : "");
+            if (r.equals(RIGHTS.get(p.getUUID()))) continue;
+            RIGHTS.put(p.getUUID(), r);
+            if (net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(p, fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowCue.TYPE))
+                net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowCue(
+                        fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Cues.RIGHTS, own ? "admin" : "", feedAllowed(p) ? "feed" : "", "", 0));
+        }
+    }
+
+    /**
+     * Broadcast mode (F8) switched by the master for {@code who}: "tous", "candidats", "spectateurs" (those not playing,
+     * not organisers) or a player's name. Returns the line, or throws.
+     */
+    public static String broadcastFor(MinecraftServer server, String who, boolean on) {
+        String k = who == null ? "tous" : who.trim().toLowerCase(Locale.ROOT);
+        List<String> done = new ArrayList<>();
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            boolean pick = switch (k) {
+                case "tous", "tout", "all", "everyone" -> true;
+                case "candidats", "contestants" -> Judging.contestant(p) != null;
+                case "spectateurs", "spectators" -> !playing(p) && !Permissions.isAdmin(p);
+                default -> p.getGameProfile().name().equalsIgnoreCase(who.trim());
+            };
+            if (!pick || !net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(p, fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowCue.TYPE)) continue;
+            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowCue(
+                    fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Cues.BROADCAST, on ? "on" : "off", "", "", 0));
+            done.add(p.getGameProfile().name());
+        }
+        if (done.isEmpty()) throw new IllegalArgumentException("personne avec le mod pour « " + who + " » (tous, candidats, spectateurs ou un pseudo).");
+        return "Mode diffusion " + (on ? "lancé" : "coupé") + " pour " + done.size() + " joueur(s) : " + String.join(", ", done) + ".";
+    }
+
     private static void tick(MinecraftServer server) {
+        rights(server);
         String t = trial();
         if (t == null || !allowed(t)) {
             if (!WATCHING.isEmpty()) stopAll(server);

@@ -169,6 +169,13 @@ public final class ActionExecutor {
                 String error = StageControl.moveCurtain(server, c.name(), c.open());
                 if (error != null) lines.add("⚠ " + error);
             }
+            case Actions.DiffusionSet d -> {
+                try {
+                    lines.add(Spectators.broadcastFor(server, d.who(), d.enabled()));
+                } catch (IllegalArgumentException e) {
+                    lines.add("⚠ Diffusion : " + e.getMessage());
+                }
+            }
             case Actions.SpectatorsSet s -> lines.add(Spectators.setAllowed(server, s.enabled(), s.manche()));
             case Actions.VoiceModeSet v -> {
                 ServerPlayer by = v.by() == null ? null : server.getPlayerList().getPlayerByName(v.by());

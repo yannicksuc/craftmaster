@@ -68,6 +68,8 @@ public final class Actions {
     public record SpectatorsSet(boolean enabled, String manche) implements Effect {}
     /** The game master's voice mode ({@code by}: who talks, null = the master already set or the first organiser). */
     public record VoiceModeSet(String mode, String target, String by) implements Effect {}
+    /** Broadcast mode (F8) switched on the games of {@code who} (tous, candidats, spectateurs or a player). */
+    public record DiffusionSet(String who, boolean enabled) implements Effect {}
 
     public record ScenePlaced(String name) implements Effect {}
 
@@ -169,7 +171,7 @@ public final class Actions {
             // ... and the round intros, which are round data (undoable), and playing one
             "intro.set", "intro.shot.add", "intro.shot.set", "intro.shot.remove", "intro.clear", "intro.play", "intro.auto", "intro.fit", "intro.shot.move",
             // Garage doors (garage/): no data change
-            "garage.open", "garage.close", "garage.toggle", "spectators.set", "voice.mode");
+            "garage.open", "garage.close", "garage.toggle", "spectators.set", "voice.mode", "diffusion.set");
 
     /**
      * Applies the actions. {@code undo} is only accepted as the first action (it is done, then the rest is applied
@@ -395,6 +397,12 @@ public final class Actions {
                     if (on == null) throw new Invalid("« enabled » : true pour autoriser les spectateurs, false pour les interdire.");
                     String m = str(a, "manche");
                     effects.add(new SpectatorsSet(on, m == null || m.isBlank() ? null : m.trim()));
+                }
+                case "diffusion.set" -> {
+                    Boolean on = bool(a, "enabled");
+                    if (on == null) throw new Invalid("« enabled » : true pour lancer le mode diffusion, false pour le couper.");
+                    String who = str(a, "who");
+                    effects.add(new DiffusionSet(who == null || who.isBlank() ? "tous" : who.trim(), on));
                 }
                 case "voice.mode" -> {
                     String mode = str(a, "mode");

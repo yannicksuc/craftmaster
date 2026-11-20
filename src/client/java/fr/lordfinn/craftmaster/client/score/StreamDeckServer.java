@@ -356,6 +356,11 @@ public final class StreamDeckServer {
                 return send(action("spectators.set", "enabled", on));
             }
             // The master's voice: /vocal/off, /vocal/commentaire (open <-> closed), /vocal/tous[?qui=candidats], /vocal/joueur[?nom=Ensuri], /vocal/suivant
+            // Broadcast mode (F8) for others: /diffusion?qui=tous|candidats|spectateurs|<pseudo>&enabled=true|false
+            case "/diffusion" -> {
+                String who = query(uri, "qui");
+                return send(action("diffusion.set", "who", who.isEmpty() ? "tous" : who, "enabled", !"false".equals(query(uri, "enabled"))));
+            }
             case "/vocal/off" -> {
                 return send(action("voice.mode", "mode", "off"));
             }

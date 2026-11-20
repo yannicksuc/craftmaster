@@ -65,9 +65,20 @@ public final class ShowFeedClient {
                 mc.player.sendOverlayMessage(Component.translatable("message.craftmaster.feed_forced_key").withStyle(ChatFormatting.GOLD));
                 continue;
             }
+            if (!toggled && !Rights.feed()) {
+                // Not allowed now: a clear word, no black picture
+                mc.player.sendOverlayMessage(Component.literal("Retransmission pas disponible pour l'instant.").withStyle(ChatFormatting.GOLD));
+                continue;
+            }
             toggled = !toggled;
             mc.player.sendOverlayMessage(Component.translatable(toggled ? "message.craftmaster.feed_on" : "message.craftmaster.feed_off",
                     KEY.getTranslatedKeyMessage()).withStyle(ChatFormatting.GOLD));
+            DirectorCamera.applyEffect();
+        }
+        // No longer allowed (forbidden, the trial over): the feed the player opened himself closes
+        if (toggled && !Rights.feed() && Rights.known()) {
+            toggled = false;
+            if (mc.player != null) mc.player.sendOverlayMessage(Component.literal("Retransmission terminée.").withStyle(ChatFormatting.GOLD));
             DirectorCamera.applyEffect();
         }
         if (frozen() && mc.gui.screen() == null) {

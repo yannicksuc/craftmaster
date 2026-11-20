@@ -13,8 +13,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Broadcast mode: what must never be in the picture — the studio cameras (the broadcast sees through them), the
- * broadcast player itself, and the spectators (other broadcast games and viewers floating around the set).
+ * Broadcast mode: what must never be in the picture — the studio cameras (the broadcast sees through them) and the
+ * spectators (the broadcast games, kept in spectator mode under the lens, and viewers floating around the set). A
+ * player in broadcast mode who is not a spectator is in the picture like anyone (he sees himself).
  */
 @Mixin(EntityRenderDispatcher.class)
 public abstract class EntityRenderDispatcherMixin {
@@ -29,8 +30,7 @@ public abstract class EntityRenderDispatcherMixin {
         boolean feed = fr.lordfinn.craftmaster.client.broadcast.ShowFeedClient.active()
                 || fr.lordfinn.craftmaster.client.broadcast.ThumbCapture.capturing();
         if (!Broadcast.active() && !feed) return;
-        // The show's feed on a player's screen: like the broadcast, but the player is in the picture
-        if (entity instanceof CameraEntity || (!feed && entity == Minecraft.getInstance().player)
-                || (entity instanceof Player p && p.isSpectator())) cir.setReturnValue(false);
+        // A player sees himself in the picture (F8 or F7); the broadcast game (OBS) is a spectator, never drawn
+        if (entity instanceof CameraEntity || (entity instanceof Player p && p.isSpectator())) cir.setReturnValue(false);
     }
 }

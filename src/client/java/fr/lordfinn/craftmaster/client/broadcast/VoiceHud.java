@@ -35,9 +35,8 @@ public final class VoiceHud {
         HudElementRegistry.addLast(CraftMaster.id("master_voice"), VoiceHud::extract);
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (KEY.consumeClick()) {
-                // The organisers only (the menu's state says who is one)
-                com.google.gson.JsonObject st = MenuClient.state();
-                if (mc.player != null && st != null && st.has("admin") && st.get("admin").getAsBoolean()) MenuClient.command("vocal mode suivant");
+                // The organisers only (the server says who is one)
+                if (mc.player != null && Rights.admin()) MenuClient.command("vocal mode suivant");
             }
         });
         ClientPlayConnectionEvents.DISCONNECT.register((h, mc) -> mc.execute(() -> line = ""));
