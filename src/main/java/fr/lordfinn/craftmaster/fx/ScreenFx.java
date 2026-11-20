@@ -164,6 +164,8 @@ public final class ScreenFx {
 
     /** Like {@link #parse} but never throws: unknown names are left out (for what the client receives). */
     public static List<String> parseLenient(String spec) {
+        // A shot's focus pull rides after a "|" (FocusPull.attach): not an effect
+        spec = FocusPull.effectsOf(spec);
         if (spec == null || spec.isBlank()) return List.of();
         Set<String> wanted = new LinkedHashSet<>();
         for (String part : spec.split("[+,;]")) {

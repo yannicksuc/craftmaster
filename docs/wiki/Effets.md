@@ -60,6 +60,33 @@ look_intro`), puis un traitement par plan (`/cm tv intro <m> plan 3 effet macro`
 - `timelapse` ne dessine rien : il avance l'heure **sur le jeu qui l'affiche** (le jeu de diffusion). Les joueurs
   et le serveur gardent leur heure.
 
+## Régler la mise au point d'un plan (focus)
+
+Les trois effets de profondeur (`macro`, `mise_au_point`, `mise_au_point_inverse`) sont des **préréglages** ; chaque
+plan d'intro peut avoir sa propre mise au point, entièrement réglable :
+
+| Réglage | Valeurs |
+|---|---|
+| `de <cible>` / `vers <cible>` | `centre` (ce qui est au centre de l'image), `fond` (l'arrière-plan), une distance (`4`, `12 blocs`), `ici` (le point que tu regardes au moment de la commande), `entite` (l'entité que tu regardes, suivie pendant le plan), `x y z`, ou le pseudo d'un joueur connecté |
+| `delai <t>` | attente avant le glissement : secondes (`0.4`) ou temps de la musique (`2t`) |
+| `duree <t>` | durée du glissement, idem |
+| `courbe` | `lisse` (doux au départ et à l'arrivée), `lineaire`, `entree` (démarre doucement), `sortie` (arrive doucement) |
+| `flou <%>` | force du flou hors de la mise au point (100 = celui des préréglages, jusqu'à 300) |
+| `garder oui\|non` | `non` : une fois arrivée, le flou s'efface et tout devient net |
+
+- Commande : `/cm tv intro <m> plan <n> focus de ici vers fond duree 1.5 delai 0.4 flou 150` (Tab propose chaque
+  mot, avec une infobulle). Seul ce qui est tapé change ; `… focus aucun` revient au préréglage de l'effet. Un plan
+  sans effet de profondeur reçoit `mise_au_point` en même temps.
+- « Sur la fleur à gauche puis la salle » : regarde la fleur, `… focus de ici`, puis `… focus vers fond`.
+- Dans l'éditeur (`/cm tv intro <m> voir`) : **[focus]** à côté de [effet] ouvre le panneau du plan : « ① vise le
+  départ, clique », « ② vise l'arrivée, clique » (regarde le point dans le monde, ouvre le chat, clique), entité
+  visée, préréglages (centre → fond, fond → centre, centre fixe), durée / délai / flou / courbe en un clic, garder,
+  ✎ taper (la ligne complète), ▶ essayer (joue l'intro depuis ce plan).
+- `mise_au_point` = `de fond vers centre`, `mise_au_point_inverse` = `de centre vers fond`, `macro` = `de centre vers
+  centre` (après 0,4 s, en 1,2 s, lisse, flou 100).
+- Les distances aux points, entités et joueurs sont mesurées depuis la caméra à chaque image : un travelling qui
+  avance garde la mise au point sur sa cible.
+
 ## Combiner les effets
 - Plusieurs d'un coup : `/cm fx diffusion fisheye+masque_rond+sepia` (6 au plus).
 - **Ajouter sans rien enlever** : un `+` devant. `/cm fx diffusion +vignette` garde ce qui est déjà là et ajoute la

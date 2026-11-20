@@ -808,6 +808,8 @@ public final class CameraCommands {
                                 .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "transition", str(c, "transition"))))))
                         .then(literal("effet").then(argument("effect", word()).suggests(EFFECT_IDS)
                                 .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "effect", str(c, "effect"))))))
+                        // The focus pull of its depth of field: targets, timing, blur (FocusCommands)
+                        .then(FocusCommands.branch())
                         .then(literal("carte").then(argument("card", word()).suggests(CARDS)
                                 .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "card", str(c, "card"), "text", "")))
                                 .then(argument("text", StringArgumentType.greedyString())
@@ -939,6 +941,7 @@ public final class CameraCommands {
             if (i < in.shots.size() - 1) line.append(button("↓", plan + "descendre", false, "Reculer ce plan d'une place", ChatFormatting.AQUA));
             line.append(button("caméra", plan + "camera ", true, "Remplacer par une autre caméra du lieu", ChatFormatting.YELLOW))
                     .append(button("effet", plan + "effet ", true, "Effet d'image de ce plan (aucun pour l'enlever)", ChatFormatting.YELLOW))
+                    .append(button("focus", plan + "focus", false, "Mise au point de ce plan : de quoi vers quoi, quand, combien de flou (vise dans le monde)", ChatFormatting.YELLOW))
                     .append(button("transition", plan + "transition ", true, "Transition vers ce plan", ChatFormatting.YELLOW))
                     .append(button("durée", plan + "duree ", true, "Durée en secondes (arrondie aux temps de la musique)", ChatFormatting.YELLOW))
                     .append(button("✖", plan + "retirer", false, "Retirer ce plan (annulable)", ChatFormatting.RED));

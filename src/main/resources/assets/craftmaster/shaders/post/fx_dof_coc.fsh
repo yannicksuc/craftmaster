@@ -10,10 +10,16 @@
 // then after 0.4 s the focus slides to the centre subject over 1.2 s, Fx.z = seconds since the effect was switched
 // on), 2 = reverse focus pull (sharp on the centre subject, then after 0.4 s the focus slides to the background).
 // Mode.w = aperture (how fast things leave the focus).
+// Focus (a controlled focus pull, FocusPull): w < 0 = none (Mode.y above); else x = start, y = end (1 / distance in
+// blocks, or -1 = the centre subject, -2 = the background behind it), z = progress 0..1 (eased), w = blur amount.
 uniform sampler2D DepthSampler;
 
 layout(std140) uniform FxMode {
     vec4 Mode;
+};
+
+layout(std140) uniform FxFocus {
+    vec4 Focus;
 };
 
 const float NEAR = 0.05;
@@ -37,14 +43,38 @@ float focusInv() {
     return best;
 }
 
+// The background behind the subject: the farthest thing seen on a grid over the picture (the sky does not count:
+// depth 0), at least 1.5 times as far as the subject; with only sky around, 6 times as far (24 blocks at least).
+float backgroundInv(float focus) {
+    float far = 1.0e9;
+    bool any = false;
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 3; j++) {
+            float d = texture(DepthSampler, vec2(0.1 + 0.2 * float(i), 0.25 + 0.25 * float(j))).r;
+            if (d > 0.0) {
+                far = min(far, invDistance(d));
+                any = true;
+            }
+        }
+    }
+    if (!any) return min(focus / 6.0, 1.0 / 24.0);
+    return min(far, focus / 1.5);
+}
+
 void cocPass() {
     vec3 c = texture(InSampler, texCoord).rgb;
     float inv = invDistance(texture(DepthSampler, texCoord).r);
     float focus = focusInv();
-    if (Mode.y > 0.5) {
+    if (Focus.w >= 0.0) {
+        // Controlled: from one target to the other, in 1 / distance like a real lens ring
+        float background = backgroundInv(focus);
+        float a = Focus.x < -1.5 ? background : Focus.x < -0.5 ? focus : Focus.x;
+        float b = Focus.y < -1.5 ? background : Focus.y < -0.5 ? focus : Focus.y;
+        focus = max(mix(a, b, Focus.z), 1.0 / FAR);
+    } else if (Mode.y > 0.5) {
         // Focus pull: from far behind the subject (at least 24 blocks) to the subject, moving in 1 / distance like a
         // real lens ring; reversed (Mode.y = 2): from the subject to the background
-        float background = min(focus / 6.0, 1.0 / 24.0);
+        float background = backgroundInv(focus);
         float s = smoothstep(0.4, 1.6, Fx.z);
         focus = Mode.y > 1.5 ? mix(focus, background, s) : mix(background, focus, s);
     }

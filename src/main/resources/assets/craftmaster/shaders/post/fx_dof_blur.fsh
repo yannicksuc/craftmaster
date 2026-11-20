@@ -9,10 +9,15 @@ layout(std140) uniform FxMode {
     vec4 Mode;
 };
 
+// Controlled focus pull (see fx_dof_coc): w = blur amount (1 = normal), w < 0 = none
+layout(std140) uniform FxFocus {
+    vec4 Focus;
+};
+
 void blurPass() {
     vec4 centre = texture(InSampler, texCoord);
     float cc = centre.a * 2.0 - 1.0;
-    float maxR = Mode.z * OutSize.y / 1080.0;
+    float maxR = Mode.z * OutSize.y / 1080.0 * (Focus.w >= 0.0 ? Focus.w : 1.0);
     if (maxR * abs(cc) < 0.5 && Fx.x < 0.001) {
         fragColor = vec4(centre.rgb, 1.0);
         return;

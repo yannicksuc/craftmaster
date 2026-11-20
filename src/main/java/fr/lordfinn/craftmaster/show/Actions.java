@@ -1541,7 +1541,22 @@ public final class Actions {
             if (a.containsKey("card")) card = fr.lordfinn.craftmaster.data.MancheIntro.normalizeCard(a.get("card") == null ? "" : String.valueOf(a.get("card")));
             if (a.containsKey("text")) text = a.get("text") == null ? "" : String.valueOf(a.get("text")).strip();
             if (text.length() > 80) throw new Invalid("texte de carte trop long (80 caractères au plus).");
-            return new fr.lordfinn.craftmaster.data.MancheIntro.Shot(kind, ref, seconds, transition, effect, card, text);
+            String focus = base == null ? "" : base.focus();
+            if (a.containsKey("focus")) {
+                String f = a.get("focus") == null ? "" : String.valueOf(a.get("focus")).trim();
+                if (f.isEmpty() || f.equals("aucun")) focus = "";
+                else {
+                    fr.lordfinn.craftmaster.fx.FocusPull pull = fr.lordfinn.craftmaster.fx.FocusPull.parseCanonical(f);
+                    if (pull == null) throw new Invalid("focus illisible : " + f);
+                    focus = pull.canonical();
+                    // A focus pull drives a depth of field: the shot gets one if it has none
+                    boolean dof = false;
+                    for (String id : fr.lordfinn.craftmaster.fx.ScreenFx.parseLenient(effect))
+                        if (fr.lordfinn.craftmaster.fx.FocusPull.DOF_EFFECTS.contains(id)) dof = true;
+                    if (!dof) effect = effect.isEmpty() ? "mise_au_point" : effect + "+mise_au_point";
+                }
+            }
+            return new fr.lordfinn.craftmaster.data.MancheIntro.Shot(kind, ref, seconds, transition, effect, card, text, focus);
         }
 
         private int introIndex(Manche r, Map<String, Object> a) {

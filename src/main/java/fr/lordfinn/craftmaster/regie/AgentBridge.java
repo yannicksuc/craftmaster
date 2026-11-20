@@ -454,6 +454,7 @@ public final class AgentBridge {
             j.addProperty("duree_s", Math.round(t.length() * 10) / 10.0);
             j.addProperty("transition", sh.transition().isEmpty() ? "défaut" : sh.transition());
             j.addProperty("effet", sh.effect().isEmpty() ? "aucun" : sh.effect());
+            if (sh.focusPull() != null) j.addProperty("focus", sh.focusPull().describe());
             if (!sh.card().isEmpty()) j.addProperty("carte", sh.card());
             CameraSpot c = sh.kind().equals(fr.lordfinn.craftmaster.data.MancheIntro.CAMERA) ? fr.lordfinn.craftmaster.camera.Cameras.list().resolve(sh.ref(), m.id, java.util.Map.of()) : null;
             if (c != null) j.addProperty("camera", c.key() + (c.name() == null || c.name().isEmpty() ? "" : " « " + c.name() + " »") + ", mouvement " + c.motion());

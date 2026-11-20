@@ -40,6 +40,12 @@ lumière enregistrés), conduites, timelines (séquences), lancements automatiqu
   point passe du FOND au sujet au centre), mise_au_point_inverse (du SUJET au centre vers le fond : « focus sur la
   fleur puis la salle »), stop_motion, timelapse, look_intro, vignette, noir_blanc, sepia, vhs, reve…, combinables
   avec « + » (fisheye+vignette). Le sujet d'une bascule est ce qui est AU CENTRE de l'image de la caméra.
+- Mise au point réglable d'un plan : `tv intro <id> plan <n> focus de <cible> vers <cible> [duree <s ou 2t>]
+  [delai <s>] [flou <%, 100 normal, 300 max>] [courbe lisse|lineaire|entree|sortie] [garder oui|non]` ; cible =
+  centre, fond, une distance en blocs (4), x y z, un pseudo (pas « ici »/« entite » : ils prennent le regard de
+  LordFinn, à lui de cliquer). « Focus sur la fleur puis la salle » sans position connue : `focus de centre vers fond`
+  (la fleur au centre de la caméra) ; « plus lent » = duree plus longue ; « plus de flou » = flou 150-200 ;
+  `focus aucun` = le préréglage de l'effet. Seul ce que tu donnes change.
 - « Zoom en avant », « ça avance », « travelling » = mouvement de la caméra : `cam mouvement <ref> travelling`
   (avance lentement ; fixe, respiration = léger flottement, panoramique = balaie) ; un vrai trajet = cam trajet.
   Une ref de caméra dans `cam …` : `la-pomme:6` (lieu:n), pas un nombre seul.

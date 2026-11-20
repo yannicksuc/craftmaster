@@ -47,22 +47,35 @@ public final class FxUniforms {
         if (id == null) return;
         *///?}
         if (!CraftMaster.MOD_ID.equals(id.getNamespace()) || !id.getPath().startsWith(PREFIX)) return;
-        float[] fx = ScreenEffects.uniform(id.getPath().substring(PREFIX.length()));
+        String effect = id.getPath().substring(PREFIX.length());
+        float[] fx = ScreenEffects.uniform(effect);
+        float[] focus = null;
         GpuDevice device = RenderSystem.getDevice();
         for (PostPass pass : ((PostChainAccessor) chain).craftmaster$passes()) {
             Map<String, GpuBuffer> uniforms = ((PostPassAccessor) pass).craftmaster$customUniforms();
-            GpuBuffer buffer = uniforms.get(BLOCK);
-            if (buffer == null) continue;
-            if ((buffer.usage() & GpuBuffer.USAGE_COPY_DST) == 0) {
-                GpuBuffer updatable = device.createBuffer(() -> "CraftMaster screen effect " + id, GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST, buffer.size());
-                uniforms.put(BLOCK, updatable);
-                buffer.close();
-                buffer = updatable;
+            write(device, uniforms, BLOCK, fx, id);
+            // The depth of field's controlled focus pull (FocusPull), measured from the camera this frame
+            if (uniforms.containsKey(FOCUS_BLOCK)) {
+                if (focus == null) focus = ScreenEffects.focusUniform(effect);
+                write(device, uniforms, FOCUS_BLOCK, focus, id);
             }
-            try (MemoryStack stack = MemoryStack.stackPush()) {
-                ByteBuffer data = Std140Builder.onStack(stack, (int) buffer.size()).putVec4(fx[0], fx[1], fx[2], fx[3]).get();
-                device.createCommandEncoder().writeToBuffer(buffer.slice(), data);
-            }
+        }
+    }
+
+    public static final String FOCUS_BLOCK = "FxFocus";
+
+    private static void write(GpuDevice device, Map<String, GpuBuffer> uniforms, String block, float[] v, Identifier id) {
+        GpuBuffer buffer = uniforms.get(block);
+        if (buffer == null) return;
+        if ((buffer.usage() & GpuBuffer.USAGE_COPY_DST) == 0) {
+            GpuBuffer updatable = device.createBuffer(() -> "CraftMaster screen effect " + id, GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST, buffer.size());
+            uniforms.put(block, updatable);
+            buffer.close();
+            buffer = updatable;
+        }
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            ByteBuffer data = Std140Builder.onStack(stack, (int) buffer.size()).putVec4(v[0], v[1], v[2], v[3]).get();
+            device.createCommandEncoder().writeToBuffer(buffer.slice(), data);
         }
     }
 }

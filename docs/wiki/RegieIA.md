@@ -41,7 +41,7 @@ l'émission, la régie vocale rapide reste disponible.
 | Ambiances | `/cm ambiance modifier <nom> <cible> <ordre>` : couleur, intensité, cône, poursuite, visée, fondu, rideau — **sans jouer l'ambiance** |
 | Timelines | il lit la séquence (JSON), ajoute / décale / retire des clés (lumière, rideau, tableaux, écran, **caméra**, commande), la réécrit entière |
 | Caméras | `/cm cam placer <n> <x y z> vers <x y z>` (nouvelle ou déplacée, d'après les points du plateau), `/cm cam nom`, `zoom`, `role`, `mouvement` (fixe, respiration, travelling = « zoom en avant », panoramique) |
-| Intros de manche | « l'intro de La pomme » = `/cm tv intro la-pomme …` : il lit l'intro plan par plan (`lire intro <manche>`), change la caméra, l'effet (fisheye, macro, `mise_au_point`, `mise_au_point_inverse` = « focus sur la fleur puis la salle »…), la transition, la durée, l'ordre (« le plan final doit être la cam 1 »), ajoute des plans, `construire`, `auto`, `enchaine` — **sans la jouer** |
+| Intros de manche | « l'intro de La pomme » = `/cm tv intro la-pomme …` : il lit l'intro plan par plan (`lire intro <manche>`), change la caméra, l'effet (fisheye, macro, `mise_au_point`, `mise_au_point_inverse` = « focus sur la fleur puis la salle »…), la mise au point réglable (`plan N focus de centre vers fond duree 2 flou 150`, voir [Effets](Effets.md)), la transition, la durée, l'ordre (« le plan final doit être la cam 1 »), ajoute des plans, `construire`, `auto`, `enchaine` — **sans la jouer** |
 | Travellings | `/cm cam trajet <nom> duree / pause / courbe / zoom / suppr …` |
 | Conduites, lancements | `/cm conduite ajouter / inserer / retirer`, `/cm conduite auto`, `/cm conduite manche` |
 

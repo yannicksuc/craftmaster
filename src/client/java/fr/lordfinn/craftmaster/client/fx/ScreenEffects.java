@@ -3,6 +3,7 @@ package fr.lordfinn.craftmaster.client.fx;
 import fr.lordfinn.craftmaster.CraftMaster;
 import fr.lordfinn.craftmaster.client.broadcast.Broadcast;
 import fr.lordfinn.craftmaster.client.broadcast.Transition;
+import fr.lordfinn.craftmaster.fx.FocusPull;
 import fr.lordfinn.craftmaster.fx.FxContent;
 import fr.lordfinn.craftmaster.fx.FxMixer;
 import fr.lordfinn.craftmaster.fx.FxNetwork;
@@ -83,6 +84,7 @@ public final class ScreenEffects {
     public static void setBroadcastEffect(String idOrNull, float fadeSeconds) {
         // The shot's own effect (intros, camera moves): added to the operator's /cm fx diffusion, never replacing it
         shot = new Slot(ScreenFx.parseLenient(idOrNull), Long.MAX_VALUE);
+        shotFocus = FocusPull.of(idOrNull);
         fade = Math.max(0f, fadeSeconds);
     }
 
@@ -103,13 +105,19 @@ public final class ScreenEffects {
     /** An order from the server. */
     static void receive(FxNetwork.Order o) {
         Slot s = new Slot(ScreenFx.parseLenient(o.effect()), o.ticks() > 0 ? System.nanoTime() + o.ticks() * 50_000_000L : Long.MAX_VALUE);
-        if (o.layer() == FxNetwork.LAYER_BROADCAST) broadcast = s;
-        else forced = s;
+        if (o.layer() == FxNetwork.LAYER_BROADCAST) {
+            broadcast = s;
+            broadcastFocus = FocusPull.of(o.effect());
+        } else {
+            forced = s;
+            forcedFocus = FocusPull.of(o.effect());
+        }
         fade = o.fadeTicks() / 20f;
     }
 
     static void reset() {
         broadcast = shot = forced = tryout = Slot.NONE;
+        shotFocus = broadcastFocus = forcedFocus = null;
         MIXER.clear();
         visible = List.of();
         timelapse = 0;
@@ -119,6 +127,53 @@ public final class ScreenEffects {
     /** A new shot is on air: the effects it asks for that move from their start (focus pull) play again. */
     public static void restartShotEffects(String spec) {
         MIXER.restart(ScreenFx.parseLenient(spec));
+    }
+
+    /** Focus pulls carried with the shot's effect, the broadcast effect and the forced one (null = the preset). */
+    private static FocusPull shotFocus, broadcastFocus, forcedFocus;
+    private static final float[] NO_FOCUS = {0f, 0f, 0f, -1f};
+
+    /**
+     * The uniform {@code Focus} of a depth of field effect this frame ({@link FocusPull}): x = start, y = end (1 /
+     * distance in blocks, -1 = the centre subject, -2 = the background), z = eased progress, w = blur amount; w = -1
+     * when no focus pull drives it (the effect's own preset).
+     */
+    public static float[] focusUniform(String id) {
+        if (!FocusPull.DOF_EFFECTS.contains(id)) return NO_FOCUS;
+        Minecraft mc = Minecraft.getInstance();
+        boolean show = Broadcast.active() || fr.lordfinn.craftmaster.client.broadcast.ShowFeedClient.active();
+        FocusPull f = show && shotFocus != null ? shotFocus : show ? broadcastFocus : forcedFocus;
+        if (f == null) return NO_FOCUS;
+        double t = MIXER.sinceOn(id);
+        net.minecraft.world.phys.Vec3 eye = mc.gameRenderer.mainCamera().position();
+        return new float[] {inverse(mc, f.from(), eye), inverse(mc, f.to(), eye), (float) f.progress(t),
+                (float) (f.strength(t) * f.blur() / 100.0)};
+    }
+
+    /** A target as the shader wants it: 1 / distance from the camera, -1 centre, -2 background. */
+    private static float inverse(Minecraft mc, String target, net.minecraft.world.phys.Vec3 eye) {
+        if (target.equals(FocusPull.CENTRE)) return -1f;
+        if (target.equals(FocusPull.BACKGROUND)) return -2f;
+        try {
+            if (target.startsWith("d:")) return (float) (1.0 / Math.max(0.2, Double.parseDouble(target.substring(2))));
+            net.minecraft.world.phys.Vec3 at = null;
+            if (target.startsWith("p:")) {
+                String[] v = target.substring(2).split(",");
+                at = new net.minecraft.world.phys.Vec3(Double.parseDouble(v[0]), Double.parseDouble(v[1]), Double.parseDouble(v[2]));
+            } else if (mc.level != null && target.startsWith("e:")) {
+                java.util.UUID uuid = java.util.UUID.fromString(target.substring(2));
+                for (net.minecraft.world.entity.Entity e : mc.level.entitiesForRendering())
+                    if (e.getUUID().equals(uuid)) at = e.getBoundingBox().getCenter();
+            } else if (mc.level != null && target.startsWith("j:")) {
+                String name = target.substring(2);
+                for (net.minecraft.world.entity.player.Player p : mc.level.players())
+                    if (p.getGameProfile().name().equalsIgnoreCase(name)) at = p.getEyePosition();
+            }
+            if (at != null) return (float) (1.0 / Math.max(0.2, at.distanceTo(eye)));
+        } catch (RuntimeException e) {
+            // unreadable target: the centre
+        }
+        return -1f;
     }
 
     /** Game ticks to add to the world's clocks now (timelapse), 0 when the effect is off. */

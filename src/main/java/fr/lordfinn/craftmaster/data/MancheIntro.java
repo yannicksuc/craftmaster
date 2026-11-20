@@ -51,9 +51,15 @@ public final class MancheIntro {
      * @param effect     screen effect id ("noir_blanc", "sepia"…), "" = none
      * @param card       {@link #TITLE}, {@link #LOWER_THIRD} or ""
      * @param text       card text ("" = the round's name; "Titre | sous-titre" for both lines)
+     * @param focus      focus pull of its depth of field ({@link fr.lordfinn.craftmaster.fx.FocusPull#canonical}), "" = the effect's preset
      */
-    public record Shot(String kind, String ref, double seconds, String transition, String effect, String card, String text) {
+    public record Shot(String kind, String ref, double seconds, String transition, String effect, String card, String text, String focus) {
+        public Shot(String kind, String ref, double seconds, String transition, String effect, String card, String text) {
+            this(kind, ref, seconds, transition, effect, card, text, "");
+        }
+
         public Shot {
+            focus = focus == null ? "" : focus.trim();
             kind = normalizeKind(kind);
             ref = ref == null ? "" : ref.trim();
             seconds = Double.isFinite(seconds) ? Math.max(0, Math.min(MAX_SECONDS, seconds)) : 0;
@@ -63,10 +69,16 @@ public final class MancheIntro {
             text = text == null ? "" : text.trim();
         }
 
-        public Shot withSeconds(double s) { return new Shot(kind, ref, s, transition, effect, card, text); }
-        public Shot withTransition(String t) { return new Shot(kind, ref, seconds, t, effect, card, text); }
-        public Shot withEffect(String e) { return new Shot(kind, ref, seconds, transition, e, card, text); }
-        public Shot withCard(String c, String t) { return new Shot(kind, ref, seconds, transition, effect, c, t); }
+        public Shot withSeconds(double s) { return new Shot(kind, ref, s, transition, effect, card, text, focus); }
+        public Shot withTransition(String t) { return new Shot(kind, ref, seconds, t, effect, card, text, focus); }
+        public Shot withEffect(String e) { return new Shot(kind, ref, seconds, transition, e, card, text, focus); }
+        public Shot withCard(String c, String t) { return new Shot(kind, ref, seconds, transition, effect, c, t, focus); }
+        public Shot withFocus(String f) { return new Shot(kind, ref, seconds, transition, effect, card, text, f); }
+
+        /** Its focus pull, or null (the effect's preset). */
+        public fr.lordfinn.craftmaster.fx.FocusPull focusPull() {
+            return fr.lordfinn.craftmaster.fx.FocusPull.parseCanonical(focus);
+        }
 
         /** "caméra large, 4 s, enchaîné, effet sepia, titre" */
         public String describe() {
@@ -90,6 +102,8 @@ public final class MancheIntro {
             b.append(", ").append(length);
             if (!transition.isEmpty()) b.append(", ").append(transition);
             if (!effect.isEmpty()) b.append(", effet ").append(effect);
+            fr.lordfinn.craftmaster.fx.FocusPull f = focusPull();
+            if (f != null) b.append(", focus ").append(f.describe());
             if (!card.isEmpty()) b.append(", ").append(card.equals(TITLE) ? "titre" : "synthé").append(text.isEmpty() ? "" : " « " + text + " »");
             return b.toString();
         }
@@ -103,12 +117,14 @@ public final class MancheIntro {
             if (!effect.isEmpty()) m.put("effect", effect);
             if (!card.isEmpty()) m.put("card", card);
             if (!text.isEmpty()) m.put("text", text);
+            if (!focus.isEmpty()) m.put("focus", focus);
             return m;
         }
 
         static Shot fromYaml(Map<String, Object> m) {
             return new Shot(Maps.str(m.get("kind"), CAMERA), Maps.str(m.get("ref"), ""), Maps.toDouble(m.get("seconds")),
-                    Maps.str(m.get("transition"), ""), Maps.str(m.get("effect"), ""), Maps.str(m.get("card"), ""), Maps.str(m.get("text"), ""));
+                    Maps.str(m.get("transition"), ""), Maps.str(m.get("effect"), ""), Maps.str(m.get("card"), ""), Maps.str(m.get("text"), ""),
+                    Maps.str(m.get("focus"), ""));
         }
     }
 
@@ -152,6 +168,15 @@ public final class MancheIntro {
         if (look.isEmpty()) return s.effect();
         if (s.effect().isEmpty()) return look;
         return s.effect() + "+" + look;
+    }
+
+    /**
+     * What goes to the games for a shot: its effects with the look, and its focus pull after a {@code |}
+     * ({@link fr.lordfinn.craftmaster.fx.FocusPull#attach}).
+     */
+    public String effectWithFocus(Shot s, String effects) {
+        fr.lordfinn.craftmaster.fx.FocusPull f = s.focusPull();
+        return f == null || effects.isEmpty() ? effects : fr.lordfinn.craftmaster.fx.FocusPull.attach(effects, f);
     }
 
     /** Length of a beat in seconds (0 when not cutting on the music). */
