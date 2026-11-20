@@ -42,10 +42,11 @@ TOOLS = [
      "description": "Lit l'état du show (rien n'est changé).",
      "input_schema": {"type": "object", "properties": {
          "sujet": {"type": "string", "enum": ["resume", "manches", "intro", "effets", "ambiance", "sequence", "conduite", "cameras",
-                                              "trajet", "projecteurs", "arenes", "joueurs", "blocs", "commandes", "statut", "journal", "log"]},
+                                              "trajet", "projecteurs", "arenes", "zone", "mecaniques", "joueurs", "blocs", "commandes",
+                                              "statut", "journal", "log"]},
          "nom": {"type": "string", "description": "Le nom de l'ambiance, de la séquence, de la conduite, du travelling, la manche de "
                                                   "l'intro (id ou nom : la-pomme, « La pomme »), l'arène, le groupe de commandes "
-                                                  "(« tv intro », « camera »), le bloc à chercher autour de LordFinn (fleur, pot, coffre, minecraft:poppy), "
+                                                  "(« tv intro », « camera »), la salle (zone : pomme), le pack de la salle (mecaniques : pomme), le bloc à chercher autour de LordFinn (fleur, pot, coffre, minecraft:poppy), "
                                                   "ou un mot à chercher dans le log."}},
          "required": ["sujet"]}},
     {"name": "commande",

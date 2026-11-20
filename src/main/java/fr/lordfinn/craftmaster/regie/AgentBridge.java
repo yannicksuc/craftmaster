@@ -617,7 +617,7 @@ public final class AgentBridge {
             }
             default -> {
                 return "Sujet inconnu « " + subject + " » : resume, manches, intro, effets, ambiance, sequence, conduite, cameras, trajet, "
-                        + "projecteurs, arenes, joueurs, commandes, statut, journal, log.";
+                        + "projecteurs, arenes, zone, mecaniques, joueurs, blocs, commandes, statut, journal, log.";
             }
         }
         return o.toString();
@@ -839,6 +839,21 @@ public final class AgentBridge {
                 StringBuilder b = new StringBuilder("Autour de " + player.getPlainTextName() + " (" + c.getX() + " " + c.getY() + " " + c.getZ() + "), du plus près :\n");
                 for (Hit h : hits.subList(0, Math.min(40, hits.size()))) b.append(String.format(Locale.ROOT, "%.0f bl : ", h.d())).append(h.line()).append('\n');
                 return b.toString();
+            }
+            case "zone", "salle" -> {
+                // A trial's room: everything in it, to work out how it is solved
+                fr.lordfinn.craftmaster.trial.kit.Arena found = null;
+                for (var a : fr.lordfinn.craftmaster.trial.kit.Arenas.all())
+                    if (name != null && (a.name.equalsIgnoreCase(name.trim()) || name.trim().equalsIgnoreCase(a.manche))) found = a;
+                if (found == null) {
+                    List<String> names = new ArrayList<>();
+                    for (var a : fr.lordfinn.craftmaster.trial.kit.Arenas.all()) names.add(a.name + " (manche " + a.manche + ")");
+                    return "Zone « " + name + " » inconnue : " + String.join(", ", names);
+                }
+                return ZoneReader.read(server, found);
+            }
+            case "mecaniques", "pack", "datapack" -> {
+                return ZoneReader.mechanics(server, name == null ? "" : name.trim().toLowerCase(Locale.ROOT));
             }
             case "statut", "etat" -> {
                 Capture cap = new Capture();

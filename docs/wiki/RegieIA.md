@@ -54,10 +54,33 @@ confirmes d'un clic.
 ## Ce qu'il voit
 | Outil | Ce qu'il apprend |
 |---|---|
-| `lire` | `resume`, `manches`, `intro <manche>` (plans, effets, focus, transitions, musique), `effets`, `ambiance`, `sequence`, `conduite`, `cameras` (position, visée, champ, mouvement), `trajet`, `projecteurs`, `arenes` (référence, copies), `joueurs` (monde, position, regard, mode), `commandes [groupe]` (l'arbre complet de `/cm` avec ses arguments), `statut`, `journal`, `log [mot]` |
+| `lire` | `resume`, `manches`, `intro <manche>` (plans, effets, focus, transitions, musique), `effets`, `ambiance`, `sequence`, `conduite`, `cameras` (position, visée, champ, mouvement), `trajet`, `projecteurs`, `arenes` (référence, copies), `zone <salle>` (tout ce que contient la salle d'une épreuve, voir plus bas), `mecaniques <pack>` (le pack de données de la salle : règles des objets, butins, fonctions commentées), `joueurs` (monde, position, regard, mode), `blocs <mot>` (les blocs autour de toi : « fleur », « pot »…), `commandes [groupe]` (l'arbre complet de `/cm` avec ses arguments), `statut`, `journal`, `log [mot]` |
 | `completer` | ce que Tab propose après un début de commande (arguments, infobulles) : il découvre une commande au lieu de la deviner |
 | `wiki` | ces pages (liste, une page, ou les lignes qui contiennent un mot) |
 | **`voir`** | **ce que filme la caméra**, voir ci-dessous |
+
+## Comprendre une épreuve
+« Comment on finit la pomme ? », « qu'est-ce qui manque pour que ce soit faisable ? » : l'agent lit la salle
+(`lire zone pomme`) et son pack (`lire mecaniques pomme`), puis en déduit le **chemin de la solution** et les
+**blocages**.
+
+| `lire zone <salle>` donne | |
+|---|---|
+| panneaux | recto et verso, et s'ils sont cliquables |
+| conteneurs | coffres, tonneaux, shulkers, étagères, pots décorés, feux de camp (allumés ou non), pupitres, cadres, supports d'armure, objets par terre ; chaque objet avec son nom, son lore et ses règles d'aventure (« peut casser », « se pose sur ») |
+| mécanismes | boutons, leviers, cibles, plaques, portes et trappes (ouvertes ou fermées), pots de fleurs, établis, fourneaux, chaudrons, ruches… |
+| personnages | villageois et leurs échanges (« 16 × Farine → 1 émeraude, 13 fois »), autres créatures comptées |
+| la salle | la tâche, l'arrivée, le kit, et chaque sorte de bloc avec son nombre et sa boîte (feuilles, bûches, minerais) |
+
+Les coordonnées sont relatives au coin de la salle (les `~x ~y ~z` du pack), regroupées par secteur de 12 blocs.
+
+L'agent répond en étapes numérotées :
+- ce qu'il faut avoir ou faire ;
+- ce que ça débloque ;
+- le compte des émeraudes.
+
+Puis il donne les blocages (objet introuvable, échange impossible, risque de blocage), avec leurs coordonnées. Il ne
+change rien à la salle sans qu'on le lui demande.
 
 ## Ses yeux : `voir`
 Ton jeu dessine ce que filme une caméra **exactement comme le flux de l'émission** (F7) : effets, look de l'intro,
