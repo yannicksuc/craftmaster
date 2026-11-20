@@ -353,7 +353,10 @@ public final class TrialRun {
         List<Arena> arenas = arenas(mancheId);
         if (arenas.isEmpty() || key(season, mancheId).equals(prepared)) return lines;
         // The same trial launched again: it starts over (envelopes handed out again, stopwatches at zero)
-        boolean relaunch = state.manche != null && state.manche.equals(mancheId) && state.season == season;
+        // (also after « Revenir au plateau », which forgets the round but not who got its envelope: a launch is
+        // always a new start, the list only guards against a second envelope within one run)
+        boolean relaunch = state.manche != null && state.manche.equals(mancheId) && state.season == season
+                || state.envelopes.containsKey(key(season, mancheId));
         if (state.manche == null || !state.manche.equals(mancheId) || state.season != season) {
             state.back.clear();
             state.step = 0;
@@ -470,6 +473,8 @@ public final class TrialRun {
             fr.lordfinn.craftmaster.show.Spectators.onTrialStarted(server);
             int given = autoEnvelopes(server, m.season(), m.mancheId(), null);
             if (given > 0) lines.add(given + " enveloppe(s) distribuée(s).");
+            CraftMaster.LOG.info("[Épreuve] « {} » : {} enveloppe(s) distribuée(s) au départ{}", m.name(), given,
+                    autoEnvelope(Tasks.locate(m.season(), m.mancheId()) == null ? null : Tasks.locate(m.season(), m.mancheId()).manche()) ? "" : " (enveloppes manuelles pour cette manche)");
         } catch (RuntimeException e) {
             CraftMaster.LOG.warn("[Épreuve] mise en place de « {} »", m.name(), e);
             lines.add("⚠ Mise en place incomplète : " + e);
