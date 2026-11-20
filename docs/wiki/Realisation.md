@@ -353,14 +353,20 @@ prend le relais.
   | `western` | Maladresse **western** (banjo) | 120 | 15,5 s | 14,0 s · 15,0 s |
 
   - `/cm tv intro <m> musique maladresse` choisit la musique (son `craftmaster:theme.maladresse`,
-    `craftmaster:theme.univers.japonais`… ; `japonais` ou `zen` suffisent) et met les coupes sur son tempo (le grec
-    accélère : plans à leur durée).
+    `craftmaster:theme.univers.japonais`… ; `japonais` ou `zen` suffisent). **Le montage se recale tout seul** sur le
+    nouveau morceau (éditeur, commande, régie IA) : son tempo, chaque coupe sur un début de mesure (sinon un temps) en
+    gardant les proportions des plans, les mises au point (focus) déplacées avec leur plan et posées sur ses temps, le
+    dernier plan sur l'appel jusqu'à la fin. Le grec accélère : ses coupes suivent ses temps qui se resserrent ; la
+    valse steampunk est à 3 temps, le médiéval en 6/8 (mesures de 6 croches).
+  - **Durée fixée à la main** (`plan 2 duree 3`) : le plan garde ses 3 s quand la musique change (« (fixée) » dans
+    l'éditeur) ; sa coupe peut alors tomber à côté d'un temps, et l'éditeur le dit sous la frise
+    (« ⚠ plan 2 fixé à 3 s : coupe 0,2 s après le temps »). `plan 2 duree auto` : il suit de nouveau la musique.
   - `/cm tv intro <m> construire japonais` refait l'intro sur ce morceau : les coupes tombent sur ses débuts de mesure
     (plans de 2 s au moins, le premier prend le reste), le lieu de la tâche sur l'appel, en fondu, jusqu'à la fin.
     Sans nom : la musique de l'intro si c'est une du thème, sinon **maladresse** (le défaut depuis le 20/11, à la place
     de l'intro d'épreuve v2, qui reste au choix : `construire intro`).
-  - `/cm tv intro <m> caler` (bouton [caler] de l'éditeur, à côté de [musique]) : une intro faite à la main est calée
-    sur sa musique du thème, le dernier plan sur l'appel, les autres gardent leurs proportions et coupent sur les temps.
+  - `/cm tv intro <m> caler` (bouton [caler] de l'éditeur, à côté de [musique]) : le même recalage sans changer de
+    musique (après avoir ajouté, retiré ou déplacé des plans).
   - L'éditeur (`voir`) dit sous la frise : « plan final sur l'appel », « plan final 1,2 s avant l'appel »…
   - Ailleurs (proposé, pas branché) : suspense avant un verdict ou les résultats, victoire à la remise du prix,
     réflexion en attente entre deux manches.

@@ -1478,12 +1478,20 @@ public final class Actions {
                 changed.add(in.music.isEmpty() ? "sans musique" : t == null ? "musique « " + in.music + " »"
                         : "musique « " + t.label() + " » (" + t.tempo() + " BPM, " + fr.lordfinn.craftmaster.data.MancheIntro.fmtNumber(t.seconds())
                         + " s, appel à " + fr.lordfinn.craftmaster.data.MancheIntro.fmtNumber(t.appel()) + " s)");
-                // One of the theme's: the cuts on its tempo (unless a tempo comes with it)
+                // One of the theme's (or the task intro v2): the montage follows it by itself — its tempo, the cuts
+                // on its beats, the focus pulls on its beats, the last shot on its « appel » (shots fixed by hand keep
+                // their length) — unless a tempo comes with it
                 if (t != null && !a.containsKey("bpm")) {
-                    in.bpm = t.bpm();
-                    in.offset = 0;
-                    changed.add(t.bpm() > 0 ? "coupes sur ses temps (" + t.tempo() + " BPM)" : "plans à leur durée (son tempo accélère)");
-                    if (!in.shots.isEmpty()) changed.add("/cm tv intro " + r.id + " caler pour mettre le dernier plan sur l'appel");
+                    String fit = in.fitToMusic(n -> {
+                        fr.lordfinn.craftmaster.camera.CameraPath p = fr.lordfinn.craftmaster.camera.CameraPaths.get(n);
+                        return p == null ? 0 : p.duration();
+                    });
+                    if (fit != null) changed.add(fit);
+                    else {
+                        in.bpm = t.bpm();
+                        in.offset = 0;
+                        changed.add(t.bpm() > 0 ? "coupes sur ses temps (" + t.tempo() + " BPM)" : "coupes sur ses temps (son tempo accélère)");
+                    }
                 }
             }
             Boolean card = bool(a, "titleCard");
@@ -1535,11 +1543,16 @@ public final class Actions {
             }
             if (kind == null) throw new Invalid("donnez une caméra (« camera »), un trajet (« path »), un joueur à suivre (« follow ») ou le lieu de la tâche (« task »).");
             double seconds = base == null ? 0 : base.seconds();
+            // A length given for an existing shot (« plan 2 duree 3 ») is fixed by hand: it stays when the music changes
+            boolean fixed = base != null && base.fixed();
             if (a.get("seconds") != null) {
                 seconds = num(a, "seconds");
                 if (seconds < 0 || seconds > fr.lordfinn.craftmaster.data.MancheIntro.MAX_SECONDS)
                     throw new Invalid("« seconds » doit être entre 0 (durée du trajet / 4 s) et 120.");
+                if (base != null) fixed = seconds > 0;
             }
+            Boolean fix = bool(a, "fixed");
+            if (fix != null) fixed = fix;
             String transition = base == null ? "" : base.transition();
             if (a.get("transition") != null) {
                 String t = String.valueOf(a.get("transition")).trim();
@@ -1567,7 +1580,7 @@ public final class Actions {
                     if (!dof) effect = effect.isEmpty() ? "mise_au_point" : effect + "+mise_au_point";
                 }
             }
-            return new fr.lordfinn.craftmaster.data.MancheIntro.Shot(kind, ref, seconds, transition, effect, card, text, focus);
+            return new fr.lordfinn.craftmaster.data.MancheIntro.Shot(kind, ref, seconds, transition, effect, card, text, focus, fixed);
         }
 
         private int introIndex(Manche r, Map<String, Object> a) {

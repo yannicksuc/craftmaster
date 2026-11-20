@@ -40,6 +40,29 @@ public final class IntroMusic {
             return key.equals(MancheIntro.INTRO_MUSIC) ? "craftmaster:show.intro" : "craftmaster:theme." + key;
         }
 
+        /**
+         * Every beat of the music (seconds from its start, to its end): steady at {@link #bpm}; the Greek one speeds up
+         * from 72 to 176 BPM over its first 28 beats (its score: m2-grec.py, {@code sec(b)}), then stays at 176.
+         */
+        public double[] beatTimes() {
+            List<Double> out = new ArrayList<>();
+            for (int k = 0; k < 400; k++) {
+                double at = bpm > 0 ? k * 60 / bpm : greek(k);
+                if (at > seconds + 1e-6) break;
+                out.add(at);
+            }
+            double[] a = new double[out.size()];
+            for (int k = 0; k < a.length; k++) a[k] = out.get(k);
+            return a;
+        }
+
+        /** Second of beat {@code k} of the Greek one (72 → 176 BPM over 28 beats). */
+        static double greek(double k) {
+            double t0 = 72, t1 = 176, b = 28;
+            if (k <= b) return 60 * b / (t1 - t0) * Math.log((t0 + (t1 - t0) * k / b) / t0);
+            return greek(b) + (k - b) * 60 / t1;
+        }
+
         /** "Maladresse · le thème au xylophone… · 108 BPM, 4 temps · 17,2 s · appel à 15,6 s" */
         public String describe() {
             return label + (world.isEmpty() ? "" : " (" + world + ")") + " · " + mood + " · " + tempo + " BPM, " + meter + " · "

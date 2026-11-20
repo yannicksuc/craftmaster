@@ -812,7 +812,9 @@ public final class CameraCommands {
                                 .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "camera", str(c, "ref"))))))
                         .then(literal("tache").executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "task", true))))
                         .then(literal("duree").then(argument("seconds", DoubleArgumentType.doubleArg(0, MancheIntro.MAX_SECONDS))
-                                .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "seconds", DoubleArgumentType.getDouble(c, "seconds"))))))
+                                .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "seconds", DoubleArgumentType.getDouble(c, "seconds")))))
+                                // « duree auto » : the length follows the music again (no longer fixed by hand)
+                                .then(literal("auto").executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "fixed", false)))))
                         .then(literal("transition").then(argument("transition", word()).suggests(TRANSITIONS)
                                 .executes(c -> run(c, intro(c, "intro.shot.set", "index", getInteger(c, "index"), "transition", str(c, "transition"))))))
                         .then(literal("effet").then(argument("effect", word()).suggests(EFFECT_IDS)
@@ -960,7 +962,8 @@ public final class CameraCommands {
                     .append(button("effet", plan + "effet ", true, "Effet d'image de ce plan (aucun pour l'enlever)", ChatFormatting.YELLOW))
                     .append(button("focus", plan + "focus", false, "Mise au point de ce plan : de quoi vers quoi, quand, combien de flou (vise dans le monde)", ChatFormatting.YELLOW))
                     .append(button("transition", plan + "transition ", true, "Transition vers ce plan", ChatFormatting.YELLOW))
-                    .append(button("durée", plan + "duree ", true, "Durée en secondes (arrondie aux temps de la musique)", ChatFormatting.YELLOW))
+                    .append(button("durée", plan + "duree ", true, "Durée en secondes, fixée : elle reste quand la musique change"
+                            + " (« duree auto » : elle suit de nouveau la musique)", ChatFormatting.YELLOW))
                     .append(button("✖", plan + "retirer", false, "Retirer ce plan (annulable)", ChatFormatting.RED));
             c.getSource().sendSystemMessage(line);
         }

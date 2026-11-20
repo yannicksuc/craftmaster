@@ -71,7 +71,10 @@ son chat.
   pour de la technologie, urgence pour une course contre la montre, reflexion pour une énigme, suspense avant un
   verdict ; MALADRESSE quand rien ne s'impose (la préférée de LordFinn). Avec une musique du thème : le DERNIER plan
   (lieu de la tâche) commence au début de l'appel et dure jusqu'à la fin du morceau, en fondu ; les autres plans
-  coupent sur ses temps. `construire <nom>` fait tout ça (`construire` seul : maladresse, le défaut ; l'intro
+  coupent sur ses temps. Changer la musique (`musique <nom>`) RECALE TOUT SEUL le montage sur le nouveau morceau
+  (tempo, coupes sur ses mesures, focus sur ses temps, dernier plan sur l'appel) : ne retouche pas les durées à la
+  main ensuite ; `plan N duree X` FIXE une durée (elle ne suit plus la musique, l'éditeur signale la coupe hors temps),
+  `plan N duree auto` la libère. `construire <nom>` fait tout ça (`construire` seul : maladresse, le défaut ; l'intro
   d'épreuve v2 seulement si on la demande : `construire intro`) ; après avoir changé la musique ou les plans d'une intro faite
   à la main, `caler`. Ne pas couper la fin : l'intro dure le morceau.
 - La musique d'intro v2 (« intro ») dure 10 s à 120 BPM (1 temps = 0,5 s), un accord final à 8 s : l'intro reste à 10 s, le

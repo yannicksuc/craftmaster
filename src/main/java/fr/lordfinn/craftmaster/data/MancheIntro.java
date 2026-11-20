@@ -53,9 +53,14 @@ public final class MancheIntro {
      * @param text       card text ("" = the round's name; "Titre | sous-titre" for both lines)
      * @param focus      focus pull of its depth of field ({@link fr.lordfinn.craftmaster.fx.FocusPull#canonical}), "" = the effect's preset
      */
-    public record Shot(String kind, String ref, double seconds, String transition, String effect, String card, String text, String focus) {
+    public record Shot(String kind, String ref, double seconds, String transition, String effect, String card, String text, String focus,
+                       boolean fixed) {
         public Shot(String kind, String ref, double seconds, String transition, String effect, String card, String text) {
-            this(kind, ref, seconds, transition, effect, card, text, "");
+            this(kind, ref, seconds, transition, effect, card, text, "", false);
+        }
+
+        public Shot(String kind, String ref, double seconds, String transition, String effect, String card, String text, String focus) {
+            this(kind, ref, seconds, transition, effect, card, text, focus, false);
         }
 
         public Shot {
@@ -69,11 +74,13 @@ public final class MancheIntro {
             text = text == null ? "" : text.trim();
         }
 
-        public Shot withSeconds(double s) { return new Shot(kind, ref, s, transition, effect, card, text, focus); }
-        public Shot withTransition(String t) { return new Shot(kind, ref, seconds, t, effect, card, text, focus); }
-        public Shot withEffect(String e) { return new Shot(kind, ref, seconds, transition, e, card, text, focus); }
-        public Shot withCard(String c, String t) { return new Shot(kind, ref, seconds, transition, effect, c, t, focus); }
-        public Shot withFocus(String f) { return new Shot(kind, ref, seconds, transition, effect, card, text, f); }
+        public Shot withSeconds(double s) { return new Shot(kind, ref, s, transition, effect, card, text, focus, fixed); }
+        public Shot withTransition(String t) { return new Shot(kind, ref, seconds, t, effect, card, text, focus, fixed); }
+        public Shot withEffect(String e) { return new Shot(kind, ref, seconds, transition, e, card, text, focus, fixed); }
+        public Shot withCard(String c, String t) { return new Shot(kind, ref, seconds, transition, effect, c, t, focus, fixed); }
+        public Shot withFocus(String f) { return new Shot(kind, ref, seconds, transition, effect, card, text, f, fixed); }
+        /** Fixed by hand ({@code plan N duree 3}): its length in seconds stays when the music changes. */
+        public Shot withFixed(boolean f) { return new Shot(kind, ref, seconds, transition, effect, card, text, focus, f); }
 
         /** Its focus pull, or null (the effect's preset). */
         public fr.lordfinn.craftmaster.fx.FocusPull focusPull() {
@@ -100,6 +107,7 @@ public final class MancheIntro {
                 default -> "caméra " + ref;
             });
             b.append(", ").append(length);
+            if (fixed) b.append(" (fixée)");
             if (!transition.isEmpty()) b.append(", ").append(transition);
             if (!effect.isEmpty()) b.append(", effet ").append(effect);
             fr.lordfinn.craftmaster.fx.FocusPull f = focusPull();
@@ -118,13 +126,14 @@ public final class MancheIntro {
             if (!card.isEmpty()) m.put("card", card);
             if (!text.isEmpty()) m.put("text", text);
             if (!focus.isEmpty()) m.put("focus", focus);
+            if (fixed) m.put("fixed", true);
             return m;
         }
 
         static Shot fromYaml(Map<String, Object> m) {
             return new Shot(Maps.str(m.get("kind"), CAMERA), Maps.str(m.get("ref"), ""), Maps.toDouble(m.get("seconds")),
                     Maps.str(m.get("transition"), ""), Maps.str(m.get("effect"), ""), Maps.str(m.get("card"), ""), Maps.str(m.get("text"), ""),
-                    Maps.str(m.get("focus"), ""));
+                    Maps.str(m.get("focus"), ""), Boolean.TRUE.equals(m.get("fixed")) || "true".equals(String.valueOf(m.get("fixed"))));
         }
     }
 
@@ -261,18 +270,26 @@ public final class MancheIntro {
      */
     public List<Timed> timeline(ToDoubleFunction<String> pathSeconds) {
         List<Timed> out = new ArrayList<>();
-        double beat = beatSeconds();
-        if (beat > 0) {
-            // On the music: every cut on a beat (the first shot also covers the music's lead-in)
-            long count = 0;
+        Grid grid = grid();
+        if (grid != null) {
+            // On the music: every cut on a beat (the first shot also covers the music's lead-in). A shot whose length
+            // was fixed by hand keeps it (its cut may fall between two beats); the next cut is back on a beat.
+            int count = 0;
             double t = 0;
             for (int i = 0; i < shots.size(); i++) {
                 Shot s = shots.get(i);
                 double len = s.seconds();
                 if (len <= 0 && s.kind().equals(PATH)) len = pathSeconds.applyAsDouble(s.ref());
-                long n = len > 0 ? Math.max(1, Math.round(len / beat)) : defaultBeats();
-                count += n;
-                double end = offset + count * beat;
+                double end;
+                if (s.fixed() && len > 0) {
+                    end = t + len;
+                    count = Math.max(count, grid.near(end));
+                } else {
+                    if (grid.beat > 0) count += len > 0 ? (int) Math.max(1, Math.round(len / grid.beat)) : defaultBeats();
+                    else count = Math.max(count + 1, grid.near(t + (len > 0 ? len : DEFAULT_SECONDS)));
+                    end = grid.at(count);
+                    while (end <= t + 1e-6) end = grid.at(++count);
+                }
                 out.add(new Timed(i, s, t, end - t));
                 t = end;
             }
@@ -288,6 +305,34 @@ public final class MancheIntro {
             t += len;
         }
         return out;
+    }
+
+    /**
+     * The beats the cuts fall on: a steady tempo ({@link #bpm}, first beat at {@link #offset}), or the beats of a
+     * music of the theme whose tempo changes (the Greek one speeds up); null = shots at their own lengths.
+     */
+    Grid grid() {
+        if (bpm > 0) return new Grid(60 / bpm, offset, null);
+        IntroMusic.Track t = IntroMusic.ofCue(music);
+        return t != null && t.bpm() <= 0 ? new Grid(0, 0, t.beatTimes()) : null;
+    }
+
+    /** Beat k at {@code offset + k × beat}, or the k-th of {@code times} (then the last gap repeated). */
+    record Grid(double beat, double offset, double[] times) {
+        double at(int k) {
+            if (times == null) return offset + k * beat;
+            if (k < times.length) return times[Math.max(0, k)];
+            double gap = times.length > 1 ? times[times.length - 1] - times[times.length - 2] : 0.5;
+            return times[times.length - 1] + (k - times.length + 1) * gap;
+        }
+
+        /** Index of the beat nearest to {@code time}. */
+        int near(double time) {
+            if (times == null) return (int) Math.max(0, Math.round((time - offset) / beat));
+            int best = 0;
+            for (int k = 1; at(k) <= time + 10; k++) if (Math.abs(at(k) - time) < Math.abs(at(best) - time)) best = k;
+            return best;
+        }
     }
 
     /** Total length in seconds. */
@@ -392,51 +437,116 @@ public final class MancheIntro {
     }
 
     /**
-     * Fits the shots to the intro's music ({@link IntroMusic#ofCue}): the last shot from the start of the « appel » to
-     * the end of the music, the others share the time before it in their present proportions, each cut on the nearest
-     * beat (bar start for the Greek one), one beat at least; the tempo becomes the music's. Returns what was done, or
-     * null when the music is not one of the theme's (or there is no shot).
+     * Fits the shots to the intro's music ({@link IntroMusic#ofCue}), as when the music changes: the last shot from the
+     * start of the « appel » to the end of the music; the others share the time before it in their present proportions,
+     * each cut on the nearest bar start (else beat) of the new music — the Greek one's beats speed up, the steampunk
+     * waltz has 3 beats a bar, the medieval jig 6 quavers; a focus pull keeps its place in its shot, on the new beats.
+     * A shot whose length was fixed by hand ({@link Shot#fixed}) keeps it: its cut, and the appel, may then fall off
+     * the beat ({@link #offBeat}). The tempo becomes the music's. Returns what was done, or null when the music is
+     * not one of the theme's (or there is no shot).
      */
     public String fitToMusic(ToDoubleFunction<String> pathSeconds) {
         IntroMusic.Track t = IntroMusic.ofCue(music);
         if (t == null || shots.isEmpty()) return null;
         bpm = t.bpm();
         offset = 0;
-        double beat = bpm > 0 ? 60 / bpm : 0;
+        double[] beats = t.beatTimes();
+        double beat = beats.length > 1 ? beats[1] - beats[0] : 0.5;
         int n = shots.size();
         double[] lengths = new double[n];
-        double sum = 0;
+        double free = 0, fixed = 0;
         for (int k = 0; k < n - 1; k++) {
             Shot s = shots.get(k);
             double len = s.seconds();
             if (len <= 0 && s.kind().equals(PATH)) len = pathSeconds.applyAsDouble(s.ref());
             if (len <= 0) len = DEFAULT_SECONDS;
             lengths[k] = len;
-            sum += len;
+            if (s.fixed()) fixed += len;
+            else free += len;
         }
-        double t0 = 0, acc = 0;
+        double room = Math.max(0, t.appel() - fixed);
+        double t0 = 0, acc = 0, fixedSoFar = 0;
         for (int k = 0; k < n - 1; k++) {
-            acc += lengths[k];
-            double end = sum <= 0 ? t.appel() : t.appel() * acc / sum;
-            if (k == n - 2) end = t.appel();
-            else end = snap(t, end, beat);
-            double min = beat > 0 ? beat : 0.5;
-            end = Math.max(t0 + min, Math.min(end, t.appel() - min * (n - 2 - k)));
             Shot s = shots.get(k);
-            shots.set(k, s.withSeconds(end - t0));
+            double end;
+            if (s.fixed()) {
+                end = t0 + lengths[k];
+                fixedSoFar += lengths[k];
+            } else {
+                acc += lengths[k];
+                double after = 0;
+                boolean lastFree = true;
+                for (int j = k + 1; j < n - 1; j++) {
+                    if (shots.get(j).fixed()) after += lengths[j];
+                    else lastFree = false;
+                }
+                // its place among the free shots, after the fixed ones before it
+                double target = (free <= 0 ? room : acc / free * room) + fixedSoFar;
+                end = lastFree ? t.appel() - after : snap(t, beats, Math.min(target, t.appel() - after));
+                if (end < t0 + beat - 1e-6) end = nextBeat(beats, t0 + beat - 1e-6);
+            }
+            shots.set(k, retimed(s, t0, end, beats));
             t0 = end;
         }
         Shot last = shots.get(n - 1);
-        shots.set(n - 1, last.withSeconds(n == 1 ? t.seconds() : t.seconds() - t.appel()));
-        return n + " plan(s) calés sur « " + t.label() + " » (" + t.tempo() + " BPM) : le plan " + n + " sur l'appel, de "
-                + fmt(n == 1 ? 0 : t.appel()) + " à " + fmt(t.seconds());
+        double lastStart = n == 1 ? 0 : t0;
+        if (!last.fixed()) shots.set(n - 1, retimed(last, lastStart, t.seconds(), beats));
+        String off = offBeat(pathSeconds);
+        boolean onAppel = n == 1 || Math.abs(lastStart - t.appel()) < 0.06;
+        return n + " plan(s) calés sur « " + t.label() + " » (" + t.tempo() + " BPM, " + t.meter() + ") : le plan " + n
+                + (onAppel ? (n == 1 ? " sur tout le morceau" : " sur l'appel, de " + fmt(lastStart) + " à " + fmt(t.seconds()))
+                : " à " + fmt(lastStart) + " (l'appel est à " + fmt(t.appel()) + ")") + (off.isEmpty() ? "" : " ; ⚠ " + off);
     }
 
-    private static double snap(IntroMusic.Track t, double time, double beat) {
-        if (beat > 0) return Math.round(time / beat) * beat;
+    /** The shot now from {@code start} to {@code end}; its focus pull moved with it, its times on the new beats. */
+    private static Shot retimed(Shot s, double start, double end, double[] beats) {
+        double old = s.seconds(), len = end - start;
+        if (s.fixed()) return s;
+        Shot out = s.withSeconds(len);
+        fr.lordfinn.craftmaster.fx.FocusPull f = s.focusPull();
+        if (f == null || old <= 0) return out;
+        double ratio = len / old;
+        double from = snapBeat(beats, start + f.delay() * ratio), to = snapBeat(beats, start + (f.delay() + f.duration()) * ratio);
+        double delay = Math.max(0, Math.min(len, from - start)), dur = Math.max(0.05, Math.min(len - delay, to - from));
+        return out.withFocus(new fr.lordfinn.craftmaster.fx.FocusPull(f.from(), f.to(), delay, dur, f.easing(), f.blur(), f.keep()).canonical());
+    }
+
+    /** Nearest bar start (or beat, when no bar is close) to {@code time}. */
+    private static double snap(IntroMusic.Track t, double[] beats, double time) {
+        double best = -1;
+        for (double c : t.bars()) if (best < 0 || Math.abs(c - time) < Math.abs(best - time)) best = c;
+        double beat = beats.length > 1 ? beats[1] - beats[0] : 0.5;
+        return best >= 0 && Math.abs(best - time) <= Math.max(0.6, beat * 1.5) ? best : snapBeat(beats, time);
+    }
+
+    private static double snapBeat(double[] beats, double time) {
         double best = time, d = Double.MAX_VALUE;
-        for (double c : t.bars()) if (Math.abs(c - time) < d) { d = Math.abs(c - time); best = c; }
+        for (double b : beats) if (Math.abs(b - time) < d) { d = Math.abs(b - time); best = b; }
         return best;
+    }
+
+    private static double nextBeat(double[] beats, double time) {
+        for (double b : beats) if (b >= time) return b;
+        return time;
+    }
+
+    /**
+     * The cuts that do not fall on a beat of the music (a shot whose length was fixed by hand), as told in the editor:
+     * "plan 2 fixé à 3 s : coupe 0,2 s après le temps"; "" when all are on the beat (or no music of the theme).
+     */
+    public String offBeat(ToDoubleFunction<String> pathSeconds) {
+        IntroMusic.Track t = IntroMusic.ofCue(music);
+        if (t == null) return "";
+        double[] beats = t.beatTimes();
+        List<String> out = new ArrayList<>();
+        for (Timed x : timeline(pathSeconds)) {
+            if (!x.shot().fixed() || x.index() >= shots.size() - 1) continue;
+            double cut = x.start() + x.length(), near = snapBeat(beats, cut);
+            if (Math.abs(cut - near) > 0.04)
+                out.add("plan " + (x.index() + 1) + " fixé à " + fmt(x.shot().seconds()) + " : coupe " + fmt(Math.abs(cut - near))
+                        + (cut > near ? " après" : " avant") + " le temps");
+        }
+        return String.join(", ", out);
     }
 
     /** "plan final sur l'appel" / "plan final 1,2 s avant l'appel"… for the strip of the editor; "" when the music is not one of the theme's. */
@@ -451,7 +561,8 @@ public final class MancheIntro {
                 : "plan final " + fmt(Math.abs(last - cue)) + (last < cue ? " avant " : " après ") + word;
         String end = Math.abs(total - t.seconds()) < 0.3 ? "" : total < t.seconds() ? ", coupe la musique " + fmt(t.seconds() - total) + " avant sa fin"
                 : ", " + fmt(total - t.seconds()) + " après la musique";
-        return (start.isEmpty() ? "dure " + fmt(total) : start) + end;
+        String off = offBeat(pathSeconds);
+        return (start.isEmpty() ? "dure " + fmt(total) : start) + end + (off.isEmpty() ? "" : " · ⚠ " + off);
     }
 
     public MancheIntro copy() {
