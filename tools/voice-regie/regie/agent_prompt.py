@@ -116,7 +116,12 @@ son chat.
    pas sur un bloc 2 crans plus haut). Debout sur un sol, on n'atteint donc pas un bloc dont le dessous est à plus
    de 7,3 blocs au-dessus des pieds, même juste en dessous et en sautant (6,1 sans sauter) ; moins si on est décalé.
    Ex. un sol en y 4 (dessus du bloc y 3) : une ruche au plafond en y 12 est hors de portée. Un conteneur entouré
-   de blocs pleins ne s'ouvre que par une face libre où un joueur peut se tenir à portée. Vérifie-le pour chaque
+   de blocs pleins ne s'ouvre que par une face libre où un joueur peut se tenir à portée. MAIS un bloc NON PLEIN
+   laisse viser à travers son jour (lire zone dit « faces à viser : … à travers <bloc> ») : un coffre a 1/16 de jour
+   sur ses côtés et en haut, une dalle, un escalier, un pot, un panneau, une trappe aussi. Le bloc derrière s'atteint si
+   l'œil est aligné avec le jour, souvent droit vers le bas depuis le bord d'un trou (ex. La pomme : la shulker du crâne
+   sous le coffre en cuivre s'ouvre depuis le bord nord ou est du trou du béton, en regardant droit en bas). Un courant
+   d'eau pousse un joueur d'environ 1 bloc par seconde : il doit marcher contre. Vérifie-le pour chaque
    objet indispensable caché en hauteur ou sous le sol, et dis d'où on l'atteint (position des pieds).
 4. Situe les endroits avec voir (une caméra de la manche) si ça aide.
 Réponse : les étapes dans l'ordre, courtes et numérotées (là, une liste est permise), puis les blocages.

@@ -93,7 +93,7 @@ public final class ZoneReader {
                 List<String> in = new ArrayList<>();
                 for (int i = 0; i < c.getContainerSize(); i++) if (!c.getItem(i).isEmpty()) in.add(item(c.getItem(i)));
                 line = id + (be.components().has(DataComponents.CUSTOM_NAME) ? " « " + be.components().get(DataComponents.CUSTOM_NAME).getString() + " »" : "")
-                        + " : " + (in.isEmpty() ? "vide" : String.join(", ", in));
+                        + " : " + (in.isEmpty() ? "vide" : String.join(", ", in)) + access(level, p.immutable(), s);
             } else if (id.startsWith("potted_")) {
                 line = "pot de fleur : " + id.substring(7);
             } else if (id.equals("flower_pot")) {
@@ -217,6 +217,37 @@ public final class ZoneReader {
     }
 
     /** "3 × blé « Farine » [lore …] {casse : …}" */
+    /**
+     * " [ouvert par : dessus libre, nord à travers un coffre…]": the faces of a container a player can aim at — open
+     * (nothing there), through a block that is not full (a chest leaves a 1/16 gap on its sides and top, a slab,
+     * stairs, a pot, a sign… let the aim pass beside them), or none ("enfermé"). A shulker box also needs room on its
+     * lid's side to open; a chest, no full block on top.
+     */
+    static String access(net.minecraft.world.level.Level level, BlockPos p, BlockState s) {
+        List<String> open = new ArrayList<>(), through = new ArrayList<>();
+        for (net.minecraft.core.Direction d : net.minecraft.core.Direction.values()) {
+            BlockPos q = p.relative(d);
+            BlockState n = level.getBlockState(q);
+            net.minecraft.world.phys.shapes.VoxelShape shape = n.getShape(level, q);
+            String face = switch (d) {
+                case UP -> "dessus"; case DOWN -> "dessous"; case NORTH -> "nord"; case SOUTH -> "sud"; case WEST -> "ouest"; case EAST -> "est";
+            };
+            if (shape.isEmpty()) open.add(face + (n.getFluidState().isEmpty() ? "" : " (eau)"));
+            else if (!net.minecraft.world.level.block.Block.isShapeFullBlock(shape))
+                through.add(face + " à travers " + BuiltInRegistries.BLOCK.getKey(n.getBlock()).getPath() + " (bloc non plein : on vise par le jour à côté)");
+        }
+        String lid = "";
+        if (s.hasProperty(net.minecraft.world.level.block.ShulkerBoxBlock.FACING)) {
+            net.minecraft.core.Direction f = s.getValue(net.minecraft.world.level.block.ShulkerBoxBlock.FACING);
+            lid = level.getBlockState(p.relative(f)).getCollisionShape(level, p.relative(f)).isEmpty() ? ", couvercle libre (" + f.getName() + ")"
+                    : ", couvercle bloqué (" + f.getName() + ") : ne s'ouvre pas";
+        }
+        if (open.isEmpty() && through.isEmpty()) return " [enfermé : aucune face à viser" + lid + "]";
+        List<String> all = new ArrayList<>(open);
+        all.addAll(through);
+        return " [faces à viser : " + String.join(", ", all) + lid + "]";
+    }
+
     static String item(ItemStack st) {
         StringBuilder b = new StringBuilder();
         if (st.getCount() > 1) b.append(st.getCount()).append(" × ");

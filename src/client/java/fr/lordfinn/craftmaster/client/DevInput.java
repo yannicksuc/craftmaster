@@ -258,6 +258,20 @@ public final class DevInput {
                             pos.toShortString(), before, mc.level.getBlockState(pos), started);
                     continue;
                 }
+                // "vise": what the crosshair hits (block, face, exact point) ; "ecran": the screen open — in the log
+                if (line.strip().equals("vise") && mc.player != null && mc.level != null) {
+                    net.minecraft.world.phys.HitResult h = mc.hitResult;
+                    String what = h instanceof net.minecraft.world.phys.BlockHitResult b && h.getType() != net.minecraft.world.phys.HitResult.Type.MISS
+                            ? mc.level.getBlockState(b.getBlockPos()).getBlock() + " " + b.getBlockPos().toShortString() + " face " + b.getDirection()
+                            : String.valueOf(h == null ? "rien" : h.getType());
+                    org.slf4j.LoggerFactory.getLogger("craftmaster").info("[dev-input] vise {} au point {} (yeux {}, regard {} {})", what,
+                            h == null ? "-" : h.getLocation(), mc.player.getEyePosition(), mc.player.getYRot(), mc.player.getXRot());
+                    continue;
+                }
+                if (line.strip().equals("ecran")) {
+                    org.slf4j.LoggerFactory.getLogger("craftmaster").info("[dev-input] écran {}", screen == null ? "aucun" : screen.getTitle().getString());
+                    continue;
+                }
                 if (line.strip().startsWith("look ") && mc.player != null) {
                     String[] a = line.strip().split("\s+");
                     mc.player.setYRot(Float.parseFloat(a[1]));
