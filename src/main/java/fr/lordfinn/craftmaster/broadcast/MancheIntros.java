@@ -341,6 +341,43 @@ public final class MancheIntros {
         return out;
     }
 
+    /** One picture of an intro for the régie agent: a camera or a travelling, at {@code t} s into the shot. */
+    public record Preview(String label, String camera, String path, double t, String effect) {}
+
+    /**
+     * The pictures of a round's intro as the show's feed draws them (régie agent, « voir intro »): {@code perShot}
+     * per shot spread over its length (or {@code fps} pictures per second of the whole intro when {@code fps > 0}),
+     * each with the shot's effect, look and focus pull; only shot {@code only} (1-based) when {@code only > 0}.
+     * Problems (camera missing, out of the trial's zone, a followed player) are added to {@code notes}.
+     */
+    public static List<Preview> previews(MinecraftServer server, String mancheId, int perShot, int only, double fps, List<String> notes) {
+        Manche m = Lieux.manche(mancheId);
+        List<Preview> out = new ArrayList<>();
+        if (m == null || m.intro.shots.isEmpty()) return out;
+        MancheIntro intro = m.intro;
+        List<MancheIntro.Timed> timeline = intro.timeline(MancheIntros::pathSeconds);
+        for (MancheIntro.Timed t : timeline) {
+            if (only > 0 && t.index() != only - 1) continue;
+            MancheIntro.Shot s = t.shot();
+            Director.ShotRequest r = request(server, m, s, intro.effectOf(s), notes, t.index());
+            if (r == null) continue;
+            if (r.kind() != BroadcastNetwork.SHOT_CAMERA && r.kind() != BroadcastNetwork.SHOT_PATH) {
+                notes.add("plan " + (t.index() + 1) + " : suivi d'un joueur, pas d'image (il bouge)");
+                continue;
+            }
+            int n = fps > 0 ? Math.max(1, (int) Math.round(t.length() * fps)) : Math.max(1, perShot);
+            for (int k = 0; k < n; k++) {
+                double at = fps > 0 ? (k + 0.5) / fps : n == 1 ? t.length() * 0.6 : t.length() * (0.12 + 0.76 * k / (n - 1));
+                String label = "plan " + (t.index() + 1) + " · " + (r.kind() == BroadcastNetwork.SHOT_PATH ? "trajet " : "")
+                        + r.camera() + (s.effect().isEmpty() ? "" : " · " + s.effect())
+                        + " · " + String.format(java.util.Locale.ROOT, "%.1f", t.start() + at).replace('.', ',') + " s";
+                out.add(new Preview(label, r.kind() == BroadcastNetwork.SHOT_CAMERA ? r.camera() : "",
+                        r.kind() == BroadcastNetwork.SHOT_PATH ? r.camera() : "", at, r.effect()));
+            }
+        }
+        return out;
+    }
+
     /** Where the intro's shots stand ({world, x, z} as strings), for the chunks to load before it. */
     public static List<Object[]> shotPlaces(MinecraftServer server, String mancheId) {
         List<Object[]> out = new ArrayList<>();

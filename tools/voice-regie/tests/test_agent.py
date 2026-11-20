@@ -53,7 +53,7 @@ def test_unknown_tool_and_gone_client():
 
 def test_mcp_tool_list_and_mask():
     names = [t["name"] for t in mcp_tools()]
-    assert names == ["lire", "commande", "ecrire_sequence", "confirmer", "annuler"]
+    assert names == ["lire", "commande", "completer", "voir", "wiki", "ecrire_sequence", "confirmer", "annuler"]
     assert all("inputSchema" in t for t in mcp_tools())
     assert mask("à 192.168.1.20 ou 7.5 s") == "à ‹adresse masquée› ou 7.5 s"
 

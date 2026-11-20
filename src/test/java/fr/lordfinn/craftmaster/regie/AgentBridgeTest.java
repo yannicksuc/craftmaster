@@ -29,6 +29,41 @@ class AgentBridgeTest {
         assertNotNull(AgentBridge.lineRefusal("/stop"));
     }
 
+    private static AgentBridge.Kind kind(String line) {
+        return AgentBridge.classify(AgentBridge.words(line));
+    }
+
+    @Test
+    void theShowsSetupRunsSeenThingsWaitForAClick() {
+        // The setup: at once
+        assertEquals(AgentBridge.Kind.FREE, kind("cm tv intro la-pomme plan 3 effet macro"));
+        assertEquals(AgentBridge.Kind.FREE, kind("cm tv intro la-pomme plan 3 focus de centre vers fond"));
+        assertEquals(AgentBridge.Kind.FREE, kind("cm camera placer la-pomme:4 10 64 3 vers 12 63 8"));
+        assertEquals(AgentBridge.Kind.FREE, kind("cam zoom la-pomme:4 40"));
+        assertEquals(AgentBridge.Kind.FREE, kind("cam name la-pomme:6 Le marché"));
+        assertEquals(AgentBridge.Kind.FREE, kind("cam motion la-pomme:6 travelling"));
+        assertEquals(AgentBridge.Kind.FREE, kind("ambiance modifier tension contre couleur rouge"));
+        // Reading
+        assertEquals(AgentBridge.Kind.READ, kind("cm tv intro la-pomme voir"));
+        assertEquals(AgentBridge.Kind.READ, kind("cm arene liste"));
+        assertEquals(AgentBridge.Kind.READ, kind("cm statut"));
+        assertEquals(AgentBridge.Kind.READ, kind("list"));
+        // Seen by the players or the stream, deleting, the console: a click first
+        assertEquals(AgentBridge.Kind.CONFIRM, kind("cm tv intro la-pomme jouer"));
+        assertEquals(AgentBridge.Kind.CONFIRM, kind("cm epreuve lancer la-pomme"));
+        assertEquals(AgentBridge.Kind.CONFIRM, kind("cam cut 13 flash"));
+        assertEquals(AgentBridge.Kind.CONFIRM, kind("ambiance lancer tension"));
+        assertEquals(AgentBridge.Kind.CONFIRM, kind("cm camera supprimer la-pomme:4"));
+        assertEquals(AgentBridge.Kind.CONFIRM, kind("cm fx diffusion sepia"));
+        assertEquals(AgentBridge.Kind.CONFIRM, kind("tp LordFinn 0 64 0"));
+        assertEquals(AgentBridge.Kind.CONFIRM, kind("gamemode creative Ensuri"));
+        // Never
+        assertEquals(AgentBridge.Kind.REFUSED, kind("stop"));
+        assertEquals(AgentBridge.Kind.REFUSED, kind("op Ensuri"));
+        assertEquals(AgentBridge.Kind.REFUSED, kind("cm ia confirmer 3"));
+        assertEquals(AgentBridge.Kind.REFUSED, kind("minecraft:ban Ensuri"));
+    }
+
     @Test
     void addressesAreMasked() {
         assertEquals("serveur ‹adresse masquée› prêt", AgentBridge.mask("serveur 10.0.0.12:25565 prêt"));

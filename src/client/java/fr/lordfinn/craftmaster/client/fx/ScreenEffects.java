@@ -142,9 +142,9 @@ public final class ScreenEffects {
         if (!FocusPull.DOF_EFFECTS.contains(id)) return NO_FOCUS;
         Minecraft mc = Minecraft.getInstance();
         boolean show = Broadcast.active() || fr.lordfinn.craftmaster.client.broadcast.ShowFeedClient.active();
-        FocusPull f = show && shotFocus != null ? shotFocus : show ? broadcastFocus : forcedFocus;
+        FocusPull f = override != null ? override.focus() : show && shotFocus != null ? shotFocus : show ? broadcastFocus : forcedFocus;
         if (f == null) return NO_FOCUS;
-        double t = MIXER.sinceOn(id);
+        double t = override != null ? override.seconds() : MIXER.sinceOn(id);
         net.minecraft.world.phys.Vec3 eye = mc.gameRenderer.mainCamera().position();
         return new float[] {inverse(mc, f.from(), eye), inverse(mc, f.to(), eye), (float) f.progress(t),
                 (float) (f.strength(t) * f.blur() / 100.0)};
@@ -186,8 +186,22 @@ public final class ScreenEffects {
         return visible;
     }
 
+    /**
+     * A picture taken for the régie agent (ThumbCapture, AgentVision): for that one frame, exactly these effects at
+     * full strength, {@code seconds} after they were switched on, with this focus pull; null the rest of the time.
+     */
+    public record Override(List<String> effects, FocusPull focus, float seconds) {}
+
+    private static Override override;
+
+    /** Set before the capture frame's world is drawn, cleared right after (null). */
+    public static void override(Override o) {
+        override = o;
+    }
+
     /** Current (eased) intensity of an effect, 0 when off. */
     public static float intensity(String id) {
+        if (override != null) return override.effects().contains(id) ? 1f : 0f;
         if (id.equals(MIRROR_TRANSITION)) return Transition.mirrorAmount();
         return FxMixer.eased(MIXER.intensity(id));
     }
@@ -202,10 +216,11 @@ public final class ScreenEffects {
         switch (id) {
             case "stop_motion" -> {
                 z = STOP_MOTION.image() % 4096;
-                w = stopMotionRefresh ? 1f : 0f;
+                // A picture for the régie agent takes its own held picture (else it shows the last one of the screen)
+                w = stopMotionRefresh || override != null ? 1f : 0f;
             }
             case MIRROR_TRANSITION -> z = Transition.mirrorProgress();
-            default -> z = MIXER.sinceOn(id);
+            default -> z = override != null ? override.seconds() : MIXER.sinceOn(id);
         }
         return new float[] {intensity(id), time(), z, w};
     }
@@ -260,6 +275,12 @@ public final class ScreenEffects {
             stopMotionRefresh = false;
         }
 
+        if (override != null) {
+            // A picture for the régie agent: its own effects only
+            List<Identifier> own = new ArrayList<>();
+            for (String id : override.effects()) if (!id.equals(FxOverlay.PUMPKIN) && !id.equals(TIMELAPSE)) own.add(CraftMaster.id("fx/" + id));
+            return own;
+        }
         boolean mirror = Transition.mirrorAmount() > 0;
         if (visible.isEmpty() && !mirror) return List.of();
         List<Identifier> out = new ArrayList<>(visible.size() + 1);

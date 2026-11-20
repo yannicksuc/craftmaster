@@ -252,6 +252,32 @@ public final class DirectorCamera {
         return new Pose(new Vec3(v.x(), v.y(), v.z()), v.yaw(), v.pitch(), spot.fov());
     }
 
+    /** Camera {@code key}'s view {@code seconds} into its motion (the régie agent's pictures), or null. */
+    public static Pose cameraAt(String key, double seconds) {
+        CameraSpot spot = ShowStateClient.cameras().get(key);
+        if (spot == null) return null;
+        CameraMotion.View v = CameraMotion.view(spot, seconds);
+        return new Pose(new Vec3(v.x(), v.y(), v.z()), v.yaw(), v.pitch(), spot.fov());
+    }
+
+    public static String cameraWorld(String key) {
+        CameraSpot spot = ShowStateClient.cameras().get(key);
+        return spot == null ? "" : spot.world();
+    }
+
+    /** Travelling {@code name} at {@code seconds} (the régie agent's pictures), or null. */
+    public static Pose pathAt(String name, double seconds) {
+        CameraPath p = ShowStateClient.path(name);
+        if (p == null || p.isEmpty()) return null;
+        CameraPath.Pose v = p.sample(seconds, DirectorCamera::playerPosition);
+        return new Pose(new Vec3(v.x(), v.y(), v.z()), v.yaw(), v.pitch(), v.fov());
+    }
+
+    public static String pathWorld(String name) {
+        CameraPath p = ShowStateClient.path(name);
+        return p == null ? "" : p.world();
+    }
+
     private static Pose camera(Minecraft mc, CameraSpot spot, double seconds) {
         if (spot == null || !spot.world().equals(ShowStateClient.world(mc))) return null;
         CameraMotion.View v = CameraMotion.view(spot, seconds);

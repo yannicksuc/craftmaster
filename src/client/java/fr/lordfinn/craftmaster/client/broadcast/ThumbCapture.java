@@ -36,6 +36,27 @@ public final class ThumbCapture {
     /** The camera holds this frame's capture view until the next frame's view is set (PlayerEars). */
     private static boolean cameraOnThumb;
 
+    /**
+     * A picture for the régie agent ({@link fr.lordfinn.craftmaster.client.regie.AgentVision}): drawn from
+     * {@code pose} in {@code world} with exactly the effects of {@code fx}, at full size; {@code done} gets it (and
+     * closes it), {@code missed} runs when it cannot be taken (another world, chunks not loaded here).
+     */
+    public record AgentFrame(DirectorCamera.Pose pose, String world, fr.lordfinn.craftmaster.client.fx.ScreenEffects.Override fx,
+                             java.util.function.Consumer<NativeImage> done, java.util.function.Consumer<String> missed) {}
+
+    private static final Deque<AgentFrame> AGENT = new ArrayDeque<>();
+    private static AgentFrame agentFrame;
+    /** Largest width of an agent picture (the read-back shrinks the screen's picture to fit). */
+    public static final int AGENT_WIDTH = 960;
+
+    public static void agent(AgentFrame f) {
+        AGENT.add(f);
+    }
+
+    public static int agentPending() {
+        return AGENT.size() + (agentFrame != null ? 1 : 0);
+    }
+
     public static void register() {
         ClientPlayNetworking.registerGlobalReceiver(Thumbnails.Request.TYPE, (p, ctx) -> ctx.client().execute(() -> {
             for (String k : p.keys()) if (!QUEUE.contains(k)) QUEUE.add(k);
@@ -47,6 +68,29 @@ public final class ThumbCapture {
         Minecraft mc = Minecraft.getInstance();
         capturing = null;
         cameraOnThumb = false;
+        if (agentFrame != null) {
+            // Never drawn (the frame was skipped): put it back first in line
+            AGENT.addFirst(agentFrame);
+            agentFrame = null;
+            fr.lordfinn.craftmaster.client.fx.ScreenEffects.override(null);
+        }
+        if (!AGENT.isEmpty() && mc.level != null && keptFresh && Mosaic.rendering < 0) {
+            AgentFrame f = AGENT.poll();
+            String here = mc.level.dimension().identifier().toString();
+            DirectorCamera.Pose p = f.pose();
+            if (!f.world().isEmpty() && !f.world().equals(here)) {
+                f.missed().accept("dans un autre monde (" + f.world() + ")");
+                return null;
+            }
+            if (!mc.level.getChunkSource().hasChunk(((int) Math.floor(p.position().x)) >> 4, ((int) Math.floor(p.position().z)) >> 4)) {
+                f.missed().accept("trop loin de ton jeu (monde pas chargé là)");
+                return null;
+            }
+            agentFrame = f;
+            cameraOnThumb = true;
+            fr.lordfinn.craftmaster.client.fx.ScreenEffects.override(f.fx());
+            return p;
+        }
         if (QUEUE.isEmpty() || mc.level == null || !keptFresh || Mosaic.rendering >= 0) return null;
         String key = QUEUE.poll();
         CameraSpot s = ShowStateClient.cameras().get(key);
@@ -62,13 +106,13 @@ public final class ThumbCapture {
     }
 
     public static boolean capturing() {
-        return capturing != null;
+        return capturing != null || agentFrame != null;
     }
 
     /** Right after the world was drawn, before the interface. */
     public static void afterLevel() {
         Minecraft mc = Minecraft.getInstance();
-        if (QUEUE.isEmpty() && capturing == null) {
+        if (QUEUE.isEmpty() && capturing == null && AGENT.isEmpty() && agentFrame == null) {
             keptFresh = false;
             return;
         }
@@ -81,6 +125,19 @@ public final class ThumbCapture {
                 shot = ClientCompat.colorTarget("craftmaster_thumb_shot", main);
                 keptFresh = false;
                 capturing = null;
+                return;
+            }
+            if (agentFrame != null) {
+                // A picture for the régie agent: aside, the normal one back, read back at up to AGENT_WIDTH
+                AgentFrame f = agentFrame;
+                agentFrame = null;
+                keptFresh = false;
+                fr.lordfinn.craftmaster.client.fx.ScreenEffects.override(null);
+                ClientCompat.copyColor(main, shot);
+                ClientCompat.copyColor(kept, main);
+                int down = Math.max(1, (main.width + AGENT_WIDTH - 1) / AGENT_WIDTH);
+                while (main.width % down != 0 || main.height % down != 0) down++;
+                Screenshot.takeScreenshot(shot, down, f.done());
                 return;
             }
             if (capturing == null) {
@@ -103,6 +160,11 @@ public final class ThumbCapture {
             CraftMaster.LOG.warn("[Réalisation] Vignette impossible", e);
             QUEUE.clear();
             capturing = null;
+            if (agentFrame != null) {
+                agentFrame.missed().accept("rendu impossible (" + e.getMessage() + ")");
+                agentFrame = null;
+                fr.lordfinn.craftmaster.client.fx.ScreenEffects.override(null);
+            }
         }
     }
 

@@ -117,6 +117,8 @@ loom {
                 // Minecraft 26.2 windows are GLFW: client.mixin.DevWindowMixin
                 vmArg("-Dcraftmaster.dev.backgroundClient=true")
             }
+            // -PregieUrl=http://127.0.0.1:25791: a voice control service of its own (tests of the régie agent)
+            (findProperty("regieUrl") as String?)?.let { vmArg("-Dcraftmaster.regie.url=$it") }
             runDir = rootRunDir("run2_dir")
         }
         named("server") {

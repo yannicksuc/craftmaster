@@ -31,24 +31,56 @@ log = logging.getLogger("regie.agent")
 
 AGENT_MEMORY_S = 20 * 60
 TOOL_TIMEOUT_S = 45
-JOB_TIMEOUT_S = 240
+JOB_TIMEOUT_S = 600
 CLIENT_GONE_S = 15           # the game stopped polling: the job is abandoned
-MAX_TOOL_CALLS = 40
+MAX_TOOL_CALLS = 60
+VISION_TIMEOUT_S = 300      # « voir »: the game draws every picture (a long intro video takes a while)
 ADDRESS = re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}(?::\d{1,5})?\b")
 
 TOOLS = [
     {"name": "lire",
-     "description": "Lit l'état de la régie (rien n'est changé).",
+     "description": "Lit l'état du show (rien n'est changé).",
      "input_schema": {"type": "object", "properties": {
-         "sujet": {"type": "string", "enum": ["resume", "manches", "intro", "effets", "ambiance", "sequence", "conduite", "cameras", "trajet", "projecteurs"]},
-         "nom": {"type": "string", "description": "Le nom de l'ambiance, de la séquence, de la conduite, du travelling, ou la manche de l'intro (id ou nom : la-pomme, « La pomme »)."}},
+         "sujet": {"type": "string", "enum": ["resume", "manches", "intro", "effets", "ambiance", "sequence", "conduite", "cameras",
+                                              "trajet", "projecteurs", "arenes", "joueurs", "blocs", "commandes", "statut", "journal", "log"]},
+         "nom": {"type": "string", "description": "Le nom de l'ambiance, de la séquence, de la conduite, du travelling, la manche de "
+                                                  "l'intro (id ou nom : la-pomme, « La pomme »), l'arène, le groupe de commandes "
+                                                  "(« tv intro », « camera »), le bloc à chercher autour de LordFinn (fleur, pot, coffre, minecraft:poppy), "
+                                                  "ou un mot à chercher dans le log."}},
          "required": ["sujet"]}},
     {"name": "commande",
-     "description": "Exécute une commande de la régie (cam, tv, sequence, conduite, ambiance, cfsp, plateau, cmtele, "
-                    "cfpt, fx) au nom de LordFinn et renvoie sa réponse.",
+     "description": "Exécute une commande du serveur au nom de LordFinn (toutes les /cm … et les commandes du serveur) et renvoie sa "
+                    "réponse. Le réglage du show passe tout de suite ; ce qui supprime, ce que les joueurs ou le stream voient, et les "
+                    "commandes du serveur attendent son clic (réponse « CONFIRMATION REQUISE »).",
      "input_schema": {"type": "object", "properties": {
-         "ligne": {"type": "string", "description": "La commande, sans /, ex. « ambiance modifier tension contre couleur rouge »."}},
+         "ligne": {"type": "string", "description": "La commande, sans /, ex. « cm tv intro la-pomme plan 3 effet macro »."}},
          "required": ["ligne"]}},
+    {"name": "completer",
+     "description": "Ce que la touche Tab propose après un début de commande (mots possibles, arguments, infobulles) : pour découvrir "
+                    "une commande sans deviner.",
+     "input_schema": {"type": "object", "properties": {
+         "ligne": {"type": "string", "description": "Le début de la commande, sans /, ex. « cm tv intro la-pomme plan 3 »."}},
+         "required": ["ligne"]}},
+    {"name": "voir",
+     "description": "Regarde ce que filme une caméra, un travelling ou une intro, dans le rendu du flux de l'émission (effets, look et "
+                    "focus compris) : tu reçois les images, LordFinn aussi dans son chat. Rien n'est changé ni joué à l'antenne.",
+     "input_schema": {"type": "object", "properties": {
+         "cible": {"type": "string", "enum": ["camera", "trajet", "intro", "plan"]},
+         "nom": {"type": "string", "description": "camera : la-pomme:4 (ou 4 avec manche) ; trajet : son nom ; intro : la manche."},
+         "manche": {"type": "string", "description": "La manche (id) : pour intro, plan, ou une caméra donnée par son numéro."},
+         "plan": {"type": "integer", "description": "cible plan : le numéro du plan de l'intro."},
+         "images": {"type": "integer", "description": "Images par plan (intro, plan) ou le long du trajet (défaut 1, 3, 6)."},
+         "secondes": {"type": "string", "description": "camera / trajet : les instants à montrer, ex. « 0 2 4 »."},
+         "effet": {"type": "string", "description": "camera / trajet : un effet à essayer sans rien changer (macro, fisheye+vignette…)."},
+         "focus": {"type": "string", "description": "camera : une mise au point à essayer, ex. « de 3 vers fond duree 2 »."},
+         "video": {"type": "boolean", "description": "intro : 8 images par seconde, assemblées en vidéo pour LordFinn (tu reçois la planche)."}},
+         "required": ["cible"]}},
+    {"name": "wiki",
+     "description": "Lit la documentation du mod (pages du wiki) : sans argument la liste, page = une page, cherche = les lignes qui "
+                    "contiennent un mot.",
+     "input_schema": {"type": "object", "properties": {
+         "page": {"type": "string", "description": "ex. Effets, Realisation, Commandes, Arenes, RegieIA."},
+         "cherche": {"type": "string"}}}},
     {"name": "ecrire_sequence",
      "description": "Crée ou remplace une timeline (séquence) entière.",
      "input_schema": {"type": "object", "properties": {
@@ -63,6 +95,7 @@ TOOLS = [
      "input_schema": {"type": "object", "properties": {}}},
 ]
 TOOL_NAMES = {t["name"] for t in TOOLS}
+LOCAL_TOOLS = {"wiki"}       # answered by this service, not by the game
 
 
 def mcp_tools() -> list[dict]:
@@ -108,6 +141,12 @@ class Job:
         """Called from the agent's thread: queue the call for the game, wait for its answer."""
         if tool not in TOOL_NAMES:
             return False, f"Outil inconnu : {tool}"
+        if tool in LOCAL_TOOLS:
+            from .vision import wiki
+            ok, out = wiki(args if isinstance(args, dict) else {})
+            with self.lock:
+                self.steps.append(tool + " " + json.dumps(args, ensure_ascii=False)[:160])
+            return ok, mask(out)
         with self.lock:
             if self.count >= MAX_TOOL_CALLS:
                 return False, "Trop d'appels pour une seule demande : arrête-toi et résume ce qui est fait."
@@ -116,11 +155,12 @@ class Job:
             self.next_cid += 1
             self.queue.append(c)
             self.steps.append(tool + " " + json.dumps(args, ensure_ascii=False)[:160])
-        deadline = time.time() + TOOL_TIMEOUT_S
+        deadline = time.time() + (VISION_TIMEOUT_S if tool == "voir" else TOOL_TIMEOUT_S)
         while not c.event.wait(0.25):
             if time.time() > deadline or not self.alive():
                 return False, "Le jeu ne répond plus (déconnecté ?) : rien de plus ne peut être fait."
-        log.info("[%s] %s %s -> %s", self.id, tool, json.dumps(args, ensure_ascii=False)[:300], c.output[:300].replace("\n", " | "))
+        from .vision import text as vision_text
+        log.info("[%s] %s %s -> %s", self.id, tool, json.dumps(args, ensure_ascii=False)[:300], vision_text(c.output)[:300].replace("\n", " | "))
         return c.ok, c.output
 
     def take(self) -> list[dict]:
@@ -246,7 +286,9 @@ class ApiRunner:
                 if not job.alive():
                     return "Le jeu ne répond plus : arrêté."
                 ok, out = job.call(b.name, dict(b.input) if isinstance(b.input, dict) else {})
-                results.append({"type": "tool_result", "tool_use_id": b.id, "content": out, "is_error": not ok})
+                from .vision import blocks
+                content = blocks(out, "api") if ok else None
+                results.append({"type": "tool_result", "tool_use_id": b.id, "content": content or out, "is_error": not ok})
             messages.append({"role": "user", "content": results})
         self.memory.append((time.time(), user_text(job), final))
         return final

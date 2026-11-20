@@ -53,14 +53,17 @@ import static net.minecraft.commands.Commands.literal;
 
 /**
  * Server side of the régie agent (docs/wiki/RegieIA.md): an agent running on the organiser's PC (voice control
- * service) edits the show's setup — cameras, travellings, looks, cue lists, timelines — through the mod's own
- * commands. Its tool calls come through the organiser's game ({@link RegiePayloads.AgentCall}) and run here
- * <b>as that player</b> (his permissions, nothing more), checked again on every packet.
- * <p>Guards: only the show's commands (a list of roots, also for the lines a cue list or a timeline will run
- * later); deleting something waits for the organiser's confirmation (a click, or a later request); everything a
- * request changes can be undone in one go (snapshot of the scenography, the cameras and the travellings taken
- * before its first change); a line in the action journal and the server log per request; no address in any
- * output (masked).
+ * service) works on the show through the mod's own commands — all of /cm and the server's console commands — and
+ * reads everything ({@link #read}). Its tool calls come through the organiser's game ({@link RegiePayloads.AgentCall})
+ * and run here <b>as that player</b> (his permissions, nothing more), checked again on every packet.
+ * <p>Guards ({@link #classify}): the show's setup (cameras, travellings, intros, looks, cue lists, timelines, stage
+ * points) and anything that only reads run at once; what deletes something or what the players or the stream would
+ * see (on air, launching, teleporting, effects on players, live spotlights, the console) waits for the organiser's
+ * click in his chat (or a later request); a few commands are refused outright (server stop, operators, bans,
+ * whitelist, the agent's own buttons). Everything a request changes in the setup can be undone in one go (snapshot
+ * of the scenography, the cameras, the travellings and the intros taken before its first change); a line in the
+ * action journal and the server log per request; no address in any output (masked).
+ * <p>Its eyes: « voir » is answered by the organiser's game, which takes the pictures {@link #renderPlan} lists.
  */
 public final class AgentBridge {
 
@@ -78,22 +81,40 @@ public final class AgentBridge {
     /** Words that delete a whole thing: confirmation first. */
     static final Set<String> DELETING = Set.of("supprimer", "remove", "effacer", "delete");
     /** Sub-commands that only read. */
-    static final Set<String> READING = Set.of("list", "liste", "voir", "statut", "trajets", "info", "apercu", "montrer");
+    static final Set<String> READING = Set.of("list", "liste", "voir", "statut", "trajets", "info", "apercu", "lire", "historique");
     private static final Pattern ADDRESS = Pattern.compile("\\b\\d{1,3}(?:\\.\\d{1,3}){3}(?::\\d{1,5})?\\b");
     private static final long CONFIRM_MS = 5 * 60_000;
 
-    record Snapshot(String book, List<CameraSpot> cameras, Map<String, String> paths) {
+    record Snapshot(String book, List<CameraSpot> cameras, Map<String, String> paths, Map<String, fr.lordfinn.craftmaster.data.MancheIntro> intros) {
         static Snapshot take() {
             Map<String, String> paths = new LinkedHashMap<>();
             for (CameraPath p : CameraPaths.all()) paths.put(p.name(), CameraPaths.toJson(p).toString());
-            return new Snapshot(Scenography.toJson(), List.copyOf(Cameras.list().all()), paths);
+            Map<String, fr.lordfinn.craftmaster.data.MancheIntro> intros = new LinkedHashMap<>();
+            for (var m : allManches()) intros.put(m.id, m.intro.copy());
+            return new Snapshot(Scenography.toJson(), List.copyOf(Cameras.list().all()), paths, intros);
         }
 
         boolean same(Snapshot o) {
-            return book.equals(o.book) && new HashSet<>(cameras).equals(new HashSet<>(o.cameras)) && paths.equals(o.paths);
+            return book.equals(o.book) && new HashSet<>(cameras).equals(new HashSet<>(o.cameras)) && paths.equals(o.paths)
+                    && introsText(intros).equals(introsText(o.intros));
+        }
+
+        private static String introsText(Map<String, fr.lordfinn.craftmaster.data.MancheIntro> m) {
+            StringBuilder b = new StringBuilder();
+            m.forEach((k, v) -> b.append(k).append('=').append(v.shots).append(v.look).append(v.music).append(v.bpm).append(v.auto).append(v.chained).append(';'));
+            return b.toString();
         }
 
         void restore(MinecraftServer server) {
+            boolean introsChanged = false;
+            for (var m : allManches()) {
+                var was = intros.get(m.id);
+                if (was != null && !introsText(Map.of(m.id, m.intro)).equals(introsText(Map.of(m.id, was)))) {
+                    m.intro = was.copy();
+                    introsChanged = true;
+                }
+            }
+            if (introsChanged && CraftMaster.data() != null) CraftMaster.data().save();
             Scenography.restore(book);
             Map<String, CameraSpot> want = new LinkedHashMap<>();
             for (CameraSpot s : cameras) want.put(s.key(), s);
@@ -181,8 +202,10 @@ public final class AgentBridge {
     static String handle(ServerPlayer player, Job job, String tool, JsonObject a) {
         MinecraftServer server = player.level().getServer();
         return switch (tool) {
-            case "lire" -> read(str(a, "sujet"), str(a, "nom"));
+            case "lire" -> read(server, player, str(a, "sujet"), str(a, "nom"));
             case "commande" -> command(player, job, str(a, "ligne"), false);
+            case "completer" -> complete(player, str(a, "ligne"));
+            case "_rendu" -> renderPlan(server, a);
             case "ecrire_sequence" -> writeSequence(job, str(a, "nom"), a.get("sequence"));
             case "confirmer" -> confirm(player, job, a.has("numero") ? a.get("numero").getAsInt() : -1);
             case "annuler" -> undo(server, player, job);
@@ -206,15 +229,16 @@ public final class AgentBridge {
             words = asOld;
             root = words.getFirst().toLowerCase(Locale.ROOT);
         }
-        if (!ROOTS.contains(root))
-            return "Refusé : « " + root + " » n'est pas une commande de la régie (cam, tv, sequence, conduite, ambiance, cfsp, plateau, cmtele, cfpt, fx).";
+        Kind kind = classify(words(line));
+        if (kind == Kind.REFUSED)
+            return "Refusé : « /" + line + " » n'est jamais fait par la régie IA (arrêt du serveur, opérateurs, bannissements, liste blanche, permissions, ses propres boutons).";
         String embedded = embeddedLine(root, words);
         if (embedded != null) {
             String why = lineRefusal(embedded);
             if (why != null) return why;
         }
-        boolean reading = words.size() == 1 || words.stream().skip(1).map(w -> w.toLowerCase(Locale.ROOT)).anyMatch(READING::contains);
-        if (!confirmed && words.stream().skip(1).map(w -> w.toLowerCase(Locale.ROOT)).anyMatch(DELETING::contains)) {
+        boolean reading = kind == Kind.READ;
+        if (!confirmed && kind == Kind.CONFIRM) {
             // The same deletion asked again in a LATER request (« oui, supprime-la ») is the confirmation
             expire();
             final String asked = line;
@@ -226,11 +250,13 @@ public final class AgentBridge {
             }
             int n = nextPending++;
             PENDING.put(n, new Pending(n, job.id, line, player.getUUID(), System.currentTimeMillis()));
-            player.sendSystemMessage(Component.literal("Régie IA veut : /" + line + " ").withStyle(ChatFormatting.GOLD)
+            boolean deleting = words(line).stream().skip(1).map(w -> w.toLowerCase(Locale.ROOT)).anyMatch(DELETING::contains);
+            player.sendSystemMessage(Component.literal("Régie IA veut " + (deleting ? "supprimer" : "faire") + " : /" + mask(line) + " ").withStyle(ChatFormatting.GOLD)
                     .append(button("[Confirmer]", "/cm ia confirmer " + n, "Le faire", ChatFormatting.GREEN))
                     .append(Component.literal(" "))
                     .append(button("[Refuser]", "/cm ia refuser " + n, "Ne pas le faire", ChatFormatting.RED)));
-            return "CONFIRMATION REQUISE (n° " + n + ") : « " + line + " » n'a PAS été fait. Dis à l'organisateur ce que ça supprime ; "
+            return "CONFIRMATION REQUISE (n° " + n + ") : « " + line + " » n'a PAS été fait (" + (deleting ? "ça supprime quelque chose"
+                    : "les joueurs ou le stream le verraient, ou c'est une commande du serveur") + "). Dis à l'organisateur ce que ça fera ; "
                     + "il confirme en cliquant [Confirmer] dans son chat, ou en te le redisant (outil confirmer, numéro " + n + ", dans une demande suivante).";
         }
         if (!reading && job.before == null) job.before = Snapshot.take();
@@ -464,7 +490,9 @@ public final class AgentBridge {
         return o.toString();
     }
 
-    static String read(String subject, String name) {
+    static String read(MinecraftServer server, ServerPlayer player, String subject, String name) {
+        String more = readMore(server, player, subject, name);
+        if (more != null) return more;
         Look.Book book = Scenography.book();
         String s = fr.lordfinn.craftmaster.camera.CameraList.fold(subject);
         JsonObject o = new JsonObject();
@@ -588,7 +616,8 @@ public final class AgentBridge {
                 o.add("projecteurs", spots);
             }
             default -> {
-                return "Sujet inconnu « " + subject + " » : resume, manches, intro, effets, ambiance, sequence, conduite, cameras, trajet, projecteurs.";
+                return "Sujet inconnu « " + subject + " » : resume, manches, intro, effets, ambiance, sequence, conduite, cameras, trajet, "
+                        + "projecteurs, arenes, joueurs, commandes, statut, journal, log.";
             }
         }
         return o.toString();
@@ -600,6 +629,341 @@ public final class AgentBridge {
 
     private static String str(JsonObject o, String k) {
         return o.has(k) && o.get(k).isJsonPrimitive() ? o.get(k).getAsString() : "";
+    }
+
+    // ---------------------------------------------------------------- what the agent may do
+
+    enum Kind { READ, FREE, CONFIRM, REFUSED }
+
+    /** Never, even confirmed. */
+    static final Set<String> FORBIDDEN = Set.of("stop", "op", "deop", "ban", "ban-ip", "pardon", "pardon-ip", "banlist", "whitelist",
+            "kick", "save-off", "lp", "luckperms", "perm", "permissions", "transfer", "jfr", "debug", "perf", "publish", "regieia");
+    /** Console commands that only read. */
+    static final Set<String> VANILLA_READ = Set.of("list", "help", "seed");
+    /** Words of a /cm line that put something on air, start something or move people: the organiser's click first. */
+    static final Set<String> VISIBLE = Set.of("lancer", "jouer", "essayer", "couper", "cut", "large", "suivre", "mosaique", "pov",
+            "libre", "diffusion", "noir", "flash", "synthe", "stop", "arreter", "tp", "aller", "go", "suite", "terminer", "fin",
+            "suivante", "precedente", "reveler", "publier", "donner", "ouvrir", "fermer", "basculer", "activer", "forcer", "plateau",
+            "revoir", "reprendre", "geler", "degeler", "start", "play", "show", "montrer", "appliquer", "envoyer", "reset", "recharger");
+    /** /cm groups (new tree) whose setup the agent edits freely (nothing seen by the players until played). */
+    static final Set<String> SETUP_GROUPS = Set.of("camera", "cam", "tv", "sequence", "conduite", "ambiance");
+
+    /**
+     * How a command line is treated: READ (only reads), FREE (the show's setup), CONFIRM (deletes something, is seen
+     * by the players or the stream, or is any other command of the server), REFUSED (never).
+     */
+    static Kind classify(List<String> w) {
+        if (w.isEmpty()) return Kind.REFUSED;
+        String r = w.getFirst().toLowerCase(Locale.ROOT);
+        if (r.contains(":")) r = r.substring(r.indexOf(':') + 1);
+        List<String> rest = new ArrayList<>();
+        // The old trees' English words as their French form (cam name → nom), so one list fits both
+        for (String x : w.subList(1, w.size())) rest.add(fr.lordfinn.craftmaster.command.CommandTree.french(CameraListFold.fold(x)));
+        String group;
+        if (r.equals("cm") || r.equals("craftmaster")) {
+            if (rest.isEmpty()) return Kind.READ;
+            group = rest.removeFirst();
+        } else {
+            String path = fr.lordfinn.craftmaster.command.CommandTree.legacyPath(r);
+            if (path == null) {
+                // A command of the server (vanilla or another mod)
+                if (FORBIDDEN.contains(r)) return Kind.REFUSED;
+                if (VANILLA_READ.contains(r) || (r.equals("time") && rest.size() >= 1 && rest.getFirst().equals("query"))
+                        || (r.equals("data") && !rest.isEmpty() && rest.getFirst().equals("get"))) return Kind.READ;
+                return Kind.CONFIRM;
+            }
+            String[] p = path.isEmpty() ? new String[0] : path.split(" ");
+            group = p.length == 0 ? "" : p[0];
+            for (int i = p.length - 1; i >= 1; i--) rest.addFirst(p[i]);
+        }
+        if (group.equals("ia")) return Kind.REFUSED;
+        if (rest.stream().anyMatch(DELETING::contains) || rest.contains("suppr") || rest.contains("retirerpoint")) return Kind.CONFIRM;
+        if (rest.isEmpty() && Set.of("statut", "aide", "historique", "menu").contains(group)) return Kind.READ;
+        if (!rest.isEmpty() && READING.contains(rest.getLast()) || rest.stream().anyMatch(x -> x.equals("liste") || x.equals("list") || x.equals("statut") || x.equals("voir")))
+            return Kind.READ;
+        if (group.equals("tv")) {
+            // The intro editor (« tv intro <m> plan 2 effet macro »): setup; playing it: on air
+            if (rest.size() >= 3 && rest.getFirst().equals("intro") && !rest.contains("jouer") && !rest.contains("essayer")
+                    && !rest.contains("effacer")) return Kind.FREE;
+            return Kind.CONFIRM;
+        }
+        if (group.equals("plateau") && !rest.isEmpty() && Set.of("devant", "point", "maitre", "scene", "public", "portrait").contains(rest.getFirst()))
+            return Kind.FREE;
+        if (group.equals("media") && !rest.isEmpty() && rest.getFirst().equals("tele") && rest.stream().noneMatch(VISIBLE::contains)) return Kind.FREE;
+        if (group.equals("camera") || group.equals("cam")) {
+            if (rest.isEmpty()) return Kind.READ;
+            String sub = rest.getFirst();
+            if (Set.of("placer", "ici", "viser", "nom", "zoom", "role", "mouvement", "ajouter", "trajet", "info", "apercu", "liste", "list").contains(sub)
+                    && rest.stream().skip(1).noneMatch(x -> Set.of("jouer", "lancer", "couper").contains(x))) return Kind.FREE;
+            return Kind.CONFIRM;
+        }
+        if (SETUP_GROUPS.contains(group) && rest.stream().noneMatch(VISIBLE::contains)) return Kind.FREE;
+        return Kind.CONFIRM;
+    }
+
+    /** Folds a word like the camera references do (accents, case). */
+    private static final class CameraListFold {
+        static String fold(String s) {
+            return fr.lordfinn.craftmaster.camera.CameraList.fold(s);
+        }
+    }
+
+    /** What the server's Tab would propose after {@code line} (the agent finds the commands by itself). */
+    static String complete(ServerPlayer player, String line) {
+        line = line.strip();
+        if (line.startsWith("/")) line = line.substring(1);
+        var dispatcher = player.level().getServer().getCommands().getDispatcher();
+        CommandSourceStack source = player.createCommandSourceStack().withSource(new Capture());
+        var parse = dispatcher.parse(line, source);
+        try {
+            var sugg = dispatcher.getCompletionSuggestions(parse).get(3, java.util.concurrent.TimeUnit.SECONDS);
+            List<String> out = new ArrayList<>();
+            for (var s : sugg.getList()) {
+                if (out.size() >= 60) break;
+                out.add(s.getText() + (s.getTooltip() == null ? "" : " — " + s.getTooltip().getString()));
+            }
+            String usage = "";
+            var nodes = parse.getContext().getNodes();
+            if (!nodes.isEmpty()) {
+                var last = nodes.getLast().getNode();
+                var u = dispatcher.getSmartUsage(last, source);
+                if (!u.isEmpty()) usage = "\nSuite possible : " + String.join(" | ", u.values().stream().limit(25).toList());
+            }
+            String err = parse.getExceptions().isEmpty() ? "" : "\n(à cet endroit : " + parse.getExceptions().values().iterator().next().getMessage() + ")";
+            return (out.isEmpty() ? "Aucune proposition." : "Propositions : " + String.join(" | ", out)) + usage + err;
+        } catch (Exception e) {
+            return "Propositions indisponibles : " + e.getMessage();
+        }
+    }
+
+    /** Every round of the active season (archived ones too). */
+    static List<fr.lordfinn.craftmaster.data.Manche> allManches() {
+        List<fr.lordfinn.craftmaster.data.Manche> out = new ArrayList<>();
+        var data = CraftMaster.data();
+        var season = data == null ? null : data.activeSeason();
+        if (season != null) for (var p : season.parties.values()) out.addAll(p.manches);
+        return out;
+    }
+
+    /** The subjects added for the agent to see everything; null when {@code subject} is one of the older ones. */
+    static String readMore(MinecraftServer server, ServerPlayer player, String subject, String name) {
+        String s = fr.lordfinn.craftmaster.camera.CameraList.fold(subject);
+        switch (s) {
+            case "arenes", "arene" -> {
+                JsonArray out = new JsonArray();
+                for (var a : fr.lordfinn.craftmaster.trial.kit.Arenas.all()) {
+                    if (name != null && !name.isBlank() && !a.name.equalsIgnoreCase(name) && !name.equalsIgnoreCase(a.manche)) continue;
+                    JsonObject j = new JsonObject();
+                    j.addProperty("nom", a.name);
+                    j.addProperty("manche", a.manche == null ? "" : a.manche);
+                    j.addProperty("monde", a.world);
+                    j.addProperty("reference", a.x0 + " " + a.y0 + " " + a.z0 + " → " + a.x1 + " " + a.y1 + " " + a.z1);
+                    JsonObject copies = new JsonObject();
+                    a.copies.forEach((who, o) -> copies.addProperty(who, "décalage " + o[0] + " " + o[1] + " " + o[2]));
+                    j.add("copies", copies);
+                    j.addProperty("marge_chargement", a.chargementMarge);
+                    out.add(j);
+                }
+                return out.toString();
+            }
+            case "joueurs", "joueur" -> {
+                JsonArray out = new JsonArray();
+                for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+                    JsonObject j = new JsonObject();
+                    j.addProperty("pseudo", p.getPlainTextName());
+                    j.addProperty("monde", p.level().dimension().identifier().toString());
+                    j.addProperty("pos", num(Math.round(p.getX() * 10) / 10.0) + " " + num(Math.round(p.getY() * 10) / 10.0) + " " + num(Math.round(p.getZ() * 10) / 10.0));
+                    j.addProperty("regard", "yaw " + Math.round(p.getYRot()) + ", pitch " + Math.round(p.getXRot()));
+                    j.addProperty("mode", p.gameMode.getGameModeForPlayer().getName());
+                    j.addProperty("organisateur", Permissions.isAdmin(p));
+                    if (p == player) j.addProperty("c_est_lui", true);
+                    out.add(j);
+                }
+                return out.toString();
+            }
+            case "commandes", "commande", "aide" -> {
+                var dispatcher = server.getCommands().getDispatcher();
+                CommandSourceStack src = player.createCommandSourceStack().withSource(new Capture());
+                var root = fr.lordfinn.craftmaster.command.CommandTree.root();
+                if (root == null) return "Arbre des commandes pas encore prêt.";
+                com.mojang.brigadier.tree.CommandNode<CommandSourceStack> node = root;
+                String path = "cm";
+                if (name != null && !name.isBlank()) {
+                    for (String part : name.trim().split("\\s+")) {
+                        var child = node.getChild(fr.lordfinn.craftmaster.camera.CameraList.fold(part));
+                        if (child == null) return "« " + part + " » inconnu sous /" + path + " : " + node.getChildren().stream().map(c -> c.getName()).toList();
+                        node = child;
+                        path += " " + child.getName();
+                    }
+                }
+                List<String> lines = new ArrayList<>();
+                for (String u : dispatcher.getAllUsage(node, src, true)) {
+                    if (lines.size() >= 400) {
+                        lines.add("… (plus long : précise un groupe, ex. lire commandes « tv intro »)");
+                        break;
+                    }
+                    lines.add("/" + path + " " + u);
+                }
+                return lines.isEmpty() ? "/" + path + " (rien en dessous)" : String.join("\n", lines);
+            }
+            case "blocs", "bloc", "chercher" -> {
+                // Blocks around the organiser whose id matches (« fleur » = every flower), nearest first
+                if (name == null || name.isBlank()) return "Donne un mot : fleur, pot, coffre, lanterne, minecraft:poppy…";
+                String q = fr.lordfinn.craftmaster.camera.CameraList.fold(name.trim());
+                List<String> keys = switch (q) {
+                    case "fleur", "fleurs", "flower" -> List.of("flower", "poppy", "tulip", "dandelion", "orchid", "allium", "daisy",
+                            "cornflower", "lily", "rose", "blossom", "bluet", "peony", "lilac", "sunflower", "torchflower", "pitcher");
+                    case "pot", "pots" -> List.of("pot");
+                    case "coffre" -> List.of("chest");
+                    case "lanterne" -> List.of("lantern");
+                    case "pomme" -> List.of("apple");
+                    default -> List.of(q.replace(' ', '_'));
+                };
+                var level = player.level();
+                net.minecraft.core.BlockPos c = player.blockPosition();
+                int r = 32;
+                record Hit(double d, String line) {}
+                List<Hit> hits = new ArrayList<>();
+                for (net.minecraft.core.BlockPos p : net.minecraft.core.BlockPos.betweenClosed(c.offset(-r, -12, -r), c.offset(r, 12, r))) {
+                    if (!level.hasChunkAt(p)) continue;
+                    var state = level.getBlockState(p);
+                    if (state.isAir()) continue;
+                    String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+                    if (keys.stream().noneMatch(id::contains)) continue;
+                    hits.add(new Hit(Math.sqrt(p.distSqr(c)), id + " à " + p.getX() + " " + p.getY() + " " + p.getZ()
+                            + " (centre " + (p.getX() + 0.5) + " " + (p.getY() + 0.5) + " " + (p.getZ() + 0.5) + ")"));
+                    if (hits.size() > 2000) break;
+                }
+                hits.sort(java.util.Comparator.comparingDouble(Hit::d));
+                if (hits.isEmpty()) return "Aucun bloc « " + name + " » à " + r + " blocs autour de " + player.getPlainTextName() + ".";
+                StringBuilder b = new StringBuilder("Autour de " + player.getPlainTextName() + " (" + c.getX() + " " + c.getY() + " " + c.getZ() + "), du plus près :\n");
+                for (Hit h : hits.subList(0, Math.min(40, hits.size()))) b.append(String.format(Locale.ROOT, "%.0f bl : ", h.d())).append(h.line()).append('\n');
+                return b.toString();
+            }
+            case "statut", "etat" -> {
+                Capture cap = new Capture();
+                server.getCommands().performPrefixedCommand(player.createCommandSourceStack().withSource(cap), "cm statut");
+                return String.join("\n", cap.lines);
+            }
+            case "journal", "historique" -> {
+                StringBuilder b = new StringBuilder();
+                for (ActionJournal.Line l : ActionJournal.last(25))
+                    b.append(java.time.Instant.ofEpochMilli(l.at())).append(' ').append(l.actor()).append(" (").append(l.origin()).append(") ")
+                            .append(l.ok() ? "" : "✗ ").append(String.join(" / ", l.lines())).append('\n');
+                return b.isEmpty() ? "(journal vide)" : b.toString();
+            }
+            case "log", "journaux", "logs" -> {
+                try {
+                    java.nio.file.Path log = server.getServerDirectory().resolve("logs").resolve("latest.log");
+                    List<String> all = java.nio.file.Files.readAllLines(log, java.nio.charset.StandardCharsets.UTF_8);
+                    String filter = name == null ? "" : name.toLowerCase(Locale.ROOT);
+                    List<String> keep = new ArrayList<>();
+                    for (String l : all) if (filter.isBlank() ? (l.contains("CraftMaster") || l.contains("Régie") || l.contains("ERROR") || l.contains("WARN") || l.contains("Réalisation") || l.contains("Épreuve")) : l.toLowerCase(Locale.ROOT).contains(filter)) keep.add(l);
+                    return String.join("\n", keep.subList(Math.max(0, keep.size() - 60), keep.size()));
+                } catch (Exception e) {
+                    return "Journal du serveur illisible : " + e.getMessage();
+                }
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------- the agent's eyes
+
+    /**
+     * « voir » (asked by the organiser's game, which then takes the pictures): what to draw. {@code cible} =
+     * camera (nom = la-pomme:4 / 4 with {@code manche}), trajet, intro (manche), plan (manche + plan); optional
+     * {@code secondes} (« 0 2 4 », camera / travelling), {@code images} (per shot / along a travelling),
+     * {@code effet} and {@code focus} (to try on a camera without changing anything), {@code video} (intro: 8
+     * pictures per second, made into an MP4).
+     */
+    static String renderPlan(MinecraftServer server, JsonObject a) {
+        String cible = fr.lordfinn.craftmaster.camera.CameraList.fold(str(a, "cible"));
+        String nom = str(a, "nom"), manche = str(a, "manche");
+        int images = a.has("images") ? Math.max(1, Math.min(12, a.get("images").getAsInt())) : 0;
+        boolean video = a.has("video") && a.get("video").getAsBoolean();
+        JsonObject out = new JsonObject();
+        JsonArray frames = new JsonArray();
+        JsonArray notes = new JsonArray();
+        String effect = fr.lordfinn.craftmaster.broadcast.BroadcastActions.effectId(str(a, "effet"));
+        String focusWords = str(a, "focus");
+        if (!focusWords.isBlank()) {
+            try {
+                var f = fr.lordfinn.craftmaster.fx.FocusPull.parseWords(focusWords, null, 0, null);
+                boolean dof = false;
+                for (String id : fr.lordfinn.craftmaster.fx.ScreenFx.parseLenient(effect)) if (fr.lordfinn.craftmaster.fx.FocusPull.DOF_EFFECTS.contains(id)) dof = true;
+                if (!dof) effect = effect.isEmpty() ? "mise_au_point" : effect + "+mise_au_point";
+                effect = fr.lordfinn.craftmaster.fx.FocusPull.attach(effect, f);
+            } catch (IllegalArgumentException e) {
+                return "Focus : " + e.getMessage();
+            }
+        }
+        List<Double> seconds = new ArrayList<>();
+        for (String x : str(a, "secondes").replace(',', ' ').trim().split("\\s+"))
+            if (!x.isBlank()) try { seconds.add(Math.max(0, Double.parseDouble(x))); } catch (NumberFormatException ignored) { }
+        switch (cible) {
+            case "camera", "cam", "plan_camera" -> {
+                CameraSpot c = fr.lordfinn.craftmaster.camera.Lieux.resolve(server, nom, manche.isBlank() ? null : manche);
+                if (c == null) return "Caméra « " + nom + " » introuvable" + (manche.isBlank() ? " (donne manche, ou la clé complète la-pomme:4)." : " dans " + manche + ".");
+                if (seconds.isEmpty()) seconds = c.motion().equals("fixe") || c.motion().isEmpty() ? (effect.contains("|") || effect.contains("mise_au_point") ? List.of(0.2, 1.0, 2.0) : List.of(0.0)) : List.of(0.0, 2.0, 4.0);
+                for (double t : seconds) frames.add(frame("caméra " + c.key() + (c.name() == null || c.name().isEmpty() ? "" : " « " + c.name() + " »")
+                        + (effect.isEmpty() ? "" : " · " + fr.lordfinn.craftmaster.fx.FocusPull.effectsOf(effect)) + " · " + fmt(t) + " s", c.key(), "", t, effect));
+                out.addProperty("titre", "Caméra " + c.key());
+                notes.add("caméra " + c.key() + " : " + c.world() + " " + num(c.x()) + " " + num(c.y()) + " " + num(c.z()) + ", yaw " + Math.round(c.yaw())
+                        + ", pitch " + Math.round(c.pitch()) + ", champ " + (c.fov() <= 0 ? "joueur" : Math.round(c.fov())) + ", mouvement " + c.motion());
+            }
+            case "trajet", "travelling" -> {
+                CameraPath p = CameraPaths.get(nom);
+                if (p == null) return "Travelling « " + nom + " » inconnu : " + String.join(", ", CameraPaths.byName().keySet());
+                double d = Math.max(0.1, p.duration());
+                if (seconds.isEmpty()) {
+                    int n = images > 0 ? images : 6;
+                    for (int k = 0; k < n; k++) seconds.add(n == 1 ? d / 2 : d * k / (n - 1));
+                }
+                for (double t : seconds) frames.add(frame("trajet " + p.name() + " · " + fmt(t) + " / " + fmt(d) + " s", "", p.name(), t, effect));
+                out.addProperty("titre", "Travelling " + p.name());
+            }
+            case "intro", "plan" -> {
+                var m = fr.lordfinn.craftmaster.camera.Lieux.manche(manche.isBlank() ? nom : manche);
+                if (m == null) return "Manche « " + (manche.isBlank() ? nom : manche) + " » inconnue : " + manches();
+                int only = cible.equals("plan") ? (a.has("plan") ? a.get("plan").getAsInt() : 1) : 0;
+                List<String> problems = new ArrayList<>();
+                var list = fr.lordfinn.craftmaster.broadcast.MancheIntros.previews(server, m.id, images > 0 ? images : only > 0 ? 3 : 1, only,
+                        video ? 8 : 0, problems);
+                for (var pv : list) frames.add(frame(pv.label(), pv.camera(), pv.path(), pv.t(), pv.effect()));
+                problems.forEach(notes::add);
+                out.addProperty("titre", "Intro de « " + m.name + " »" + (only > 0 ? ", plan " + only : "") + (video ? " (vidéo)" : ""));
+                if (video) {
+                    out.addProperty("video", true);
+                    out.addProperty("ips", 8);
+                }
+                if (m.intro.shots.isEmpty()) notes.add("l'intro n'a aucun plan");
+            }
+            default -> {
+                return "cible : camera (nom, manche), trajet (nom), intro (manche) ou plan (manche, plan).";
+            }
+        }
+        if (frames.size() > 160) return "Trop d'images (" + frames.size() + ") : moins d'images par plan.";
+        out.add("images", frames);
+        out.add("notes", notes);
+        return out.toString();
+    }
+
+    private static JsonObject frame(String label, String camera, String path, double t, String effect) {
+        JsonObject f = new JsonObject();
+        f.addProperty("legende", label);
+        f.addProperty("camera", camera);
+        f.addProperty("trajet", path);
+        f.addProperty("t", t);
+        f.addProperty("effet", effect);
+        f.addProperty("depuis", t);
+        return f;
+    }
+
+    private static String fmt(double t) {
+        return String.format(Locale.ROOT, "%.1f", t).replace('.', ',');
     }
 
     /** No server address ever leaves through the agent (LordFinn streams his screen). */

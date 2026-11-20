@@ -12,9 +12,13 @@ Windows machine where the service listens.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import vision  # noqa: E402  (the pictures of « voir »: same folder)
 
 # Run as a script: no package import, the tool list comes from the service (GET /agent/tools)
 PROTOCOL = "2025-06-18"
@@ -65,11 +69,12 @@ def main() -> None:
         elif method == "tools/call":
             p = msg.get("params") or {}
             try:
-                r = _http(base + "/agent/tool", {"job": job, "tool": p.get("name"), "args": p.get("arguments") or {}}, 120)
+                r = _http(base + "/agent/tool", {"job": job, "tool": p.get("name"), "args": p.get("arguments") or {}}, 330)
                 text, err = r.get("output", ""), not r.get("ok", False)
             except (urllib.error.URLError, OSError, ValueError) as e:
                 text, err = f"Service de régie injoignable : {e}", True
-            send({"jsonrpc": "2.0", "id": mid, "result": {"content": [{"type": "text", "text": text}], "isError": err}})
+            content = None if err else vision.blocks(text, "mcp")
+            send({"jsonrpc": "2.0", "id": mid, "result": {"content": content or [{"type": "text", "text": text}], "isError": err}})
         elif method == "ping":
             send({"jsonrpc": "2.0", "id": mid, "result": {}})
         else:

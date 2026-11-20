@@ -79,6 +79,16 @@ public final class RegieAgent {
                     ask(StringArgumentType.getString(c, "demande"));
                     return 1;
                 }))));
+        // The pictures the agent looked at ([aperçu] in the chat)
+        ClientCommandRegistrationCallback.EVENT.register((d, ctx) -> d.register(ClientCommands.literal("iavue")
+                .executes(c -> {
+                    AgentVision.open(AgentVision.views().size());
+                    return 1;
+                })
+                .then(ClientCommands.argument("n", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1)).executes(c -> {
+                    AgentVision.open(com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "n"));
+                    return 1;
+                }))));
     }
 
     /** {@code /ia …}: starts the agent on a typed request. */
@@ -127,10 +137,12 @@ public final class RegieAgent {
             } else unreachableSince = 0;
             for (RegieService.AgentCall c : p.calls()) {
                 int id = IDS.incrementAndGet();
-                PENDING.put(id, new Pending(job, c.cid(), request, null));
+                // « voir »: the server turns it into pictures to take (_rendu), this game takes them (AgentVision)
+                boolean vision = VISION_TOOL.equals(c.tool());
+                PENDING.put(id, new Pending(job, c.cid(), request, vision ? VISION : null));
                 mc.execute(() -> {
                     if (ClientPlayNetworking.canSend(RegiePayloads.AgentCall.TYPE))
-                        ClientPlayNetworking.send(new RegiePayloads.AgentCall(id, job, c.tool(), c.argsJson()));
+                        ClientPlayNetworking.send(new RegiePayloads.AgentCall(id, job, vision ? "_rendu" : c.tool(), c.argsJson()));
                     else {
                         PENDING.remove(id);
                         Thread.ofPlatform().daemon().start(() -> service.agentResult(job, c.cid(), false, "Le serveur n'a pas le mod CraftMaster."));
@@ -183,8 +195,26 @@ public final class RegieAgent {
             return;
         }
         RegieService service = new RegieService(URL);
+        if (VISION.equals(p.reply()) && r.ok()) {
+            JsonObject plan;
+            try {
+                plan = new Gson().fromJson(r.output(), JsonObject.class);
+            } catch (RuntimeException e) {
+                plan = null;
+            }
+            if (plan == null) {
+                Thread.ofPlatform().daemon().start(() -> service.agentResult(p.job(), p.cid(), true, r.output()));
+                return;
+            }
+            AgentVision.take(plan, out -> Thread.ofPlatform().daemon().name("CraftMaster-regie-agent")
+                    .start(() -> service.agentResult(p.job(), p.cid(), !out.startsWith("Erreur"), out)));
+            return;
+        }
         Thread.ofPlatform().daemon().name("CraftMaster-regie-agent").start(() -> service.agentResult(p.job(), p.cid(), r.ok(), r.output()));
     }
+
+    /** The agent's eyes: the tool name, and the mark of its pending calls. */
+    static final String VISION_TOOL = "voir", VISION = "@voir@";
 
     private static void showEnd(String job, String reply, JsonObject summary) {
         MutableComponent line = prefix().append(Component.literal(reply.isBlank() ? "C'est fait." : reply).withStyle(ChatFormatting.WHITE));

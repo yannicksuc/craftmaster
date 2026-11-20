@@ -146,6 +146,16 @@ public final class CommandTree {
         for (String r : List.of("craftMasterRenameTask", "cfrn")) GONE.put(r.toLowerCase(Locale.ROOT), "/cm manche renommer <manche> <nom>");
     }
 
+    /** An old tree's English word in French ({@code name} → {@code nom}), or the word itself. */
+    public static String french(String word) {
+        return WORDS.getOrDefault(word, word);
+    }
+
+    /** Where an old root ({@code cam}, {@code cfsp}…) stands in the new tree ("camera", "projecteur"…), or null. */
+    public static String legacyPath(String oldRoot) {
+        return oldRoot == null ? null : LEGACY.get(oldRoot.toLowerCase(Locale.ROOT));
+    }
+
     private static LiteralCommandNode<CommandSourceStack> root;
 
     /** The new tree, once registered (null before). */
