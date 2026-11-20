@@ -65,6 +65,8 @@ RULES = {
     "sugar_cane":    ({"can_place_on": {"blocks": ["dirt", "grass_block", "coarse_dirt", "rooted_dirt", "moss_block", "mud"]}},
                       ["Accepte la poudre d'os", "Se plante sur la terre, au bord de l'eau"]),
     "cow_spawn_egg": ({"can_place_on": [{}]}, []),
+    # Le four qu'on fabrique avec les pierres cachées (pour cuire le sable : fioles, miel, sucre du gâteau)
+    "furnace":       ({"can_place_on": {"blocks": ["calcite", "polished_diorite"]}}, ["Se pose sur : calcite, diorite polie"]),
 }
 HIDE = {"hidden_components": ["minecraft:can_break", "minecraft:can_place_on"]}
 def rule_components(item):
@@ -94,6 +96,12 @@ def with_rules(item_tag):
 be = {}
 for e in sch['Blocks']['BlockEntities']:
     if tuple(int(x) for x in e['Pos']) not in OVERRIDE: be[tuple(int(x) for x in e['Pos'])] = e['Data']
+# Objets ajoutés au schéma de LordFinn, cachés dans des tonneaux (20/11/2026) : le sucre du gâteau vient du miel
+# (fioles de verre ; le sable se cuit dans un four fait de pierres taillées, les hauts-fourneaux ne cuisent pas le sable)
+CACHETTES = {
+    (29, 9, 13): [("sand", 1)], (33, 9, 13): [("sand", 1)], (39, 9, 13): [("sand", 1)],
+    (44, 3, 31): [("cobblestone", 3)], (45, 3, 31): [("cobblestone", 3)], (43, 4, 16): [("cobblestone", 2)],
+}
 DROP = {'id', 'x', 'y', 'z', 'keepPacked', 'PublicBukkitValues', 'Bukkit.MaxEntities'}
 def be_snbt(pos):
     d = be.get(pos)
@@ -101,6 +109,13 @@ def be_snbt(pos):
     d = nbtlib.Compound({k: v for k, v in d.items() if k not in DROP and not k.startswith('Bukkit') and not k.startswith('Paper')})
     if 'Items' in d:
         for it in d['Items']: with_rules(it)
+    if pos in CACHETTES:     # 3 sables (verre → fioles → miel → sucre) et 8 pierres (le four), cachés parmi le reste
+        used = {int(it['Slot']) for it in d.get('Items', [])}
+        items = d.setdefault('Items', nbtlib.List[nbtlib.Compound]())
+        for iid, n in CACHETTES[pos]:
+            slot = next(k for k in range(26, -1, -1) if k not in used)
+            used.add(slot)
+            items.append(nbtlib.Compound({'Slot': nbtlib.Byte(slot), 'id': nbtlib.String('minecraft:' + iid), 'count': nbtlib.Int(n)}))
     if pos == (28, 4, 27):   # une seule canne à sucre
         for it in d['Items']:
             if str(it['id']) == 'minecraft:sugar_cane': it['count'] = nbtlib.Int(1)
@@ -475,6 +490,17 @@ fn("canne/grandir", ["setblock ~ ~ ~ sugar_cane strict",
                      "particle minecraft:happy_villager ~0.5 ~0.5 ~0.5 0.3 0.4 0.3 0 12",
                      "playsound minecraft:item.bone_meal.use block @a ~0.5 ~0.5 ~0.5 1 1",
                      "execute unless entity @s[gamemode=creative] run item modify entity @s weapon.mainhand pomme:moins_un"])
+
+# ------------------------------------------------------------ cachettes ajoutées dans des salles déjà construites
+# (à lancer positionné au coin d'une salle : function pomme:salle/cachettes ; le tag p_cachettes évite de doubler)
+cach = ["execute if entity @e[type=marker,tag=pomme_salle,tag=p_cachettes,distance=..1] run return 0"]
+for (x, y, z), its in CACHETTES.items():
+    for iid, n in its:
+        F_JSON["data/pomme/loot_table/cachette/%s_%d.json" % (iid, n)] = {"pools": [{"rolls": 1, "entries": [
+            {"type": "minecraft:item", "name": "minecraft:" + iid, "functions": [{"function": "minecraft:set_count", "count": n}]}]}]}
+        cach.append("loot insert ~%d ~%d ~%d loot pomme:cachette/%s_%d" % (x, y, z, iid, n))
+cach.append("tag @e[type=marker,tag=pomme_salle,distance=..1,limit=1] add p_cachettes")
+fn("salle/cachettes", cach)
 
 # ------------------------------------------------------------ vérification bloc à bloc (0 attendu)
 ver = ["scoreboard players set #diff pomme_t 0"]

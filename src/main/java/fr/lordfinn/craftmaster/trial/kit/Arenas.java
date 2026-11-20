@@ -214,9 +214,14 @@ public final class Arenas {
             if (only != null && only.stream().noneMatch(w -> w.equalsIgnoreCase(c.getKey()))) continue;
             int[] off = c.getValue();
             for (Entity e : level.getEntities((Entity) null, a.box(off), e -> !(e instanceof Player))) e.discard();
+            // Markers on the floor (no size) escape the box test: with their progress tags, a reset room would stay done
+            net.minecraft.world.phys.AABB box = a.box(off);
+            for (Entity e : level.getEntities(net.minecraft.world.entity.EntityTypes.MARKER, box.inflate(0.5), e -> e.getX() >= box.minX && e.getX() <= box.maxX
+                    && e.getY() >= box.minY && e.getY() <= box.maxY && e.getZ() >= box.minZ && e.getZ() <= box.maxZ)) e.discard();
             BlockPos at = a.min().offset(off[0], off[1], off[2]);
             // No updates at all, like a WorldEdit paste: crops on stone, floating plants, unconnected panes stay as built
             t.placeInWorld(level, at, at, new StructurePlaceSettings().setKnownShape(true), level.getRandom(), NO_UPDATE);
+            copyMarkers(level, a, off);
             if (a.walls) walls(level, a, off);
             n++;
         }
@@ -227,6 +232,26 @@ public final class Arenas {
         GroundEnd.forget();
         Finish.reset();
         return n;
+    }
+
+    /**
+     * The reference's markers in the copy too (the structure copy leaves them out): a room's datapack runs its
+     * mechanics from them (La pomme: {@code pomme_salle}). A tag ending in {@code _ref} marks the reference only.
+     */
+    private static void copyMarkers(ServerLevel level, Arena a, int[] off) {
+        // A marker has no size: one lying on the room's floor (y = y0) is outside a box test, hence the margin
+        net.minecraft.world.phys.AABB ref = a.box(null);
+        for (Entity m : level.getEntities(net.minecraft.world.entity.EntityTypes.MARKER, ref.inflate(0.5), e -> e.getX() >= ref.minX && e.getX() <= ref.maxX
+                && e.getY() >= ref.minY && e.getY() <= ref.maxY && e.getZ() >= ref.minZ && e.getZ() <= ref.maxZ)) {
+            double x = m.getX() + off[0], y = m.getY() + off[1], z = m.getZ() + off[2];
+            net.minecraft.world.phys.AABB here = new net.minecraft.world.phys.AABB(x - 0.5, y - 0.5, z - 0.5, x + 0.5, y + 0.5, z + 0.5);
+            if (!level.getEntities(net.minecraft.world.entity.EntityTypes.MARKER, here, e -> e.entityTags().equals(m.entityTags())).isEmpty()) continue;
+            Entity copy = net.minecraft.world.entity.EntityTypes.MARKER.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+            if (copy == null) continue;
+            copy.snapTo(x, y, z, m.getYRot(), m.getXRot());
+            for (String tag : m.entityTags()) if (!tag.endsWith("_ref")) copy.addTag(tag);
+            level.addFreshEntity(copy);
+        }
     }
 
     /** Barrier blocks one block outside the copy (four sides and the ceiling), only where there is air. */

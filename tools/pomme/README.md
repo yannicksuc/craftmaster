@@ -19,6 +19,7 @@ Commandes :
   La réponse est lue en syllabes co / cot / ri : séparateurs libres, majuscules, accents et ponctuation ignorés, mais il faut les mêmes syllabes, dans le même ordre et en même nombre ;
 - `function pomme:construire/reference` colle la référence depuis le schéma : `setblock`/`fill … strict`, sans aucune mise à jour, puis les entités ;
 - `function pomme:tout_refaire` refait les 4 salles depuis la référence : `clone … strict` puis les entités ;
+- `execute in minecraft:pomme as @e[type=marker,tag=pomme_salle] at @s align xyz run function pomme:salle/cachettes` ajoute, une fois par salle, les objets cachés ajoutés au schéma après sa construction (3 sables, 8 pierres taillées : `CACHETTES` de gen.py) ;
 - `execute in minecraft:pomme positioned <x>.0 60 0.0 run function pomme:verif` puis `scoreboard players get #diff pomme_t` compte les blocs différents du schéma (0 attendu).
 
 Ne pas utiliser `/cm arene reset pomme` avec un mod plus ancien que le correctif « copie sans mise à jour ».
