@@ -31,6 +31,7 @@ douceur (environ une demi-seconde) : un fish-eye se courbe petit à petit, le ma
 | `look_intro` | Look intro d'épreuve (« vieux reportage ») : deux teintes (ombres brun sombre tirant sur le bleu-vert, hautes lumières crème), couleurs un peu éteintes, grain fin, vignette et bords flous. Plus léger que `vieux_film` |
 | `macro` | Faible profondeur de champ : net sur ce qui est **au centre de l'image**, tout le reste très flou (flou en disques, comme un objectif macro). Se règle tout seul sur la distance du sujet au centre |
 | `mise_au_point` | Bascule de mise au point : le plan commence net sur le fond (le sujet au centre est flou), puis après 0,4 s la mise au point glisse vers le sujet en 1,2 s et y reste. Rejouée à chaque nouveau plan |
+| `mise_au_point_inverse` | La bascule à l'envers : le plan commence net sur le sujet au centre (le fond est flou), puis après 0,4 s la mise au point part vers le fond en 1,2 s (« focus sur la fleur puis la salle » : la fleur au centre de la caméra). Alias : bascule inverse, focus inverse, du sujet au fond |
 | `stop_motion` | Stop motion : l'image ne se renouvelle que 7 fois par seconde, chaque image un peu décalée et plus ou moins exposée, comme une animation faite à la main |
 | `timelapse` | Timelapse : le temps du monde file (une journée en 20 s) : ciel, soleil, lune, lumière du jour et nuages. Sur la diffusion seulement, le temps du serveur ne bouge pas ; tout revient à l'heure dès que l'effet s'arrête |
 
