@@ -108,7 +108,28 @@ public class MainMenuScreen extends Screen {
             b.button("Classement", "Le classement de la saison (touche K)", () -> MenuClient.command("classement"));
             b.button("Ma tâche", "La tâche du moment (touche J)", () -> MenuClient.command("tache"));
         });
+        spectate(r);
         addRenderableWidget(UiButton.of(left + w - 72, top + h - 26, 64, 18, Component.literal("Fermer"), this::onClose));
+    }
+
+    /** Watching once done (or not a contestant): the broadcast, a contestant still playing, leave. */
+    private void spectate(Rows r) {
+        JsonObject sp = obj(s(), "spectators");
+        if (sp == null) return;
+        String watching = str(sp, "watching");
+        boolean may = bool(sp, "eligible") || (watching != null && !watching.isEmpty());
+        if (!may) return;
+        r.row(Component.literal("Regarder"), b -> {
+            b.button("📺 L'émission", "La retransmission comme elle passe à l'antenne, commentée en vocal avec l'animateur",
+                    () -> MenuClient.command("spectateurs regarder emission"));
+            JsonArray players = arr(sp, "players");
+            if (players != null) for (JsonElement e : players) {
+                String n = e.getAsString();
+                b.button("👁 " + n, "Par les yeux de " + n + " (il ne te voit pas, ne t'entend pas)", () -> MenuClient.command("spectateurs regarder " + n));
+            }
+            if (watching != null && !watching.isEmpty())
+                b.button("✖ Quitter", "Revenir à ta place et à ton mode de jeu", () -> MenuClient.command("spectateurs quitter"));
+        });
     }
 
     // ---------------------------------------------------------------- pages
@@ -184,6 +205,31 @@ public class MainMenuScreen extends Screen {
                 b.button("Replay", "Revoir la zone de la manche qui vient de finir (pour toi seul)", () -> MenuClient.command("replay revoir zone"));
                 b.shift("Plateau", "Maj+clic : tout le monde à sa place d'avant l'épreuve, mode de jeu remis, copies nettoyées",
                         () -> MenuClient.command("epreuve plateau"));
+            });
+        }
+        // Spectators (players done, or not contestants) and the master's voice
+        JsonObject sp = obj(s(), "spectators");
+        if (sp != null) {
+            String trial = str(sp, "trial");
+            r.row(Component.literal("Spectateurs"), b -> {
+                b.toggle("Autorisés", "Les candidats qui ont fini et les joueurs qui ne jouent pas peuvent regarder un candidat ou l'émission"
+                        + " (pour toutes les épreuves)", bool(sp, "enabled"), v -> MenuClient.command("spectateurs autoriser " + (v ? "on" : "off")));
+                if (trial != null && !trial.isEmpty())
+                    b.toggle("Cette épreuve", "Autorisés pour l'épreuve en cours (« " + trial + " ») ; couper renvoie les spectateurs à leur place",
+                            bool(sp, "trialAllowed"), v -> MenuClient.command("spectateurs autoriser " + (v ? "on" : "off") + " " + q(trial)));
+                b.button("Qui regarde", "Les spectateurs et ce qu'ils regardent", () -> MenuClient.command("spectateurs liste"));
+            });
+            String voice = str(sp, "voice");
+            r.note(str(sp, "voiceStatus") + "   (touche F6 : mode suivant)");
+            r.row(Component.literal("Ton vocal"), b -> {
+                b.button(("off".equals(voice) ? "● " : "") + "Off", "Ton vocal coupé : chacun son vocal habituel", () -> MenuClient.command("vocal mode off"));
+                b.button(("commentaire".equals(voice) ? "● " : "") + "Commentaire " + (bool(sp, "commentOpen") ? "ouvert" : "fermé"),
+                        "Avec les spectateurs ; clic : ouvert ↔ fermé. Les candidats qui jouent ne l'entendent jamais",
+                        () -> MenuClient.command("vocal mode commentaire basculer"));
+                b.button(("tous".equals(voice) ? "● " : "") + "Tout le monde", "Annonce : tous les joueurs avec toi", () -> MenuClient.command("vocal mode tous"));
+                b.button("Candidats", "Annonce aux candidats seulement", () -> MenuClient.command("vocal mode tous candidats"));
+                b.button(("joueur".equals(voice) ? "● " : "") + "Joueur…", "Un candidat ou une équipe seul avec toi (celui que tu regardes si tu ne donnes rien)",
+                        () -> MenuClient.command("vocal mode joueur"));
             });
         }
         r.row(Component.literal("Outils"), b -> {

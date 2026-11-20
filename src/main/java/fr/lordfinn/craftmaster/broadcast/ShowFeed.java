@@ -25,18 +25,26 @@ public final class ShowFeed {
     private static boolean manual;
     /** Players may move and interact while the feed is forced. */
     private static boolean allowMove;
-    private static String sent = "off";
+    /** What each player was sent last (a spectator of the broadcast has the feed on screen, the others the show's state). */
+    private static final java.util.Map<java.util.UUID, String> SENT = new java.util.HashMap<>();
 
     public static void register() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             if (server.getTickCount() % 5 != 0) return;
             String now = state();
-            if (now.equals(sent)) return;
-            sent = now;
-            for (ServerPlayer p : server.getPlayerList().getPlayers()) send(p, now);
+            for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+                String mine = fr.lordfinn.craftmaster.show.Spectators.watchingFeed(p) ? "freeze" : now;
+                if (mine.equals(SENT.get(p.getUUID()))) continue;
+                SENT.put(p.getUUID(), mine);
+                send(p, mine);
+            }
         });
         // A player joining during a forced moment gets it too
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> server.execute(() -> send(handler.getPlayer(), state())));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> server.execute(() -> {
+            SENT.put(handler.getPlayer().getUUID(), state());
+            send(handler.getPlayer(), state());
+        }));
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> SENT.remove(handler.getPlayer().getUUID()));
     }
 
     /** off, freeze (forced, standing still) or move (forced, free to move). */
@@ -75,6 +83,6 @@ public final class ShowFeed {
 
     static void reset(MinecraftServer server) {
         manual = false;
-        sent = "off";
+        SENT.clear();
     }
 }

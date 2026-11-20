@@ -64,6 +64,10 @@ public final class Actions {
 
     /** A named garage door opens (true), closes (false) or switches (null): garage/GarageDoors. */
     public record GarageMoved(String name, Boolean open) implements Effect {}
+    /** Spectators allowed or forbidden, everywhere ({@code manche} null) or for one trial. */
+    public record SpectatorsSet(boolean enabled, String manche) implements Effect {}
+    /** The game master's voice mode ({@code by}: who talks, null = the master already set or the first organiser). */
+    public record VoiceModeSet(String mode, String target, String by) implements Effect {}
 
     public record ScenePlaced(String name) implements Effect {}
 
@@ -165,7 +169,7 @@ public final class Actions {
             // ... and the round intros, which are round data (undoable), and playing one
             "intro.set", "intro.shot.add", "intro.shot.set", "intro.shot.remove", "intro.clear", "intro.play", "intro.auto", "intro.fit", "intro.shot.move",
             // Garage doors (garage/): no data change
-            "garage.open", "garage.close", "garage.toggle");
+            "garage.open", "garage.close", "garage.toggle", "spectators.set", "voice.mode");
 
     /**
      * Applies the actions. {@code undo} is only accepted as the first action (it is done, then the rest is applied
@@ -386,6 +390,18 @@ public final class Actions {
                 case "garage.open" -> garage(a, true);
                 case "garage.close" -> garage(a, false);
                 case "garage.toggle" -> garage(a, null);
+                case "spectators.set" -> {
+                    Boolean on = bool(a, "enabled");
+                    if (on == null) throw new Invalid("« enabled » : true pour autoriser les spectateurs, false pour les interdire.");
+                    String m = str(a, "manche");
+                    effects.add(new SpectatorsSet(on, m == null || m.isBlank() ? null : m.trim()));
+                }
+                case "voice.mode" -> {
+                    String mode = str(a, "mode");
+                    if (mode == null || (!"suivant".equalsIgnoreCase(mode.trim()) && fr.lordfinn.craftmaster.show.MasterVoice.parse(mode) == null))
+                        throw new Invalid("mode « " + mode + " » : off, commentaire, tous, joueur ou suivant.");
+                    effects.add(new VoiceModeSet(mode.trim().toLowerCase(java.util.Locale.ROOT), str(a, "target"), str(a, "by")));
+                }
                 case "scene.set" -> sceneSet(a);
                 case "say" -> line(required(a, "text"));
                 // ---- chantier H: judging

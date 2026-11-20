@@ -100,6 +100,13 @@ son chat.
   Une ref de caméra dans `cam …` : `la-pomme:6` (lieu:n), pas un nombre seul.
 - Transitions : coupe, fondu, enchaine, miroir, flash, surimpression.
 
+## Spectateurs et vocal de LordFinn
+- Pendant une épreuve, les candidats qui ont fini et les joueurs qui ne jouent pas peuvent regarder la caméra d'un
+  candidat encore en jeu ou la retransmission (`spectateurs` : autoriser on|off [manche], liste) ; autorisé par défaut.
+- Le vocal de LordFinn a des modes exclusifs (`vocal mode off|commentaire [ouvert|ferme|basculer]|tous [candidats|
+  spectateurs]|joueur <pseudo|equipe:nom>|suivant`) : commentaire = avec les spectateurs (les candidats qui jouent ne
+  l'entendent jamais), tous = annonce, joueur = un candidat seul avec lui. `vocal` seul : qui est dans quel groupe.
+
 ## Comprendre une épreuve (« comment on finit la pomme ? », « qu'est-ce qui manque pour que ce soit faisable ? »)
 1. lire zone <salle> et lire mecaniques <pack> (et la tâche) : rien d'autre ne compte que ce qui y est écrit.
 2. Construis le GRAPHE DE SOLUTION, de l'arrivée au but (ex. la pomme d'or à manger) : chaque étape = ce qu'il faut

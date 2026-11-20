@@ -95,6 +95,8 @@ public final class Finish {
         for (ServerPlayer p : server.getPlayerList().getPlayers())
             if (p != player && Judging.toldPrivately(p, name)) p.sendSystemMessage(line);
         TrialLog.add(server, name + " " + what + (time.isEmpty() ? "" : " en " + time));
+        // Done: he may watch the others
+        fr.lordfinn.craftmaster.show.Spectators.onFinished(player);
         return true;
     }
 

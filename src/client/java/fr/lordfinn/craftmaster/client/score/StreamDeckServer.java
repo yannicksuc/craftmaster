@@ -283,7 +283,7 @@ public final class StreamDeckServer {
                     fr.lordfinn.craftmaster.client.menu.MenuClient.request();
                     JsonObject st = fr.lordfinn.craftmaster.client.menu.MenuClient.state();
                     JsonObject o = ok();
-                    if (st != null) for (String k : new String[]{"autoDirection", "debug", "inventoryCam", "onAir", "frozen", "waiting", "currentMancheInfo", "timer"})
+                    if (st != null) for (String k : new String[]{"autoDirection", "debug", "inventoryCam", "onAir", "frozen", "waiting", "currentMancheInfo", "timer", "spectators"})
                         if (st.has(k)) o.add(k, st.get(k));
                     return o;
                 });
@@ -343,6 +343,33 @@ public final class StreamDeckServer {
                 if (cam.isEmpty()) return error("camera=… needed");
                 if (fr.lordfinn.craftmaster.client.replay.ReplayClient.active()) return replayAction(action("camera.cut", "camera", cam));
                 return send(action("camera.cut", "camera", cam.matches("\\d+") ? (Object) Integer.parseInt(cam) : cam));
+            }
+            // Spectators (players done or not contestants watching a contestant or the broadcast): ?enabled=true|false, none = toggle
+            case "/spectateurs" -> {
+                String e = query(uri, "enabled");
+                boolean on;
+                if (e.isEmpty()) {
+                    JsonObject st = fr.lordfinn.craftmaster.client.menu.MenuClient.state();
+                    boolean now = st == null || !st.has("spectators") || st.getAsJsonObject("spectators").get("enabled").getAsBoolean();
+                    on = !now;
+                } else on = !"false".equals(e);
+                return send(action("spectators.set", "enabled", on));
+            }
+            // The master's voice: /vocal/off, /vocal/commentaire (open <-> closed), /vocal/tous[?qui=candidats], /vocal/joueur[?nom=Ensuri], /vocal/suivant
+            case "/vocal/off" -> {
+                return send(action("voice.mode", "mode", "off"));
+            }
+            case "/vocal/commentaire" -> {
+                return send(action("voice.mode", "mode", "commentaire", "target", "basculer"));
+            }
+            case "/vocal/tous" -> {
+                return send(query(uri, "qui").isEmpty() ? action("voice.mode", "mode", "tous") : action("voice.mode", "mode", "tous", "target", query(uri, "qui")));
+            }
+            case "/vocal/joueur" -> {
+                return send(query(uri, "nom").isEmpty() ? action("voice.mode", "mode", "joueur") : action("voice.mode", "mode", "joueur", "target", query(uri, "nom")));
+            }
+            case "/vocal/suivant" -> {
+                return send(action("voice.mode", "mode", "suivant"));
             }
             case "/camera/auto" -> {
                 JsonObject a = action("camera.auto", "enabled", !"false".equals(query(uri, "enabled")));

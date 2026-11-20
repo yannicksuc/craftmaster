@@ -87,6 +87,19 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
     "garage.open": ("Ouvre une porte de garage (« ouvre la porte du garage »).",
                     [f("name", STR, doc="Nom de la porte (du contexte) ; absent = la seule porte.")]),
     "garage.close": ("Ferme une porte de garage.", [f("name", STR, doc="Nom de la porte (du contexte) ; absent = la seule porte.")]),
+    "spectators.set": ("Autorise ou interdit les spectateurs : les candidats qui ont fini et les joueurs qui ne jouent pas "
+                       "peuvent regarder la caméra d'un candidat ou la retransmission (« interdis les spectateurs pour la pomme »). "
+                       "Interdire pendant l'épreuve renvoie les spectateurs à leur place.",
+                       [f("enabled", BOOL, True, "true = autorisés, false = interdits."),
+                        f("manche", MANCHE, doc="Pour cette épreuve seulement (id de manche). Absent = partout.")]),
+    "voice.mode": ("Le vocal de LordFinn, en modes exclusifs : off (chacun son vocal habituel), commentaire (avec les "
+                   "spectateurs, ouvert ou fermé ; les candidats qui jouent ne l'entendent jamais), tous (annonce à tout le "
+                   "monde, ou aux candidats ou aux spectateurs seulement), joueur (un candidat ou une équipe seul avec lui ; "
+                   "celui qu'il regarde par défaut), suivant (le mode d'après). « Parle à Ensuri », « annonce à tout le monde », "
+                   "« ouvre le commentaire », « coupe mon vocal ».",
+                   [f("mode", STR, True, "off, commentaire, tous, joueur ou suivant."),
+                    f("target", STR, doc="commentaire : ouvert, ferme ou basculer ; tous : tous, candidats ou spectateurs ; "
+                                         "joueur : le pseudo, ou equipe:<nom> pour une équipe du tableau des scores.")]),
     "garage.toggle": ("Ouvre une porte de garage fermée, ferme une porte ouverte.",
                       [f("name", STR, doc="Nom de la porte (du contexte) ; absent = la seule porte.")]),
     "scene.set": ("Pose un décor enregistré à l'ancre de scène.", [f("name", STR, True, "Nom du décor (du contexte).")]),
@@ -347,6 +360,7 @@ NO_SCOPE |= {"camera.path", "camera.focus", "camera.lieu", "camera.mosaic", "cam
 NO_SCOPE |= {"camera.goto", "camera.stay", "camera.framing", "camera.avoid"}
 NO_SCOPE |= {"fx.set", "fx.clear"}
 NO_SCOPE |= {"replay.control", "replay.flag", "tele.show", "clip.start", "clip.stop"}
+NO_SCOPE |= {"spectators.set", "voice.mode"}
 SCOPE_FIELDS = [f("season", SCOPE, doc="Saison (id ou nom). Absent = saison active."),
                 f("partie", SCOPE, doc="Partie (id ou nom). Absent = partie active.")]
 

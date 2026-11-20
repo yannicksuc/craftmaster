@@ -91,6 +91,11 @@ public final class TrialRun {
     }
 
     private static State state = new State();
+
+    /** The trial running (round id) from its launch until « Revenir au plateau », or null. */
+    public static String trialManche() {
+        return state.manche;
+    }
     private static final Set<java.util.UUID> JOINED = new java.util.HashSet<>();
 
     private static Path file() {
@@ -446,6 +451,7 @@ public final class TrialRun {
                     int v = fr.lordfinn.craftmaster.compat.VoiceGroups.gather(server, pl -> fr.lordfinn.craftmaster.trial.Judging.contestant(pl) != null || Permissions.isAdmin(pl));
                     if (v >= 0) lines.add("Canal vocal commun ouvert (" + v + " joueur(s)).");
                 }
+            fr.lordfinn.craftmaster.show.Spectators.onTrialStarted(server);
             int given = autoEnvelopes(server, m.season(), m.mancheId(), null);
             if (given > 0) lines.add(given + " enveloppe(s) distribuée(s).");
         } catch (RuntimeException e) {
@@ -709,6 +715,9 @@ public final class TrialRun {
             return new ActionExecutor.Result(List.of("« " + running.name + " » est encore en cours : /cm epreuve terminer d'abord."), false);
         String mancheId = state.manche;
         if (mancheId == null && state.back.isEmpty()) return new ActionExecutor.Result(List.of("Personne à ramener : aucune épreuve terminée."), false);
+        // The spectators back to their place first (the contestants among them then go back to the set)
+        int watching = fr.lordfinn.craftmaster.show.Spectators.stopAll(server);
+        if (watching > 0) lines.add("👁 " + watching + " spectateur(s) revenu(s) à leur place.");
         List<Arena> arenas = arenas(mancheId);
         int moved = 0;
         for (Map.Entry<String, Back> e : new ArrayList<>(state.back.entrySet())) {

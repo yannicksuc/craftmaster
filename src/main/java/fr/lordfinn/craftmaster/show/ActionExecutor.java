@@ -169,6 +169,16 @@ public final class ActionExecutor {
                 String error = StageControl.moveCurtain(server, c.name(), c.open());
                 if (error != null) lines.add("⚠ " + error);
             }
+            case Actions.SpectatorsSet s -> lines.add(Spectators.setAllowed(server, s.enabled(), s.manche()));
+            case Actions.VoiceModeSet v -> {
+                ServerPlayer by = v.by() == null ? null : server.getPlayerList().getPlayerByName(v.by());
+                try {
+                    lines.add(v.mode().equals("suivant") ? MasterVoice.next(server, by)
+                            : MasterVoice.set(server, by, MasterVoice.parse(v.mode()), v.target()));
+                } catch (IllegalArgumentException e) {
+                    lines.add("⚠ Vocal : " + e.getMessage());
+                }
+            }
             case Actions.GarageMoved g -> {
                 String r = fr.lordfinn.craftmaster.garage.GarageDoors.move(server, g.name(), g.open());
                 if (r.startsWith("⚠")) lines.add(r);

@@ -240,7 +240,9 @@ public final class BroadcastNetwork {
                 /** The task typed at the bottom of the broadcast picture (title = text, ticks = how long it stays). */
                 TASK_TYPE = "task_type",
                 /** The show's feed forced on the players (title = off, freeze or move): see {@link ShowFeed}. */
-                FEED = "feed";
+                FEED = "feed",
+                /** The game master's voice ({@code MasterVoice}): title = the line shown (empty = none), subtitle = host | player. */
+                VOICE = "voice";
 
         private Cues() {}
     }

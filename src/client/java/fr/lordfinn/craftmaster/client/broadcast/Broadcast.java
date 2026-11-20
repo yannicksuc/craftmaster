@@ -109,6 +109,8 @@ public final class Broadcast {
                 Blackout.start(payload);
             } else if (Cues.BLACKOUT_OPEN.equals(payload.kind())) {
                 Blackout.open(payload.ticks());
+            } else if (Cues.VOICE.equals(payload.kind())) {
+                VoiceHud.set(payload.title(), payload.subtitle());
             } else if (Cues.FEED.equals(payload.kind())) {
                 ShowFeedClient.force(payload.title());
             } else if (Cues.TASK_TYPE.equals(payload.kind())) {
@@ -136,6 +138,7 @@ public final class Broadcast {
         ClientTickEvents.START_CLIENT_TICK.register(Broadcast::tick);
         ClientCommandRegistrationCallback.EVENT.register((d, ctx) -> registerCommands(d));
         ShowFeedClient.init();
+        VoiceHud.init();
         InventoryCamClient.init();
         ThumbCapture.register();
         fr.lordfinn.craftmaster.client.regie.RegieThumbs.register();

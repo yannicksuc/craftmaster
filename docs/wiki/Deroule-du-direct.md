@@ -83,6 +83,44 @@ Le même choix arrive quand la manche finit autrement (`/cm manche fin`, la voix
 « Replay » (la zone) et « Plateau » (Maj+clic) ; Stream Deck, page Épreuves : « Revoir replay » et « Plateau ». La feuille de résultats et les scores ne bougent
 pas : publier reste la touche « Publier ».
 
+## Spectateurs
+
+Pendant une épreuve, **les candidats qui ont fini** (pomme mangée, chrono arrêté…) **et les joueurs connectés qui ne
+jouent pas** peuvent regarder, jusqu'à « Revenir au plateau ». Ça leur est proposé tout seul dans le chat (et dans le
+menu N, ligne « Regarder ») :
+
+- **📺 L'émission** : la retransmission comme elle passe à l'antenne (réalisation automatique, intros, F7 imposé),
+  commentée en vocal avec LordFinn (mode « commentaire », plus bas) ;
+- **👁 un candidat encore en jeu** : par ses yeux (la caméra spectateur de Minecraft) ; on change d'un clic ;
+- **✖ Quitter** : retour à sa place et à son mode de jeu.
+
+Garde-fous : un spectateur est en mode spectateur (invisible, aucune interaction, jamais à l'antenne), tenu sur sa
+caméra ; son vocal est dans un groupe isolé (aucun candidat qui joue ne l'entend) ; ce qu'il écrit dans le chat ne
+va qu'à ceux qui ne jouent pas. Il revient à sa place et à son mode s'il quitte, si les spectateurs sont coupés, s'il se
+déconnecte, et à « Revenir au plateau ». Les candidats encore en jeu ne peuvent pas regarder.
+
+Autorisé par défaut. `/cm spectateurs autoriser off` (partout) ou `… off <manche>` (une épreuve), même à chaud : les
+spectateurs reviennent à leur place. Menu N, onglet Épreuves, ligne « Spectateurs » (Autorisés, Cette épreuve, Qui
+regarde). `/cm spectateurs` seul : le menu des choix et qui regarde quoi. Stream Deck : `/spectateurs` (bascule) ou
+`/spectateurs?enabled=true|false`.
+
+## Le vocal de LordFinn
+
+Avec Simple Voice Chat, un seul système de groupes (le canal commun des étapes `vocal` / `vocalfin` compris). Le vocal
+de LordFinn a des **modes exclusifs** ; chacun revient tout seul dans son groupe d'avant au changement :
+
+| Mode | Qui l'entend | Commande | Stream Deck |
+|---|---|---|---|
+| Off | personne : chacun son vocal habituel (proximité, canal commun) | `/cm vocal mode off` (`/cm vocal fin`) | `/vocal/off` |
+| Commentaire | les spectateurs (ouvert : ils l'entendent et se parlent ; fermé : coupé) — jamais les candidats qui jouent | `/cm vocal mode commentaire [ouvert\|ferme\|basculer]` | `/vocal/commentaire` (bascule) |
+| Tout le monde | l'annonce : tous, ou les candidats, ou les spectateurs | `/cm vocal mode tous [candidats\|spectateurs]` (`/cm vocal annonce …`) | `/vocal/tous[?qui=candidats]` |
+| Joueur / équipe | un candidat, ou une équipe du tableau des scores, seul avec lui ; par défaut celui qu'il regarde | `/cm vocal mode joueur [pseudo\|equipe:nom]` (`/cm vocal parler …`) | `/vocal/joueur?nom=…` |
+
+**Touche F6** (réglable) : le mode suivant (off → commentaire → tous → joueur). Menu N, onglet Épreuves, ligne
+« Ton vocal ». En haut de l'écran de LordFinn : le mode et qui l'entend ; chez ceux à qui il parle : « 🎙 LordFinn te
+parle » (rien sur l'image de la diffusion). `/cm vocal` seul : qui est dans quel groupe. La régie IA connaît les
+spectateurs et les modes (« ouvre le commentaire », « parle à Ensuri », « interdis les spectateurs »).
+
 ## Candidats qui arrivent en retard
 Un candidat qui se connecte pendant la manche reçoit **son enveloppe** tout seul (pas de doublon : ni s'il en a une, ni
 s'il l'a déjà ouverte). Pour le mettre dans sa copie : `/cm arene placer <arène> <joueur>`.

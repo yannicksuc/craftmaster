@@ -779,7 +779,7 @@ public final class Director {
     }
 
     private static void keepBroadcastersNear(MinecraftServer server) {
-        if (broadcasters.isEmpty()) return;
+        if (broadcasters.isEmpty() && fr.lordfinn.craftmaster.show.Spectators.feedWatchers().isEmpty()) return;
         ServerLevel level = null;
         Vec3 target = null;
         switch (shot.kind()) {
@@ -827,7 +827,10 @@ public final class Director {
             default -> {}
         }
         if (level == null || target == null) return;
-        for (UUID id : broadcasters) {
+        // The broadcast games, and the players watching the broadcast as spectators
+        java.util.Set<UUID> keep = new java.util.LinkedHashSet<>(broadcasters);
+        keep.addAll(fr.lordfinn.craftmaster.show.Spectators.feedWatchers());
+        for (UUID id : keep) {
             ServerPlayer p = server.getPlayerList().getPlayer(id);
             if (p == null || p.gameMode() != GameType.SPECTATOR) continue;
             if (p.level() == level && p.position().distanceTo(target) < KEEP_NEAR) continue;
