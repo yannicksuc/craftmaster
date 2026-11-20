@@ -282,10 +282,15 @@ public final class TrialRun {
         return new ActionExecutor.Result(lines, true);
     }
 
-    /** Everything is loaded: the broadcast draws the intro's shots behind a black, then the round starts. */
+    /**
+     * Everything is loaded: the games that will show the intro (the broadcast games, and every player with the mod,
+     * taken under the lens for it: the intro's world may not be theirs) draw its shots behind a black, then the round
+     * starts.
+     */
     private static void afterLoad(MinecraftServer server, String mancheId) {
         List<fr.lordfinn.craftmaster.broadcast.Director.ShotRequest> shots =
                 fr.lordfinn.craftmaster.broadcast.MancheIntros.shots(server, mancheId);
+        if (!shots.isEmpty()) fr.lordfinn.craftmaster.show.Spectators.holdForIntro(server);
         List<ServerPlayer> broadcast = broadcasters(server);
         if (shots.isEmpty() || broadcast.isEmpty()) {
             start(server, mancheId);
@@ -320,9 +325,12 @@ public final class TrialRun {
                 () -> prewarm(server, mancheId, order, i + 1));
     }
 
+    /** The games showing the intro: the broadcast games and the players held under the lens for it. */
     private static List<ServerPlayer> broadcasters(MinecraftServer server) {
         List<ServerPlayer> out = new ArrayList<>();
-        for (java.util.UUID id : fr.lordfinn.craftmaster.broadcast.Director.broadcasters()) {
+        java.util.Set<java.util.UUID> ids = new java.util.LinkedHashSet<>(fr.lordfinn.craftmaster.broadcast.Director.broadcasters());
+        ids.addAll(fr.lordfinn.craftmaster.show.Spectators.feedWatchers());
+        for (java.util.UUID id : ids) {
             ServerPlayer p = server.getPlayerList().getPlayer(id);
             if (p != null) out.add(p);
         }
@@ -344,6 +352,8 @@ public final class TrialRun {
         List<String> lines = new ArrayList<>();
         List<Arena> arenas = arenas(mancheId);
         if (arenas.isEmpty() || key(season, mancheId).equals(prepared)) return lines;
+        // The same trial launched again: it starts over (envelopes handed out again, stopwatches at zero)
+        boolean relaunch = state.manche != null && state.manche.equals(mancheId) && state.season == season;
         if (state.manche == null || !state.manche.equals(mancheId) || state.season != season) {
             state.back.clear();
             state.step = 0;
@@ -351,6 +361,12 @@ public final class TrialRun {
         state.manche = mancheId;
         state.season = season;
         REPORT.clear();
+        if (relaunch) {
+            int taken = takeEnvelopes(server, season, mancheId);
+            state.envelopes.remove(key(season, mancheId));
+            fr.lordfinn.craftmaster.trial.Judging.reset();
+            REPORT.add("▶ Relance : " + taken + " ancienne(s) enveloppe(s) reprise(s), de nouvelles au départ ; chronos remis à zéro.");
+        }
         for (Arena a : arenas) {
             REPORT.addAll(syncCopies(server, a, false));
             if (!a.copies.isEmpty()) REPORT.add("« " + a.name + " » : " + Arenas.rebuild(server, a) + " copie(s) remise(s) à neuf.");
@@ -501,6 +517,22 @@ public final class TrialRun {
         return s != null && s.contains(name.toLowerCase(Locale.ROOT));
     }
 
+    /** The round's envelopes taken back from everyone online (a relaunch hands out new ones); returns how many. */
+    private static int takeEnvelopes(MinecraftServer server, int season, String mancheId) {
+        int n = 0;
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            var inv = p.getInventory();
+            for (int i = 0; i < inv.getContainerSize(); i++) {
+                TaskComponents.Envelope e = EnvelopeItem.envelope(inv.getItem(i));
+                if (e != null && e.season() == season && mancheId.equals(e.manche())) {
+                    inv.setItem(i, ItemStack.EMPTY);
+                    n++;
+                }
+            }
+        }
+        return n;
+    }
+
     /** Does the player carry (or wear in a bundle…) an envelope of this round? */
     private static boolean carries(ServerPlayer p, int season, String mancheId) {
         for (ItemStack st : p.getInventory().getNonEquipmentItems()) {
@@ -648,6 +680,14 @@ public final class TrialRun {
         if (m == null) return new ActionExecutor.Result(List.of(state.back.isEmpty() ? "Aucune épreuve en cours."
                 : "La manche est déjà finie : /cm epreuve plateau pour ramener tout le monde."), false);
         List<String> lines = new ArrayList<>(ActionExecutor.execute(server, List.of(Map.of("type", "manche.end"))).lines());
+        // The stopwatches still running stop here (their bars stand still until « Revenir au plateau »)
+        long now = System.currentTimeMillis();
+        int stopped = 0;
+        for (String p : List.copyOf(fr.lordfinn.craftmaster.trial.Stopwatch.SHARED.runningPlayers())) {
+            fr.lordfinn.craftmaster.trial.Stopwatch.SHARED.stop(p, now);
+            stopped++;
+        }
+        if (stopped > 0) lines.add(stopped + " chrono(s) encore en marche arrêté(s) (sans temps noté).");
         lines.add("Les candidats restent où ils sont : le choix (replay ou retour au plateau) arrive dans le chat.");
         return new ActionExecutor.Result(lines, true);
     }
@@ -715,6 +755,8 @@ public final class TrialRun {
             return new ActionExecutor.Result(List.of("« " + running.name + " » est encore en cours : /cm epreuve terminer d'abord."), false);
         String mancheId = state.manche;
         if (mancheId == null && state.back.isEmpty()) return new ActionExecutor.Result(List.of("Personne à ramener : aucune épreuve terminée."), false);
+        // The stopwatches' bars off the screens (the times stay in the results sheet)
+        fr.lordfinn.craftmaster.trial.Judging.reset();
         // The spectators back to their place first (the contestants among them then go back to the set)
         int watching = fr.lordfinn.craftmaster.show.Spectators.stopAll(server);
         if (watching > 0) lines.add("👁 " + watching + " spectateur(s) revenu(s) à leur place.");

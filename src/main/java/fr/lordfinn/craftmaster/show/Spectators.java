@@ -94,6 +94,14 @@ public final class Spectators {
         }));
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             RIGHTS.remove(handler.getPlayer().getUUID());
+            // Held for an intro: back to his place before he is saved
+            Back held = INTRO.remove(handler.getPlayer().getUUID());
+            if (held != null) {
+                ServerPlayer p = handler.getPlayer();
+                ServerLevel level = server.getLevel(ResourceKey.create(Registries.DIMENSION, Identifier.parse(held.world())));
+                p.teleportTo(level == null ? server.overworld() : level, held.x(), held.y(), held.z(), Set.of(), held.yaw(), held.pitch(), true);
+                p.setGameMode(GameType.byName(held.gamemode(), GameType.ADVENTURE));
+            }
             if (WATCHING.containsKey(handler.getPlayer().getUUID())) stop(handler.getPlayer(), false);
             server.execute(() -> MasterVoice.playersChanged(server));
         });
@@ -160,9 +168,47 @@ public final class Spectators {
         return WATCHING.containsKey(p.getUUID());
     }
 
-    /** The broadcast's spectators: kept near the shot on air, like the broadcast games. */
+    /** Players held near the camera during an intro (their place and mode to give back). */
+    private static final Map<UUID, Back> INTRO = new LinkedHashMap<>();
+
+    /**
+     * An intro starts: its cameras may be in another world (the trial's) than the players (the set, the lobby), and a
+     * game only draws its own world. Every player with the mod (not a broadcast game, not already a spectator) is
+     * taken under the lens, invisible (spectator mode), for the time of the intro, like the broadcast games; given back
+     * by {@link #releaseIntro} (in the black before the round's teleport, or when the intro ends or stops).
+     */
+    public static void holdForIntro(MinecraftServer server) {
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            if (INTRO.containsKey(p.getUUID()) || WATCHING.containsKey(p.getUUID())) continue;
+            if (fr.lordfinn.craftmaster.broadcast.Director.broadcasters().contains(p.getUUID())) continue;
+            if (!net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(p, fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowCue.TYPE)) continue;
+            INTRO.put(p.getUUID(), new Back(p.level().dimension().identifier().toString(), p.getX(), p.getY(), p.getZ(), p.getYRot(), p.getXRot(), p.gameMode().getName()));
+            if (p.gameMode() != GameType.SPECTATOR) p.setGameMode(GameType.SPECTATOR);
+        }
+        if (!INTRO.isEmpty()) {
+            fr.lordfinn.craftmaster.broadcast.Director.nudgeBroadcasters(server);
+            CraftMaster.LOG.info("[Réalisation] {} joueur(s) sous l'objectif pendant l'intro", INTRO.size());
+        }
+    }
+
+    /** The players held for the intro back to their place and game mode. */
+    public static void releaseIntro(MinecraftServer server) {
+        if (INTRO.isEmpty()) return;
+        for (Map.Entry<UUID, Back> e : List.copyOf(INTRO.entrySet())) {
+            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+            if (p == null) continue;
+            Back b = e.getValue();
+            ServerLevel level = server.getLevel(ResourceKey.create(Registries.DIMENSION, Identifier.parse(b.world())));
+            if (level == null) level = server.overworld();
+            p.teleportTo(level, b.x(), b.y(), b.z(), Set.of(), b.yaw(), b.pitch(), true);
+            p.setGameMode(GameType.byName(b.gamemode(), GameType.ADVENTURE));
+        }
+        INTRO.clear();
+    }
+
+    /** The broadcast's spectators (and the players held during an intro): kept near the shot on air, like the broadcast games. */
     public static Set<UUID> feedWatchers() {
-        Set<UUID> out = new LinkedHashSet<>();
+        Set<UUID> out = new LinkedHashSet<>(INTRO.keySet());
         WATCHING.forEach((id, w) -> {
             if (w.target() == null) out.add(id);
         });
@@ -324,6 +370,11 @@ public final class Spectators {
 
     private static void tick(MinecraftServer server) {
         rights(server);
+        // Held under the lens for an intro: spectators all along (a per-world game mode may change it on arrival)
+        for (UUID id : INTRO.keySet()) {
+            ServerPlayer p = server.getPlayerList().getPlayer(id);
+            if (p != null && p.gameMode() != GameType.SPECTATOR) p.setGameMode(GameType.SPECTATOR);
+        }
         String t = trial();
         if (t == null || !allowed(t)) {
             if (!WATCHING.isEmpty()) stopAll(server);

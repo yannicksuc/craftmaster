@@ -122,6 +122,8 @@ public final class MancheIntros {
         stop(server);
         Credits.stop(server);
         running = m.id;
+        // Everyone's view must be in the intro's world: the players are taken under the lens for its time
+        fr.lordfinn.craftmaster.show.Spectators.holdForIntro(server);
         int first = Math.max(0, Math.min(intro.shots.size() - 1, from - 1));
         music = !intro.music.isEmpty() && first == 0;
         Director.cue(server, new ShowCue(Cues.CLEAR, "", "", "", 0));
@@ -258,6 +260,7 @@ public final class MancheIntros {
             launch(server, start);
             return;
         }
+        fr.lordfinn.craftmaster.show.Spectators.releaseIntro(server);
         if (music) Director.cue(server, new ShowCue(Cues.THEME, "stop", "", "", 0));
         music = false;
         if (wide) Director.wide(server, BroadcastNetwork.CROSSFADE);
@@ -267,7 +270,7 @@ public final class MancheIntros {
     /** Fade to black, in the dark, the round's title on black (ticks). */
     public static final int BLACK_IN = 12, BLACK_HOLD = 64, BLACK_OUT = 26;
     /** Longest the black waits for the games to be ready after the teleport (ticks), on top of {@link #BLACK_HOLD}. */
-    public static final int READY_WAIT = 200;
+    public static final int READY_WAIT = 60;
 
     /**
      * The round's start after its intro (or at once for a trial: {@code /cm epreuve lancer}): everyone's picture fades
@@ -291,6 +294,8 @@ public final class MancheIntros {
         launching = true;
         at(server, BLACK_IN / 20.0, () -> {
             if (withMusic) Director.cue(server, new ShowCue(Cues.THEME, "stop", "", "", 0));
+            // Those held under the lens for the intro: back to their place (and mode) in the black, then the teleport
+            fr.lordfinn.craftmaster.show.Spectators.releaseIntro(server);
             Show.teleport(server, start);
             Director.wide(server, BroadcastNetwork.CUT);
             Director.nudgeBroadcasters(server);

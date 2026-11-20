@@ -836,6 +836,8 @@ public final class Director {
             if (p.level() == level && p.position().distanceTo(target) < KEEP_NEAR) continue;
             // A few blocks below the lens: out of every shot, chunks and entities loaded all the same
             p.teleportTo(level, target.x, target.y - 4, target.z, Set.of(), p.getYRot(), p.getXRot(), false);
+            // A per-world game mode (Worlds, Dimensional Inventories…) may have changed it on arrival: kept out of the picture
+            if (p.gameMode() != GameType.SPECTATOR) p.setGameMode(GameType.SPECTATOR);
         }
     }
 

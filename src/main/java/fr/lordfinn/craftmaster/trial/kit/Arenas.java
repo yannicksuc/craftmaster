@@ -204,8 +204,71 @@ public final class Arenas {
         return rebuild(server, a, null);
     }
 
-    /** The same for some contestants' copies only ({@code only} null = all). */
+    /** A rebuild waiting for the entities of its chunks (the copies far out are not always loaded). */
+    private record Waiting(String arena, java.util.Collection<String> only, List<net.minecraft.world.level.ChunkPos> chunks, int since) {}
+
+    private static final List<Waiting> WAITING = new ArrayList<>();
+    private static boolean ticking;
+
+    /**
+     * The same for some contestants' copies only ({@code only} null = all). The chunks of the reference and of the
+     * copies are loaded first, their entities with them: an old item frame still on disk would come back after the
+     * new one is placed, fall off its block and drop its item on the floor, or the new one be lost (rooms beyond what
+     * is kept loaded). When they are not all loaded yet, the rebuild waits for them (10 s at most) and the organisers
+     * are told when it is done; it then returns the number of copies it will rebuild.
+     */
     public static int rebuild(MinecraftServer server, Arena a, java.util.Collection<String> only) {
+        ServerLevel level = level(server, a);
+        List<net.minecraft.world.level.ChunkPos> chunks = chunks(a, only);
+        boolean ready = true;
+        for (net.minecraft.world.level.ChunkPos c : chunks) if (!level.areEntitiesLoaded(c.pack())) ready = false;
+        if (ready) return rebuildNow(server, a, only);
+        for (net.minecraft.world.level.ChunkPos c : chunks) level.getChunkSource().addTicketWithRadius(LaunchGate.TICKET, c, 0);
+        WAITING.add(new Waiting(a.name, only, chunks, server.getTickCount()));
+        if (!ticking) {
+            ticking = true;
+            net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(Arenas::waiting);
+        }
+        CraftMaster.LOG.info("[Arène] « {} » : remise à neuf dès que ses {} chunks sont chargés", a.name, chunks.size());
+        int n = 0;
+        for (String k : a.copies.keySet()) if (only == null || only.stream().anyMatch(w -> w.equalsIgnoreCase(k))) n++;
+        return n;
+    }
+
+    private static void waiting(MinecraftServer server) {
+        if (WAITING.isEmpty()) return;
+        for (Waiting w : List.copyOf(WAITING)) {
+            Arena a = get(w.arena());
+            ServerLevel level = a == null ? null : level(server, a);
+            boolean ready = level != null;
+            if (level != null) for (net.minecraft.world.level.ChunkPos c : w.chunks()) if (!level.areEntitiesLoaded(c.pack())) ready = false;
+            boolean late = server.getTickCount() - w.since() > 200;
+            if (!ready && !late) continue;
+            WAITING.remove(w);
+            if (a == null || level == null) continue;
+            int n = rebuildNow(server, a, w.only());
+            for (net.minecraft.world.level.ChunkPos c : w.chunks()) level.getChunkSource().removeTicketWithRadius(LaunchGate.TICKET, c, 0);
+            Finish.tellOrganisers(server, null, net.minecraft.network.chat.Component.literal("« " + a.name + " » : " + n + " copie(s) remise(s) à neuf"
+                    + (late ? " (chargement lent : faite sans attendre plus)" : "") + ".").withStyle(net.minecraft.ChatFormatting.GRAY), null);
+        }
+    }
+
+    /** The chunks of the reference and of the copies concerned. */
+    private static List<net.minecraft.world.level.ChunkPos> chunks(Arena a, java.util.Collection<String> only) {
+        List<int[]> offs = new ArrayList<>();
+        offs.add(new int[]{0, 0, 0});
+        for (Map.Entry<String, int[]> c : a.copies.entrySet())
+            if (only == null || only.stream().anyMatch(w -> w.equalsIgnoreCase(c.getKey()))) offs.add(c.getValue());
+        java.util.Set<net.minecraft.world.level.ChunkPos> out = new java.util.LinkedHashSet<>();
+        int x0 = Math.min(a.x0, a.x1), x1 = Math.max(a.x0, a.x1), z0 = Math.min(a.z0, a.z1), z1 = Math.max(a.z0, a.z1);
+        for (int[] o : offs)
+            for (int cx = (x0 + o[0]) >> 4; cx <= (x1 + o[0]) >> 4; cx++)
+                for (int cz = (z0 + o[2]) >> 4; cz <= (z1 + o[2]) >> 4; cz++) out.add(new net.minecraft.world.level.ChunkPos(cx, cz));
+        return new ArrayList<>(out);
+    }
+
+    /** The copies built now (their entities known to be loaded, or waited for long enough). */
+    private static int rebuildNow(MinecraftServer server, Arena a, java.util.Collection<String> only) {
         ServerLevel level = level(server, a);
         StructureTemplate t = new StructureTemplate();
         t.fillFromWorld(level, a.min(), new net.minecraft.core.Vec3i(a.sizeX(), a.sizeY(), a.sizeZ()), true, List.of(Blocks.STRUCTURE_VOID));
@@ -224,6 +287,9 @@ public final class Arenas {
             copyPassengers(level, a, off);
             copyMarkers(level, a, off);
             if (a.walls) walls(level, a, off);
+            // Nothing lying on the floor after the copy (an old frame that fell off would have dropped its item)
+            for (Entity e : level.getEntities(net.minecraft.world.entity.EntityTypes.ITEM, a.box(off), e -> true)) e.discard();
+            check(server, level, a, c.getKey(), off);
             n++;
         }
         if (only != null) return n;
@@ -233,6 +299,25 @@ public final class Arenas {
         GroundEnd.forget();
         Finish.reset();
         return n;
+    }
+
+    /** The kinds of entities a copy must have as many of as the reference (read when needed: the game's registries). */
+    private static List<net.minecraft.world.entity.EntityType<?>> counted() {
+        return List.of(net.minecraft.world.entity.EntityTypes.ITEM_FRAME, net.minecraft.world.entity.EntityTypes.GLOW_ITEM_FRAME,
+                net.minecraft.world.entity.EntityTypes.PAINTING, net.minecraft.world.entity.EntityTypes.MANNEQUIN, net.minecraft.world.entity.EntityTypes.VILLAGER);
+    }
+
+    /** The copy's frames, paintings, mannequins and villagers counted against the reference; the organisers warned if they differ. */
+    private static void check(MinecraftServer server, ServerLevel level, Arena a, String who, int[] off) {
+        List<String> wrong = new ArrayList<>();
+        for (net.minecraft.world.entity.EntityType<?> type : counted()) {
+            int ref = level.getEntities(type, a.box(null), e -> true).size(), here = level.getEntities(type, a.box(off), e -> true).size();
+            if (ref != here) wrong.add(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(type).getPath() + " " + here + "/" + ref);
+        }
+        if (wrong.isEmpty()) return;
+        String line = "⚠ « " + a.name + " », copie de " + who + " : " + String.join(", ", wrong) + " (copie/référence). /cm arene reset " + a.name + " pour la refaire.";
+        CraftMaster.LOG.warn("[Arène] {}", line);
+        Finish.tellOrganisers(server, null, net.minecraft.network.chat.Component.literal(line).withStyle(net.minecraft.ChatFormatting.RED), null);
     }
 
     /**
