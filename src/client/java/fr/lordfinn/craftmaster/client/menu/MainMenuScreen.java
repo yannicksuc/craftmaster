@@ -220,7 +220,7 @@ public class MainMenuScreen extends Screen {
                 b.button("Qui regarde", "Les spectateurs et ce qu'ils regardent", () -> MenuClient.command("spectateurs liste"));
             });
             String voice = str(sp, "voice");
-            r.note(str(sp, "voiceStatus") + "   (touche F6 : mode suivant)");
+            r.note(str(sp, "voiceStatus") + "   (touche Inser : mode suivant)");
             r.row(Component.literal("Ton vocal"), b -> {
                 b.button(("off".equals(voice) ? "● " : "") + "Off", "Ton vocal coupé : chacun son vocal habituel", () -> MenuClient.command("vocal mode off"));
                 b.button(("commentaire".equals(voice) ? "● " : "") + "Commentaire " + (bool(sp, "commentOpen") ? "ouvert" : "fermé"),

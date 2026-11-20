@@ -116,7 +116,7 @@ de LordFinn a des **modes exclusifs** ; chacun revient tout seul dans son groupe
 | Tout le monde | l'annonce : tous, ou les candidats, ou les spectateurs | `/cm vocal mode tous [candidats\|spectateurs]` (`/cm vocal annonce …`) | `/vocal/tous[?qui=candidats]` |
 | Joueur / équipe | un candidat, ou une équipe du tableau des scores, seul avec lui ; par défaut celui qu'il regarde | `/cm vocal mode joueur [pseudo\|equipe:nom]` (`/cm vocal parler …`) | `/vocal/joueur?nom=…` |
 
-**Touche F6** (réglable) : le mode suivant (off → commentaire → tous → joueur). Menu N, onglet Épreuves, ligne
+**Touche Inser** (réglable dans les commandes) : le mode suivant (off → commentaire → tous → joueur). Menu N, onglet Épreuves, ligne
 « Ton vocal ». En haut de l'écran de LordFinn : le mode et qui l'entend ; chez ceux à qui il parle : « 🎙 LordFinn te
 parle » (rien sur l'image de la diffusion). `/cm vocal` seul : qui est dans quel groupe. La régie IA connaît les
 spectateurs et les modes (« ouvre le commentaire », « parle à Ensuri », « interdis les spectateurs »).

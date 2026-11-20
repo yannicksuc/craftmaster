@@ -18,14 +18,14 @@ import net.minecraft.network.chat.Component;
 /**
  * The game master's voice on screen ({@code MasterVoice} on the server): for him, his mode and who hears him, always
  * at the top of his screen while it is not off; for a player he talks to, a small « 🎙 LordFinn te parle ». Never on
- * the broadcast picture. The key (F6 by default, in the controls) goes to the next mode.
+ * the broadcast picture. The key (Insert by default, in the controls; F6 is the game's debug options) goes to the next mode.
  */
 public final class VoiceHud {
 
     private VoiceHud() {}
 
     public static final KeyMapping KEY = new KeyMapping("key.craftmaster.voice_mode", InputConstants.Type./*$ keyboard_type {*/KEYBOARD/*$}*/,
-            InputConstants.KEY_F6, CraftMasterClient.CATEGORY);
+            InputConstants.KEY_INSERT, CraftMasterClient.CATEGORY);
 
     private static String line = "";
     private static boolean host;
