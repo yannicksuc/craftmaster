@@ -26,7 +26,8 @@ chaque candidat : chacun joue seul dans **sa** copie.
   `/cm arene tp <nom> reference [dessus]` : la **salle de référence** (son point de départ, dans le monde de l'arène ;
   bouton « Référence » du menu N). C'est là que se posent les caméras de l'intro : debout dans une arène,
   `/cm cam ici <n>` et `/cm cam ajouter` rangent la caméra dans le lieu de **sa manche** (sans avoir à écrire
-  `pomme:3`).
+  `pomme:3`) ; le Tab de `/cm cam ici|viser|aller|nom|retirer…` n'y propose que les caméras de cette manche (« 1 · Pomme
+  — caméras de la manche La pomme »), le numéro libre suivant (« nouvelle ») et les rôles.
 - `/cm arene retirer <nom> <joueur>` · `supprimer <nom>` · `liste`. Tout est gardé dans `config/craftmaster/arenas.json`.
 
 La **réapparition** suit aussi les points de TP des manches : un candidat téléporté au lancement d'une manche

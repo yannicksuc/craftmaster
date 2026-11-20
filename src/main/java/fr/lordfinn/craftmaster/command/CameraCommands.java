@@ -76,14 +76,33 @@ public final class CameraCommands {
     public static final List<String> EFFECTS = fr.lordfinn.craftmaster.fx.ScreenFx.suggestions();
 
     /** Numbers of the focus, keys of every camera, names and roles: what a camera reference understands. */
-    private static final SuggestionProvider<CommandSourceStack> CAMERAS = list(c -> {
-        Set<String> out = new LinkedHashSet<>();
-        for (CameraSpot s : Cameras.list().group(Director.focus()).all()) out.add(String.valueOf(s.number()));
-        for (CameraSpot s : Cameras.list().all()) out.add(s.key());
-        for (CameraSpot s : Cameras.list().group(Director.focus()).all()) out.add(s.name());
-        out.addAll(CameraSpot.ROLES);
-        return out;
-    });
+    /**
+     * The cameras a bare number means here (the round of the arena the player stands in, else the focus): their
+     * numbers with their names in the tooltip, and in an arena the next free number (« nouvelle »); then the other
+     * lieux' keys and the roles.
+     */
+    private static final SuggestionProvider<CommandSourceStack> CAMERAS = (c, b) -> {
+        String arena = arenaGroup(c);
+        String group = arena != null ? arena : Director.focus();
+        String where = whereName(group);
+        CameraList here = Cameras.list().group(group);
+        for (CameraSpot s : here.all())
+            b.suggest(String.valueOf(s.number()), Component.literal(s.number() + " · " + s.name() + " — " + where));
+        // In an arena: its round's cameras only, and the number a new one gets
+        if (arena != null) b.suggest(String.valueOf(Cameras.list().nextFree(group)), Component.literal("nouvelle — " + where));
+        Set<String> more = new LinkedHashSet<>();
+        for (CameraSpot s : here.all()) more.add(s.name());
+        if (arena == null) for (CameraSpot s : Cameras.list().all()) more.add(s.key());
+        more.addAll(CameraSpot.ROLES);
+        for (String m : more) if (m != null && !m.isBlank() && m.toLowerCase(java.util.Locale.ROOT).startsWith(b.getRemainingLowerCase())) b.suggest(m.contains(" ") ? "\"" + m + "\"" : m);
+        return b.buildFuture();
+    };
+
+    /** « caméras de la manche La pomme » / « caméras du studio ». */
+    private static String whereName(String group) {
+        String lieu = CameraSpot.lieuOf(group);
+        return CameraSpot.STUDIO.equals(lieu) ? "caméras du studio" : "caméras de la manche " + Lieux.lieuName(lieu);
+    }
     private static final SuggestionProvider<CommandSourceStack> ROLES = list(c -> {
         List<String> r = new ArrayList<>(CameraSpot.ROLES);
         r.add("aucun");
@@ -160,8 +179,10 @@ public final class CameraCommands {
     /** The camera of the "camera" argument, or null (said so). */
     private static CameraSpot spot(CommandContext<CommandSourceStack> c) {
         String ref = str(c, "camera");
-        CameraSpot s = Director.resolve(c.getSource().getServer(), ref);
-        if (s == null) fail(c, "Aucune caméra « " + ref + " » dans " + Director.focusName() + " (/cm cam liste tout pour toutes les voir).");
+        // In an arena, a bare number is a camera of its round
+        String group = groupHere(c);
+        CameraSpot s = Lieux.resolve(c.getSource().getServer(), ref, group);
+        if (s == null) fail(c, "Aucune caméra « " + ref + " » dans les " + whereName(group) + " (/cm cam liste tout pour toutes les voir).");
         return s;
     }
 
@@ -392,12 +413,16 @@ public final class CameraCommands {
      * reference room or a copy: where intro cameras are placed), else the focus.
      */
     private static String groupHere(CommandContext<CommandSourceStack> c) {
+        String arena = arenaGroup(c);
+        return arena != null ? arena : Director.focus();
+    }
+
+    /** The round (lieu) of the arena the player stands in (its reference room or a copy), or null. */
+    private static String arenaGroup(CommandContext<CommandSourceStack> c) {
         ServerPlayer p = c.getSource().getPlayer();
-        if (p != null) {
-            var owner = fr.lordfinn.craftmaster.trial.kit.Arenas.ownerAt(p.level(), p.blockPosition());
-            if (owner != null && owner.arena().manche != null && Lieux.lieu(owner.arena().manche) != null) return Lieux.lieu(owner.arena().manche);
-        }
-        return Director.focus();
+        if (p == null) return null;
+        var owner = fr.lordfinn.craftmaster.trial.kit.Arenas.ownerAt(p.level(), p.blockPosition());
+        return owner != null && owner.arena().manche != null ? Lieux.lieu(owner.arena().manche) : null;
     }
 
     private static CameraSpot newSpot(CommandContext<CommandSourceStack> c, String ref, String world, double x, double y, double z, float yaw, float pitch) {
