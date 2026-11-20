@@ -8,7 +8,8 @@
 // focus, above = behind it). The second pass (fx_dof_blur) blurs it.
 // Mode.y: 0 = macro (focused on what is at the centre of the picture), 1 = focus pull (focused on the background,
 // then after 0.4 s the focus slides to the centre subject over 1.2 s, Fx.z = seconds since the effect was switched
-// on). Mode.w = aperture (how fast things leave the focus).
+// on), 2 = reverse focus pull (sharp on the centre subject, then after 0.4 s the focus slides to the background).
+// Mode.w = aperture (how fast things leave the focus).
 uniform sampler2D DepthSampler;
 
 layout(std140) uniform FxMode {
@@ -42,10 +43,10 @@ void cocPass() {
     float focus = focusInv();
     if (Mode.y > 0.5) {
         // Focus pull: from far behind the subject (at least 24 blocks) to the subject, moving in 1 / distance like a
-        // real lens ring
+        // real lens ring; reversed (Mode.y = 2): from the subject to the background
         float background = min(focus / 6.0, 1.0 / 24.0);
         float s = smoothstep(0.4, 1.6, Fx.z);
-        focus = mix(background, focus, s);
+        focus = Mode.y > 1.5 ? mix(focus, background, s) : mix(background, focus, s);
     }
     // Thin lens: the blur grows with |1 - focus distance / distance|
     float signedCoc = clamp((1.0 - inv / focus) * Mode.w, -1.0, 1.0) * Fx.x;

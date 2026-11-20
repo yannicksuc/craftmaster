@@ -40,8 +40,8 @@ TOOLS = [
     {"name": "lire",
      "description": "Lit l'état de la régie (rien n'est changé).",
      "input_schema": {"type": "object", "properties": {
-         "sujet": {"type": "string", "enum": ["resume", "ambiance", "sequence", "conduite", "cameras", "trajet", "projecteurs"]},
-         "nom": {"type": "string", "description": "Le nom de l'ambiance, de la séquence, de la conduite ou du travelling."}},
+         "sujet": {"type": "string", "enum": ["resume", "manches", "intro", "effets", "ambiance", "sequence", "conduite", "cameras", "trajet", "projecteurs"]},
+         "nom": {"type": "string", "description": "Le nom de l'ambiance, de la séquence, de la conduite, du travelling, ou la manche de l'intro (id ou nom : la-pomme, « La pomme »)."}},
          "required": ["sujet"]}},
     {"name": "commande",
      "description": "Exécute une commande de la régie (cam, tv, sequence, conduite, ambiance, cfsp, plateau, cmtele, "

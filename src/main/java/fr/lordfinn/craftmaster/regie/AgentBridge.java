@@ -410,6 +410,59 @@ public final class AgentBridge {
 
     // ---------------------------------------------------------------- reading
 
+    /** The active season's rounds: id, name, their cameras' lieu, their intro in short. */
+    static JsonArray manches() {
+        JsonArray out = new JsonArray();
+        var data = CraftMaster.data();
+        var season = data == null ? null : data.activeSeason();
+        if (season == null) return out;
+        for (var p : season.parties.values())
+            for (var m : p.activeManches()) {
+                JsonObject j = new JsonObject();
+                j.addProperty("id", m.id);
+                j.addProperty("nom", m.name);
+                j.addProperty("cameras", Cameras.list().lieu(m.id).all().size() + " (" + m.id + ":1, " + m.id + ":2…)");
+                j.addProperty("intro", m.intro.shots.isEmpty() ? "aucune" : m.intro.shots.size() + " plans" + (m.intro.auto ? ", jouée au lancement" : "")
+                        + (m.intro.chained ? ", enchaînée" : "") + " — lire intro " + m.id);
+                out.add(j);
+            }
+        return out;
+    }
+
+    /** One round's intro, shot by shot (what /cm tv intro <id> plan N … changes). */
+    static String intro(String name) {
+        var m = name == null ? null : fr.lordfinn.craftmaster.camera.Lieux.manche(name);
+        if (m == null) return "Manche « " + name + " » inconnue : " + manches();
+        var in = m.intro;
+        JsonObject o = new JsonObject();
+        o.addProperty("manche", m.id + " « " + m.name + " »");
+        o.addProperty("auto", in.auto);
+        o.addProperty("enchainee", in.chained);
+        o.addProperty("musique", in.music.isEmpty() ? "aucune" : in.music);
+        o.addProperty("rythme", in.bpm > 0 ? in.bpm + " BPM" : "off");
+        o.addProperty("look", in.look.isEmpty() ? "aucun" : in.look);
+        o.addProperty("titre", in.titleCard);
+        JsonArray shots = new JsonArray();
+        var timeline = in.timeline(n -> { CameraPath p = CameraPaths.get(n); return p == null ? 0 : p.duration(); });
+        for (var t : timeline) {
+            var sh = t.shot();
+            JsonObject j = new JsonObject();
+            j.addProperty("plan", t.index() + 1);
+            j.addProperty("type", sh.kind());
+            if (!sh.ref().isEmpty()) j.addProperty("ref", sh.ref());
+            j.addProperty("debut_s", Math.round(t.start() * 10) / 10.0);
+            j.addProperty("duree_s", Math.round(t.length() * 10) / 10.0);
+            j.addProperty("transition", sh.transition().isEmpty() ? "défaut" : sh.transition());
+            j.addProperty("effet", sh.effect().isEmpty() ? "aucun" : sh.effect());
+            if (!sh.card().isEmpty()) j.addProperty("carte", sh.card());
+            CameraSpot c = sh.kind().equals(fr.lordfinn.craftmaster.data.MancheIntro.CAMERA) ? fr.lordfinn.craftmaster.camera.Cameras.list().resolve(sh.ref(), m.id, java.util.Map.of()) : null;
+            if (c != null) j.addProperty("camera", c.key() + (c.name() == null || c.name().isEmpty() ? "" : " « " + c.name() + " »") + ", mouvement " + c.motion());
+            shots.add(j);
+        }
+        o.add("plans", shots);
+        return o.toString();
+    }
+
     static String read(String subject, String name) {
         Look.Book book = Scenography.book();
         String s = fr.lordfinn.craftmaster.camera.CameraList.fold(subject);
@@ -446,6 +499,23 @@ public final class AgentBridge {
                 JsonArray paths = new JsonArray();
                 for (CameraPath p : CameraPaths.all()) paths.add(p.name() + (p.camera().isEmpty() ? "" : " (caméra " + p.camera() + ")") + ", " + p.steps().size() + " étapes");
                 o.add("travellings", paths);
+                o.add("manches", manches());
+            }
+            case "manches", "manche" -> {
+                return manches().toString();
+            }
+            case "intro", "intros" -> {
+                return intro(name);
+            }
+            case "effets", "effet", "transitions" -> {
+                JsonObject e = new JsonObject();
+                JsonArray fx = new JsonArray();
+                for (fr.lordfinn.craftmaster.fx.ScreenFx.Kind k : fr.lordfinn.craftmaster.fx.ScreenFx.ORDER) fx.add(k.id() + " (" + k.fr() + ")");
+                e.add("effets", fx);
+                e.add("combinaisons_toutes_faites", GSON.toJsonTree(fr.lordfinn.craftmaster.fx.ScreenFx.PRESETS));
+                e.add("transitions", GSON.toJsonTree(fr.lordfinn.craftmaster.broadcast.BroadcastActions.TRANSITION_IDS));
+                e.add("mouvements_camera", GSON.toJsonTree(CameraSpot.MOTIONS));
+                return e.toString();
             }
             case "ambiance" -> {
                 Look l = book.looks.get(Scenography.key(name));
@@ -517,7 +587,7 @@ public final class AgentBridge {
                 o.add("projecteurs", spots);
             }
             default -> {
-                return "Sujet inconnu « " + subject + " » : resume, ambiance, sequence, conduite, cameras, trajet, projecteurs.";
+                return "Sujet inconnu « " + subject + " » : resume, manches, intro, effets, ambiance, sequence, conduite, cameras, trajet, projecteurs.";
             }
         }
         return o.toString();

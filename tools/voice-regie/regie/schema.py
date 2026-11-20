@@ -127,7 +127,7 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
                                            "et la zone actifs (cameraFocus). Ailleurs : clé du contexte (studio:2, "
                                            "pont:ensuri:1) ou la phrase telle quelle (« caméra 2 du studio »)."),
                     f("transition", STR, doc="coupe (défaut), fondu, enchaine, miroir (kaléidoscope), flash (flash blanc) ou surimpression."),
-                    f("effect", STR, doc="Effet d'image si demandé : noir_blanc, sepia, pixel, fisheye, vignette, masque_rond, citrouille, look_intro, macro, mise_au_point, stop_motion, timelapse.")]),
+                    f("effect", STR, doc="Effet d'image si demandé : noir_blanc, sepia, pixel, fisheye, vignette, masque_rond, citrouille, look_intro, macro, mise_au_point, mise_au_point_inverse, stop_motion, timelapse.")]),
     "camera.follow": ("Plan qui suit un joueur (« suis Ensuri », « caméra sur Cycy ») ; pendant une manche, les touches "
                       "passent aussi aux caméras de sa zone. Ou une règle, comme les projecteurs (« suis le premier du "
                       "classement », « suis qui est sur scène », « suis le joueur du moment ») : le joueur est repris tout seul.",
@@ -285,7 +285,7 @@ ACTIONS: dict[str, tuple[str, list[Field]]] = {
     "fx.set": ("Met un effet d'écran sur l'image de la diffusion (par défaut) ou sur la vue d'un joueur : noir_blanc, "
                "sepia, pixel, fisheye, vignette, masque_rond, citrouille, flou, vhs, vieux_film, infrarouge, reve, ondule, "
                "jumelles, bd, negatif, look_intro (look vieux reportage de l'intro), macro (fond flou), mise_au_point "
-               "(bascule de mise au point vers le sujet), stop_motion (image saccadée), timelapse (ciel accéléré) ; combinables avec + (« fisheye+masque_rond+sepia ») ; combinaisons prêtes : judas "
+               "(bascule de mise au point du fond vers le sujet), mise_au_point_inverse (du sujet vers le fond), stop_motion (image saccadée), timelapse (ciel accéléré) ; combinables avec + (« fisheye+masque_rond+sepia ») ; combinaisons prêtes : judas "
                "(fisheye+masque_rond), camera_cachee, souvenir, film_muet, cauchemar. Remplace l'effet précédent de la cible, "
                "sauf avec un + ou - devant (« +sepia » ajoute, « -flou » retire un seul effet).",
                [f("target", STR, doc="« diffusion » (l'image du stream, défaut), « tous » (tous les joueurs), « candidats », "

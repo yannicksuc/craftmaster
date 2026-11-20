@@ -32,6 +32,7 @@ public final class ScreenFx {
             new Kind("timelapse", "timelapse", "timelapse"),
             new Kind("macro", "macro", "macro"),
             new Kind("mise_au_point", "bascule de mise au point", "focus pull"),
+            new Kind("mise_au_point_inverse", "bascule inverse (sujet puis fond)", "reverse focus pull"),
             new Kind("stop_motion", "stop motion", "stop motion"),
             new Kind("ondule", "ondulation", "wobble"),
             new Kind("fisheye", "fish-eye", "fisheye"),
@@ -93,6 +94,8 @@ public final class ScreenFx {
                 "depth_of_field", "dof");
         alias("mise_au_point", "bascule", "bascule_de_mise_au_point", "bascule_de_point", "focus",
                 "focus_pull", "rack_focus", "changement_de_point");
+        alias("mise_au_point_inverse", "bascule_inverse", "focus_inverse", "mise_au_point_inversee", "rack_focus_inverse",
+                "focus_pull_inverse", "du_sujet_au_fond", "sujet_puis_fond", "net_puis_flou", "reverse_focus");
         alias("stop_motion", "stopmotion", "saccade", "saccades", "sacade", "image_par_image", "pate_a_modeler",
                 "claymation");
         alias("timelapse", "time_lapse", "temps_accelere", "accelere", "acceleration", "ciel_accelere", "jour_nuit");

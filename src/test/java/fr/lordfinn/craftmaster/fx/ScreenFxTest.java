@@ -50,6 +50,8 @@ class ScreenFxTest {
         assertEquals(List.of("look_intro"), ScreenFx.parse("le look d'intro"));
         assertEquals(List.of("mise_au_point"), ScreenFx.parse("la bascule de mise au point"));
         assertEquals(List.of("mise_au_point"), ScreenFx.parse("mise au point"));
+        assertEquals(List.of("mise_au_point_inverse"), ScreenFx.parse("mise au point inverse"));
+        assertEquals(List.of("mise_au_point_inverse"), ScreenFx.parse("bascule inverse"));
         assertEquals(List.of("macro"), ScreenFx.parse("profondeur de champ"));
         assertEquals(List.of("stop_motion"), ScreenFx.parse("stop-motion"));
         assertEquals(List.of("timelapse"), ScreenFx.parse("temps accéléré"));
@@ -118,7 +120,7 @@ class ScreenFxTest {
 
     @Test
     void everyEffectHasItsName() {
-        assertEquals(21, ScreenFx.ORDER.size());
+        assertEquals(22, ScreenFx.ORDER.size());
         assertEquals("fish-eye + masque rond", ScreenFx.describe(ScreenFx.parse("judas")));
         for (String id : ScreenFx.ids()) assertEquals(List.of(id), ScreenFx.parse(id));
         for (String w : FxContent.WEARABLES.values()) assertFalse(ScreenFx.parse(w).isEmpty(), w);
