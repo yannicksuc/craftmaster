@@ -46,8 +46,8 @@ def j(o): return json.dumps(o, ensure_ascii=False, separators=(',', ':'))
 
 # ------------------------------------------------------------ règles des objets (mode aventure)
 RULES = {
-    "iron_hoe":      ({"can_break": {"blocks": ["wheat"]}, "can_place_on": {"blocks": ["dirt", "coarse_dirt", "rooted_dirt", "grass_block"]}},
-                      ["Casse : blé", "Laboure : terre, terre stérile, terre racinée"]),
+    "iron_hoe":      ({"can_break": {"blocks": ["wheat", "sugar_cane"]}, "can_place_on": {"blocks": ["dirt", "coarse_dirt", "rooted_dirt", "grass_block"]}},
+                      ["Casse : blé, canne à sucre", "Laboure : terre, terre stérile, terre racinée"]),
     "iron_pickaxe":  ({"can_break": {"blocks": ["iron_ore", "coal_ore", "raw_iron_block"]}}, ["Casse : minerai de fer, minerai de charbon,", "bloc de fer brut"]),
     "iron_axe":      ({"can_break": {"blocks": ["acacia_log", "acacia_wood", "stripped_acacia_log", "stripped_acacia_wood"]}}, ["Casse : bois d'acacia"]),
     "bucket":        ({"can_place_on": {"blocks": ["cauldron", "water_cauldron"]}}, ["Utilisable sur : chaudron, vache"]),
