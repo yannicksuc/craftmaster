@@ -109,7 +109,33 @@ public class MainMenuScreen extends Screen {
             b.button("Ma tâche", "La tâche du moment (touche J)", () -> MenuClient.command("tache"));
         });
         spectate(r);
+        chronoBars(r, false);
         addRenderableWidget(UiButton.of(left + w - 72, top + h - 26, 64, 18, Component.literal("Fermer"), this::onClose));
+    }
+
+    /** The stopwatches' bars at the top of the screen: the player's own choice (and, for the organisers, who sees what). */
+    private void chronoBars(Rows r, boolean organiser) {
+        JsonObject ch = obj(s(), "chronos");
+        if (ch == null) return;
+        String me = str(ch, "moi");
+        r.row(Component.literal("Mes chronos"), b -> {
+            for (String[] m : new String[][]{{"defaut", "Auto", "La règle de ton groupe"}, {"soi", "Le mien", "Ton propre chrono seulement"},
+                    {"compact", "Une ligne", "Tous les chronos sur une seule ligne"}, {"tous", "Tous", "Une barre par candidat"},
+                    {"aucun", "Masqués", "Rien en haut de l'écran"}})
+                b.button((m[0].equals(me) ? "● " : "") + m[1], m[2], () -> MenuClient.command("chronos barres moi " + m[0]));
+        });
+        if (!organiser) return;
+        String cand = str(ch, "candidats"), others = str(ch, "autres");
+        r.row(Component.literal("Chronos candidats"), b -> {
+            for (String[] m : new String[][]{{"auto", "Auto", "Son chrono, rien s'il a la tablette dans sa salle"}, {"soi", "Le sien", "Son propre chrono"},
+                    {"aucun", "Aucun", "Aucune barre"}})
+                b.button((m[0].equals(cand) ? "● " : "") + m[1], m[2], () -> MenuClient.command("chronos barres candidats " + m[0]));
+        });
+        r.row(Component.literal("Chronos autres"), b -> {
+            for (String[] m : new String[][]{{"compact", "Une ligne", "Organisateurs et spectateurs : tous sur une ligne"}, {"tous", "Tous", "Une barre par candidat"},
+                    {"aucun", "Masqués", "Aucune barre"}})
+                b.button((m[0].equals(others) ? "● " : "") + m[1], m[2], () -> MenuClient.command("chronos barres autres " + m[0]));
+        });
     }
 
     /** Watching once done (or not a contestant): the broadcast, a contestant still playing, leave. */
@@ -207,6 +233,7 @@ public class MainMenuScreen extends Screen {
                         () -> MenuClient.command("epreuve plateau"));
             });
         }
+        chronoBars(r, true);
         // Spectators (players done, or not contestants) and the master's voice
         JsonObject sp = obj(s(), "spectators");
         if (sp != null) {

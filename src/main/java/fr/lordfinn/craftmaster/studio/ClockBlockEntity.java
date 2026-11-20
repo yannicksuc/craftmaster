@@ -237,7 +237,10 @@ public abstract class ClockBlockEntity extends SyncedBlockEntity {
         String known = name == null ? null : sw.find(name);
         boolean running = known != null && sw.isRunning(known);
         long elapsed = known == null ? 0 : running ? sw.peek(known, now) : Math.max(0, sw.last(known));
-        if (running != clock.running() || Math.abs(elapsed - clock.elapsed(now)) > 250) {
+        // Sent again every 5 s while it runs: a game that missed the start (its room loaded, a teleport, a copy
+        // placed while it was there) would keep showing 0:00 until the finish otherwise
+        boolean resend = running && followTicks % 100 == 0;
+        if (resend || running != clock.running() || Math.abs(elapsed - clock.elapsed(now)) > 250) {
             clock.set(running, elapsed, now);
             sync();
         }

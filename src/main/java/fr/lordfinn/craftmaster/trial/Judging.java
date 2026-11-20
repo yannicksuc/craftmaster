@@ -38,6 +38,8 @@ public final class Judging {
     private static final class Bar {
         final ServerBossEvent event;
         long removeAt = Long.MAX_VALUE;
+        /** A private result: only those {@link #toldPrivately} see its final time. */
+        boolean quiet;
 
         Bar(ServerBossEvent event) {
             this.event = event;
@@ -45,6 +47,8 @@ public final class Judging {
     }
 
     private static final Map<String, Bar> BARS = new LinkedHashMap<>();
+    /** Every stopwatch on one line, for those who see them « compact » ({@link ChronoBars}). */
+    private static ServerBossEvent compact;
 
     /** The stopwatches' boss bars shown now (a replay file starting now must be told they exist). */
     public static List<ServerBossEvent> bossBars() {
@@ -98,8 +102,8 @@ public final class Judging {
         ServerBossEvent e = new ServerBossEvent(UUID.randomUUID(), barName(player, 0, true), BossEvent.BossBarColor.GREEN,
                 BossEvent.BossBarOverlay.NOTCHED_10);
         e.setProgress(0f);
-        for (ServerPlayer p : server.getPlayerList().getPlayers()) e.addPlayer(p);
         BARS.put(player, new Bar(e));
+        refreshViewers(server);
         ServerPlayer runner = server.getPlayerList().getPlayerByName(player);
         if (runner != null) {
             Show.title(runner, Component.literal("Top départ !").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD), null, 2, 20, 8);
@@ -125,7 +129,8 @@ public final class Judging {
             bar.event.setColor(BossEvent.BossBarColor.YELLOW);
             bar.event.setProgress(1f);
             bar.removeAt = server.getTickCount() + 20 * 6;
-            if (quiet) for (ServerPlayer p : server.getPlayerList().getPlayers()) if (!toldPrivately(p, player)) bar.event.removePlayer(p);
+            bar.quiet = quiet;
+            refreshViewers(server);
         }
         ServerPlayer runner = server.getPlayerList().getPlayerByName(player);
         if (runner != null && ms >= 0)
@@ -140,6 +145,7 @@ public final class Judging {
             Stopwatch.SHARED.resetAll();
             BARS.values().forEach(b -> b.event.removeAllPlayers());
             BARS.clear();
+            if (compact != null) compact.removeAllPlayers();
             return;
         }
         String known = Stopwatch.SHARED.find(player);
@@ -153,9 +159,66 @@ public final class Judging {
                 .append(Component.literal(Stopwatch.format(ms)).withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD));
     }
 
+    /**
+     * Each bar shown to whom it is for ({@link ChronoBars}): a contestant their own (or none), the others every bar,
+     * every time on one line or none; a private result's time only to those who may know it.
+     */
+    public static void refreshViewers(MinecraftServer server) {
+        if (BARS.isEmpty()) {
+            if (compact != null) compact.removeAllPlayers();
+            return;
+        }
+        if (compact == null) {
+            compact = new ServerBossEvent(UUID.randomUUID(), Component.literal("⏱"), BossEvent.BossBarColor.WHITE, BossEvent.BossBarOverlay.PROGRESS);
+            compact.setProgress(0f);
+        }
+        java.util.Set<String> tablets = ChronoBars.withTablet();
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            String mode = ChronoBars.mode(p, tablets);
+            String self = contestant(p);
+            for (Map.Entry<String, Bar> e : BARS.entrySet()) {
+                Bar b = e.getValue();
+                boolean show = switch (mode) {
+                    case "tous" -> true;
+                    case "soi" -> self != null && self.equalsIgnoreCase(e.getKey()) || p.getGameProfile().name().equalsIgnoreCase(e.getKey());
+                    default -> false;
+                };
+                if (show && b.quiet && b.removeAt != Long.MAX_VALUE && !toldPrivately(p, e.getKey())) show = false;
+                if (show) b.event.addPlayer(p);
+                else b.event.removePlayer(p);
+            }
+            if ("compact".equals(mode)) compact.addPlayer(p);
+            else compact.removePlayer(p);
+        }
+        compactName(server, System.currentTimeMillis());
+    }
+
+    /** The one line: « ⏱ Neijul 3:12,4 · DeusVoult 2:58,0 ». */
+    private static void compactName(MinecraftServer server, long now) {
+        if (compact == null || compact.getPlayers().isEmpty()) return;
+        MutableComponent line = Component.literal("⏱ ").withStyle(ChatFormatting.GREEN);
+        boolean first = true;
+        for (Map.Entry<String, Bar> e : BARS.entrySet()) {
+            if (!first) line.append(Component.literal("  ·  ").withStyle(ChatFormatting.DARK_GRAY));
+            first = false;
+            long ms = Stopwatch.SHARED.peek(e.getKey(), now);
+            boolean running = ms >= 0;
+            if (!running) ms = Math.max(0, Stopwatch.SHARED.last(e.getKey()));
+            line.append(Component.literal(e.getKey() + " ").withStyle(running ? ChatFormatting.GREEN : ChatFormatting.GOLD));
+            // A private result stays hidden on the shared line
+            line.append(Component.literal(!running && e.getValue().quiet ? "—" : Stopwatch.format(ms)).withStyle(ChatFormatting.WHITE));
+        }
+        compact.setName(line);
+    }
+
     /** Called every tick: running bars show their time (tenths), finished ones go away after a few seconds. */
     public static void tick(MinecraftServer server) {
-        if (BARS.isEmpty()) return;
+        if (BARS.isEmpty()) {
+            if (compact != null && !compact.getPlayers().isEmpty()) compact.removeAllPlayers();
+            return;
+        }
+        if (server.getTickCount() % 10 == 0) refreshViewers(server);
+        else if (server.getTickCount() % 2 == 0) compactName(server, System.currentTimeMillis());
         long now = System.currentTimeMillis();
         BARS.entrySet().removeIf(e -> {
             Bar b = e.getValue();
@@ -182,18 +245,20 @@ public final class Judging {
             ServerBossEvent e = new ServerBossEvent(UUID.randomUUID(), barName(player, ms, true), BossEvent.BossBarColor.GREEN,
                     BossEvent.BossBarOverlay.NOTCHED_10);
             e.setProgress((ms % 60_000) / 60_000f);
-            for (ServerPlayer p : server.getPlayerList().getPlayers()) e.addPlayer(p);
             BARS.put(player, new Bar(e));
         }
+        refreshViewers(server);
     }
 
     public static void onJoin(ServerPlayer p) {
-        BARS.values().forEach(b -> b.event.addPlayer(p));
+        MinecraftServer server = p.level().getServer();
+        if (server != null) server.execute(() -> refreshViewers(server));
     }
 
     public static void reset() {
         BARS.values().forEach(b -> b.event.removeAllPlayers());
         BARS.clear();
+        if (compact != null) compact.removeAllPlayers();
         Stopwatch.SHARED.resetAll();
     }
 

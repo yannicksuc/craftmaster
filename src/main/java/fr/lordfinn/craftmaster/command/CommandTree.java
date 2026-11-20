@@ -141,6 +141,7 @@ public final class CommandTree {
         legacy("go", "craftMasterGo");
         legacy("spectateurs", "craftMasterSpectators", "cfsv");
         legacy("vocal", "craftMasterVocal", "cfvo");
+        legacy("chronos", "craftMasterChronos", "cfcb");
         // The old "/plateau" (stage points) is in the stage group now
         LEGACY_WORDS.put("plateau", Map.of("retirer", "retirerpoint"));
         for (String r : List.of("craftMasterAddTask", "cfat")) GONE.put(r.toLowerCase(Locale.ROOT), "/cm manche creer <nom>");
@@ -276,6 +277,7 @@ public final class CommandTree {
         // Watching a trial once done, the game master's voice
         graft(cm, "spectateurs", old.get("craftmasterspectators"), null);
         graft(cm, "vocal", old.get("craftmastervocal"), null);
+        graft(cm, "chronos", old.get("craftmasterchronos"), null);
 
         LiteralCommandNode<CommandSourceStack> stage = graft(cm, "plateau", old.get("craftmasterstage"), null);
         if (stage != null) {

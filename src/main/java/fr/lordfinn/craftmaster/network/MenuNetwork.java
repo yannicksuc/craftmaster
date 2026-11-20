@@ -89,6 +89,7 @@ public final class MenuNetwork {
         out.addProperty("admin", admin);
         out.addProperty("camera", Permissions.canDriveCameras(p));
         out.add("spectators", fr.lordfinn.craftmaster.show.Spectators.state(p));
+        out.add("chronos", fr.lordfinn.craftmaster.trial.ChronoBars.state(p));
         if (!admin) return out;
         JsonObject ctx = GSON.toJsonTree(ShowContext.build(p.level().getServer(), p)).getAsJsonObject();
         // Only the active season, without its score tables (the score entry screen has them)

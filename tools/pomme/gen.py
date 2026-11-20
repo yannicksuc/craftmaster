@@ -183,6 +183,8 @@ for e in sch['Entities']:
     if eid == 'minecraft:chicken':
         nb['PersistenceRequired'] = nbtlib.Byte(1); nb['EggLayTime'] = nbtlib.Int(999999)
     if 'Item' in nb: with_rules(nb['Item'])
+    # The paintings cannot be broken (« pond » hides the niche of the chest): only an organiser in creative can
+    if eid == 'minecraft:painting': nb['Invulnerable'] = nbtlib.Byte(1)
     tags = list(nb.get('Tags', [])) + ['pomme_e']
     nb['Tags'] = nbtlib.List[nbtlib.String](tags)
     ents.append("summon %s ~%.4f ~%.4f ~%.4f %s" % (eid, px, py, pz, snbt(nb)))
@@ -192,6 +194,7 @@ for dec in MODIFS.get('decor') or []:
     nb = nbtlib.parse_nbt(dec['nbt'])
     nb = nbtlib.Compound({k: v for k, v in nb.items() if k not in ENT_DROP})
     if 'Item' in nb: with_rules(nb['Item'])
+    if dec['id'] == 'minecraft:painting': nb['Invulnerable'] = nbtlib.Byte(1)
     nb['Tags'] = nbtlib.List[nbtlib.String](list(nb.get('Tags', [])) + ['pomme_e'])
     ents.append("summon %s ~%.4f ~%.4f ~%.4f %s" % ((dec['id'],) + tuple(dec['pos']) + (snbt(nb),)))
 
