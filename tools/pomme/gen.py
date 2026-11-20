@@ -23,6 +23,8 @@ OVERRIDE = {
     (27, 3, 17): "minecraft:stripped_spruce_log[axis=y]",       # bouton rouge, code de l'étagère, porte
     (38, 12, 31): "minecraft:beehive[facing=north,honey_level=0]",   # bouton du plafond : petit 10 s
     (36, 5, 16): "craftmaster:timer_tablet[pose=stand,rotation=2]",  # le minuteur posé par LordFinn dans sa salle (19/11)
+    # Deux fours parmi les hauts-fourneaux (20/11) : le sable caché ne cuit qu'au four (verre → fioles → miel → sucre)
+    (34, 5, 37): "minecraft:furnace[facing=north,lit=false]", (35, 5, 37): "minecraft:furnace[facing=north,lit=false]",
 }
 # Le minuteur de LordFinn (même aspect) : il montre le chrono du candidat de la salle, de sa lettre à sa pomme
 TIMER = {"Settings": nbtlib.String('{"mode":"STOPWATCH","format":"MINUTES","seconds":60,"label":"","showLabel":false,"color":"RED","warnSeconds":10,"warnColor":"RED","ghostSegments":true,"frame":"OAK","mat":"NONE","size":1,"pose":"STAND","tilt":15,"clickToggles":false,"redstone":"OFF","startOnRound":false,"stopOnRoundEnd":false,"stopWithTimer":false,"signalWhenDone":false,"endSound":"NONE","blinkWhenDone":false,"followContestant":true,"group":""}'),
@@ -65,8 +67,6 @@ RULES = {
     "sugar_cane":    ({"can_place_on": {"blocks": ["dirt", "grass_block", "coarse_dirt", "rooted_dirt", "moss_block", "mud"]}},
                       ["Accepte la poudre d'os", "Se plante sur la terre, au bord de l'eau"]),
     "cow_spawn_egg": ({"can_place_on": [{}]}, []),
-    # Le four qu'on fabrique avec les pierres cachées (pour cuire le sable : fioles, miel, sucre du gâteau)
-    "furnace":       ({"can_place_on": {"blocks": ["calcite", "polished_diorite"]}}, ["Se pose sur : calcite, diorite polie"]),
 }
 HIDE = {"hidden_components": ["minecraft:can_break", "minecraft:can_place_on"]}
 def rule_components(item):
@@ -97,10 +97,9 @@ be = {}
 for e in sch['Blocks']['BlockEntities']:
     if tuple(int(x) for x in e['Pos']) not in OVERRIDE: be[tuple(int(x) for x in e['Pos'])] = e['Data']
 # Objets ajoutés au schéma de LordFinn, cachés dans des tonneaux (20/11/2026) : le sucre du gâteau vient du miel
-# (fioles de verre ; le sable se cuit dans un four fait de pierres taillées, les hauts-fourneaux ne cuisent pas le sable)
+# (fioles de verre ; le sable se cuit dans les deux fours parmi les hauts-fourneaux, voir OVERRIDE)
 CACHETTES = {
     (29, 9, 13): [("sand", 1)], (33, 9, 13): [("sand", 1)], (39, 9, 13): [("sand", 1)],
-    (44, 3, 31): [("cobblestone", 3)], (45, 3, 31): [("cobblestone", 3)], (43, 4, 16): [("cobblestone", 2)],
 }
 DROP = {'id', 'x', 'y', 'z', 'keepPacked', 'PublicBukkitValues', 'Bukkit.MaxEntities'}
 def be_snbt(pos):
@@ -109,7 +108,7 @@ def be_snbt(pos):
     d = nbtlib.Compound({k: v for k, v in d.items() if k not in DROP and not k.startswith('Bukkit') and not k.startswith('Paper')})
     if 'Items' in d:
         for it in d['Items']: with_rules(it)
-    if pos in CACHETTES:     # 3 sables (verre → fioles → miel → sucre) et 8 pierres (le four), cachés parmi le reste
+    if pos in CACHETTES:     # 3 sables (verre → fioles → miel → sucre), cachés parmi la farine
         used = {int(it['Slot']) for it in d.get('Items', [])}
         items = d.setdefault('Items', nbtlib.List[nbtlib.Compound]())
         for iid, n in CACHETTES[pos]:
