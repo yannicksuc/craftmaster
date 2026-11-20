@@ -148,6 +148,8 @@ for e in sch['Entities']:
         ap = [float(x) for x in d['Pos']]
         px, py, pz = ap[0] - MIN[0], ap[1] - MIN[1], ap[2] - MIN[2]
     if eid == 'minecraft:item':
+        # Eggs lying in the schematic would look laid by the hens (which never lay here): left out
+        if str(d.get('Item', {}).get('id', '')).endswith('egg'): continue
         nb['Age'] = nbtlib.Short(-32768); nb['PickupDelay'] = nbtlib.Short(0)
     if eid == 'minecraft:chicken':
         nb['PersistenceRequired'] = nbtlib.Byte(1); nb['EggLayTime'] = nbtlib.Int(999999)

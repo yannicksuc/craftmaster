@@ -179,8 +179,11 @@ public class MainMenuScreen extends Screen {
                             + "candidats en place (" + str(a, "mode") + ", kit), enveloppes", () -> MenuClient.command("epreuve lancer " + q(manche)));
                 }
                 b.button("Suite", "L'étape suivante de l'épreuve en cours (révélation, vocal commun, chrono…)", () -> MenuClient.command("epreuve suite"));
-                b.shift("Terminer", "Maj+clic : fin de la manche, candidats revenus à leur place d'avant, copies remises à neuf",
+                b.shift("Terminer", "Maj+clic : fin de la manche ; personne ne bouge, le choix (replay ou plateau) arrive dans le chat",
                         () -> MenuClient.command("epreuve terminer"));
+                b.button("Replay", "Revoir la zone de la manche qui vient de finir (pour toi seul)", () -> MenuClient.command("replay revoir zone"));
+                b.shift("Plateau", "Maj+clic : tout le monde à sa place d'avant l'épreuve, mode de jeu remis, copies nettoyées",
+                        () -> MenuClient.command("epreuve plateau"));
             });
         }
         r.row(Component.literal("Outils"), b -> {

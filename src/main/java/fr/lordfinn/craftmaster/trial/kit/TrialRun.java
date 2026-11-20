@@ -121,7 +121,13 @@ public final class TrialRun {
 
     public static void register() {
         load();
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(TrialRun::choiceTick);
         ShowEvents.register(new ShowEvents.Listener() {
+            @Override
+            public void onMancheEnded(MinecraftServer server, String name) {
+                roundEnded(server, name);
+            }
+
             @Override
             public void onEnvelopeOpened(MinecraftServer server, ServerPlayer player, int season, String mancheId) {
                 // Opened (and maybe torn): never sent again
@@ -627,13 +633,82 @@ public final class TrialRun {
 
     // ---------------------------------------------------------------- terminer
 
-    /** {@code /cm epreuve terminer}: the round ends, everyone back where they stood, copies rebuilt. */
+    /**
+     * {@code /cm epreuve terminer}: the round ends, nobody moves; the organisers choose then (chat, menu, Stream Deck):
+     * see its replay ({@code /cm replay revoir}) or go back to the stage ({@code /cm epreuve plateau}).
+     */
     public static ActionExecutor.Result finish(MinecraftServer server) {
-        List<String> lines = new ArrayList<>();
         Manche m = fr.lordfinn.craftmaster.trial.Judging.currentManche();
-        String mancheId = m != null ? m.id : state.manche;
-        if (mancheId == null) return new ActionExecutor.Result(List.of("Aucune épreuve en cours."), false);
-        if (m != null) lines.addAll(ActionExecutor.execute(server, List.of(Map.of("type", "manche.end"))).lines());
+        if (m == null) return new ActionExecutor.Result(List.of(state.back.isEmpty() ? "Aucune épreuve en cours."
+                : "La manche est déjà finie : /cm epreuve plateau pour ramener tout le monde."), false);
+        List<String> lines = new ArrayList<>(ActionExecutor.execute(server, List.of(Map.of("type", "manche.end"))).lines());
+        lines.add("Les candidats restent où ils sont : le choix (replay ou retour au plateau) arrive dans le chat.");
+        return new ActionExecutor.Result(lines, true);
+    }
+
+    // ---------------------------------------------------------------- the choice at the end of a round
+
+    /** A round just ended: its choice goes out when its replay is saved (or after a moment without one). */
+    private static long choiceAt = -1;
+    private static String choiceManche = "";
+
+    private static void roundEnded(MinecraftServer server, String name) {
+        choiceManche = name;
+        choiceAt = server.getTickCount() + 40;
+    }
+
+    /** The round's recording just stopped ({@code Replays.stop}): the choice now, with the replay's views. */
+    public static void replayFinished(MinecraftServer server) {
+        if (choiceAt >= 0) sendChoice(server);
+    }
+
+    private static void choiceTick(MinecraftServer server) {
+        if (choiceAt >= 0 && server.getTickCount() >= choiceAt) sendChoice(server);
+    }
+
+    private static Component button(String text, String command, String hover, ChatFormatting color) {
+        return Component.literal(text).withStyle(st -> st.withColor(color)
+                .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand(command))
+                .withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(Component.literal(hover))));
+    }
+
+    /** « ▶ Revoir le replay : [zone] [Ensuri]… » and « ⌂ Revenir au plateau », to the organisers. */
+    private static void sendChoice(MinecraftServer server) {
+        choiceAt = -1;
+        fr.lordfinn.craftmaster.replay.Replays.Finished replay = fr.lordfinn.craftmaster.replay.Replays.lastFinished();
+        Component head = Component.literal("— Fin de « " + choiceManche + " » : à toi de choisir —").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
+        net.minecraft.network.chat.MutableComponent see = Component.literal("▶ Revoir le replay : ").withStyle(ChatFormatting.AQUA);
+        boolean fresh = replay != null && replay.label().contains("« " + choiceManche + " »");
+        if (fresh) {
+            for (String v : replay.views())
+                see.append(button("[" + v + "]", "/cm replay revoir " + v, "Rejouer " + (v.equals("zone") ? "la zone de l'épreuve" : "la vue de " + v)
+                        + " (pour toi seul)", ChatFormatting.AQUA)).append(" ");
+        } else see.append(Component.literal("pas d'enregistrement de cette manche").withStyle(ChatFormatting.GRAY));
+        boolean back = !state.back.isEmpty();
+        Component home = back ? Component.literal("⌂ ").withStyle(ChatFormatting.GREEN)
+                .append(button("[Revenir au plateau]", "/cm epreuve plateau", "Tout le monde à sa place d'avant l'épreuve, mode de jeu remis, copies nettoyées",
+                        ChatFormatting.GREEN)) : null;
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            if (!Permissions.isAdmin(p)) continue;
+            p.sendSystemMessage(head);
+            p.sendSystemMessage(see);
+            if (home != null) p.sendSystemMessage(home);
+        }
+        CraftMaster.LOG.info("[Épreuve] Fin de « {} » : choix proposé (replay {}, plateau {})", choiceManche, fresh ? replay.views() : "aucun", back);
+    }
+
+
+    /**
+     * {@code /cm epreuve plateau}: back from the trial — everyone where they stood before it, their game mode back,
+     * the common voice closed, the copies rebuilt for the next time.
+     */
+    public static ActionExecutor.Result backToStage(MinecraftServer server) {
+        List<String> lines = new ArrayList<>();
+        Manche running = fr.lordfinn.craftmaster.trial.Judging.currentManche();
+        if (running != null && running.id.equals(state.manche))
+            return new ActionExecutor.Result(List.of("« " + running.name + " » est encore en cours : /cm epreuve terminer d'abord."), false);
+        String mancheId = state.manche;
+        if (mancheId == null && state.back.isEmpty()) return new ActionExecutor.Result(List.of("Personne à ramener : aucune épreuve terminée."), false);
         List<Arena> arenas = arenas(mancheId);
         int moved = 0;
         for (Map.Entry<String, Back> e : new ArrayList<>(state.back.entrySet())) {
@@ -656,7 +731,7 @@ public final class TrialRun {
         LaunchGate.cancel();
         LaunchGate.release(server);
         prepared = null;
-        lines.add(moved + " candidat(s) revenu(s) à leur place d'avant l'épreuve.");
+        lines.add("⌂ " + moved + " candidat(s) revenu(s) au plateau (leur place d'avant l'épreuve).");
         for (Arena a : arenas)
             if (!a.copies.isEmpty()) lines.add("« " + a.name + " » : " + Arenas.rebuild(server, a) + " copie(s) remise(s) à neuf.");
         state.manche = null;
@@ -694,7 +769,9 @@ public final class TrialRun {
                 .executes(c -> say(c, next(c.getSource().getServer())));
         LiteralArgumentBuilder<CommandSourceStack> end = Commands.literal("terminer").requires(Permissions.ADMIN)
                 .executes(c -> say(c, finish(c.getSource().getServer())));
-        return List.of(launch.build(), next.build(), end.build());
+        LiteralArgumentBuilder<CommandSourceStack> home = Commands.literal("plateau").requires(Permissions.ADMIN)
+                .executes(c -> say(c, backToStage(c.getSource().getServer())));
+        return List.of(launch.build(), next.build(), end.build(), home.build());
     }
 
     /** {@code /cm manche enveloppes <manche> auto|manuel}. */

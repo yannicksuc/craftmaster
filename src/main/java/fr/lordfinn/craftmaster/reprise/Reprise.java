@@ -275,6 +275,8 @@ public final class Reprise {
         if (weFroze) server.tickRateManager().setFrozen(false);
         weFroze = false;
         Show.resumeTimer(server);
+        // The round's recording again (a new part if the restart left it empty)
+        fr.lordfinn.craftmaster.replay.Replays.onResume(server);
         Stopwatch.SHARED.thaw(now);
         Buzzers.LOCK.thaw(now);
         for (ClockBlockEntity t : serverTablets()) {

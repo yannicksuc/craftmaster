@@ -211,8 +211,11 @@ Réglages : `config/craftmaster/replays.json`.
   studio pendant une manche dehors) ne voit que le ciel. Agrandir la zone : `/cm replay marge`.
 - **Revenir en arrière** en ReplayMod recharge le fichier (2 à 4 s, l'écran de chargement passe à l'image) : le
   lecteur de Server Replay repart du début. En Flashback, c'est instantané.
-- Après un arrêt brutal, la manche est toujours « en cours » au redémarrage : un enregistrement repart dès que le
-  serveur est lancé (le gel du show après un crash est un chantier à part).
+- Après un redémarrage en pleine manche, la manche est toujours « en cours » : un enregistrement repart dès que le
+  serveur est lancé. Une manche jouée dans des **arènes** est filmée sur ses arènes (référence et copies) même si
+  personne n'est encore revenu ; à la reprise (`/cm reprise reprendre`, « Forcer la reprise »), un enregistrement resté
+  vide est refermé et la manche repart en **partie 2** (3…), liée à la précédente dans l'index (`part`, `follows`),
+  avec les fichiers des candidats revenus.
 - Le lecteur retire le joueur de la liste du serveur pendant la lecture : un serveur où il est seul se croit vide
   (« Server empty… pausing » au bout d'une minute) ; la lecture et la barre continuent quand même.
 - Server Replay ne garde dans la zone que ce que le serveur envoie à tout le monde : barres de boss propres à un

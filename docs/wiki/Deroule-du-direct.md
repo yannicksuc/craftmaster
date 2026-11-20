@@ -7,7 +7,9 @@ menu **N** (onglet Épreuves, ligne « Direct ») ou en commande :
 |---|---|---|
 | **Lancer** | `/cm epreuve lancer <manche>` | Voir ci-dessous : tout est en place en une fois |
 | **Suite** | `/cm epreuve suite` | L'étape suivante de l'épreuve (révélation, vocal commun, chrono…) |
-| **Terminer** | `/cm epreuve terminer` | Fin de la manche, chacun revient à sa place, copies remises à neuf |
+| **Terminer** | `/cm epreuve terminer` | Fin de la manche ; personne ne bouge, le choix arrive dans le chat |
+| **Revoir le replay** | `/cm replay revoir [zone\|<candidat>]` | La manche qui vient de finir, pour celui qui clique |
+| **Revenir au plateau** | `/cm epreuve plateau` | Chacun revient à sa place, mode de jeu remis, copies remises à neuf |
 
 ## Lancer
 `/cm epreuve lancer la-pomme` (ou la touche « Lancer pomme ») fait, dans l'ordre :
@@ -66,10 +68,19 @@ Sans réglage : une seule étape, `revele`. Réglages des épreuves de la saison
 - **Le village** : `vocal revele chrono:600` — fin des 5 minutes : Suite (vocal commun, tu annonces) ; Suite (la
   lettre se complète) ; Suite (10 minutes, vocal fermé).
 
-## Terminer
-`/cm epreuve terminer` (touche « Terminer » à confirmer : deux appuis) : fin de la manche, chaque candidat **revient
-où il était avant le lancement** (dimension, place, mode de jeu ; inventaire vidé si l'arène vide l'inventaire),
-vocal commun fermé, copies **remises à neuf** pour la prochaine fois. La feuille de résultats et les scores ne bougent
+## Terminer, puis choisir
+`/cm epreuve terminer` (touche « Terminer » à confirmer : deux appuis) : **fin de la manche, rien d'autre** — personne
+n'est déplacé, rien ne se lance tout seul. Dès que l'enregistrement de la manche est sauvegardé (ou quelques secondes
+après, s'il n'y en a pas), les organisateurs reçoivent dans le chat :
+- **▶ Revoir le replay : [zone] [Ensuri] [Kamel]…** : la zone de l'épreuve, ou la vue d'un candidat, rejouée pour
+  celui qui clique seulement (`/cm replay revoir zone|<candidat>`). Si les fichiers s'écrivent encore, le replay le
+  dit et s'ouvre tout seul dès qu'ils sont prêts.
+- **⌂ [Revenir au plateau]** (`/cm epreuve plateau`) : chaque candidat **revient où il était avant le lancement**
+  (dimension, place, mode de jeu ; inventaire vidé si l'arène vide l'inventaire), vocal commun fermé, copies **remises
+  à neuf** pour la prochaine fois.
+
+Le même choix arrive quand la manche finit autrement (`/cm manche fin`, la voix, le chrono). Menu N, ligne « Direct » :
+« Replay » (la zone) et « Plateau » (Maj+clic) ; Stream Deck, page Épreuves : « Revoir replay » et « Plateau ». La feuille de résultats et les scores ne bougent
 pas : publier reste la touche « Publier ».
 
 ## Candidats qui arrivent en retard

@@ -124,6 +124,13 @@ public final class ReplayCommands {
                     Replays.save();
                     return say(c, "Marge autour de la zone : " + Replays.settings().margin + " chunk(s).");
                 })))
+                // The round that just ended (the end-of-trial choice, menu N, Stream Deck), for whoever asks
+                .then(literal("revoir").executes(c -> rewatch(c, null))
+                        .then(argument("vue", StringArgumentType.greedyString()).suggests((c, b) -> {
+                            Replays.Finished f = Replays.lastFinished();
+                            if (f != null) f.views().forEach(b::suggest);
+                            return b.buildFuture();
+                        }).executes(c -> rewatch(c, StringArgumentType.getString(c, "vue")))))
                 .then(literal("voir").executes(ReplayCommands::list)
                         .then(argument("n", IntegerArgumentType.integer(1)).executes(c -> watch(c, null))
                                 .then(argument("vue", StringArgumentType.greedyString()).executes(c -> watch(c, StringArgumentType.getString(c, "vue"))))))
@@ -135,6 +142,37 @@ public final class ReplayCommands {
                 .then(literal("drapeau").executes(c -> say(c, ReplayMoments.flag(c.getSource().getPlayer(), null)))
                         .then(argument("texte", StringArgumentType.greedyString()).executes(c ->
                                 say(c, ReplayMoments.flag(c.getSource().getPlayer(), StringArgumentType.getString(c, "texte"))))));
+    }
+
+    /**
+     * {@code /cm replay revoir [vue]}: the last round's recording (its zone, or a contestant's view) for the player who
+     * asks; while its files are still being written, it opens by itself as soon as they are.
+     */
+    private static int rewatch(CommandContext<CommandSourceStack> c, String view) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        net.minecraft.server.level.ServerPlayer p = c.getSource().getPlayerOrException();
+        Replays.Finished f = Replays.lastFinished();
+        if (f == null) return say(c, "Pas encore de replay d'une manche terminée.");
+        if (!f.saved().isDone()) {
+            say(c, "⏳ Le replay de " + f.label() + " finit de s'écrire : il s'ouvre dès qu'il est prêt.");
+            var server = c.getSource().getServer();
+            java.util.UUID id = p.getUUID();
+            f.saved().whenComplete((v, e) -> server.execute(() -> {
+                net.minecraft.server.level.ServerPlayer again = server.getPlayerList().getPlayer(id);
+                if (again != null) again.sendSystemMessage(Component.literal(openFinished(again, f, view)).withStyle(ChatFormatting.AQUA));
+            }));
+            return 1;
+        }
+        String msg = openFinished(p, f, view);
+        c.getSource().sendSuccess(() -> Component.literal(msg).withStyle(msg.startsWith("Replay :") ? ChatFormatting.GREEN : ChatFormatting.RED), false);
+        return 1;
+    }
+
+    /** Opens that recording (found again in the index by its name and start) for {@code p}. */
+    private static String openFinished(net.minecraft.server.level.ServerPlayer p, Replays.Finished f, String view) {
+        List<ReplayViewing.Entry> all = ReplayViewing.entries();
+        for (int i = 0; i < all.size(); i++)
+            if (all.get(i).label().equals(f.label()) && all.get(i).started().equals(f.started())) return ReplayViewing.watch(p, i + 1, view);
+        return "Le replay de " + f.label() + " n'est pas (encore) dans l'index.";
     }
 
     private static int watch(CommandContext<CommandSourceStack> c, String view) throws com.mojang.brigadier.exceptions.CommandSyntaxException {

@@ -29,7 +29,7 @@ import java.util.Locale;
  * hold NAME seconds              the key reads as held down ({@link #held}) for that long (pressed once too)
  * quit                           closes the game (stops a test client cleanly)
  * screenshot                     saves the picture to screenshots/ like F2 (any screen, no world needed)
- * rec SECONDS [TICKS]            a screenshot every TICKS ticks (2) for SECONDS: a transition frame by frame
+ * rec SECONDS [TICKS|Nms]        the finished frame every TICKS ticks (2) or N ms for SECONDS, in rec/<ms>.png
  * hover x y                      screens that follow the mouse read this position instead ("hover" alone: the real one)
  * slowmo factor                  animations that ask {@link #timeScale} run this many times slower (1 = normal)
  * chat TEXT                     opens the chat with TEXT typed (spaces as _): the command suggestions show
@@ -66,18 +66,32 @@ public final class DevInput {
     }
 
     private static int recTicks, recEvery = 2;
-    private static long lastGrab;
+    private static long lastGrab, recEveryMs = 100;
+
+    /** Writers of the "rec" frames (PNG encoding off the render thread). */
+    private static java.util.concurrent.ExecutorService recWriters;
 
     /**
-     * "rec": a screenshot of the finished frame (world, effects and interface: what the window shows) every
-     * {@code recEvery} ticks' worth of time, from the end of {@code GameRenderer.render}.
+     * "rec": the finished frame (world, effects and interface: what the window shows) every {@code recEvery} ticks'
+     * worth of time (or every N ms with "rec SECONDS Nms"), from the end of {@code GameRenderer.render}, written as
+     * {@code <run dir>/rec/<milliseconds>.png} (silently: the time of each frame is in its name, for a video).
      */
     public static void afterFrame() {
         if (recTicks <= 0) return;
         long now = System.currentTimeMillis();
-        if (now - lastGrab < recEvery * 50L) return;
+        if (now - lastGrab < recEveryMs) return;
         lastGrab = now;
-        net.minecraft.client.Screenshot.grab(net.minecraft.client.Minecraft.getInstance(), false);
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        java.nio.file.Path dir = FabricLoader.getInstance().getGameDir().resolve("rec");
+        if (recWriters == null) recWriters = java.util.concurrent.Executors.newFixedThreadPool(6);
+        net.minecraft.client.Screenshot.takeScreenshot(mc.gameRenderer.mainRenderTarget(), img -> recWriters.execute(() -> {
+            try (img) {
+                Files.createDirectories(dir);
+                img.writeToFile(dir.resolve(now + ".png"));
+            } catch (Exception e) {
+                CraftMaster.LOG.warn("[DevInput] rec : {}", e.toString());
+            }
+        }));
     }
 
     public static void init() {
@@ -109,7 +123,8 @@ public final class DevInput {
                 }
                 if (line.strip().toLowerCase(Locale.ROOT).startsWith("rec ")) {
                     String[] r = line.strip().split("\s+");
-                    recEvery = r.length > 2 ? Math.max(1, Integer.parseInt(r[2])) : 2;
+                    recEvery = r.length > 2 && !r[2].endsWith("ms") ? Math.max(1, Integer.parseInt(r[2])) : 2;
+                    recEveryMs = r.length > 2 && r[2].endsWith("ms") ? Math.max(1, Integer.parseInt(r[2].replace("ms", ""))) : recEvery * 50L;
                     recTicks = (int) Math.round(Double.parseDouble(r[1]) * 20);
                     continue;
                 }

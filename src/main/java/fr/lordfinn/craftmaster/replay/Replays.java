@@ -163,6 +163,9 @@ public final class Replays {
         final long startedAt = System.currentTimeMillis();
         /** Every file of this recording, the stopped ones too (the index lists them all). */
         final List<Rec> recs = new ArrayList<>();
+        /** Its part (2, 3…: restarted after a server restart or a reprise) and the recording it follows. */
+        int part = 1;
+        String follows;
         /** Round running at the last tick (to mark its end in a game's file). */
         String lastManche;
         final JsonArray markers = new JsonArray();
@@ -429,7 +432,13 @@ public final class Replays {
         Manche m = parts.length > 2 ? p.manche(parts[2]) : null;
         int number = m == null ? 0 : p.number(m);
         String label = "saison " + seasonId + ", " + p.name + (m == null ? "" : ", manche " + number + " « " + m.name + " »");
+        // The same round recorded before (stopped by a restart, or emptied): this one is its next part
+        JsonObject before = lastOf(key);
+        int part = before == null ? 1 : (before.has("part") ? before.get("part").getAsInt() : 1) + 1;
+        if (part > 1) label += " (partie " + part + ")";
         Session ses = new Session(key, label, seasonId, partieId, number, m == null ? "" : m.id);
+        ses.part = part;
+        ses.follows = before == null ? null : before.get("id").getAsString();
         session = ses;
         try {
             if (settings.zone) startZones(server, ses, s, p, m);
@@ -493,9 +502,16 @@ public final class Replays {
             if (r != null) r.origin = new int[]{z.x0(), z.y0(), z.z0()};
         }
         if (!zones.isEmpty()) return;
-        // No zone given: one area around the round's cameras and teleport points (else its players)
+        // No zone given: one area around the round's arenas (reference and copies), cameras and teleport points (else
+        // its players): a round played in arenas is recorded even before anyone is back (server restart)
         List<ReplayArea.Box> boxes = new ArrayList<>();
         Vec3 camera = null;
+        for (Manche r : manches)
+            for (fr.lordfinn.craftmaster.trial.kit.Arena a : fr.lordfinn.craftmaster.trial.kit.TrialRun.arenas(r.id)) {
+                boxes.add(new ReplayArea.Box(a.world, a.x0, a.z0, a.x1, a.z1));
+                for (int[] o : a.copies.values()) boxes.add(new ReplayArea.Box(a.world, a.x0 + o[0], a.z0 + o[2], a.x1 + o[0], a.z1 + o[2]));
+                if (camera == null) camera = new Vec3((a.x0 + a.x1) / 2.0, a.y1 + 4, (a.z0 + a.z1) / 2.0);
+            }
         for (Manche r : manches) {
             for (CameraSpot c : Cameras.list().lieu(r.id).all()) {
                 boxes.add(ReplayArea.Box.point(c.world(), c.x(), c.z()));
@@ -630,18 +646,46 @@ public final class Replays {
                 ms / 1000, Math.round(ticksMs / 1000), Math.round(ticksMs - ms));
     }
 
+    /** The round recording that ended last: what « Revoir le replay » plays, and when its files are written. */
+    public record Finished(String label, java.time.Instant started, List<String> views, java.util.concurrent.CompletableFuture<Void> saved) {}
+
+    private static Finished lastFinished;
+
+    public static Finished lastFinished() {
+        return lastFinished;
+    }
+
+    /**
+     * The show resumes (/cm reprise): a recording left without any file (restarted while nobody was there and the
+     * round had no zone) is closed, and the next tick starts the round's recording again as its next part.
+     */
+    public static void onResume(MinecraftServer server) {
+        Session ses = session;
+        if (ses != null && ses.active().isEmpty()) stop(server, "reprise, enregistrement vide");
+        tick(server);
+    }
+
     private static void stop(MinecraftServer server, String why) {
         Session ses = session;
         if (ses == null) return;
         marker(ses.number > 0 ? "Fin de la manche" : "Fin de la partie", 0xF2C14E, ReplayMoments.ROUND, null);
         session = null;
+        List<java.util.concurrent.CompletableFuture<?>> saving = new ArrayList<>();
+        List<String> views = new ArrayList<>();
         for (Rec r : ses.active()) {
             // How far each file's clock went from the server's ticks since its start (lag makes ticks slower than time)
             if (server != null) logDrift(server, r);
-            ServerReplayBridge.stop(r.rec);
+            java.util.concurrent.CompletableFuture<?> f = ServerReplayBridge.stop(r.rec);
+            if (f != null) saving.add(f);
+            views.add(r.name);
             r.rec = null;
         }
         writeIndex(ses, false);
+        if (ses.number > 0 && !views.isEmpty()) {
+            lastFinished = new Finished(ses.label, java.time.Instant.ofEpochMilli(ses.startedAt), views,
+                    java.util.concurrent.CompletableFuture.allOf(saving.toArray(new java.util.concurrent.CompletableFuture[0])));
+            if (server != null) fr.lordfinn.craftmaster.trial.kit.TrialRun.replayFinished(server);
+        }
         if (server != null) ReplayDisk.autoPurge();
         CraftMaster.LOG.info("[Replay] Fin de l'enregistrement de {} ({}, {} s)", ses.label, why, Math.round(ses.seconds()));
         if (server != null) notifyAdmins(server, "● Replay : " + ses.label + " sauvegardé (" + Math.round(ses.seconds()) + " s).");
@@ -772,6 +816,11 @@ public final class Replays {
             o.addProperty("mancheId", ses.mancheId);
             o.addProperty("started", java.time.Instant.ofEpochMilli(ses.startedAt).toString());
             o.addProperty("seconds", Math.round(ses.seconds()));
+            o.addProperty("key", ses.key);
+            if (ses.part > 1) {
+                o.addProperty("part", ses.part);
+                if (ses.follows != null) o.addProperty("follows", ses.follows);
+            }
             if (inProgress) o.addProperty("inProgress", true);
             JsonArray zones = new JsonArray(), players = new JsonArray();
             for (Rec r : ses.recs) {
@@ -868,6 +917,21 @@ public final class Replays {
     /** {@code <recordings>/craftmaster.json}: Server Replay's folders' parent. */
     static Path indexFile() {
         return ServerReplayBridge.chunkFolder().toAbsolutePath().normalize().getParent().resolve("craftmaster.json");
+    }
+
+    /** The newest index entry of this recording key (an earlier part of the same round), or null. */
+    private static JsonObject lastOf(String key) {
+        try {
+            JsonArray all = readIndex(indexFile());
+            for (int i = all.size() - 1; i >= 0; i--) {
+                JsonObject o = all.get(i).getAsJsonObject();
+                String id = o.has("id") ? o.get("id").getAsString() : "";
+                if (id.startsWith(key + "@")) return o;
+            }
+        } catch (Exception e) {
+            CraftMaster.LOG.warn("[Replay] Index illisible : {}", e.toString());
+        }
+        return null;
     }
 
     public static List<String> status() {
