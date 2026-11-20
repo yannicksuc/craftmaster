@@ -204,8 +204,16 @@ public final class Arenas {
         return rebuild(server, a, null);
     }
 
+    /**
+     * The same after a round (« Revenir au plateau »): the drawings just made stay where they are, for the jury on
+     * the set; they are archived at the trial's next launch or by an explicit reset.
+     */
+    public static int rebuildKeepingDrawings(MinecraftServer server, Arena a) {
+        return rebuild(server, a, null, true);
+    }
+
     /** A rebuild waiting for the entities of its chunks (the copies far out are not always loaded). */
-    private record Waiting(String arena, java.util.Collection<String> only, List<net.minecraft.world.level.ChunkPos> chunks, int since) {}
+    private record Waiting(String arena, java.util.Collection<String> only, List<net.minecraft.world.level.ChunkPos> chunks, int since, boolean keepDrawings) {}
 
     private static final List<Waiting> WAITING = new ArrayList<>();
     private static boolean ticking;
@@ -218,13 +226,17 @@ public final class Arenas {
      * are told when it is done; it then returns the number of copies it will rebuild.
      */
     public static int rebuild(MinecraftServer server, Arena a, java.util.Collection<String> only) {
+        return rebuild(server, a, only, false);
+    }
+
+    private static int rebuild(MinecraftServer server, Arena a, java.util.Collection<String> only, boolean keepDrawings) {
         ServerLevel level = level(server, a);
         List<net.minecraft.world.level.ChunkPos> chunks = chunks(a, only);
         boolean ready = true;
         for (net.minecraft.world.level.ChunkPos c : chunks) if (!level.areEntitiesLoaded(c.pack())) ready = false;
-        if (ready) return rebuildNow(server, a, only);
+        if (ready) return rebuildNow(server, a, only, keepDrawings);
         for (net.minecraft.world.level.ChunkPos c : chunks) level.getChunkSource().addTicketWithRadius(LaunchGate.TICKET, c, 0);
-        WAITING.add(new Waiting(a.name, only, chunks, server.getTickCount()));
+        WAITING.add(new Waiting(a.name, only, chunks, server.getTickCount(), keepDrawings));
         if (!ticking) {
             ticking = true;
             net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(Arenas::waiting);
@@ -246,7 +258,7 @@ public final class Arenas {
             if (!ready && !late) continue;
             WAITING.remove(w);
             if (a == null || level == null) continue;
-            int n = rebuildNow(server, a, w.only());
+            int n = rebuildNow(server, a, w.only(), w.keepDrawings());
             for (net.minecraft.world.level.ChunkPos c : w.chunks()) level.getChunkSource().removeTicketWithRadius(LaunchGate.TICKET, c, 0);
             Finish.tellOrganisers(server, null, net.minecraft.network.chat.Component.literal("« " + a.name + " » : " + n + " copie(s) remise(s) à neuf"
                     + (late ? " (chargement lent : faite sans attendre plus)" : "") + ".").withStyle(net.minecraft.ChatFormatting.GRAY), null);
@@ -268,7 +280,7 @@ public final class Arenas {
     }
 
     /** The copies built now (their entities known to be loaded, or waited for long enough). */
-    private static int rebuildNow(MinecraftServer server, Arena a, java.util.Collection<String> only) {
+    private static int rebuildNow(MinecraftServer server, Arena a, java.util.Collection<String> only, boolean keepDrawings) {
         ServerLevel level = level(server, a);
         StructureTemplate t = new StructureTemplate();
         t.fillFromWorld(level, a.min(), new net.minecraft.core.Vec3i(a.sizeX(), a.sizeY(), a.sizeZ()), true, List.of(Blocks.STRUCTURE_VOID));
@@ -295,7 +307,7 @@ public final class Arenas {
         if (only != null) return n;
         Pickups.forget(a.name);
         Drawing.forget(a.name);
-        DrawingImages.clear(a.name);
+        if (!keepDrawings) DrawingImages.clear(a.name);
         GroundEnd.forget();
         Finish.reset();
         return n;

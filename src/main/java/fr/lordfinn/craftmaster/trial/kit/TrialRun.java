@@ -789,7 +789,8 @@ public final class TrialRun {
         prepared = null;
         lines.add("⌂ " + moved + " candidat(s) revenu(s) au plateau (leur place d'avant l'épreuve).");
         for (Arena a : arenas)
-            if (!a.copies.isEmpty()) lines.add("« " + a.name + " » : " + Arenas.rebuild(server, a) + " copie(s) remise(s) à neuf.");
+            if (!a.copies.isEmpty()) lines.add("« " + a.name + " » : " + Arenas.rebuildKeepingDrawings(server, a) + " copie(s) remise(s) à neuf"
+                    + (a.field != null ? " (les dessins restent pour le jury)." : "."));
         state.manche = null;
         state.step = 0;
         save();

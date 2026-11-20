@@ -108,13 +108,23 @@ public final class DrawingImages {
     }
 
     /** The arena is played again: its pictures go away. */
+    /**
+     * The arena's pictures put aside for a new game: moved to {@code dessins/archives/<arena>/<date_heure>/} (to see
+     * them again later), not deleted.
+     */
     static void clear(String arena) {
         Path d = dir(arena);
         if (!Files.isDirectory(d)) return;
         try (var files = Files.list(d)) {
-            for (Path f : files.toList()) if (f.getFileName().toString().endsWith(".png")) Files.deleteIfExists(f);
+            List<Path> pngs = files.filter(f -> f.getFileName().toString().endsWith(".png")).toList();
+            if (pngs.isEmpty()) return;
+            String when = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+            Path to = dir(arena).getParent().resolve("archives").resolve(safe(arena)).resolve(when);
+            Files.createDirectories(to);
+            for (Path f : pngs) Files.move(f, to.resolve(f.getFileName()), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            CraftMaster.LOG.info("[Dessins] {} dessin(s) de « {} » archivé(s) dans {}", pngs.size(), arena, to);
         } catch (Exception e) {
-            CraftMaster.LOG.warn("[Dessins] {} : effacement impossible", d, e);
+            CraftMaster.LOG.warn("[Dessins] {} : archivage impossible", d, e);
         }
     }
 
