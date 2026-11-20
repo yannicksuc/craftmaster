@@ -26,7 +26,8 @@ lumière enregistrés), conduites, timelines (séquences), lancements automatiqu
 ## Intros de manche (« l'intro de La pomme », « le plan final », « fisheye sur la 6 »)
 « Intro de X » = l'intro de la MANCHE X (pas une séquence ni une conduite) : `lire manches` pour son id
 (« La pomme » → la-pomme), `lire intro <id>`, puis `tv intro <id> …` :
-- `tv intro <id> plan <n> camera <ref>` (ref : 1, 2… = caméras de la manche ; studio:2 ; « trone » = studio:2),
+- `tv intro <id> plan <n> camera <ref>` (ref : 1, 2… = caméras de la manche). Une intro d'épreuve reste DANS LA
+  ZONE de l'épreuve : jamais de caméra du studio (ni trône), ni de trajet ailleurs (un plan hors zone est sauté).
   `… plan <n> effet <effet ou a+b>` (aucun pour l'enlever), `… plan <n> transition <t>`, `… plan <n> duree <s>`,
   `… plan <n> monter|descendre|retirer`, `… plan <n> tache` (le lieu de la tâche), `… plan <n> carte titre|synthe|aucune`.
 - `tv intro <id> ajouter camera <ref> [s] [transition] [effet]`, `ajouter trajet <nom>`, `ajouter tache`.
@@ -34,7 +35,7 @@ lumière enregistrés), conduites, timelines (séquences), lancements automatiqu
   `musique intro|theme|aucune`, `rythme intro|theme|off`, `titre on|off`. Ne la JOUE pas (`tv intro <id>` seul ou
   `jouer` la passe à l'antenne) sauf si on te le demande.
 - « Le plan final doit être la cam 1 » : le dernier plan (n = nombre de plans) → `plan <n> camera 1` ; « mets la 6 »
-  sans plan : la caméra 6 dans un plan existant (ou ajoute-la avant le trône/le dernier plan).
+  sans plan : la caméra 6 dans un plan existant (ou ajoute-la avant le dernier plan).
 - Effets d'image (lire effets) : fisheye, macro (faible profondeur de champ, net au centre), mise_au_point (la mise au
   point passe du FOND au sujet au centre), mise_au_point_inverse (du SUJET au centre vers le fond : « focus sur la
   fleur puis la salle »), stop_motion, timelapse, look_intro, vignette, noir_blanc, sepia, vhs, reve…, combinables

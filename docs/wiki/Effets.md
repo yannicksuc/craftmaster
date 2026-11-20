@@ -76,7 +76,11 @@ look_intro`), puis un traitement par plan (`/cm tv intro <m> plan 3 effet macro`
 | Commande | `/cm fx diffusion noir_blanc` · `/cm fx diffusion judas 20` (20 secondes) · `/cm fx diffusion aucun` |
 | Voix | « passe la diffusion en noir et blanc », « effet judas sur le stream », « enlève les effets » |
 
-Tous les jeux en mode diffusion (F8) montrent l'effet. Il reste jusqu'au prochain ordre (ou la durée donnée), et un
+Tous les jeux en mode diffusion (F8) montrent l'effet, et aussi **tout joueur qui a le flux de l'émission à
+l'écran** : avec sa touche (F7), ou imposé pendant une intro, le générique ou la révélation. Pendant une intro,
+chacun voit donc les effets de chaque plan (macro, mise au point, fish-eye, look intro…) sans rien porter ; sur le
+flux, les lunettes portées ne comptent pas (c'est l'image de l'émission). Ça marche aussi avec les shaders (Iris,
+Complementary Reimagined) : les effets se posent sur l'image, la profondeur de champ lit la profondeur du monde. Il reste jusqu'au prochain ordre (ou la durée donnée), et un
 jeu de diffusion qui se reconnecte le retrouve. La commande demande d'être organisateur ou d'avoir la permission
 `craftmaster:camera` (comme les caméras).
 

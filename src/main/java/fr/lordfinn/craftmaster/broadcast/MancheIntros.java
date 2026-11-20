@@ -202,6 +202,13 @@ public final class MancheIntros {
         // The first shot comes out of whatever was on air: a dip to black reads better than a dissolve
         if (index == 0 && s.transition().isEmpty()) transition = fromBlack ? BroadcastNetwork.CUT : BroadcastNetwork.FADE;
         String effect = BroadcastActions.effectId(shotEffect);
+        // A trial's intro stays where its players arrive: a shot elsewhere is skipped (the one before stays on air),
+        // nothing far is loaded then unloaded while the round starts
+        String away = IntroZone.check(m, s);
+        if (!away.isEmpty()) {
+            problems.add("plan " + (index + 1) + " (" + s.ref() + ") sauté : " + away);
+            return null;
+        }
         switch (s.kind()) {
             case MancheIntro.PATH -> {
                 CameraPath p = CameraPaths.get(s.ref());

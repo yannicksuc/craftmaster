@@ -103,26 +103,25 @@ class MancheIntroTest {
 
     @Test
     void autoBuildFillsTheIntroMusic() {
-        MancheIntro full = MancheIntro.autoBuild("pont:1", List.of("pont:2", "pont:3", "pont:4", "pont:5", "pont:6"), "studio:4");
+        MancheIntro full = MancheIntro.autoBuild("pont:1", List.of("pont:2", "pont:3", "pont:4", "pont:5", "pont:6"));
         assertTrue(full.auto);
         assertTrue(full.chained);
         assertEquals(MancheIntro.INTRO_MUSIC, full.music);
         assertEquals(MancheIntro.INTRO_BPM, full.bpm);
         assertEquals("look_intro", full.look);
-        // Ambiance, 4 inserts, the throne on the dark hit, the task location on the final chord: 7 shots, 20 beats
-        assertEquals(7, full.shots.size());
+        // Ambiance, 4 inserts, the task location on the final chord (no studio camera): 6 shots, 20 beats
+        assertEquals(6, full.shots.size());
         assertEquals(MancheIntro.INTRO_MUSIC_SECONDS, full.duration(n -> 0), 1e-9);
         assertEquals("pont:1", full.shots.getFirst().ref());
         assertEquals("timelapse", full.shots.getFirst().effect());
         assertEquals("miroir", full.shots.getFirst().transition());
-        assertEquals("studio:4", full.shots.get(5).ref());
+        assertTrue(full.shots.stream().noneMatch(s -> s.ref().startsWith("studio")));
         List<MancheIntro.Timed> times = full.timeline(n -> 0);
-        assertEquals(7.5, times.get(5).start(), 1e-9, "the throne on the last beat of bar 4 (its dark hit)");
-        assertEquals(MancheIntro.INTRO_CHORD_SECONDS, times.get(6).start(), 1e-9, "the task location on the final chord");
+        assertEquals(MancheIntro.INTRO_CHORD_SECONDS, times.get(5).start(), 1e-9, "the task location on the final chord");
         assertEquals(2.0, times.get(1).start(), 1e-9, "one motif per bar");
         MancheIntro.Shot last = full.shots.getLast();
         assertEquals(MancheIntro.TASK, last.kind());
-        assertEquals("flash", last.transition());
+        assertEquals("fondu", last.transition());
         // The task location is the longest shot, there is a focus pull, and the look goes on every shot
         List<MancheIntro.Timed> tl = full.timeline(n -> 0);
         for (MancheIntro.Timed t : tl) assertTrue(t.length() <= tl.getLast().length() + 1e-9);
@@ -131,12 +130,12 @@ class MancheIntroTest {
         assertEquals(-1, full.autoCardShot(), "no title card over the task location");
 
         // Nothing in the lieu, no throne: only the task location, for the whole music
-        MancheIntro bare = MancheIntro.autoBuild(null, List.of(), null);
+        MancheIntro bare = MancheIntro.autoBuild(null, List.of());
         assertEquals(1, bare.shots.size());
         assertEquals(MancheIntro.TASK, bare.shots.getFirst().kind());
         assertEquals(MancheIntro.INTRO_MUSIC_SECONDS, bare.duration(n -> 0), 1e-9);
         // Two cameras: still the whole music, the chord on the task location
-        MancheIntro two = MancheIntro.autoBuild("a", List.of("b"), null);
+        MancheIntro two = MancheIntro.autoBuild("a", List.of("b"));
         assertEquals(MancheIntro.INTRO_MUSIC_SECONDS, two.duration(n -> 0), 1e-9);
         assertEquals(MancheIntro.INTRO_CHORD_SECONDS, two.timeline(n -> 0).getLast().start(), 1e-9);
     }

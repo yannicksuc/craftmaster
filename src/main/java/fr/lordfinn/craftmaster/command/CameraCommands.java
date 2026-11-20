@@ -930,6 +930,11 @@ public final class CameraCommands {
                     .append(button("▶", base + "plan " + (i + 1) + " essayer", false, "Jouer l'intro à partir de ce plan (sans la musique)", ChatFormatting.GREEN))
                     .append(Component.literal(" " + s.describe(timeline.get(i), in.beatSeconds()) + (i == auto ? ", titre (automatique)" : "") + " ")
                             .withStyle(ChatFormatting.GRAY));
+            String away = fr.lordfinn.craftmaster.broadcast.IntroZone.check(m, s);
+            if (!away.isEmpty()) line.append(Component.literal("⚠ hors zone, sauté ").withStyle(st -> st.withColor(ChatFormatting.RED)
+                    .withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(Component.literal(
+                            "Ce plan est " + away + " : une intro d'épreuve reste là où arrivent les joueurs (pas de caméra du studio,"
+                                    + " pas de trajet ailleurs), il est sauté à la lecture.")))));
             if (i > 0) line.append(button("↑", plan + "monter", false, "Avancer ce plan d'une place", ChatFormatting.AQUA));
             if (i < in.shots.size() - 1) line.append(button("↓", plan + "descendre", false, "Reculer ce plan d'une place", ChatFormatting.AQUA));
             line.append(button("caméra", plan + "camera ", true, "Remplacer par une autre caméra du lieu", ChatFormatting.YELLOW))

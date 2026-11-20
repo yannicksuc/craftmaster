@@ -303,10 +303,17 @@ prend le relais.
   d'épreuve (120 BPM, 5 mesures, 20 temps = 10 s), calée sur sa structure : un plan par mesure sur les mesures 1 à 4
   (une affirmation du motif chacune) — le plan large de la manche en timelapse, sorti du plateau par la transition
   miroir, puis jusqu'à 4 autres caméras du lieu (macro, bascule de mise au point, stop motion ; le premier plan prend
-  les mesures que personne n'occupe, un 5e plan partage la mesure 4) ; la caméra trône du studio (« regard du
-  maître ») sur le dernier temps de la mesure 4, celui du coup sombre ; puis, à 8 s, le **lieu de la tâche** sur un
-  flash blanc pendant l'accord final, la consigne tapée en bas (pas de titre par-dessus : le nom de la manche est tapé sur le noir juste après). Look « vieux reportage »
+  les mesures que personne n'occupe, un 5e plan partage la mesure 4) ; puis, à 8 s, le **lieu de la tâche** en
+  fondu pendant l'accord final, la consigne tapée en bas (pas de titre par-dessus : le nom de la manche est tapé sur le noir juste après). Look « vieux reportage »
   (`look_intro`) sur tout, jouée au lancement et enchaînée. Tout se retouche ensuite plan par plan (`voir`, `plan …`).
+- **Une intro d'épreuve reste dans sa zone** : pour une manche jouée dans des arènes, chaque plan filme là où les
+  joueurs vont arriver — le monde de l'arène, sa salle de référence et ses copies (élargies de la marge de
+  chargement, `/cm arene chargement`) et ses zones de chargement en plus. Pas de caméra du studio (ni trône ni
+  « regard du maître »), pas de trajet ailleurs, pas d'autre dimension : rien de loin n'est chargé puis déchargé
+  pendant le lancement, et le TP sous le noir va une seule fois droit à l'arrivée. `construire` ne prend que les
+  caméras de la manche dans cette zone et le lieu de la tâche. Dans l'éditeur, un plan hors zone est marqué
+  « ⚠ hors zone, sauté » (infobulle : pourquoi), `plan N camera …` prévient, et à la lecture ce plan est sauté
+  (le plan d'avant reste à l'antenne) ; le pré-rendu du lancement ne passe que par les plans de la zone.
 - **Lieu de la tâche** (`ajouter tache`) : le plan qui montre où les joueurs vont arriver et l'enveloppe qui les y
   attend. Sa caméra est faite la première fois : le premier point de TP de la manche, l'enveloppe posée la plus
   proche (16 blocs au plus), et un point de vue dégagé derrière l'arrivée qui voit les deux. C'est une caméra du lieu

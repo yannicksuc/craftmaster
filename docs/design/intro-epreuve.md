@@ -175,7 +175,7 @@ In Use.
 | stop motion | effet saccadé : l'image se rafraîchit 6 à 8 fois par seconde |
 | timelapse | temps du monde accéléré pour ce plan, sur la diffusion seulement |
 | kaléidoscope, flash blanc, surimpression | nouvelles transitions « miroir », « flash » et « surimpression » (un plan du trône par-dessus le ciel) |
-| le regard du maître | caméra « trône » (rôle `trone`), assombrie, en contre-plongée : un plan court avant la fin |
+| le regard du maître | ~~caméra « trône »~~ : abandonné pour les intros d'épreuve (le trône est au studio, hors de la zone de l'épreuve) |
 | texte de la tâche tapé en bas | la consigne tapée lettre par lettre en bas de l'image, si la tâche est révélée à ce moment-là |
 | coupe sur une musique d'environ 130 BPM | coupe sur le rythme (existe), avec une musique d'intro d'épreuve courte |
 | police machine à écrire | Salmon Typewriter 9, police pixel façon Courier (en place, voir ci-dessous) |
@@ -200,13 +200,19 @@ docs/wiki/Taches.md, « Police et dessins ».
    d'épreuve, tablettes chrono, horloges, animaux, blocs rares) et les mots de la tâche. Une tâche qui parle de
    moutons fait chercher les moutons de la zone, ou en faire apparaître un qui traverse.
 2. **Structure**, 6 à 8 plans sur la musique :
-   1. une transition de sortie du plateau (miroir ou flash) ;
+   1. une transition de sortie du plateau (miroir) ;
    2. un plan d'ambiance : contre-plongée sur le lieu, timelapse du ciel ;
    3. 3 ou 4 inserts d'objets : macro, couches, bascule de mise au point, à travers un masque. Ils alternent long
       et court ;
-   4. le regard du maître : un plan court et sombre du trône ;
    5. le gros plan de l'objet de la tâche ;
-   6. le plan « lieu de la tâche » (point de TP et enveloppe dans le cadre), plus long.
+   6. le plan « lieu de la tâche » (point de TP et enveloppe dans le cadre), plus long, en fondu.
+
+   **Tout dans la zone de l'épreuve** (règle de LordFinn, 20/11/2026) : les plans d'une intro d'épreuve filment là
+   où les joueurs arrivent (monde de l'arène, référence et copies avec la marge de chargement). Le « regard du
+   maître » (plan du trône, au studio) de la traduction Taskmaster ne s'applique plus aux intros d'épreuve : ni
+   caméra du studio, ni trajet ailleurs, ni autre dimension, pour qu'aucun chargement / déchargement lointain ne
+   se fasse pendant le lancement (`IntroZone`). Un plan hors zone est sauté à la lecture et signalé dans
+   l'éditeur.
 
    Le texte de la tâche est tapé en bas de l'image pendant les derniers plans, si elle est révélée.
 3. **Caméras générées** quand l'épreuve n'en a pas assez : placées automatiquement autour des sujets (à ras du sol,
@@ -235,7 +241,6 @@ Fait (13/11/2026) :
 
 Reste, si besoin :
 - caméras générées autour des sujets quand le lieu n'en a pas assez (le mode automatique n'utilise que les
-  caméras posées, le trône et le lieu de la tâche) ;
+  caméras posées dans la zone et le lieu de la tâche) ;
 - sujets tirés des mots de la tâche (moutons…) ;
-- transition « surimpression » d'un plan du trône par-dessus le ciel (la surimpression existe, pas ce montage) ;
 - une vraie musique d'intro (celle-ci est provisoire, remplaçable dans un pack de ressources).

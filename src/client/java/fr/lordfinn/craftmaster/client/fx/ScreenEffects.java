@@ -29,7 +29,7 @@ import java.util.Set;
  *
  * <p>What is shown:
  * <ul>
- *   <li>in broadcast mode: the <b>broadcast effect</b> ({@link #setBroadcastEffect}, or {@code /cm fx diffusion …}
+ *   <li>in broadcast mode and with the show's feed on screen (F7, forced during an intro): the <b>broadcast effect</b> ({@link #setBroadcastEffect}, or {@code /cm fx diffusion …}
  *       from the server), the current shot's own effect (intros) added to it, plus the local try-out ({@code /essaifx});</li>
  *   <li>otherwise: the effect forced on this player by an organiser ({@code /cm fx <joueur> …}), the effect of what
  *       they wear on their head (glasses, masks: data component {@code craftmaster:screen_fx}) and the try-out,
@@ -169,7 +169,9 @@ public final class ScreenEffects {
         lastFrame = t;
         Set<String> wanted = new LinkedHashSet<>(tryout.now(t));
         Minecraft mc = Minecraft.getInstance();
-        if (Broadcast.active()) {
+        // The show's picture (broadcast mode, or the feed on a player's screen: F7, or forced during an intro): the
+        // broadcast effect and the shot's own effect, never what this player wears
+        if (Broadcast.active() || fr.lordfinn.craftmaster.client.broadcast.ShowFeedClient.active()) {
             wanted.addAll(broadcast.now(t));
             wanted.addAll(shot.now(t));
         } else if (mc.player != null) {

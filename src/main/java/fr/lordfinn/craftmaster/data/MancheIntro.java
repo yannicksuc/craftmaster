@@ -284,19 +284,17 @@ public final class MancheIntro {
      *   <li>bars 1 to 4, one motif per bar: the round's wide camera (timelapse, out of the studio with the "miroir"
      *       transition), then its other cameras (up to 4), macro / focus pull / stop motion; the first shot takes the
      *       bars nobody else needs, a 5th shot shares bar 4;</li>
-     *   <li>the master's look: the studio's throne camera on the last beat of bar 4 (its dark hit), when there is
-     *       one;</li>
      *   <li>the task location shot ({@link #TASK}) on the final chord, from {@link #INTRO_CHORD_SECONDS} to the end,
-     *       on a white flash, the task typed at the bottom (no title card: the round's name is typed on black at the
+     *       in a dissolve ("fondu"), the task typed at the bottom (no title card: the round's name is typed on black at the
      *       launch that follows).</li>
      * </ol>
+     * No studio camera (no throne): a trial's intro stays where its players arrive ({@code IntroZone}).
      * Plays chained (black, teleports, title) and by itself at the round's start. Pure: the caller gives the cameras.
      *
      * @param wide    reference of the round's wide camera, or null
      * @param inserts references of the round's other cameras, in order (only the first 4 are used)
-     * @param throne  reference of the studio's throne camera, or null
      */
-    public static MancheIntro autoBuild(String wide, List<String> inserts, String throne) {
+    public static MancheIntro autoBuild(String wide, List<String> inserts) {
         MancheIntro i = new MancheIntro();
         i.auto = true;
         i.chained = true;
@@ -311,21 +309,18 @@ public final class MancheIntro {
         List<String> before = new java.util.ArrayList<>();
         if (wide != null) before.add(wide);
         before.addAll(ins);
-        double throneBeats = throne == null ? 0 : before.isEmpty() ? chord : 1;
         int n = before.size();
         double[] beats = new double[n];
         if (n == 5) beats = new double[]{4, 4, 4, 2, 2};
         else for (int k = 0; k < n; k++) beats[k] = k == 0 ? chord - 4 * (n - 1) : 4;
-        if (n > 0) beats[n - 1] -= throneBeats;
         for (int k = 0; k < n; k++) {
             boolean ambiance = k == 0 && wide != null;
             int insert = wide != null ? k - 1 : k;
             i.shots.add(new Shot(CAMERA, before.get(k), beats[k] * beat, k == 0 ? "miroir" : "coupe",
                     ambiance ? "timelapse" : AUTO_INSERT_EFFECTS.get(insert), NO_CARD, ""));
         }
-        if (throne != null) i.shots.add(new Shot(CAMERA, throne, throneBeats * beat, i.shots.isEmpty() ? "miroir" : "coupe", "vignette", NO_CARD, ""));
         double task = i.shots.isEmpty() ? INTRO_MUSIC_SECONDS : INTRO_MUSIC_SECONDS - INTRO_CHORD_SECONDS;
-        i.shots.add(new Shot(TASK, "", task, i.shots.isEmpty() ? "miroir" : "flash", "", NO_CARD, ""));
+        i.shots.add(new Shot(TASK, "", task, i.shots.isEmpty() ? "miroir" : "fondu", "", NO_CARD, ""));
         return i;
     }
 

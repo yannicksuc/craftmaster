@@ -1560,7 +1560,7 @@ public final class Actions {
             Integer at = integer(a, "at");
             int i = at == null ? r.intro.shots.size() : Math.max(0, Math.min(r.intro.shots.size(), at - 1));
             r.intro.shots.add(i, s);
-            line("Intro de « " + r.name + " », plan " + (i + 1) + " : " + s.describe() + ".");
+            line("Intro de « " + r.name + " », plan " + (i + 1) + " : " + s.describe() + "." + awayWarning(r, s));
         }
 
         /** intro.shot.set {manche?, index, …fields to change} */
@@ -1569,7 +1569,14 @@ public final class Actions {
             int i = introIndex(r, a);
             fr.lordfinn.craftmaster.data.MancheIntro.Shot s = introShot(a, r.intro.shots.get(i));
             r.intro.shots.set(i, s);
-            line("Intro de « " + r.name + " », plan " + (i + 1) + " : " + s.describe() + ".");
+            line("Intro de « " + r.name + " », plan " + (i + 1) + " : " + s.describe() + "." + awayWarning(r, s));
+        }
+
+        /** " ⚠ …" when the shot leaves the trial's zone (it will be skipped when the intro plays). */
+        private String awayWarning(Manche r, fr.lordfinn.craftmaster.data.MancheIntro.Shot s) {
+            String away = fr.lordfinn.craftmaster.broadcast.IntroZone.check(r, s);
+            return away.isEmpty() ? "" : " ⚠ Hors de la zone de l'épreuve (" + away + ") : ce plan sera sauté. Une intro d'épreuve reste"
+                    + " là où arrivent les joueurs (caméras de la manche, lieu de la tâche).";
         }
 
         /** intro.shot.remove {manche?, index} */
@@ -1601,27 +1608,27 @@ public final class Actions {
 
         /**
          * intro.auto {manche?}: the intro made from the round's cameras ({@link fr.lordfinn.craftmaster.data.MancheIntro#autoBuild}):
-         * its wide camera, up to 4 others, the studio's throne camera, the task location shot; replaces its shots.
+         * its wide camera, up to 4 others (those in the trial's zone), the task location shot; replaces its shots.
          */
         private void introAuto(Map<String, Object> a) {
             Manche r = introManche(a);
             fr.lordfinn.craftmaster.camera.CameraList all = fr.lordfinn.craftmaster.camera.Cameras.list();
             fr.lordfinn.craftmaster.camera.CameraList lieu = all.lieu(r.id);
             fr.lordfinn.craftmaster.camera.CameraSpot wide = lieu.withRole(fr.lordfinn.craftmaster.camera.CameraSpot.WIDE);
+            if (wide != null && !fr.lordfinn.craftmaster.broadcast.IntroZone.check(r.id, wide).isEmpty()) wide = null;
             List<String> inserts = new ArrayList<>();
             for (fr.lordfinn.craftmaster.camera.CameraSpot c : lieu.all())
-                if (!c.name().equals(fr.lordfinn.craftmaster.broadcast.TaskFraming.NAME)) {
+                if (!c.name().equals(fr.lordfinn.craftmaster.broadcast.TaskFraming.NAME)
+                        && fr.lordfinn.craftmaster.broadcast.IntroZone.check(r.id, c).isEmpty()) {
                     if (wide == null) wide = c;
                     else if (!c.key().equals(wide.key())) inserts.add(c.key());
                 }
-            fr.lordfinn.craftmaster.camera.CameraSpot throne = all.group(fr.lordfinn.craftmaster.camera.CameraSpot.STUDIO)
-                    .withRole(fr.lordfinn.craftmaster.camera.CameraSpot.THRONE);
             fr.lordfinn.craftmaster.data.MancheIntro built = fr.lordfinn.craftmaster.data.MancheIntro.autoBuild(
-                    wide == null ? null : wide.key(), inserts, throne == null ? null : throne.key());
+                    wide == null ? null : wide.key(), inserts);
             r.intro = built;
             line("Intro de « " + r.name + " » construite : " + built.shots.size() + " plans sur la musique d'intro ("
                     + (wide == null ? "pas de caméra dans le lieu" : "large " + wide.key()) + ", " + Math.min(4, inserts.size()) + " insert(s), "
-                    + (throne == null ? "pas de caméra trône" : "trône " + throne.key()) + ", lieu de la tâche à la fin)."
+                    + "lieu de la tâche à la fin, en fondu)."
                     + (wide == null ? " Placez des caméras dans le lieu de la manche pour plus de plans." : "")
                     + " Jouée au lancement, enchaînée ; /cm tv intro " + r.id + " voir pour la retoucher.");
         }
