@@ -110,8 +110,9 @@ regarde). `/cm spectateurs` seul : le menu des choix et qui regarde quoi. Stream
   pour les autres, `/cm tv diffusion tous|candidats|spectateurs|<pseudo> on|off` (Tab), menu N (Épreuves, ligne
   Spectateurs : F8 tous, F8 spect., F8 off), Stream Deck `/diffusion?qui=tous&enabled=true`, régie IA. La touche F8
   d'un joueur seul ne marche que chez les organisateurs (les autres ont un message).
-- **F7, le flux** : un joueur le prend lui-même s'il y est autorisé, c'est-à-dire s'il peut être spectateur (il a fini
-  ou ne joue pas, et les spectateurs sont autorisés pour l'épreuve) ; les organisateurs toujours. Sinon : « Retransmission
+- **F7, le flux** : un joueur le prend lui-même s'il y est autorisé : hors épreuve (plateau, studio) tout le monde ;
+  pendant une épreuve, ceux qui peuvent être spectateurs (il a fini ou ne joue pas, et les spectateurs sont autorisés
+  pour l'épreuve), pas les candidats en jeu ; les organisateurs toujours. `/cm spectateurs autoriser off` coupe tout. Sinon : « Retransmission
   pas disponible pour l'instant », sans écran noir ; interdire les spectateurs le referme chez ceux qui l'avaient.
 - On se voit soi-même sur l'image (F8, F7, vue par une caméra) dès qu'elle ne vient pas de ses yeux.
 

@@ -276,11 +276,14 @@ public final class Spectators {
     private static final Map<UUID, String> RIGHTS = new java.util.HashMap<>();
 
     /**
-     * May turn the show's feed on himself (F7): the organisers always; the others when they may watch (done or not a
-     * contestant, during a trial where it is allowed).
+     * May turn the show's feed on himself (F7): the organisers always; out of a trial (the set, the studio) everyone,
+     * unless the master turned the spectators off; during a trial those who may watch (done or not a contestant,
+     * the trial allowing it), not the contestants still playing.
      */
     public static boolean feedAllowed(ServerPlayer p) {
-        return Permissions.isAdmin(p) || eligible(p);
+        if (Permissions.isAdmin(p)) return true;
+        if (trial() == null) return settings.enabled;
+        return eligible(p);
     }
 
     private static void rights(MinecraftServer server) {

@@ -107,8 +107,8 @@ son chat.
   spectateurs]|joueur <pseudo|equipe:nom>|suivant`) : commentaire = avec les spectateurs (les candidats qui jouent ne
   l'entendent jamais), tous = annonce, joueur = un candidat seul avec lui. `vocal` seul : qui est dans quel groupe.
 - Le mode diffusion (F8) se lance pour les autres depuis ici : `tv diffusion tous|candidats|spectateurs|<pseudo> on|off`
-  (action diffusion.set) ; F8 seul ne marche que chez les organisateurs. F7 (le flux) : les spectateurs autorisés le
-  prennent eux-mêmes ; interdire les spectateurs le leur retire.
+  (action diffusion.set) ; F8 seul ne marche que chez les organisateurs. F7 (le flux) : hors épreuve tout le monde le
+  prend lui-même, pendant une épreuve les spectateurs et ceux qui ont fini ; interdire les spectateurs le retire.
 
 ## Comprendre une épreuve (« comment on finit la pomme ? », « qu'est-ce qui manque pour que ce soit faisable ? »)
 1. lire zone <salle> et lire mecaniques <pack> (et la tâche) : rien d'autre ne compte que ce qui y est écrit.
