@@ -36,6 +36,7 @@ import java.util.Locale;
  * open CLASS                    opens that screen (no-argument constructor), e.g. another mod's menu
  * use seconds                    holds the "use" key in the world that long, then lets go (charge a throw, a bow…)
  * camera first|back|front        the point of view, as F5 cycles it (see the player's own model)
+ * casse x y z                    a punch on that block (attack key, adventure rules included); result in the log
  * </pre>
  */
 public final class DevInput {
@@ -225,6 +226,18 @@ public final class DevInput {
                     String v = line.strip().substring(7).strip();
                     mc.options.setCameraType(v.equals("back") ? net.minecraft.client.CameraType.THIRD_PERSON_BACK
                             : v.equals("front") ? net.minecraft.client.CameraType.THIRD_PERSON_FRONT : net.minecraft.client.CameraType.FIRST_PERSON);
+                    continue;
+                }
+                // "casse x y z": a punch on that block, as the attack key does (the game's own checks, adventure mode
+                // included, on the client then on the server); the answer goes to the log
+                if (line.strip().startsWith("casse ") && mc.player != null && mc.gameMode != null && mc.level != null) {
+                    String[] a = line.strip().split("\\s+");
+                    net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos(Integer.parseInt(a[1]), Integer.parseInt(a[2]), Integer.parseInt(a[3]));
+                    String before = mc.level.getBlockState(pos).toString();
+                    boolean started = mc.gameMode.startDestroyBlock(pos, net.minecraft.core.Direction.UP);
+                    mc.gameMode.stopDestroyBlock();
+                    org.slf4j.LoggerFactory.getLogger("craftmaster").info("[dev-input] casse {} : {} -> {} (coup accepté : {})",
+                            pos.toShortString(), before, mc.level.getBlockState(pos), started);
                     continue;
                 }
                 if (line.strip().startsWith("look ") && mc.player != null) {

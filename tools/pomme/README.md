@@ -22,4 +22,6 @@ Commandes :
 - `execute in minecraft:pomme as @e[type=marker,tag=pomme_salle] at @s align xyz run function pomme:salle/cachettes` ajoute, une fois par salle, les objets cachés ajoutés au schéma après sa construction (3 sables : `CACHETTES` de gen.py ; ils cuisent dans les deux fours parmi les hauts-fourneaux) ;
 - `execute in minecraft:pomme positioned <x>.0 60 0.0 run function pomme:verif` puis `scoreboard players get #diff pomme_t` compte les blocs différents du schéma (0 attendu).
 
+La canne à sucre se casse à la houe en fer (règle `can_break` du pack) et aussi à main nue : c'est le mod qui le permet en aventure, dans le monde `minecraft:pomme` seulement (`mixin/BareHandCaneMixin`). Il faut donc le mod côté joueur.
+
 Ne pas utiliser `/cm arene reset pomme` avec un mod plus ancien que le correctif « copie sans mise à jour ».
