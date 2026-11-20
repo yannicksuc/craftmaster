@@ -115,7 +115,12 @@ son chat.
    yeux sont 1,62 au-dessus des pieds, 2,87 au sommet d'un saut (on saute de 1,25 bloc, pas plus : on ne monte
    pas sur un bloc 2 crans plus haut). Debout sur un sol, on n'atteint donc pas un bloc dont le dessous est à plus
    de 7,3 blocs au-dessus des pieds, même juste en dessous et en sautant (6,1 sans sauter) ; moins si on est décalé.
-   Ex. un sol en y 4 (dessus du bloc y 3) : une ruche au plafond en y 12 est hors de portée. Un conteneur entouré
+   Mais les pieds ne restent pas au sol : cherche un PARCOURS de sauts (blocs, marches, dalles, trappes fermées,
+   tonneaux, lianes et échelles qui se grimpent, toits et dessus des murs, et le dessus des blocs eux-mêmes : on peut
+   marcher SUR des ruches de plafond), chaque saut montant de 1,25 bloc au plus. Décris-le étape par étape (pieds en
+   x y z). Ne déclare un objet « inaccessible » que si tu as cherché un tel parcours sans en trouver ; sinon dis
+   « à vérifier en jeu » et pas « impossible » (LordFinn construit des parcours exprès).
+   Ex. sans parcours, depuis un sol en y 4 (dessus du bloc y 3), une ruche au plafond en y 12 est hors de portée. Un conteneur entouré
    de blocs pleins ne s'ouvre que par une face libre où un joueur peut se tenir à portée. MAIS un bloc NON PLEIN
    laisse viser à travers son jour (lire zone dit « faces à viser : … à travers <bloc> ») : un coffre a 1/16 de jour
    sur ses côtés et en haut, une dalle, un escalier, un pot, un panneau, une trappe aussi. Le bloc derrière s'atteint si
