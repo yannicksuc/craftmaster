@@ -15,6 +15,15 @@ import nbtlib
 from nbtlib import serialize_tag
 
 GEN, SCHEM, MCA, EMCA, OUT = sys.argv[1:6]
+
+
+def _read_string(fileobj, byteorder="big"):
+    """Java's modified UTF-8: an emoji is two 3-byte surrogates (nbtlib would turn them into replacement characters)."""
+    n = nbtlib.tag.read_numeric(nbtlib.tag.USHORT, fileobj, byteorder)
+    return fileobj.read(n).decode('utf-8', 'surrogatepass').encode('utf-16', 'surrogatepass').decode('utf-16')
+
+
+nbtlib.tag.read_string = _read_string
 REF = (0, 60, 0)
 src = open(GEN, encoding='utf-8').read()
 head = src[:src.index('MIN = (')].replace('SCHEM, OUT = sys.argv[1], sys.argv[2]', 'SCHEM = %r' % SCHEM)
@@ -94,6 +103,21 @@ for y in range(H):
                 if items(live['Items']) != items(ref):
                     contents['%d,%d,%d' % (x, y, z)] = serialize_tag(live['Items'], compact=True)
 
+# The block entities of what changed (signs and their text, new chests, barrels...), whole
+def sign_text(t):
+    return [serialize_tag(t[k], compact=True) if k in t else '' for k in ('front_text', 'back_text')]
+
+
+be_data = {}
+for (x, y, z), live in bes.items():
+    p = (x - REF[0], y - REF[1], z - REF[2])
+    if not (0 <= p[0] < W and 0 <= p[1] < H and 0 <= p[2] < L):
+        continue
+    k = '%d,%d,%d' % p
+    old = sch_be.get(p)
+    if k in blocks or ('sign' in str(live['id']) and (old is None or sign_text(old) != sign_text(live))):
+        be_data[k] = serialize_tag(nbtlib.Compound({a: v for a, v in live.items() if a not in ('id', 'x', 'y', 'z', 'keepPacked')}), compact=True)
+
 DECOR = {'minecraft:item_frame', 'minecraft:glow_item_frame', 'minecraft:painting', 'minecraft:block_display', 'minecraft:item_display'}
 DROP = {'UUID', 'Motion', 'Paper.Origin', 'Paper.OriginWorld', 'WorldUUIDMost', 'WorldUUIDLeast', 'FallFlying', 'fall_distance',
         'OnGround', 'Air', 'PortalCooldown', 'Fire', 'HurtTime', 'DeathTime', 'HurtByTimestamp'}
@@ -127,7 +151,7 @@ for c in chunks(EMCA):
         decor.append({'id': eid, 'pos': [round(v, 4) for v in pos], 'nbt': serialize_tag(nb, compact=True)})
 decor.sort(key=lambda d: (d['id'], d['pos']))
 json.dump({'note': "Changements de LordFinn dans la salle de référence, relevés par import_ref.py : appliqués par gen.py par-dessus pomme.schem.",
-           'blocks': blocks, 'contents': contents, 'decor': decor}, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+           'blocks': blocks, 'contents': contents, 'be': be_data, 'decor': decor}, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 print('%d blocs, %d conteneurs, %d décors' % (len(blocks), len(contents), len(decor)))
 for k, v in blocks.items():
     print(' bloc', k, base_blk(*map(int, k.split(','))).replace('minecraft:', ''), '->', v.replace('minecraft:', ''))

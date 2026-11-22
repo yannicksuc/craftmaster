@@ -4,7 +4,6 @@
 
 ```
 python -I gen.py pomme.schem <dossier>/craftmaster-pomme
-python -I verif.py pomme.schem <dossier>/craftmaster-pomme/data/pomme/function/verif.mcfunction
 ```
 
 Sur le serveur, le pack est dans `craftmaster/datapacks/` et la salle est dans le monde `minecraft:pomme` :
@@ -28,6 +27,10 @@ Commandes :
   `modifs.json`, que gen.py applique par-dessus le schéma ; régénérer le pack, `verif` donne 0 sur la référence, puis
   `pomme:salle/refaire` sur chaque copie (personne dedans) ;
 - `execute in minecraft:pomme positioned <x>.0 60 0.0 run function pomme:verif` puis `scoreboard players get #diff pomme_t` compte les blocs différents du schéma (0 attendu).
+
+`gen.py` écrit lui-même `pomme:verif` avec les modifs de LordFinn. Ne pas lancer `verif.py` sur le pack : il réécrit cette fonction d'après le schéma seul et compte alors ses modifs comme des différences.
+
+Les poules : après le code, le bouton bleu fait apparaître 12 poules qui ont chacune un prénom, et celles déjà dans la salle en reçoivent un aussi. Une seule s'appelle Giselle (comme sur le panneau) et elle ne peut pas mourir. Attirée avec des graines à moins de 2,5 blocs du corail (30 5 31), elle s'y pose et n'en bouge plus, le bulb (30 6 32) s'allume et un œuf arrive toutes les 10 s dans le tonneau dessous (30 4 31). Les graines ne se plantent plus et la houe en fer ne laboure plus (elle casse toujours le blé).
 
 Le sucre du gâteau vient du miel : pelle en fer → sable → four (deux parmi les hauts-fourneaux) → verre → fioles → ruches pleines (28-30 12 13-15) → fiole de miel → sucre. Le seau d'eau se vide sur le béton en poudre blanc (38 3 25), qui durcit ; la pioche en fer casse le béton blanc, ce qui ouvre le coffre en cuivre de la tête de Steve (38 2 25).
 

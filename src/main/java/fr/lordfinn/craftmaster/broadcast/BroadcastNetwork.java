@@ -244,7 +244,9 @@ public final class BroadcastNetwork {
                 /** The game master's voice ({@code MasterVoice}): title = the line shown (empty = none), subtitle = host | player. */
                 VOICE = "voice",
                 /** A player's rights on the show's picture: title = "admin" or "", subtitle = "feed" when F7 is allowed. */
-                RIGHTS = "rights";
+                RIGHTS = "rights",
+                /** An organiser moved this player (/tp, /gamemode): out of F7 and F8, a normal player again. */
+                RELEASE = "release";
 
         private Cues() {}
     }

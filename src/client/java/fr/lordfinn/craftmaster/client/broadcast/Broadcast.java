@@ -105,6 +105,9 @@ public final class Broadcast {
                 else ThemeSound.play(payload.subtitle());
             } else if (Cues.BROADCAST.equals(payload.kind())) {
                 set("on".equals(payload.title()));
+            } else if (Cues.RELEASE.equals(payload.kind())) {
+                set(false);
+                ShowFeedClient.release();
             } else if (Cues.BLACKOUT.equals(payload.kind())) {
                 Blackout.start(payload);
             } else if (Cues.BLACKOUT_OPEN.equals(payload.kind())) {

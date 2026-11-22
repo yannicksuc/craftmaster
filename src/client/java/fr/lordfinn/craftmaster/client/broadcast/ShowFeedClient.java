@@ -44,6 +44,13 @@ public final class ShowFeedClient {
         return active() && "freeze".equals(forced);
     }
 
+    /** An organiser moved this player: the feed closes, whether they opened it or it was forced. */
+    static void release() {
+        toggled = false;
+        forced = "off";
+        DirectorCamera.applyEffect();
+    }
+
     /** From the server's cue. */
     static void force(String state) {
         Minecraft mc = Minecraft.getInstance();

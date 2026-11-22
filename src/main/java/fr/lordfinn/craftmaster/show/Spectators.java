@@ -306,6 +306,31 @@ public final class Spectators {
         return true;
     }
 
+    /**
+     * An organiser's /tp or /gamemode reached this player: they leave what holds their view (watching, the intro,
+     * F7, F8) at once and are a normal player again, with nothing put back afterwards (no old place or mode over what
+     * the organiser just did). The mod's own moves do not come through here (they do not use the commands), nor do
+     * the pack's functions and the show's cue lists (a silent source without a player). A group order (/tp @a) from
+     * someone else leaves an organiser's own broadcast game alone: the camera account stays on air.
+     */
+    public static void organiserMoved(net.minecraft.commands.CommandSourceStack source, net.minecraft.world.entity.Entity target) {
+        if (!(target instanceof ServerPlayer p)) return;
+        net.minecraft.world.entity.Entity by = source.getEntity();
+        boolean organiser = by instanceof ServerPlayer o ? Permissions.isAdmin(o) : by == null && !source.isSilent();
+        if (!organiser || (Permissions.isAdmin(p) && by != p)) return;
+        boolean held = WATCHING.remove(p.getUUID()) != null;
+        held |= INTRO.remove(p.getUUID()) != null;
+        held |= fr.lordfinn.craftmaster.broadcast.Director.broadcasters().remove(p.getUUID());
+        if (p.getCamera() != p) p.setCamera(p);
+        if (net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(p, fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowCue.TYPE))
+            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.ShowCue(
+                    fr.lordfinn.craftmaster.broadcast.BroadcastNetwork.Cues.RELEASE, "", "", "", 0));
+        if (held) {
+            MasterVoice.refresh(p.level().getServer());
+            CraftMaster.LOG.info("[Spectateurs] {} rendu à son jeu par {}", p.getGameProfile().name(), source.getTextName());
+        }
+    }
+
     /** Everyone back (the trial is over). */
     public static int stopAll(MinecraftServer server) {
         int n = 0;
