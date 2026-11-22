@@ -433,7 +433,9 @@ public final class ArenaCommands {
                         // The name a contestant wrote in their book, on the jury's screen (hidden until then)
                         .then(literal("reveler").then(argument("joueur", word()).suggests(list(c -> {
                             Arena x = Arenas.get(c.getArgument("arene", String.class));
-                            return x == null ? List.of() : fr.lordfinn.craftmaster.trial.kit.DrawingImages.names(x.name);
+                            List<String> who = new ArrayList<>(List.of("tous"));
+                            if (x != null) who.addAll(fr.lordfinn.craftmaster.trial.kit.DrawingImages.names(x.name));
+                            return who;
                         })).executes(c -> {
                             Arena a = arena(c);
                             if (a == null) return 0;

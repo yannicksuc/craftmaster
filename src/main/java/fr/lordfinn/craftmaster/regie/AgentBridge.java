@@ -237,6 +237,8 @@ public final class AgentBridge {
             String why = lineRefusal(embedded);
             if (why != null) return why;
         }
+        if (fr.lordfinn.craftmaster.trial.kit.NameBooks.readsBooks(words(line)))
+            return "Refusé : pendant l'épreuve, les données des joueurs contiennent leur livre, et personne ne doit le lire avant la révélation au jury.";
         // A line the command tree does not know is neither run nor put to the organiser: the agent looks it up
         String wrong = syntaxError(player, line);
         if (wrong != null) return wrong;
@@ -1056,7 +1058,7 @@ public final class AgentBridge {
 
     /** No server address ever leaves through the agent (LordFinn streams his screen). */
     static String mask(String s) {
-        return s == null ? "" : ADDRESS.matcher(s).replaceAll("‹adresse masquée›");
+        return s == null ? "" : fr.lordfinn.craftmaster.trial.kit.NameBooks.redact(ADDRESS.matcher(s).replaceAll("‹adresse masquée›"));
     }
 
     // ---------------------------------------------------------------- /cm ia (the chat's buttons)

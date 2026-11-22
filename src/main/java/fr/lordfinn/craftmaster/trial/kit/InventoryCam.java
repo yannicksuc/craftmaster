@@ -124,8 +124,8 @@ public final class InventoryCam {
             }
             if (!s.open() && (last == null || !last.open())) continue;
             List<ItemStack> slots = new ArrayList<>(36);
-            for (int i = 0; i < 36; i++) slots.add(p.getInventory().getItem(i).copy());
-            ItemStack carried = s.open() ? p.containerMenu.getCarried().copy() : ItemStack.EMPTY;
+            for (int i = 0; i < 36; i++) slots.add(NameBooks.forViewers(p.getInventory().getItem(i)).copy());
+            ItemStack carried = s.open() ? NameBooks.forViewers(p.containerMenu.getCarried()).copy() : ItemStack.EMPTY;
             View v = new View(Arenas.playerName(p), s.open(), s.hovered(), s.x(), s.y(), slots, carried);
             if (last != null && same(last, v)) continue;
             SENT.put(p.getUUID(), v);

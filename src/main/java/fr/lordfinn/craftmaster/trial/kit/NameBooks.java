@@ -39,8 +39,8 @@ import java.util.Set;
 
 /**
  * The book each contestant signs with the name of their animal ({@link Arena#livreNom}, on a common ground). Signing
- * is answering: the text is kept with the drawing ({@code <player>.nom.json}), only the organisers are told it, and it
- * no longer changes. A book not signed when the time is up is taken as it stands, marked unsigned. The book stays with
+ * is answering: the text is kept with the drawing ({@code <player>.nom.json}) and no longer changes. Nobody reads it
+ * before the jury reveals it, the organisers and the AI control included: they are only told that the book is signed. A book not signed when the time is up is taken as it stands, marked unsigned. The book stays with
  * its owner: thrown or dropped it comes back, it goes in no container, lectern or frame.
  */
 public final class NameBooks {
@@ -147,14 +147,48 @@ public final class NameBooks {
             CraftMaster.LOG.warn("[Livres] réponse de {} non enregistrée", name, e);
         }
         Component line = Component.literal("✍ ").withStyle(ChatFormatting.GOLD).append(Finish.name(name))
-                .append(Component.literal(signed ? " a signé : " : " n'a pas signé, relevé tel quel : ").withStyle(ChatFormatting.GOLD))
-                .append(Component.literal("« " + (text.isEmpty() ? "(vide)" : text) + " »").withStyle(ChatFormatting.WHITE));
-        // The answer goes to the organisers only; the trial's log keeps who signed, not what
+                .append(Component.literal(signed ? " a signé" : " n'a pas signé : son livre est relevé tel quel").withStyle(ChatFormatting.GOLD));
+        // Who signed, never what: the master guesses the drawing before the name is revealed
         Finish.tellOrganisers(server, null, line, name + (signed ? " a signé son livre" : " n'a pas signé son livre"));
     }
 
     private static Path file(String arena, String player) {
         return DrawingImages.dir(arena).resolve(player.replaceAll("[^A-Za-z0-9_.-]", "_") + ".nom.json");
+    }
+
+    /** A book as others may see it (the inventory camera): the object, nothing of what is written in it. */
+    public static ItemStack forViewers(ItemStack st) {
+        if (!isBook(st)) return st;
+        ItemStack out = new ItemStack(Items.WRITABLE_BOOK);
+        out.set(DataComponents.CUSTOM_NAME, Component.literal("Le nom de ton animal").withStyle(s -> s.withItalic(false).withColor(ChatFormatting.GOLD)));
+        return out;
+    }
+
+    /** Would this command line of the AI control read a player's data while books are in play? */
+    public static boolean readsBooks(List<String> words) {
+        if (HELD.isEmpty()) return false;
+        List<String> w = words.stream().map(x -> x.toLowerCase(Locale.ROOT)).toList();
+        return w.contains("data") && w.contains("get") && w.contains("entity");
+    }
+
+    /** What the AI control is told, without any name not revealed yet. */
+    public static String redact(String s) {
+        if (s == null || s.isEmpty()) return s;
+        Set<String> hidden = new HashSet<>();
+        for (ItemStack st : HELD.values()) {
+            String owner = st.get(DataComponents.CUSTOM_DATA) == null ? "" : st.get(DataComponents.CUSTOM_DATA).copyTag().getStringOr("owner", "");
+            if (!JuryScreen.revealedAny(owner)) hidden.add(text(st));
+        }
+        for (Arena a : Arenas.all()) {
+            if (!a.livreNom) continue;
+            for (String p : DrawingImages.names(a.name)) {
+                String[] answer = answer(a.name, p);
+                if (answer != null && !JuryScreen.revealed(a.name, p)) hidden.add(answer[0]);
+            }
+        }
+        for (String h : hidden)
+            if (h.length() >= 3) s = s.replaceAll("(?i)" + java.util.regex.Pattern.quote(h), "‹caché›");
+        return s;
     }
 
     /** The answer kept for this drawing: {text, "signé" | "non signé"}, or null. */
