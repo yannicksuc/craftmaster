@@ -43,7 +43,7 @@ TOOLS = [
      "input_schema": {"type": "object", "properties": {
          "sujet": {"type": "string", "enum": ["resume", "manches", "intro", "effets", "ambiance", "sequence", "conduite", "cameras",
                                               "trajet", "projecteurs", "arenes", "zone", "mecaniques", "musiques", "joueurs", "blocs", "commandes",
-                                              "statut", "journal", "log"]},
+                                              "statut", "journal", "log", "selection"]},
          "nom": {"type": "string", "description": "Le nom de l'ambiance, de la séquence, de la conduite, du travelling, la manche de "
                                                   "l'intro (id ou nom : la-pomme, « La pomme »), l'arène, le groupe de commandes "
                                                   "(« tv intro », « camera »), la salle (zone : pomme), le pack de la salle (mecaniques : pomme), le bloc à chercher autour de LordFinn (fleur, pot, coffre, minecraft:poppy), "

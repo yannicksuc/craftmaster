@@ -184,13 +184,40 @@ public final class ArenaCommands {
                     if (p == null) return 0;
                     BlockPos[] pts = MeasuringTapeItem.lastPoints(p.getUUID());
                     if (pts == null || pts.length < 2 || pts[0] == null || pts[1] == null) {
-                        fail(c, "Pose d'abord deux points au mètre ruban (deux coins opposés de la zone, sol compris).");
+                        fail(c, "Pose d'abord deux points au mètre ruban (deux coins opposés de la zone, sol compris), ou prends ta sélection WorldEdit : /cm arene creer " + str(c, "arene") + " selection.");
                         return 0;
                     }
                     Arena a = Arenas.create(str(c, "arene"), p.level(), pts[0], pts[1]);
                     ok(c, "Arène « " + a.name + " » : " + a.sizeX() + " × " + a.sizeY() + " × " + a.sizeZ() + " blocs. Ensuite : /cm arene spawn, /cm arene copier.");
                     return 1;
-                })))
+                }).then(literal("selection").executes(c -> {
+                    // The zone is the player's WorldEdit selection, in the world they are in
+                    ServerPlayer p = player(c);
+                    if (p == null) return 0;
+                    fr.lordfinn.craftmaster.compat.WorldEditPerf.Selection s;
+                    try {
+                        s = fr.lordfinn.craftmaster.compat.WorldEditPerf.selection(p);
+                    } catch (IllegalStateException e) {
+                        fail(c, e.getMessage());
+                        return 0;
+                    }
+                    if (s.level() != p.level()) {
+                        fail(c, "Ta sélection est dans " + s.level().dimension().identifier() + " et tu es dans " + p.level().dimension().identifier() + " : va dans son monde ou refais-la.");
+                        return 0;
+                    }
+                    Arena a = Arenas.create(str(c, "arene"), s.level(), s.min(), s.max());
+                    ok(c, "Arène « " + a.name + " » : " + a.sizeX() + " × " + a.sizeY() + " × " + a.sizeZ() + " blocs (sélection WorldEdit" + ("cuboid".equals(s.kind()) ? "" : ", sa boîte englobante")
+                            + "). Avant de copier : /cm arene plan " + a.name + " <copies>.");
+                    return 1;
+                }))))
+                // What copies of an arena, or of the WorldEdit selection, would take: nothing is changed
+                .then(literal("plan").then(argument("arene", word()).suggests(list(c -> {
+                            List<String> out = new ArrayList<>(List.of("selection"));
+                            Arenas.all().forEach(x -> out.add(x.name));
+                            return out;
+                        })).executes(c -> plan(c, 0))
+                        .then(argument("copies", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 32))
+                                .executes(c -> plan(c, com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "copies"))))))
                 .then(literal("supprimer").then(argument("arene", word()).suggests(ARENAS).executes(c -> {
                     if (!Arenas.remove(str(c, "arene"))) {
                         fail(c, "Arène inconnue.");
@@ -449,6 +476,41 @@ public final class ArenaCommands {
         return 1;
     }
 
+    private static int plan(CommandContext<CommandSourceStack> c, int copies) {
+        String name = str(c, "arene");
+        Arena a;
+        ServerLevel level;
+        if (name.equalsIgnoreCase("selection") && Arenas.get(name) == null) {
+            ServerPlayer p = player(c);
+            if (p == null) return 0;
+            fr.lordfinn.craftmaster.compat.WorldEditPerf.Selection s;
+            try {
+                s = fr.lordfinn.craftmaster.compat.WorldEditPerf.selection(p);
+            } catch (IllegalStateException e) {
+                fail(c, e.getMessage());
+                return 0;
+            }
+            // A box that is not saved: only to measure
+            a = new Arena();
+            a.name = "selection";
+            a.world = s.level().dimension().identifier().toString();
+            a.x0 = s.min().getX();
+            a.y0 = s.min().getY();
+            a.z0 = s.min().getZ();
+            a.x1 = s.max().getX();
+            a.y1 = s.max().getY();
+            a.z1 = s.max().getZ();
+            level = s.level();
+        } else {
+            a = arena(c);
+            if (a == null) return 0;
+            level = Arenas.level(c.getSource().getServer(), a);
+        }
+        int n = copies > 0 ? copies : Math.max(1, Math.max(a.copies.size(), players(null).size()));
+        for (String line : Arenas.plan(level, a, n)) say(c, Component.literal(line).withStyle(line.startsWith("⚠") ? ChatFormatting.RED : ChatFormatting.GOLD));
+        return 1;
+    }
+
     private static int copy(CommandContext<CommandSourceStack> c, String who) {
         Arena a = arena(c);
         if (a == null) return 0;
@@ -456,6 +518,18 @@ public final class ArenaCommands {
         if (players.isEmpty()) {
             fail(c, "Aucun candidat dans la saison active : donne les joueurs (/cm arene copier " + a.name + " Ensuri Cyllu).");
             return 0;
+        }
+        List<int[]> slots = Arenas.nextSlots(a, players);
+        if (Arenas.tooBig(a, a.copies.size() + slots.size())) {
+            fail(c, (a.copies.size() + slots.size()) + " copie(s) de " + Arenas.volume(a) + " blocs : trop d'un coup, le serveur gèlerait. Rien n'a été copié (/cm arene plan " + a.name + ").");
+            return 0;
+        }
+        for (int[] s : slots) {
+            List<String> hit = Arenas.collisions(a, s);
+            if (!hit.isEmpty()) {
+                fail(c, "Une copie tomberait sur : " + String.join(", ", hit) + ". Rien n'a été copié (/cm arene plan " + a.name + ").");
+                return 0;
+            }
         }
         List<String> added = Arenas.assign(a, players);
         int n = Arenas.rebuild(c.getSource().getServer(), a);

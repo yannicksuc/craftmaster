@@ -230,6 +230,13 @@ public final class Arenas {
     }
 
     private static int rebuild(MinecraftServer server, Arena a, java.util.Collection<String> only, boolean keepDrawings) {
+        long copies = a.copies.keySet().stream().filter(k -> only == null || only.stream().anyMatch(w -> w.equalsIgnoreCase(k))).count();
+        if (tooBig(a, copies)) {
+            String line = "⚠ « " + a.name + " » : " + copies + " copie(s) de " + volume(a) + " blocs, c'est trop d'un coup (le serveur gèlerait) : rien n'a été copié.";
+            CraftMaster.LOG.warn("[Arène] {}", line);
+            Finish.tellOrganisers(server, null, net.minecraft.network.chat.Component.literal(line).withStyle(net.minecraft.ChatFormatting.RED), null);
+            return 0;
+        }
         ServerLevel level = level(server, a);
         List<net.minecraft.world.level.ChunkPos> chunks = chunks(a, only);
         boolean ready = true;
@@ -263,6 +270,103 @@ public final class Arenas {
             Finish.tellOrganisers(server, null, net.minecraft.network.chat.Component.literal("« " + a.name + " » : " + n + " copie(s) remise(s) à neuf"
                     + (late ? " (chargement lent : faite sans attendre plus)" : "") + ".").withStyle(net.minecraft.ChatFormatting.GRAY), null);
         }
+    }
+
+    /** The most blocks copied in one go: a copy is made within a single tick, beyond this the server would freeze. */
+    public static final long MAX_BLOCKS_AT_ONCE = 1_000_000;
+
+    public static long volume(Arena a) {
+        return (long) a.sizeX() * a.sizeY() * a.sizeZ();
+    }
+
+    public static boolean tooBig(Arena a, long copies) {
+        return volume(a) * copies > MAX_BLOCKS_AT_ONCE;
+    }
+
+    /** The places the next copies of {@code a} would take for these players (those who have none yet). */
+    public static List<int[]> nextSlots(Arena a, java.util.Collection<String> players) {
+        List<int[]> taken = new ArrayList<>(a.copies.values()), out = new ArrayList<>();
+        for (String p : players) {
+            if (a.copies.keySet().stream().anyMatch(k -> k.equalsIgnoreCase(p))) continue;
+            int i = 1;
+            while (true) {
+                int[] s = a.slot(i);
+                if (taken.stream().noneMatch(o -> o[0] == s[0] && o[1] == s[1] && o[2] == s[2])) {
+                    taken.add(s);
+                    out.add(s);
+                    break;
+                }
+                i++;
+            }
+        }
+        return out;
+    }
+
+    /** What the box of {@code a} shifted by {@code off} would run into: other arenas, their copies, the trial zones. */
+    public static List<String> collisions(Arena a, int[] off) {
+        List<String> out = new ArrayList<>();
+        net.minecraft.world.phys.AABB box = a.box(off);
+        for (Arena o : ARENAS.values()) {
+            if (o == a || !o.world.equals(a.world)) continue;
+            if (box.intersects(o.box(null))) out.add("arène « " + o.name + " »");
+            for (Map.Entry<String, int[]> c : o.copies.entrySet())
+                if (box.intersects(o.box(c.getValue()))) out.add("copie de " + c.getKey() + " de « " + o.name + " »");
+        }
+        for (fr.lordfinn.craftmaster.trial.Zone z : fr.lordfinn.craftmaster.trial.TrialZones.zones().values())
+            if (z.world().equals(a.world) && box.intersects(new net.minecraft.world.phys.AABB(z.x0(), z.y0(), z.z0(), z.x1() + 1, z.y1() + 1, z.z1() + 1)))
+                out.add("zone « " + z.name() + " »");
+        return out;
+    }
+
+    /**
+     * What making {@code count} copies of this box would take, without touching anything: blocks, the place of each
+     * copy, what they would run into, what stands there now (loaded chunks only: nothing is loaded or generated).
+     */
+    public static List<String> plan(ServerLevel level, Arena a, int count) {
+        List<String> out = new ArrayList<>();
+        long one = volume(a), all = one * count;
+        out.add("Zone " + a.x0 + " " + a.y0 + " " + a.z0 + " → " + a.x1 + " " + a.y1 + " " + a.z1 + " (" + a.world + ") : " + a.sizeX() + " × " + a.sizeY() + " × " + a.sizeZ()
+                + " = " + String.format(java.util.Locale.FRANCE, "%,d", one) + " blocs par copie, " + String.format(java.util.Locale.FRANCE, "%,d", all) + " pour " + count + ".");
+        out.add(all > MAX_BLOCKS_AT_ONCE
+                ? "⚠ Trop gros pour une copie d'un coup (limite " + String.format(java.util.Locale.FRANCE, "%,d", MAX_BLOCKS_AT_ONCE) + " blocs) : /cm arene copier et les remises à neuf seront refusées, le serveur gèlerait."
+                : "Taille correcte pour une copie d'un coup.");
+        List<int[]> slots = new ArrayList<>(a.copies.values());
+        for (int i = 1; slots.size() < count; i++) {
+            int[] s = a.slot(i);
+            if (slots.stream().noneMatch(o -> o[0] == s[0] && o[1] == s[1] && o[2] == s[2])) slots.add(s);
+        }
+        boolean clash = false;
+        for (int k = 0; k < count; k++) {
+            int[] o = slots.get(k);
+            List<String> hit = collisions(a, o);
+            clash |= !hit.isEmpty();
+            int total = 0, solid = 0, unknown = 0;
+            Map<String, Integer> kinds = new java.util.HashMap<>();
+            // One block in 4 each way, in the chunks already loaded
+            for (int x = a.x0 + o[0]; x <= a.x1 + o[0]; x += 4)
+                for (int z = a.z0 + o[2]; z <= a.z1 + o[2]; z += 4) {
+                    var chunk = level.getChunkSource().getChunkNow(x >> 4, z >> 4);
+                    for (int y = a.y0 + o[1]; y <= a.y1 + o[1]; y += 4) {
+                        total++;
+                        if (chunk == null) {
+                            unknown++;
+                            continue;
+                        }
+                        var state = chunk.getBlockState(new BlockPos(x, y, z));
+                        if (state.isAir()) continue;
+                        solid++;
+                        kinds.merge(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath(), 1, Integer::sum);
+                    }
+                }
+            String what = kinds.entrySet().stream().sorted((p, q) -> q.getValue() - p.getValue()).limit(4).map(Map.Entry::getKey).reduce((p, q) -> p + ", " + q).orElse("vide");
+            out.add("Copie " + (k + 1) + " : x " + (a.x0 + o[0]) + " à " + (a.x1 + o[0]) + ", z " + (a.z0 + o[2]) + " à " + (a.z1 + o[2])
+                    + (hit.isEmpty() ? "" : " ⚠ CHEVAUCHE " + String.join(", ", hit))
+                    + " ; sur place : " + (total == unknown ? "inconnu (rien de chargé)" : Math.round(100.0 * solid / Math.max(1, total - unknown)) + " % de blocs (" + what + ")"
+                    + (unknown > 0 ? ", " + Math.round(100.0 * unknown / total) + " % non chargé donc non vérifié" : "")) + ".");
+        }
+        out.add(clash ? "⚠ Des copies tomberaient sur quelque chose de déclaré : ne pas copier ici."
+                : "Aucune arène ni zone déclarée sur le passage. Les lieux non déclarés (Fouville, lobby, adventure…) ne sont connus que par « sur place » : à vérifier.");
+        return out;
     }
 
     /** The chunks of the reference and of the copies concerned. */

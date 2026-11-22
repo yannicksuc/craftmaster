@@ -128,6 +128,49 @@ public final class WorldEditPerf {
         }
     }
 
+    /** A player's WorldEdit selection: its world, the corners of its box, its kind (cuboid, poly2d...). */
+    public record Selection(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos min, net.minecraft.core.BlockPos max, String kind) {
+        public int sizeX() { return max.getX() - min.getX() + 1; }
+        public int sizeY() { return max.getY() - min.getY() + 1; }
+        public int sizeZ() { return max.getZ() - min.getZ() + 1; }
+        public long blocks() { return (long) sizeX() * sizeY() * sizeZ(); }
+    }
+
+    /**
+     * The player's selection, read from their WorldEdit session (nothing is sent to their chat).
+     *
+     * @throws IllegalStateException with the reason, in French: no WorldEdit, nothing selected, a corner missing
+     */
+    public static Selection selection(ServerPlayer player) {
+        if (!available()) throw new IllegalStateException("WorldEdit n'est pas sur ce serveur.");
+        try {
+            Object session = session(player);
+            Object world = session.getClass().getMethod("getSelectionWorld").invoke(session);
+            if (world == null) throw new IllegalStateException("aucune sélection WorldEdit (pose deux coins avec //pos1 et //pos2 ou la hache en bois).");
+            Class<?> worldClass = Class.forName("com.sk89q.worldedit.world.World");
+            Object region;
+            try {
+                region = session.getClass().getMethod("getSelection", worldClass).invoke(session, world);
+            } catch (java.lang.reflect.InvocationTargetException e) {
+                throw new IllegalStateException("sélection WorldEdit incomplète : il manque un coin (//pos1, //pos2).");
+            }
+            Class<?> regionClass = Class.forName("com.sk89q.worldedit.regions.Region");
+            Object lo = regionClass.getMethod("getMinimumPoint").invoke(region), hi = regionClass.getMethod("getMaximumPoint").invoke(region);
+            Class<?> adapter = Class.forName("com.sk89q.worldedit.fabric.FabricAdapter");
+            Object a = adapter.getMethod("get").invoke(null);
+            Object level = a.getClass().getMethod("toNativeWorld", worldClass).invoke(a, world);
+            return new Selection((net.minecraft.server.level.ServerLevel) level, point(lo), point(hi),
+                    region.getClass().getSimpleName().replace("Region", "").toLowerCase(java.util.Locale.ROOT));
+        } catch (ReflectiveOperationException | LinkageError e) {
+            throw new IllegalStateException("sélection WorldEdit illisible : " + e);
+        }
+    }
+
+    private static net.minecraft.core.BlockPos point(Object v) throws ReflectiveOperationException {
+        return new net.minecraft.core.BlockPos((int) v.getClass().getMethod("x").invoke(v), (int) v.getClass().getMethod("y").invoke(v),
+                (int) v.getClass().getMethod("z").invoke(v));
+    }
+
     /** WorldEdit.getInstance().getSessionManager().get(the player as a WorldEdit actor). */
     private static Object session(ServerPlayer player) throws ReflectiveOperationException {
         Class<?> we = Class.forName("com.sk89q.worldedit.WorldEdit");

@@ -30,6 +30,9 @@ chaque candidat : chacun joue seul dans **sa** copie.
   — caméras de la manche La pomme »), le numéro libre suivant (« nouvelle ») et les rôles.
 - `/cm arene retirer <nom> <joueur>` · `supprimer <nom>` · `liste`. Tout est gardé dans `config/craftmaster/arenas.json`.
 
+**Depuis une sélection WorldEdit** : `/cm arene creer <nom> selection` prend la sélection du joueur comme zone, sans mètre ruban. Avant de copier, `/cm arene plan <arène|selection> [copies]` annonce sans rien changer les blocs par copie et au total, la place de chaque copie, ce qu'elles chevauchent (arènes et zones déclarées) et ce qu'il y a sur place dans les chunks chargés. Une copie se fait en une fois : au-delà de 1 million de blocs au total, `/cm arene copier` et les remises à neuf sont refusées pour ne pas geler le serveur.
+
+
 La **réapparition** suit aussi les points de TP des manches : un candidat téléporté au lancement d'une manche
 réapparaît là s'il meurt (pour toutes les épreuves).
 

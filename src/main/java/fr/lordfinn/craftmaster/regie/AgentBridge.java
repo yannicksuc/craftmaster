@@ -237,6 +237,9 @@ public final class AgentBridge {
             String why = lineRefusal(embedded);
             if (why != null) return why;
         }
+        // A line the command tree does not know is neither run nor put to the organiser: the agent looks it up
+        String wrong = syntaxError(player, line);
+        if (wrong != null) return wrong;
         boolean reading = kind == Kind.READ;
         if (!confirmed && kind == Kind.CONFIRM) {
             // The same deletion asked again in a LATER request (« oui, supprime-la ») is the confirmation
@@ -262,10 +265,42 @@ public final class AgentBridge {
         if (!reading && job.before == null) job.before = Snapshot.take();
         Capture cap = new Capture();
         CommandSourceStack source = player.createCommandSourceStack().withSource(cap);
-        player.level().getServer().getCommands().performPrefixedCommand(source, line);
+        // WorldEdit and others answer the player, not the command's source: what he is told meanwhile is the answer too
+        hearing = cap;
+        hearingFor = player;
+        try {
+            // The server takes one slash off: a WorldEdit line (« /size » here) needs its second one back
+            player.level().getServer().getCommands().performPrefixedCommand(source, line.startsWith("/") ? "/" + line : line);
+        } finally {
+            hearing = null;
+            hearingFor = null;
+        }
         if (!reading && !cap.failed) job.done.add("/" + line);
         CraftMaster.LOG.info("Régie IA ({}) : /{} -> {}", job.who, line, mask(String.join(" | ", cap.lines)));
-        return cap.lines.isEmpty() ? "(fait, aucune réponse)" : String.join("\n", cap.lines);
+        return cap.lines.isEmpty() ? "(lancée, pas de réponse immédiate : une opération longue répond plus tard dans le chat du joueur)" : String.join("\n", cap.lines);
+    }
+
+    private static Capture hearing;
+    private static ServerPlayer hearingFor;
+
+    /** A message sent to a player (from the mixin): kept if a command of the agent is running for them. */
+    public static void heard(ServerPlayer player, Component message) {
+        if (hearing != null && player == hearingFor) hearing.sendSystemMessage(message);
+    }
+
+    /** Why this line cannot run as it is, with what the tree proposes there; null if it parses to a whole command. */
+    static String syntaxError(ServerPlayer player, String line) {
+        String now = fr.lordfinn.craftmaster.command.CommandTree.translate(line);
+        String text = now == null ? line : now;
+        var dispatcher = player.level().getServer().getCommands().getDispatcher();
+        var parse = dispatcher.parse(text, player.createCommandSourceStack().withSource(new Capture()));
+        boolean whole = !parse.getReader().canRead() && parse.getContext().getLastChild().getCommand() != null;
+        if (whole) return null;
+        String why = parse.getExceptions().isEmpty()
+                ? (parse.getReader().canRead() ? "rien ne correspond à partir de « " + parse.getReader().getRemaining() + " »" : "commande incomplète")
+                : parse.getExceptions().values().iterator().next().getMessage();
+        return "✗ Syntaxe : « /" + line + " » n'existe pas telle quelle (" + why + "). Elle n'a été ni lancée ni proposée à l'organisateur. "
+                + "(Une commande WorldEdit s'écrit avec deux barres : //size.) À cet endroit, " + complete(player, line);
     }
 
     /** Groups of /cm the control may use, and the old root they stand for (absent: not for the control). */
@@ -668,6 +703,8 @@ public final class AgentBridge {
             if (path == null) {
                 // A command of the server (vanilla or another mod)
                 if (FORBIDDEN.contains(r)) return Kind.REFUSED;
+                // //size alone only reads the selection (//sel is NOT here: without argument it clears it)
+                if (r.equals("/size") && rest.isEmpty()) return Kind.READ;
                 if (VANILLA_READ.contains(r) || (r.equals("time") && rest.size() >= 1 && rest.getFirst().equals("query"))
                         || (r.equals("data") && !rest.isEmpty() && rest.getFirst().equals("get"))) return Kind.READ;
                 // « execute in … if block … » without run nor store: only answers « Test passed / failed »
@@ -681,6 +718,7 @@ public final class AgentBridge {
             for (int i = p.length - 1; i >= 1; i--) rest.addFirst(p[i]);
         }
         if (group.equals("ia")) return Kind.REFUSED;
+        if (group.equals("arene") && !rest.isEmpty() && rest.getFirst().equals("plan")) return Kind.READ;
         if (rest.stream().anyMatch(DELETING::contains) || rest.contains("suppr") || rest.contains("retirerpoint")) return Kind.CONFIRM;
         if (rest.isEmpty() && Set.of("statut", "aide", "historique", "menu").contains(group)) return Kind.READ;
         if (!rest.isEmpty() && READING.contains(rest.getLast()) || rest.stream().anyMatch(x -> x.equals("liste") || x.equals("list") || x.equals("statut") || x.equals("voir")))
@@ -769,6 +807,23 @@ public final class AgentBridge {
                     out.add(j);
                 }
                 return out.toString();
+            }
+            case "selection", "worldedit" -> {
+                try {
+                    var sel = fr.lordfinn.craftmaster.compat.WorldEditPerf.selection(player);
+                    JsonObject j = new JsonObject();
+                    j.addProperty("monde", sel.level().dimension().identifier().toString());
+                    j.addProperty("meme_monde_que_lui", sel.level() == player.level());
+                    j.addProperty("type", sel.kind());
+                    j.addProperty("min", sel.min().getX() + " " + sel.min().getY() + " " + sel.min().getZ());
+                    j.addProperty("max", sel.max().getX() + " " + sel.max().getY() + " " + sel.max().getZ());
+                    j.addProperty("taille", sel.sizeX() + " x " + sel.sizeY() + " x " + sel.sizeZ());
+                    j.addProperty("blocs", sel.blocks());
+                    j.addProperty("limite_copie_d_un_coup", fr.lordfinn.craftmaster.trial.kit.Arenas.MAX_BLOCKS_AT_ONCE);
+                    return j.toString();
+                } catch (IllegalStateException e) {
+                    return "Pas de sélection lisible : " + e.getMessage();
+                }
             }
             case "joueurs", "joueur" -> {
                 JsonArray out = new JsonArray();
