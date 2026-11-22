@@ -88,24 +88,17 @@ def comp_snbt(c):
     return ",".join("%s=%s" % (k, re.sub(r'"(\w+)":', r'\1:', j(v))) for k, v in c.items())
 # Composants que d'anciennes règles avaient mis et que les objets déjà distribués perdent
 STRIP = {"iron_hoe": ["minecraft:can_place_on"], "wheat_seeds": ["minecraft:can_place_on"]}
-# La poudre d'os ne sert plus (22/11) : celle qui resterait dans un conteneur ne peut plus rien faire pousser
-INERTE = {"bone_meal": ["minecraft:can_place_on", "minecraft:can_break", "minecraft:consumable", "minecraft:lore", "minecraft:tooltip_display"]}
 mods = []
 for item in RULES:
     comps = rule_components(item)
     for k in STRIP.get(item, []): comps["!" + k] = {}
     mods.append({"function": "minecraft:filtered", "item_filter": {"items": "minecraft:" + item},
                  "on_pass": {"function": "minecraft:set_components", "components": comps}})
-for item, keys in INERTE.items():
-    mods.append({"function": "minecraft:filtered", "item_filter": {"items": "minecraft:" + item},
-                 "on_pass": {"function": "minecraft:set_components", "components": {"!" + k: {} for k in keys}}})
 F_JSON = {"data/pomme/item_modifier/regles.json": mods}
 
 def with_rules(item_tag):
     """Adds the rule components to an item compound from the schematic (chests, shelves...)."""
     iid = str(item_tag['id']).replace('minecraft:', '')
-    if iid in INERTE and 'components' in item_tag:
-        for k in INERTE[iid]: item_tag['components'].pop(k, None)
     if iid in RULES:
         comps = item_tag.setdefault('components', nbtlib.Compound())
         for k in STRIP.get(iid, []): comps.pop(k, None)
@@ -394,23 +387,23 @@ def edge(tag, cond, then):
             "execute if entity @s[tag=!%s] %s run tag @s add %s" % (tag, cond, tag),
             "execute if entity @s[tag=%s] %s run tag @s remove %s" % (tag, cond.replace("if block", "unless block", 1), tag)]
 PLAYERS = "@a[%s]" % VOL
-# Le corail de Giselle (tonneau dessous, panneau « Giselle la pondeuse », bulb derrière). Une poule attirée s'arrête à
+# Le corail de Typhaine (tonneau dessous, panneau « Typhaine la pondeuse », bulb derrière). Une poule attirée s'arrête à
 # 2,5 blocs de celui qui tient les graines et ne grimpe pas d'elle-même sur le tonneau : amenée à côté, elle s'y pose.
 CORAIL = (30.5, 5, 31.5)
 CORAIL_R = 2.5
 tick = [
     "# 1. L'œuf sur la cible : une pioche en pierre (3 utilisations, casse le minerai de fer), une seule fois",
     "execute if entity @s[tag=!p_pioche] unless block ~40 ~10 ~35 target[power=0] run function pomme:salle/pioche",
-    "# 2. Giselle (seule) amenée au corail : elle s'y pose, le bulb s'allume, un œuf toutes les 10 s dans le tonneau dessous",
-    "execute if entity @s[tag=p_poules,tag=!p_gisele] positioned ~%s ~%s ~%s if entity @e[type=chicken,tag=pomme_gisele,distance=..%s] positioned ~-%s ~-%s ~-%s run function pomme:salle/gisele" % (CORAIL[0], CORAIL[1], CORAIL[2], CORAIL_R, CORAIL[0], CORAIL[1], CORAIL[2]),
-    "execute if entity @s[tag=p_gisele] positioned ~%s ~%s ~%s run tp @e[type=chicken,tag=pomme_gisele,distance=..6,limit=1,sort=nearest] ~ ~ ~" % CORAIL,
-    "execute if entity @s[tag=p_gisele] run scoreboard players add @s pomme_t 1",
+    "# 2. Typhaine (seule) amenée au corail : elle s'y pose, le bulb s'allume, un œuf toutes les 10 s dans le tonneau dessous",
+    "execute if entity @s[tag=p_poules,tag=!p_typhaine] positioned ~%s ~%s ~%s if entity @e[type=chicken,tag=pomme_typhaine,distance=..%s] positioned ~-%s ~-%s ~-%s run function pomme:salle/typhaine" % (CORAIL[0], CORAIL[1], CORAIL[2], CORAIL_R, CORAIL[0], CORAIL[1], CORAIL[2]),
+    "execute if entity @s[tag=p_typhaine] positioned ~%s ~%s ~%s run tp @e[type=chicken,tag=pomme_typhaine,distance=..6,limit=1,sort=nearest] ~ ~ ~" % CORAIL,
+    "execute if entity @s[tag=p_typhaine] run scoreboard players add @s pomme_t 1",
     "execute if score @s pomme_t matches 200.. run function pomme:salle/oeufs",
     "# 3. Les 4 pots devant les diamants (de gauche à droite) : tulipe rose, cactus, bleuet, rose de wither",
     "execute if entity @s[tag=!p_baptiste] if block ~25 ~5 ~8 potted_pink_tulip if block ~26 ~5 ~8 potted_cactus if block ~27 ~5 ~8 potted_cornflower if block ~28 ~5 ~8 potted_wither_rose run function pomme:salle/baptiste",
     "# 4. Le code de la porte sur l'étagère : crâne de squelette, gâteau, coquelicot",
     "execute if entity @s[tag=!p_porte] if items block ~28 ~6 ~17 container.* skeleton_skull if items block ~28 ~6 ~17 container.* cake if items block ~28 ~6 ~17 container.* poppy run function pomme:salle/porte",
-    "# 5. Le code « riricococo » (panneau « ? : ») puis le bouton bleu : des poules, chacune son prénom, dont Giselle",
+    "# 5. Le code « riricococo » (panneau « ? : ») puis le bouton bleu : des poules, chacune son prénom, dont Typhaine",
     "execute if entity @s[tag=!p_code] if entity @a[%s,tag=cm_code_poules] run function pomme:salle/code_bon" % VOL,
     "tag @a[%s,tag=cm_code_poules] remove cm_code_poules" % VOL,
 ]
@@ -432,9 +425,9 @@ fn("salle/pioche", [
 # @p with dx relative to the room corner: positioned at the corner for the volume
 F["salle/pioche"][1] = "give @p[%s] stone_pickaxe[max_damage=3,can_break={blocks:\"iron_ore\"},custom_name={text:\"Pioche fragile\",italic:false}]" % VOL
 F["salle/pioche"][2] = "execute as %s at @s run playsound minecraft:ui.toast.challenge_complete master @s ~ ~ ~ 1 1.2" % PLAYERS
-fn("salle/gisele", [
-    "tag @s add p_gisele",
-    "execute positioned ~%s ~%s ~%s as @e[type=chicken,tag=pomme_gisele,distance=..%s,limit=1,sort=nearest] run function pomme:poule/ancrer" % (CORAIL + (CORAIL_R,)),
+fn("salle/typhaine", [
+    "tag @s add p_typhaine",
+    "execute positioned ~%s ~%s ~%s as @e[type=chicken,tag=pomme_typhaine,distance=..%s,limit=1,sort=nearest] run function pomme:poule/ancrer" % (CORAIL + (CORAIL_R,)),
     "setblock ~30 ~6 ~32 copper_bulb[lit=true] strict",
     "playsound minecraft:block.amethyst_block.chime master %s ~30.5 ~5 ~31.5 1 1" % PLAYERS,
     "playsound minecraft:block.copper_bulb.turn_on master %s ~30 ~6 ~32 1 1" % PLAYERS,
@@ -463,23 +456,25 @@ fn("salle/code_bon", [
     "data modify block ~49 ~6 ~32 front_text.messages[1] set value {text:\"riricococo\",color:\"dark_green\"}",
     "playsound minecraft:block.note_block.chime master %s ~49 ~6 ~32 1 1.4" % PLAYERS,
 ])
-# Une douzaine de poules, chacune son prénom. Giselle (comme sur le panneau de LordFinn) ne peut pas mourir : sans elle, pas d'œufs
-PRENOMS = ["Giselle", "Paulette", "Odette", "Huguette", "Ginette", "Josette", "Germaine", "Marcelle", "Roussette", "Cocotte", "Bernadette", "Yvonne"]
+# Des poules qui s'appellent toutes Typhaine, chacune avec une orthographe différente. La bonne est celle du panneau
+# au-dessus du nid ; c'est la seule qui compte, et elle ne peut pas mourir (sans elle, pas d'œufs)
+BONNE = "Typhaine"
+ORTHOGRAPHES = ["Tiphaine", "Tiphaïne", "Typhaïne", "Tifaine", "Tyfaine", "Tiffaine", "Tyffaine", "Thiphaine", "Thyphaine", "Tiphène", "Typhène"]
 summ = []
-for k, prenom in enumerate(PRENOMS):
+for k, prenom in enumerate([BONNE] + ORTHOGRAPHES):
     var = ("temperate", "cold", "warm")[k % 3]
-    extra, tags = (",Invulnerable:1b", '"pomme_e","pomme_nommee","pomme_gisele"') if prenom == "Giselle" else ("", '"pomme_e","pomme_nommee"')
+    extra, tags = (",Invulnerable:1b", '"pomme_e","pomme_nommee","pomme_typhaine"') if prenom == BONNE else ("", '"pomme_e","pomme_nommee"')
     summ.append("execute at @p[%s] run summon chicken ~ ~ ~ {variant:\"minecraft:%s\",CustomName:\"%s\",CustomNameVisible:1b,PersistenceRequired:1b,EggLayTime:999999%s,Tags:[%s]}" % (VOL, var, prenom, extra, tags))
 fn("salle/bouton_bleu", [
     "execute if entity @s[tag=p_code,tag=!p_poules] run function pomme:salle/poules",
     "execute if entity @s[tag=!p_code] run playsound minecraft:block.note_block.bass master %s ~49 ~4 ~32 1 0.6" % PLAYERS,
 ])
-# Les poules déjà dans la salle reçoivent aussi chacune un prénom
-AUTRES = ["Simone", "Lucienne", "Mauricette", "Solange", "Raymonde", "Jacqueline", "Colette", "Micheline", "Suzette", "Denise"]
+# Les poules déjà dans la salle sont aussi des Typhaine, mal orthographiées
+AUTRES = ["Tifène", "Tyfène", "Tiphaene", "Typhaene", "Tiphenn", "Typhenn", "Tiphayne", "Typhayne", "Tifenn", "Tyfenn"]
 nommer = []
 for prenom in AUTRES:
     nommer.append("data merge entity @e[type=chicken,%s,tag=!pomme_nommee,limit=1] {CustomName:\"%s\",CustomNameVisible:1b}" % (VOL, prenom))
-    nommer.append("tag @e[type=chicken,%s,name=%s] add pomme_nommee" % (VOL, prenom))
+    nommer.append("tag @e[type=chicken,%s,name=\"%s\"] add pomme_nommee" % (VOL, prenom))
 fn("salle/poules", ["tag @s add p_poules"] + nommer + summ + [
     "execute as %s at @s run playsound minecraft:entity.player.levelup master @s ~ ~ ~ 1 1.2" % PLAYERS])
 SONS = {1: ("cocori", 1.6), 2: ("cot", 1.0), 3: ("cotcot", 1.2), 4: ("cocotcot", 0.8)}
@@ -491,7 +486,7 @@ fn("salle/bouton_rouge", [
     "clear %s" % PLAYERS,
     "tag %s remove cm_code_poules" % PLAYERS,
     "tp %s ~31.5 ~4 ~15.5" % PLAYERS,
-    "tag @s remove p_pioche", "tag @s remove p_gisele", "tag @s remove p_baptiste",
+    "tag @s remove p_pioche", "tag @s remove p_typhaine", "tag @s remove p_baptiste",
     "tag @s remove p_porte", "tag @s remove p_code", "tag @s remove p_poules", "scoreboard players reset @s pomme_t",
     "function pomme:salle/refaire",
     "tellraw %s {text:\"La salle revient au début (ton temps continue).\",color:\"yellow\"}" % PLAYERS,
@@ -530,6 +525,18 @@ fn("salle/sans_canne", [
     "data remove block ~33 ~9 ~13 Items[{id:\"minecraft:sand\"}]",
     "data remove block ~39 ~9 ~13 Items[{id:\"minecraft:sand\"}]",
 ] + ["setblock ~%d ~%d ~%d %s strict" % (x, y, z, b) for (x, y, z), b in OVERRIDE.items() if b == "minecraft:sand"])
+
+# ------------------------------------------------------------ référence du serveur : décisions de LordFinn du 22/11
+# (une fois, positionné au coin de la référence, avant de refaire les salles : function pomme:salle/maj_typhaine)
+fn("salle/maj_typhaine", [
+    "data remove block ~30 ~3 ~22 Items[{id:\"minecraft:bone_meal\"}]",
+    "data remove block ~44 ~3 ~31 Items[{id:\"minecraft:bone_meal\"}]",
+    "data remove block ~45 ~3 ~31 Items[{id:\"minecraft:bone_meal\"}]",
+    "data remove block ~46 ~3 ~31 Items[{id:\"minecraft:bone_meal\"}]",
+    "data remove block ~42 ~10 ~12 Items",
+    "setblock ~48 ~3 ~27 dirt strict",
+    "data modify block ~30 ~6 ~31 front_text.messages[1] set value \"Typhaine la\"",
+])
 
 # ------------------------------------------------------------ vérification bloc à bloc (0 attendu)
 ver = ["scoreboard players set #diff pomme_t 0"]
