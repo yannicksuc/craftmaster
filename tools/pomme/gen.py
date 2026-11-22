@@ -327,7 +327,8 @@ fn("construire/copies", copies)
 
 # Refaire une salle (bouton rouge, ou l'organisateur) : à lancer positionné au coin de la salle
 fn("salle/refaire", [
-    "tag @e[type=!player,type=!marker,dx=%d,dy=%d,dz=%d] add pomme_mort" % (W - 1, H - 1, L - 1),
+    # (les cadres photo du téléphone restent : ils ne font pas partie des entités du pack)
+    "tag @e[type=!player,type=!marker,type=!crazyphone:photo_frame,dx=%d,dy=%d,dz=%d] add pomme_mort" % (W - 1, H - 1, L - 1),
     "tp @e[tag=pomme_mort,type=!item_frame,type=!glow_item_frame,type=!painting] ~ -500 ~",
     "kill @e[tag=pomme_mort]",
     "clone %d %d %d %d %d %d ~ ~ ~ strict" % (REF[0], REF[1], REF[2], REF[0] + 29, REF[1] + H - 1, REF[2] + L - 1),

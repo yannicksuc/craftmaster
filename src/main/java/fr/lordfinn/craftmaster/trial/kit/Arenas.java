@@ -410,6 +410,7 @@ public final class Arenas {
             // No updates at all, like a WorldEdit paste: crops on stone, floating plants, unconnected panes stay as built
             t.placeInWorld(level, at, at, new StructurePlaceSettings().setKnownShape(true), level.getRandom(), NO_UPDATE);
             copyPassengers(level, a, off);
+            copyAttached(level, a, off);
             copyMarkers(level, a, off);
             if (a.walls) walls(level, a, off);
             // Nothing lying on the floor after the copy (an old frame that fell off would have dropped its item)
@@ -439,7 +440,10 @@ public final class Arenas {
     /** The copy's frames, paintings, mannequins and villagers counted against the reference; the organisers warned if they differ. */
     private static void check(MinecraftServer server, ServerLevel level, Arena a, String who, int[] off) {
         List<String> wrong = new ArrayList<>();
-        for (net.minecraft.world.entity.EntityType<?> type : counted()) {
+        Set<net.minecraft.world.entity.EntityType<?>> types = new java.util.LinkedHashSet<>(counted());
+        for (Entity e : level.getEntities((Entity) null, a.box(null), x -> !(x instanceof Player)
+                && !net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(x.getType()).getNamespace().equals("minecraft"))) types.add(e.getType());
+        for (net.minecraft.world.entity.EntityType<?> type : types) {
             int ref = level.getEntities(type, a.box(null), e -> true).size(), here = level.getEntities(type, a.box(off), e -> true).size();
             if (ref != here) wrong.add(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(type).getPath() + " " + here + "/" + ref);
         }
@@ -478,6 +482,36 @@ public final class Arenas {
                 level.addFreshEntityWithPassengers(again);
                 again.startRiding(copy, true, false);
             }
+        }
+    }
+
+    /**
+     * Entities of other mods that remember the block they hang on in absolute coordinates ({@code AttachX/Y/Z}: the
+     * phone's photo frames): placed as they are, they would still belong to the reference and vanish from the copy.
+     * Each comes again with its block moved along.
+     */
+    private static void copyAttached(ServerLevel level, Arena a, int[] off) {
+        Set<net.minecraft.world.entity.EntityType<?>> cleared = new java.util.HashSet<>();
+        for (Entity e : level.getEntities((Entity) null, a.box(null), x -> !(x instanceof Player) && !x.isPassenger()
+                && !net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(x.getType()).getNamespace().equals("minecraft"))) {
+            net.minecraft.world.level.storage.TagValueOutput out = net.minecraft.world.level.storage.TagValueOutput.createWithContext(
+                    net.minecraft.util.ProblemReporter.DISCARDING, level.registryAccess());
+            if (!e.save(out)) continue;
+            net.minecraft.nbt.CompoundTag t = out.buildResult();
+            if (!t.contains("AttachX") || !t.contains("AttachY") || !t.contains("AttachZ")) continue;
+            if (cleared.add(e.getType())) for (Entity old : level.getEntities(e.getType(), a.box(off), x -> true)) old.discard();
+            t.putInt("AttachX", t.getIntOr("AttachX", 0) + off[0]);
+            t.putInt("AttachY", t.getIntOr("AttachY", 0) + off[1]);
+            t.putInt("AttachZ", t.getIntOr("AttachZ", 0) + off[2]);
+            double x = e.getX() + off[0], y = e.getY() + off[1], z = e.getZ() + off[2];
+            Entity again = net.minecraft.world.entity.EntityType.loadEntityRecursive(
+                    net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING, level.registryAccess(), t),
+                    level, net.minecraft.world.entity.EntitySpawnReason.STRUCTURE, n -> {
+                        n.snapTo(x, y, z, e.getYRot(), e.getXRot());
+                        n.setUUID(java.util.UUID.randomUUID());
+                        return n;
+                    });
+            if (again != null) level.addFreshEntity(again);
         }
     }
 
