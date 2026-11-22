@@ -441,8 +441,12 @@ public final class Arenas {
     private static void check(MinecraftServer server, ServerLevel level, Arena a, String who, int[] off) {
         List<String> wrong = new ArrayList<>();
         Set<net.minecraft.world.entity.EntityType<?>> types = new java.util.LinkedHashSet<>(counted());
-        for (Entity e : level.getEntities((Entity) null, a.box(null), x -> !(x instanceof Player)
-                && !net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(x.getType()).getNamespace().equals("minecraft"))) types.add(e.getType());
+        // The other mods' entities too; not this mod's own (the cameras of the set stay in the reference)
+        for (Entity e : level.getEntities((Entity) null, a.box(null), x -> {
+            if (x instanceof Player) return false;
+            String ns = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(x.getType()).getNamespace();
+            return !ns.equals("minecraft") && !ns.equals(CraftMaster.MOD_ID);
+        })) types.add(e.getType());
         for (net.minecraft.world.entity.EntityType<?> type : types) {
             int ref = level.getEntities(type, a.box(null), e -> true).size(), here = level.getEntities(type, a.box(off), e -> true).size();
             if (ref != here) wrong.add(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(type).getPath() + " " + here + "/" + ref);
