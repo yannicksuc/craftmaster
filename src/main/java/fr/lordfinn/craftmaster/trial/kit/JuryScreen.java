@@ -42,6 +42,31 @@ public final class JuryScreen {
 
     /** What each arena's screen shows now: "" = all, else the player. */
     private static final Map<String, String> SHOWN = new HashMap<>();
+    /** "arena:player" whose written name is on the screen: hidden until the organiser reveals it. */
+    private static final java.util.Set<String> REVEALED = new java.util.HashSet<>();
+
+    static void forgetRevealed(String arena) {
+        String k = arena.toLowerCase(Locale.ROOT) + ":";
+        REVEALED.removeIf(r -> r.startsWith(k));
+    }
+
+    /** The drawing's author, with the name of the animal once revealed. */
+    private static String caption(String arena, String player) {
+        if (!REVEALED.contains(arena.toLowerCase(Locale.ROOT) + ":" + player.toLowerCase(Locale.ROOT))) return player;
+        String[] a = NameBooks.answer(arena, player);
+        return a == null || a[0].isEmpty() ? player : player + " - " + (a[0].length() > 22 ? a[0].substring(0, 22) : a[0]);
+    }
+
+    /** Puts the name written by {@code player} on the screen, with their drawing in big. */
+    public static String reveal(MinecraftServer server, Arena arena, String player, String screen) throws Exception {
+        String known = DrawingImages.names(arena.name).stream().filter(n -> n.equalsIgnoreCase(player)).findFirst()
+                .orElseThrow(() -> new IllegalStateException(player + " n'a pas de dessin."));
+        String[] a = NameBooks.answer(arena.name, known);
+        if (a == null) throw new IllegalStateException(known + " n'a pas de nom enregistré.");
+        REVEALED.add(arena.name.toLowerCase(Locale.ROOT) + ":" + known.toLowerCase(Locale.ROOT));
+        show(server, arena, known, screen);
+        return known + " : « " + a[0] + " » (" + a[1] + "), affiché sur l'écran « " + screen + " ».";
+    }
 
     /** A drawing was finished: the organisers get the buttons to show it. */
     static void drawingSaved(MinecraftServer server, Arena arena, String player) {
@@ -58,6 +83,12 @@ public final class JuryScreen {
                     Finish.colour(p)));
         line.append(Component.literal(" ")).append(button("[◀]", "/cm arene jury " + arena + " precedent", "Le dessin d'avant", ChatFormatting.GRAY));
         line.append(Component.literal(" ")).append(button("[▶]", "/cm arene jury " + arena + " suivant", "Le dessin d'après", ChatFormatting.GRAY));
+        // The names stay hidden on the screen until revealed, one by one
+        for (String p : DrawingImages.all(arena).keySet()) {
+            if (NameBooks.answer(arena, p) == null || REVEALED.contains(arena.toLowerCase(Locale.ROOT) + ":" + p.toLowerCase(Locale.ROOT))) continue;
+            line.append(Component.literal("\n")).append(button("[Révéler le nom] " + p, "/cm arene jury " + arena + " reveler " + p,
+                    "Affiche à l'écran le nom écrit par " + p, ChatFormatting.GOLD));
+        }
         return line;
     }
 
@@ -90,7 +121,7 @@ public final class JuryScreen {
             player = names.stream().filter(n -> n.equalsIgnoreCase(what)).findFirst()
                     .orElseThrow(() -> new IllegalStateException(what + " n'a pas de dessin (dessins : " + String.join(", ", names) + ")"));
         }
-        String url = ServerImages.publish(player.isEmpty() ? board(all) : single(player, all.get(player)));
+        String url = ServerImages.publish(player.isEmpty() ? board(arena.name, all) : single(caption(arena.name, player), all.get(player)));
         for (ImageScreenEntity s : screens) {
             s.setFit(true);
             s.setUrl(url);
@@ -123,7 +154,7 @@ public final class JuryScreen {
         Graphics2D[] g = new Graphics2D[1];
         BufferedImage img = canvas(g);
         int titleH = 150;
-        PixelFont.draw(g[0], player, W / 2, 40, 12, TITLE, true);
+        PixelFont.draw(g[0], player, W / 2, 40, Math.max(5, Math.min(12, (W - 120) / (6 * Math.max(1, player.length())))), TITLE, true);
         BufferedImage d = ImageIO.read(new ByteArrayInputStream(drawing));
         fit(g[0], d, 60, titleH + 10, W - 120, H - titleH - 50);
         g[0].dispose();
@@ -131,7 +162,7 @@ public final class JuryScreen {
     }
 
     /** Every drawing side by side, each with its author's name below, in the most even grid that fits. */
-    static byte[] board(Map<String, byte[]> all) throws Exception {
+    static byte[] board(String arena, Map<String, byte[]> all) throws Exception {
         Graphics2D[] g = new Graphics2D[1];
         BufferedImage img = canvas(g);
         int n = all.size(), cols = 1;
@@ -152,11 +183,12 @@ public final class JuryScreen {
             // The last row centred
             int inRow = r == rows - 1 ? n - r * cols : cols;
             int x0 = 40 + c * cw + (cols - inRow) * cw / 2, y0 = 40 + r * ch;
-            int label = Math.max(3, Math.min(9, ch / 50));
+            String caption = caption(arena, e.getKey());
+            int label = Math.max(2, Math.min(Math.min(9, ch / 50), (cw - 20) / (6 * Math.max(1, caption.length()))));
             int labelH = label * 7 + 16;
             BufferedImage d = ImageIO.read(new ByteArrayInputStream(e.getValue()));
             fit(g[0], d, x0 + 10, y0 + 6, cw - 20, ch - labelH - 12);
-            PixelFont.draw(g[0], e.getKey(), x0 + cw / 2, y0 + ch - labelH + 2, label, TITLE, true);
+            PixelFont.draw(g[0], caption, x0 + cw / 2, y0 + ch - labelH + 2, label, TITLE, true);
             i++;
         }
         g[0].dispose();

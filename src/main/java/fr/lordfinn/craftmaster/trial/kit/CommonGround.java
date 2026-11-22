@@ -50,6 +50,7 @@ public final class CommonGround {
         UseBlockCallback.EVENT.register((player, level, hand, hit) -> {
             if (level.isClientSide()) return InteractionResult.PASS;
             ItemStack st = player.getItemInHand(hand);
+            if (plays(player) && NameBooks.blocksUse(player, level, hit.getBlockPos())) return InteractionResult.FAIL;
             return st.getItem() instanceof BlockItem && locked(player, level, hit.getBlockPos()) ? InteractionResult.FAIL : InteractionResult.PASS;
         });
         // The banners work anywhere on the ground, aimed at the sky too: nothing is planted

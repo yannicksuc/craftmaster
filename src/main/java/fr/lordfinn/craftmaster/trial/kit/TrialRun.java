@@ -370,6 +370,7 @@ public final class TrialRun {
         state.manche = mancheId;
         state.season = season;
         REPORT.clear();
+        NameBooks.restart(server);
         if (relaunch) {
             int taken = takeEnvelopes(server, season, mancheId);
             state.envelopes.remove(key(season, mancheId));
@@ -695,6 +696,7 @@ public final class TrialRun {
         Manche m = fr.lordfinn.craftmaster.trial.Judging.currentManche();
         if (m == null) return new ActionExecutor.Result(List.of(state.back.isEmpty() ? "Aucune épreuve en cours."
                 : "La manche est déjà finie : /cm epreuve plateau pour ramener tout le monde."), false);
+        NameBooks.collect(server);
         List<String> lines = new ArrayList<>(ActionExecutor.execute(server, List.of(Map.of("type", "manche.end"))).lines());
         // The stopwatches still running stop here (their bars stand still until « Revenir au plateau »)
         long now = System.currentTimeMillis();
@@ -771,6 +773,7 @@ public final class TrialRun {
             return new ActionExecutor.Result(List.of("« " + running.name + " » est encore en cours : /cm epreuve terminer d'abord."), false);
         String mancheId = state.manche;
         if (mancheId == null && state.back.isEmpty()) return new ActionExecutor.Result(List.of("Personne à ramener : aucune épreuve terminée."), false);
+        NameBooks.backToStage(server);
         // The stopwatches' bars off the screens (the times stay in the results sheet)
         fr.lordfinn.craftmaster.trial.Judging.reset();
         // The spectators back to their place first (the contestants among them then go back to the set)

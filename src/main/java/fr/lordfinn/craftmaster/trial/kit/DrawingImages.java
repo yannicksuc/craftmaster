@@ -87,7 +87,7 @@ public final class DrawingImages {
         try (var files = Files.list(d)) {
             for (Path f : files.sorted().toList()) {
                 String n = f.getFileName().toString();
-                if (!n.endsWith(".json")) continue;
+                if (!n.endsWith(".json") || n.endsWith(".nom.json")) continue;
                 com.google.gson.JsonObject o = com.google.gson.JsonParser.parseString(Files.readString(f)).getAsJsonObject();
                 List<float[]> pts = new ArrayList<>();
                 for (com.google.gson.JsonElement e : o.getAsJsonArray("points")) {
@@ -250,6 +250,7 @@ public final class DrawingImages {
             Path to = dir(arena).getParent().resolve("archives").resolve(safe(arena)).resolve(when);
             Files.createDirectories(to);
             for (Path f : pngs) Files.move(f, to.resolve(f.getFileName()), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            JuryScreen.forgetRevealed(arena);
             CraftMaster.LOG.info("[Dessins] {} dessin(s) de « {} » archivé(s) dans {}", pngs.size(), arena, to);
         } catch (Exception e) {
             CraftMaster.LOG.warn("[Dessins] {} : archivage impossible", d, e);

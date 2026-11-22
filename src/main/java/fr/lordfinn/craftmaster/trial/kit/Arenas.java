@@ -556,6 +556,7 @@ public final class Arenas {
             setRespawn(p, level, s[0], s[1], s[2], a.syaw);
             if (a.clearInventory) p.getInventory().clearContent();
             for (ItemStack st : kit(server, a)) if (!p.getInventory().add(st)) p.spawnAtLocation(level, st);
+            if (a.terrainCommun && a.livreNom) NameBooks.give(p, a);
             done.add(name);
         }
         return done;
@@ -660,6 +661,7 @@ public final class Arenas {
     public static void register() {
         CommonGround.register();
         DrawingPreview.register();
+        NameBooks.register();
         ShowEvents.register(new ShowEvents.Listener() {
             @Override
             public void onEnvelopeOpened(MinecraftServer server, ServerPlayer player, int season, String mancheId) {

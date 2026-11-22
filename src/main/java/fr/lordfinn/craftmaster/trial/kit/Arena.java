@@ -105,6 +105,8 @@ public final class Arena {
     public boolean joueursVisibles = true;
     /** false: a contestant who is done stays a normal player, with no offer to watch and no F7 until the trial ends. */
     public boolean finSpectateur = true;
+    /** On a common ground: each contestant gets a book to sign with their answer ({@link NameBooks}). */
+    public boolean livreNom;
     /** On a common ground: starts set by hand, contestant (lower case) → x, y, z. */
     public Map<String, double[]> departs = new LinkedHashMap<>();
 

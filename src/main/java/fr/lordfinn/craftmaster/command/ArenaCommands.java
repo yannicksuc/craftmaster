@@ -90,7 +90,7 @@ public final class ArenaCommands {
         }
         return out;
     });
-    private static final SuggestionProvider<CommandSourceStack> OPTIONS = list(c -> List.of("chronoLettre", "panneauxSuite", "murs", "inventaireVide", "solFin", "alphabet", "aveugle", "cameraInventaire", "vocalLancement", "terrainCommun", "joueursVisibles", "finSpectateur"));
+    private static final SuggestionProvider<CommandSourceStack> OPTIONS = list(c -> List.of("chronoLettre", "panneauxSuite", "murs", "inventaireVide", "solFin", "alphabet", "aveugle", "cameraInventaire", "vocalLancement", "terrainCommun", "joueursVisibles", "finSpectateur", "livreNom"));
     private static final SuggestionProvider<CommandSourceStack> JURY = list(c -> {
         List<String> out = new ArrayList<>(List.of("tous", "suivant", "precedent"));
         try {
@@ -430,6 +430,21 @@ public final class ArenaCommands {
                     }
                 })))
                 .then(literal("jury").then(argument("arene", word()).suggests(ARENAS).executes(c -> jury(c, null, fr.lordfinn.craftmaster.trial.kit.JuryScreen.DEFAULT_SCREEN))
+                        // The name a contestant wrote in their book, on the jury's screen (hidden until then)
+                        .then(literal("reveler").then(argument("joueur", word()).suggests(list(c -> {
+                            Arena x = Arenas.get(c.getArgument("arene", String.class));
+                            return x == null ? List.of() : fr.lordfinn.craftmaster.trial.kit.DrawingImages.names(x.name);
+                        })).executes(c -> {
+                            Arena a = arena(c);
+                            if (a == null) return 0;
+                            try {
+                                ok(c, fr.lordfinn.craftmaster.trial.kit.JuryScreen.reveal(c.getSource().getServer(), a, str(c, "joueur"), fr.lordfinn.craftmaster.trial.kit.JuryScreen.DEFAULT_SCREEN));
+                            } catch (Exception e) {
+                                fail(c, e.getMessage());
+                                return 0;
+                            }
+                            return 1;
+                        })))
                         .then(argument("quoi", word()).suggests(JURY).executes(c -> jury(c, str(c, "quoi"), fr.lordfinn.craftmaster.trial.kit.JuryScreen.DEFAULT_SCREEN))
                                 .then(argument("ecran", word()).executes(c -> jury(c, str(c, "quoi"), str(c, "ecran")))))))
                 .then(literal("code").then(argument("arene", word()).suggests(ARENAS).then(argument("code", word()).executes(ArenaCommands::showCode)
@@ -676,8 +691,9 @@ public final class ArenaCommands {
             case "terraincommun" -> a.terrainCommun = on;
             case "joueursvisibles" -> a.joueursVisibles = on;
             case "finspectateur" -> a.finSpectateur = on;
+            case "livrenom" -> a.livreNom = on;
             default -> {
-                fail(c, "Option inconnue : chronoLettre, panneauxSuite, murs, inventaireVide, solFin, alphabet, aveugle, cameraInventaire, vocalLancement, terrainCommun, joueursVisibles, finSpectateur (ou chronoSuite <secondes>, mode aventure|survie).");
+                fail(c, "Option inconnue : chronoLettre, panneauxSuite, murs, inventaireVide, solFin, alphabet, aveugle, cameraInventaire, vocalLancement, terrainCommun, joueursVisibles, finSpectateur, livreNom (ou chronoSuite <secondes>, mode aventure|survie).");
                 return 0;
             }
         }

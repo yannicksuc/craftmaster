@@ -131,6 +131,7 @@ public final class Drawing {
         boolean running = Show.timerRunning();
         boolean timeUp = timerWasRunning && !running;
         timerWasRunning = running;
+        if (timeUp) NameBooks.collect(server);
         if (DRAWING.isEmpty()) return;
         for (Iterator<Map.Entry<Key, Trace>> it = DRAWING.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<Key, Trace> e = it.next();
