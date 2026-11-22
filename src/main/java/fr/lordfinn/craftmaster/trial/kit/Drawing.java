@@ -41,6 +41,8 @@ public final class Drawing {
     private static final Map<Key, Trace> DRAWING = new HashMap<>();
     /** Finished drawings (a red banner does not start them again before the reset). */
     private static final Set<Key> DONE = new HashSet<>();
+    /** The finished paths, until the arena starts over (the live preview still shows them). */
+    private static final Map<Key, Trace> LAST = new HashMap<>();
     private static boolean timerWasRunning;
 
     private static Key key(Arenas.Owner o, ServerPlayer p) {
@@ -55,7 +57,8 @@ public final class Drawing {
         }
         if (DRAWING.containsKey(k)) return;
         DRAWING.put(k, new Trace());
-        boolean blind = o.arena().field != null && o.arena().field.blind;
+        Arena.Field field = o.arena().drawingField();
+        boolean blind = field != null && field.blind;
         Show.title(p, Component.literal("Dessin commencé").withStyle(ChatFormatting.RED, ChatFormatting.BOLD),
                 Component.literal(blind ? "Marche pour dessiner (tu ne vois rien) ; bannière verte pour finir"
                         : "Marche pour dessiner ; bannière verte pour finir").withStyle(ChatFormatting.GRAY), 3, 40, 10);
@@ -79,10 +82,11 @@ public final class Drawing {
 
     private static void finished(MinecraftServer server, ServerPlayer p, String name, Arena arena, Trace trace, boolean timeUp) {
         int blocks = trace.steps;
+        LAST.put(new Key(arena.name.toLowerCase(), name.toLowerCase()), trace);
         DrawingImages.save(server, arena, name, trace);
         if (p != null) {
             Show.title(p, Component.literal(timeUp ? "Temps écoulé" : "Dessin terminé").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD),
-                    Component.literal(arena.field != null && arena.field.blind ? "Ton dessin est enregistré" : blocks + " blocs tracés")
+                    Component.literal(arena.drawingField() != null && arena.drawingField().blind ? "Ton dessin est enregistré" : blocks + " blocs tracés")
                             .withStyle(ChatFormatting.GRAY), 3, 40, 10);
             Show.sound(p, SoundEvents.NOTE_BLOCK_CHIME, 1f, 1f);
         }
@@ -95,6 +99,32 @@ public final class Drawing {
     static void forget(String arena) {
         DRAWING.keySet().removeIf(k -> k.arena.equalsIgnoreCase(arena));
         DONE.removeIf(k -> k.arena.equalsIgnoreCase(arena));
+        LAST.keySet().removeIf(k -> k.arena.equalsIgnoreCase(arena));
+    }
+
+    /** A path as the live preview reads it. */
+    public record View(java.util.List<float[]> points, int w, int d, boolean live) {}
+
+    public static boolean anyTrace() {
+        return !DRAWING.isEmpty() || !LAST.isEmpty();
+    }
+
+    /** Is this contestant drawing right now? */
+    public static boolean drawing(String player) {
+        for (Key k : DRAWING.keySet()) if (k.player.equalsIgnoreCase(player)) return true;
+        return false;
+    }
+
+    /** This contestant's path (being drawn, else the last finished one), or null. */
+    public static View view(String player) {
+        for (boolean live : new boolean[]{true, false})
+            for (Map.Entry<Key, Trace> e : (live ? DRAWING : LAST).entrySet()) {
+                if (!e.getKey().player.equalsIgnoreCase(player)) continue;
+                Arena a = Arenas.get(e.getKey().arena);
+                Arena.Field f = a == null ? null : a.drawingField();
+                if (f != null) return new View(e.getValue().points, f.x1 - f.x0 + 1, f.z1 - f.z0 + 1, live);
+            }
+        return null;
     }
 
     public static void tick(MinecraftServer server) {
@@ -124,7 +154,7 @@ public final class Drawing {
                 lift(t);
                 continue;
             }
-            Arena.Field f = o.arena().field;
+            Arena.Field f = o.arena().drawingField();
             int[] off = o.offset();
             float fx = (float) (p.getX() - f.x0 - (off == null ? 0 : off[0])), fz = (float) (p.getZ() - f.z0 - (off == null ? 0 : off[2]));
             // A point every 0.15 block of walk (standing still adds nothing)

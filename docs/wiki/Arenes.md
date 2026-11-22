@@ -30,6 +30,10 @@ chaque candidat : chacun joue seul dans **sa** copie.
   — caméras de la manche La pomme »), le numéro libre suivant (« nouvelle ») et les rôles.
 - `/cm arene retirer <nom> <joueur>` · `supprimer <nom>` · `liste`. Tout est gardé dans `config/craftmaster/arenas.json`.
 
+**Terrain commun** : `/cm arene option <arène> terrainCommun true` fait jouer tout le monde sur le même terrain, sans copie ni remise à neuf. Chacun a son départ, réparti sur le vrai sol (`/cm arene depart <arène> <joueur>` pour le poser à la main, `auto` pour revenir au calcul). Les candidats sont en aventure, ne cassent et ne posent rien, et ne sortent pas de la zone. Les bannières rouge et verte se déclenchent d'un clic droit sans être posées ; le tracé de chacun reste invisible et séparé. `joueursVisibles` (oui par défaut) : les joueurs se voient. `finSpectateur false` : un candidat qui a fini reste sur le terrain, sans proposition de regarder ni F7 jusqu'à la fin de l'épreuve.
+
+**Aperçu du tracé** : en regardant un candidat, les organisateurs et les vrais spectateurs voient son tracé en direct dans un coin. `/cm apercu on|off|basculer`, `coin hg|hd|bg|bd`, `taille petit|moyen|grand`, une touche à régler dans les commandes, et une ligne dans le menu N. Sur la diffusion (F8), il est coupé par défaut : `/cm apercu antenne on`. Le serveur n'envoie jamais un tracé à un candidat.
+
 **Depuis une sélection WorldEdit** : `/cm arene creer <nom> selection` prend la sélection du joueur comme zone, sans mètre ruban. Avant de copier, `/cm arene plan <arène|selection> [copies]` annonce sans rien changer les blocs par copie et au total, la place de chaque copie, ce qu'elles chevauchent (arènes et zones déclarées) et ce qu'il y a sur place dans les chunks chargés. Une copie se fait en une fois : au-delà de 1 million de blocs au total, `/cm arene copier` et les remises à neuf sont refusées pour ne pas geler le serveur.
 
 

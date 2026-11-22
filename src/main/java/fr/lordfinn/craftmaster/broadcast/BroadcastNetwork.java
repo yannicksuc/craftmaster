@@ -246,7 +246,9 @@ public final class BroadcastNetwork {
                 /** A player's rights on the show's picture: title = "admin" or "", subtitle = "feed" when F7 is allowed. */
                 RIGHTS = "rights",
                 /** An organiser moved this player (/tp, /gamemode): out of F7 and F8, a normal player again. */
-                RELEASE = "release";
+                RELEASE = "release",
+                /** The live preview of a drawing: title = on | off, subtitle = corner, player = size in pixels. */
+                PREVIEW = "preview";
 
         private Cues() {}
     }

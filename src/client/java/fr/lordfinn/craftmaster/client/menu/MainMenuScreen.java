@@ -110,7 +110,24 @@ public class MainMenuScreen extends Screen {
         });
         spectate(r);
         chronoBars(r, false);
+        drawingPreview(r, false);
         addRenderableWidget(UiButton.of(left + w - 72, top + h - 26, 64, 18, Component.literal("Fermer"), this::onClose));
+    }
+
+    /** The small live picture of the watched contestant's path (not offered to a contestant during the trial). */
+    private void drawingPreview(Rows r, boolean organiser) {
+        JsonObject ap = obj(s(), "apercu");
+        if (ap == null || !bool(ap, "permis")) return;
+        String corner = str(ap, "coin"), size = str(ap, "taille");
+        r.row(Component.literal("Aperçu du tracé"), b -> {
+            b.toggle("Affiché", "Le tracé du candidat que tu regardes, dans un coin de l'écran", bool(ap, "on"), v -> MenuClient.command("apercu " + (v ? "on" : "off")));
+            for (String[] m : new String[][]{{"hg", "↖"}, {"hd", "↗"}, {"bg", "↙"}, {"bd", "↘"}})
+                b.button((m[0].equals(corner) ? "● " : "") + m[1], "Dans ce coin", () -> MenuClient.command("apercu coin " + m[0]));
+            for (String t : new String[]{"petit", "moyen", "grand"})
+                b.button((t.equals(size) ? "● " : "") + t, "Taille de l'aperçu", () -> MenuClient.command("apercu taille " + t));
+            if (organiser) b.toggle("Sur la diffusion", "L'aperçu aussi en F8 (l'image du stream) : coupé par défaut", bool(ap, "antenne"),
+                    v -> MenuClient.command("apercu antenne " + (v ? "on" : "off")));
+        });
     }
 
     /** The stopwatches' bars at the top of the screen: the player's own choice (and, for the organisers, who sees what). */
@@ -234,6 +251,7 @@ public class MainMenuScreen extends Screen {
             });
         }
         chronoBars(r, true);
+        drawingPreview(r, true);
         // Spectators (players done, or not contestants) and the master's voice
         JsonObject sp = obj(s(), "spectators");
         if (sp != null) {

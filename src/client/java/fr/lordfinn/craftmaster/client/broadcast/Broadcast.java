@@ -105,6 +105,8 @@ public final class Broadcast {
                 else ThemeSound.play(payload.subtitle());
             } else if (Cues.BROADCAST.equals(payload.kind())) {
                 set("on".equals(payload.title()));
+            } else if (Cues.PREVIEW.equals(payload.kind())) {
+                DrawingPreviewHud.prefs(payload.title(), payload.subtitle(), payload.player());
             } else if (Cues.RELEASE.equals(payload.kind())) {
                 set(false);
                 ShowFeedClient.release();
@@ -144,6 +146,7 @@ public final class Broadcast {
         ClientCommandRegistrationCallback.EVENT.register((d, ctx) -> registerCommands(d));
         ShowFeedClient.init();
         VoiceHud.init();
+        DrawingPreviewHud.init();
         InventoryCamClient.init();
         ThumbCapture.register();
         fr.lordfinn.craftmaster.client.regie.RegieThumbs.register();

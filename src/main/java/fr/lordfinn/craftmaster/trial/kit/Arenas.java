@@ -148,7 +148,7 @@ public final class Arenas {
         for (Arena a : ARENAS.values()) {
             if (!a.world.equals(dim)) continue;
             if (a.contains(pos, null)) return new Owner(a, null);
-            for (Map.Entry<String, int[]> c : a.copies.entrySet()) if (a.contains(pos, c.getValue())) return new Owner(a, c.getKey());
+            for (Map.Entry<String, int[]> c : a.liveCopies().entrySet()) if (a.contains(pos, c.getValue())) return new Owner(a, c.getKey());
         }
         return null;
     }
@@ -230,6 +230,11 @@ public final class Arenas {
     }
 
     private static int rebuild(MinecraftServer server, Arena a, java.util.Collection<String> only, boolean keepDrawings) {
+        if (a.terrainCommun) {
+            // Nothing to copy: only the round's state starts over
+            if (only == null) forgetRound(a, keepDrawings);
+            return 0;
+        }
         long copies = a.copies.keySet().stream().filter(k -> only == null || only.stream().anyMatch(w -> w.equalsIgnoreCase(k))).count();
         if (tooBig(a, copies)) {
             String line = "⚠ « " + a.name + " » : " + copies + " copie(s) de " + volume(a) + " blocs, c'est trop d'un coup (le serveur gèlerait) : rien n'a été copié.";
@@ -324,6 +329,10 @@ public final class Arenas {
      */
     public static List<String> plan(ServerLevel level, Arena a, int count) {
         List<String> out = new ArrayList<>();
+        if (a.terrainCommun) {
+            out.add("« " + a.name + " » se joue sur un terrain commun (" + a.world + ", " + a.sizeX() + " × " + a.sizeY() + " × " + a.sizeZ() + ") : aucune copie, rien à recopier.");
+            return out;
+        }
         long one = volume(a), all = one * count;
         out.add("Zone " + a.x0 + " " + a.y0 + " " + a.z0 + " → " + a.x1 + " " + a.y1 + " " + a.z1 + " (" + a.world + ") : " + a.sizeX() + " × " + a.sizeY() + " × " + a.sizeZ()
                 + " = " + String.format(java.util.Locale.FRANCE, "%,d", one) + " blocs par copie, " + String.format(java.util.Locale.FRANCE, "%,d", all) + " pour " + count + ".");
@@ -409,12 +418,16 @@ public final class Arenas {
             n++;
         }
         if (only != null) return n;
+        forgetRound(a, keepDrawings);
+        return n;
+    }
+
+    private static void forgetRound(Arena a, boolean keepDrawings) {
         Pickups.forget(a.name);
         Drawing.forget(a.name);
         if (!keepDrawings) DrawingImages.clear(a.name);
         GroundEnd.forget();
         Finish.reset();
-        return n;
     }
 
     /** The kinds of entities a copy must have as many of as the reference (read when needed: the game's registries). */
@@ -537,8 +550,8 @@ public final class Arenas {
             ServerPlayer p = server.getPlayerList().getPlayerByName(name);
             if (p == null) continue;
             int[] off = null;
-            for (Map.Entry<String, int[]> c : a.copies.entrySet()) if (c.getKey().equalsIgnoreCase(name)) off = c.getValue();
-            double[] s = spawn(a, off);
+            for (Map.Entry<String, int[]> c : a.liveCopies().entrySet()) if (c.getKey().equalsIgnoreCase(name)) off = c.getValue();
+            double[] s = a.terrainCommun ? CommonGround.start(level, a, name, TrialRun.castOr(players)) : spawn(a, off);
             p.teleportTo(level, s[0], s[1], s[2], Set.of(), a.syaw, 0f, true);
             setRespawn(p, level, s[0], s[1], s[2], a.syaw);
             if (a.clearInventory) p.getInventory().clearContent();
@@ -571,7 +584,7 @@ public final class Arenas {
     public static Map<String, String> signs(MinecraftServer server, Arena a, boolean lock) {
         ServerLevel level = level(server, a);
         Map<String, String> out = new LinkedHashMap<>();
-        for (Map.Entry<String, int[]> c : a.copies.entrySet()) {
+        for (Map.Entry<String, int[]> c : a.liveCopies().entrySet()) {
             List<String> texts = new ArrayList<>();
             for (BlockEntity be : blockEntities(level, a, c.getValue())) {
                 if (!(be instanceof SignBlockEntity sign)) continue;
@@ -645,6 +658,8 @@ public final class Arenas {
     // ---------------------------------------------------------------- links with the round
 
     public static void register() {
+        CommonGround.register();
+        DrawingPreview.register();
         ShowEvents.register(new ShowEvents.Listener() {
             @Override
             public void onEnvelopeOpened(MinecraftServer server, ServerPlayer player, int season, String mancheId) {
@@ -683,6 +698,7 @@ public final class Arenas {
 
     /** Is this block (one of the copy's own field floor blocks) in the field of {@code o}'s copy? */
     public static boolean inField(Owner o, BlockPos p, boolean floorOnly) {
+        if (o.arena().terrainCommun) return o.arena().contains(p, null);
         Arena.Field f = o.arena().field;
         if (f == null) return false;
         int[] off = o.offset();
@@ -704,6 +720,8 @@ public final class Arenas {
         ItemStack st = player.getItemInHand(hand);
         boolean red = st.is(Items.BANNER.red()), green = st.is(Items.BANNER.green()) || st.is(Items.BANNER.lime());
         if (!red && !green) return InteractionResult.PASS;
+        // On a common ground the banner is only a switch: nothing is planted
+        if (CommonGround.banner(sp, st)) return InteractionResult.FAIL;
         BlockPos at = level.getBlockState(hit.getBlockPos()).canBeReplaced() ? hit.getBlockPos() : hit.getBlockPos().relative(hit.getDirection());
         if (hit.getDirection() != Direction.UP && !level.getBlockState(hit.getBlockPos()).canBeReplaced()) return InteractionResult.PASS;
         Owner o = ownerAt(level, at);

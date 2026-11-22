@@ -41,9 +41,10 @@ public final class DrawingImages {
 
     /** Draws and keeps the picture of a finished drawing, and its raw path (to draw it again later). */
     static void save(MinecraftServer server, Arena arena, String player, Drawing.Trace trace) {
-        if (arena.field == null) return;
+        Arena.Field field = arena.drawingField();
+        if (field == null) return;
         try {
-            int w = arena.field.x1 - arena.field.x0 + 1, d = arena.field.z1 - arena.field.z0 + 1;
+            int w = field.x1 - field.x0 + 1, d = field.z1 - field.z0 + 1;
             Path dir = dir(arena.name);
             Files.createDirectories(dir);
             String file = player.replaceAll("[^A-Za-z0-9_.-]", "_");
@@ -164,7 +165,7 @@ public final class DrawingImages {
     }
 
     /** Ramer-Douglas-Peucker: the walking jitter (under {@code eps} block) out, the corners kept. */
-    static List<float[]> simplify(List<float[]> pts, float eps) {
+    public static List<float[]> simplify(List<float[]> pts, float eps) {
         if (pts.size() < 3) return pts;
         boolean[] keep = new boolean[pts.size()];
         keep[0] = true;
@@ -200,7 +201,7 @@ public final class DrawingImages {
      * Two light Chaikin passes, only on the gentle bends: a turn sharper than 50 degrees stays a corner (ears, legs,
      * horns keep their points).
      */
-    static List<float[]> smooth(List<float[]> pts) {
+    public static List<float[]> smooth(List<float[]> pts) {
         List<float[]> cur = pts;
         for (int pass = 0; pass < 2 && cur.size() >= 3; pass++) {
             List<float[]> out = new ArrayList<>();

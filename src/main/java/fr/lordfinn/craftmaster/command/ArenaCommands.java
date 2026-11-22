@@ -90,7 +90,7 @@ public final class ArenaCommands {
         }
         return out;
     });
-    private static final SuggestionProvider<CommandSourceStack> OPTIONS = list(c -> List.of("chronoLettre", "panneauxSuite", "murs", "inventaireVide", "solFin", "alphabet", "aveugle", "cameraInventaire", "vocalLancement"));
+    private static final SuggestionProvider<CommandSourceStack> OPTIONS = list(c -> List.of("chronoLettre", "panneauxSuite", "murs", "inventaireVide", "solFin", "alphabet", "aveugle", "cameraInventaire", "vocalLancement", "terrainCommun", "joueursVisibles", "finSpectateur"));
     private static final SuggestionProvider<CommandSourceStack> JURY = list(c -> {
         List<String> out = new ArrayList<>(List.of("tous", "suivant", "precedent"));
         try {
@@ -243,6 +243,27 @@ public final class ArenaCommands {
                     ok(c, "Point de départ de « " + a.name + " » : ici (et au même endroit dans chaque copie). Réapparition comprise.");
                     return 1;
                 })))
+                // On a common ground: this contestant's start here, or back to the automatic one
+                .then(literal("depart").then(argument("arene", word()).suggests(ARENAS).then(argument("joueur", word()).suggests(CAST).executes(c -> {
+                    Arena a = arena(c);
+                    ServerPlayer p = player(c);
+                    if (a == null || p == null) return 0;
+                    if (!a.terrainCommun || !a.contains(p.blockPosition(), null)) {
+                        fail(c, "Place-toi sur le terrain commun de « " + a.name + " ».");
+                        return 0;
+                    }
+                    a.departs.put(str(c, "joueur").toLowerCase(), new double[]{p.getX(), p.getY(), p.getZ()});
+                    Arenas.save();
+                    ok(c, "Départ de " + str(c, "joueur") + " : ici.");
+                    return 1;
+                }).then(literal("auto").executes(c -> {
+                    Arena a = arena(c);
+                    if (a == null) return 0;
+                    a.departs.remove(str(c, "joueur").toLowerCase());
+                    Arenas.save();
+                    ok(c, "Départ de " + str(c, "joueur") + " : calculé automatiquement.");
+                    return 1;
+                })))))
                 .then(literal("copier").then(argument("arene", word()).suggests(ARENAS).executes(c -> copy(c, null))
                         .then(argument("joueurs", StringArgumentType.greedyString()).suggests(CAST).executes(c -> copy(c, str(c, "joueurs"))))))
                 .then(literal("reset").then(argument("arene", word()).suggests(ARENAS).executes(c -> {
@@ -519,6 +540,10 @@ public final class ArenaCommands {
             fail(c, "Aucun candidat dans la saison active : donne les joueurs (/cm arene copier " + a.name + " Ensuri Cyllu).");
             return 0;
         }
+        if (a.terrainCommun) {
+            fail(c, "« " + a.name + " » se joue sur un terrain commun : pas de copies.");
+            return 0;
+        }
         List<int[]> slots = Arenas.nextSlots(a, players);
         if (Arenas.tooBig(a, a.copies.size() + slots.size())) {
             fail(c, (a.copies.size() + slots.size()) + " copie(s) de " + Arenas.volume(a) + " blocs : trop d'un coup, le serveur gèlerait. Rien n'a été copié (/cm arene plan " + a.name + ").");
@@ -648,8 +673,11 @@ public final class ArenaCommands {
             }
             case "camerainventaire" -> a.inventoryCam = on;
             case "vocallancement" -> a.vocalLancement = on;
+            case "terraincommun" -> a.terrainCommun = on;
+            case "joueursvisibles" -> a.joueursVisibles = on;
+            case "finspectateur" -> a.finSpectateur = on;
             default -> {
-                fail(c, "Option inconnue : chronoLettre, panneauxSuite, murs, inventaireVide, solFin, alphabet, aveugle, cameraInventaire, vocalLancement (ou chronoSuite <secondes>, mode aventure|survie).");
+                fail(c, "Option inconnue : chronoLettre, panneauxSuite, murs, inventaireVide, solFin, alphabet, aveugle, cameraInventaire, vocalLancement, terrainCommun, joueursVisibles, finSpectateur (ou chronoSuite <secondes>, mode aventure|survie).");
                 return 0;
             }
         }

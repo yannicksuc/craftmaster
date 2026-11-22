@@ -96,6 +96,36 @@ public final class Arena {
     /** Contestant → offset of their copy from the reference. */
     public Map<String, int[]> copies = new LinkedHashMap<>();
 
+    /**
+     * Everyone plays on this one ground ({@link CommonGround}): nothing is copied or rebuilt (the copies listed above
+     * are kept but ignored), each contestant has a start, the drawing is only recorded.
+     */
+    public boolean terrainCommun;
+    /** On a common ground: the contestants see each other. */
+    public boolean joueursVisibles = true;
+    /** false: a contestant who is done stays a normal player, with no offer to watch and no F7 until the trial ends. */
+    public boolean finSpectateur = true;
+    /** On a common ground: starts set by hand, contestant (lower case) → x, y, z. */
+    public Map<String, double[]> departs = new LinkedHashMap<>();
+
+    /** The copies in play (none on a common ground). */
+    public Map<String, int[]> liveCopies() {
+        return terrainCommun ? Map.of() : copies;
+    }
+
+    /** The field drawn on: on a common ground, the whole box, blind (nothing ever goes on the floor). */
+    public Field drawingField() {
+        if (!terrainCommun) return field;
+        Field f = new Field();
+        f.x0 = x0;
+        f.z0 = z0;
+        f.x1 = x1;
+        f.z1 = z1;
+        f.y = y0;
+        f.blind = true;
+        return f;
+    }
+
     public static final class Field {
         /** Floor of the field in the reference: the blocks walked on (inclusive x/z, one y). */
         public int x0, z0, x1, z1, y;

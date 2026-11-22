@@ -68,6 +68,7 @@ public final class SpectatorCommands {
         CraftMasterCommands.add(d, SpectatorCommands::spectators, "craftMasterSpectators", "cfsv");
         CraftMasterCommands.add(d, SpectatorCommands::voice, "craftMasterVocal", "cfvo");
         CraftMasterCommands.add(d, fr.lordfinn.craftmaster.trial.ChronoBars::command, "craftMasterChronos", "cfcb");
+        CraftMasterCommands.add(d, fr.lordfinn.craftmaster.trial.kit.DrawingPreview::command, "craftMasterApercu", "cfap");
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> spectators(String name) {

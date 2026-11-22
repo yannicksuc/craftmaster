@@ -154,7 +154,10 @@ public final class Spectators {
         String t = trial();
         if (t == null || !allowed(t)) return false;
         String name = Judging.contestant(p);
-        return name == null || Finish.finished(name);
+        if (name == null) return true;
+        // A trial where those who are done stay on the ground as normal players: no watching until it ends
+        if (fr.lordfinn.craftmaster.trial.kit.TrialRun.arenas(t).stream().anyMatch(a -> !a.finSpectateur)) return false;
+        return Finish.finished(name);
     }
 
     /** The contestants still playing, online (names as in the cast). */
@@ -259,7 +262,8 @@ public final class Spectators {
         if (!eligible(p)) {
             String t = trial();
             throw new IllegalArgumentException(t == null ? "aucune épreuve en cours." : !allowed(t) ? "les spectateurs ne sont pas autorisés pour cette épreuve."
-                    : "tu joues encore : tu pourras regarder quand tu auras fini.");
+                    : fr.lordfinn.craftmaster.trial.kit.TrialRun.arenas(t).stream().anyMatch(a -> !a.finSpectateur)
+                    ? "dans cette épreuve, les candidats restent sur le terrain jusqu'à la fin." : "tu joues encore : tu pourras regarder quand tu auras fini.");
         }
         ServerPlayer t = null;
         if (target != null) {

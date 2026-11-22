@@ -509,7 +509,7 @@ public final class Replays {
         for (Manche r : manches)
             for (fr.lordfinn.craftmaster.trial.kit.Arena a : fr.lordfinn.craftmaster.trial.kit.TrialRun.arenas(r.id)) {
                 boxes.add(new ReplayArea.Box(a.world, a.x0, a.z0, a.x1, a.z1));
-                for (int[] o : a.copies.values()) boxes.add(new ReplayArea.Box(a.world, a.x0 + o[0], a.z0 + o[2], a.x1 + o[0], a.z1 + o[2]));
+                for (int[] o : a.liveCopies().values()) boxes.add(new ReplayArea.Box(a.world, a.x0 + o[0], a.z0 + o[2], a.x1 + o[0], a.z1 + o[2]));
                 if (camera == null) camera = new Vec3((a.x0 + a.x1) / 2.0, a.y1 + 4, (a.z0 + a.z1) / 2.0);
             }
         for (Manche r : manches) {

@@ -167,6 +167,12 @@ public final class TrialRun {
         return out;
     }
 
+    /** The season's cast, or these names when there is none: who shares a common ground. */
+    static List<String> castOr(List<String> names) {
+        List<String> c = cast();
+        return c.isEmpty() ? names : c;
+    }
+
     private static boolean in(String name, java.util.Collection<String> names) {
         for (String n : names) if (n.equalsIgnoreCase(name)) return true;
         return false;
@@ -190,7 +196,7 @@ public final class TrialRun {
      */
     public static List<String> syncCopies(MinecraftServer server, Arena a, boolean buildNew) {
         List<String> lines = new ArrayList<>();
-        if (a.copies.isEmpty()) return lines;
+        if (a.terrainCommun || a.copies.isEmpty()) return lines;
         List<String> cast = cast();
         if (cast.isEmpty()) return lines;
         ServerLevel level = Arenas.level(server, a);
@@ -372,7 +378,10 @@ public final class TrialRun {
         }
         for (Arena a : arenas) {
             REPORT.addAll(syncCopies(server, a, false));
-            if (!a.copies.isEmpty()) REPORT.add("« " + a.name + " » : " + Arenas.rebuild(server, a) + " copie(s) remise(s) à neuf.");
+            if (a.terrainCommun) {
+                Arenas.rebuild(server, a);
+                REPORT.add("« " + a.name + " » : terrain commun, rien à copier.");
+            } else if (!a.copies.isEmpty()) REPORT.add("« " + a.name + " » : " + Arenas.rebuild(server, a) + " copie(s) remise(s) à neuf.");
         }
         prepared = key(season, mancheId);
         save();
@@ -387,7 +396,7 @@ public final class TrialRun {
             ServerLevel level = Arenas.level(server, a);
             int g = Math.max(0, a.chargementMarge);
             area(out, level, a.x0 - g, a.z0 - g, a.x1 + g, a.z1 + g);
-            for (int[] off : a.copies.values()) {
+            for (int[] off : a.liveCopies().values()) {
                 area(out, level, a.x0 + off[0] - g, a.z0 + off[2] - g, a.x1 + off[0] + g, a.z1 + off[2] + g);
                 double[] sp = Arenas.spawn(a, off);
                 around(out, level, sp[0], sp[2]);
@@ -486,6 +495,8 @@ public final class TrialRun {
     }
 
     public static GameType gameType(Arena a) {
+        // A common ground is never built on nor broken, whatever the arena's mode says
+        if (a.terrainCommun) return GameType.ADVENTURE;
         return "survie".equals(a.mode) ? GameType.SURVIVAL : GameType.ADVENTURE;
     }
 
@@ -566,7 +577,7 @@ public final class TrialRun {
             return 0;
         }
         List<Arena> arenas = arenas(mancheId);
-        boolean withCopies = arenas.stream().anyMatch(a -> !a.copies.isEmpty());
+        boolean withCopies = arenas.stream().anyMatch(a -> !a.liveCopies().isEmpty());
         int n = 0;
         for (SeasonPlayer sp : l.season().players.values()) {
             if (sp.archived) continue;
@@ -574,7 +585,7 @@ public final class TrialRun {
             ServerPlayer p = only != null ? (only.getGameProfile().name().equalsIgnoreCase(sp.name) ? only : null)
                     : server.getPlayerList().getPlayerByName(sp.name);
             if (p == null) continue;
-            if (withCopies && arenas.stream().noneMatch(a -> a.copies.keySet().stream().anyMatch(k -> k.equalsIgnoreCase(sp.name)))) {
+            if (withCopies && arenas.stream().noneMatch(a -> a.liveCopies().keySet().stream().anyMatch(k -> k.equalsIgnoreCase(sp.name)))) {
                 continue;
             }
             if (got(season, mancheId, sp.name) || carries(p, season, mancheId)) {
@@ -789,7 +800,10 @@ public final class TrialRun {
         prepared = null;
         lines.add("⌂ " + moved + " candidat(s) revenu(s) au plateau (leur place d'avant l'épreuve).");
         for (Arena a : arenas)
-            if (!a.copies.isEmpty()) lines.add("« " + a.name + " » : " + Arenas.rebuildKeepingDrawings(server, a) + " copie(s) remise(s) à neuf"
+            if (a.terrainCommun) {
+                Arenas.rebuildKeepingDrawings(server, a);
+                lines.add("« " + a.name + " » : terrain commun, rien à remettre (les dessins restent pour le jury).");
+            } else if (!a.copies.isEmpty()) lines.add("« " + a.name + " » : " + Arenas.rebuildKeepingDrawings(server, a) + " copie(s) remise(s) à neuf"
                     + (a.field != null ? " (les dessins restent pour le jury)." : "."));
         state.manche = null;
         state.step = 0;

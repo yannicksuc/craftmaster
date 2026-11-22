@@ -1179,5 +1179,6 @@
   "subtitles.craftmaster.theme.univers.steampunk": "CraftMaster theme, steampunk",
   "subtitles.craftmaster.theme.univers.medieval": "CraftMaster theme, medieval",
   "subtitles.craftmaster.theme.univers.western": "CraftMaster theme, western",
-  "key.craftmaster.voice_mode": "Master's voice: next mode"
+  "key.craftmaster.voice_mode": "Master's voice: next mode",
+  "key.craftmaster.drawing_preview": "Drawing preview: show / hide"
 }

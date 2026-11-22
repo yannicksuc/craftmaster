@@ -29,7 +29,7 @@ public final class IntroZone {
             if (!a.world.equals(world)) continue;
             int m = Math.max(0, a.chargementMarge);
             if (inside(x, z, a.x0 - m, a.z0 - m, a.x1 + m, a.z1 + m)) return "";
-            for (int[] o : a.copies.values())
+            for (int[] o : a.liveCopies().values())
                 if (inside(x, z, a.x0 + o[0] - m, a.z0 + o[2] - m, a.x1 + o[0] + m, a.z1 + o[2] + m)) return "";
             for (int[] r : a.chargementZones)
                 if (r.length >= 4 && inside(x, z, Math.min(r[0], r[2]), Math.min(r[1], r[3]), Math.max(r[0], r[2]), Math.max(r[1], r[3]))) return "";
