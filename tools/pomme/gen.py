@@ -57,8 +57,8 @@ def j(o): return json.dumps(o, ensure_ascii=False, separators=(',', ':'))
 
 # ------------------------------------------------------------ règles des objets (mode aventure)
 RULES = {
-    # La houe ne laboure plus rien (22/11) ; elle casse toujours le blé (3 blés pour le gâteau)
-    "iron_hoe":      ({"can_break": {"blocks": ["wheat"]}}, ["Casse : blé"]),
+    # La houe ne laboure plus rien (22/11) : elle casse les bottes de foin (9 blés chacune) ; les plants sont du décor
+    "iron_hoe":      ({"can_break": {"blocks": ["hay_block"]}}, ["Casse : bottes de foin"]),
     # + le béton blanc : le béton en poudre au-dessus du coffre de la tête de Steve, durci au seau d'eau
     "iron_pickaxe":  ({"can_break": {"blocks": ["iron_ore", "coal_ore", "raw_iron_block", "white_concrete"]}},
                       ["Casse : minerai de fer, minerai de charbon,", "bloc de fer brut, béton blanc"]),
@@ -75,7 +75,6 @@ RULES = {
     "stone_pickaxe": ({"can_break": {"blocks": ["iron_ore"]}}, ["Casse : minerai de fer"]),
     # Les graines ne se plantent plus (22/11) : elles servent à attirer les poules
     "wheat_seeds":   ({}, ["Attire les poules"]),
-    "bone_meal":     ({"can_place_on": {"blocks": ["wheat", "carrots", "beetroots"]}}, ["Utilisable sur : blé, carottes, betteraves"]),
     "cow_spawn_egg": ({"can_place_on": [{}]}, []),
 }
 HIDE = {"hidden_components": ["minecraft:can_break", "minecraft:can_place_on"]}
@@ -87,20 +86,26 @@ def rule_components(item):
     return out
 def comp_snbt(c):
     return ",".join("%s=%s" % (k, re.sub(r'"(\w+)":', r'\1:', j(v))) for k, v in c.items())
-# Composants que d'anciennes règles avaient mis et que les objets déjà distribués perdent (20/11 : la Farine
-# ne fait plus pousser la canne à sucre, retirée de la salle)
-STRIP = {"bone_meal": ["minecraft:consumable"], "iron_hoe": ["minecraft:can_place_on"], "wheat_seeds": ["minecraft:can_place_on"]}
+# Composants que d'anciennes règles avaient mis et que les objets déjà distribués perdent
+STRIP = {"iron_hoe": ["minecraft:can_place_on"], "wheat_seeds": ["minecraft:can_place_on"]}
+# La poudre d'os ne sert plus (22/11) : celle qui resterait dans un conteneur ne peut plus rien faire pousser
+INERTE = {"bone_meal": ["minecraft:can_place_on", "minecraft:can_break", "minecraft:consumable", "minecraft:lore", "minecraft:tooltip_display"]}
 mods = []
 for item in RULES:
     comps = rule_components(item)
     for k in STRIP.get(item, []): comps["!" + k] = {}
     mods.append({"function": "minecraft:filtered", "item_filter": {"items": "minecraft:" + item},
                  "on_pass": {"function": "minecraft:set_components", "components": comps}})
+for item, keys in INERTE.items():
+    mods.append({"function": "minecraft:filtered", "item_filter": {"items": "minecraft:" + item},
+                 "on_pass": {"function": "minecraft:set_components", "components": {"!" + k: {} for k in keys}}})
 F_JSON = {"data/pomme/item_modifier/regles.json": mods}
 
 def with_rules(item_tag):
     """Adds the rule components to an item compound from the schematic (chests, shelves...)."""
     iid = str(item_tag['id']).replace('minecraft:', '')
+    if iid in INERTE and 'components' in item_tag:
+        for k in INERTE[iid]: item_tag['components'].pop(k, None)
     if iid in RULES:
         comps = item_tag.setdefault('components', nbtlib.Compound())
         for k in STRIP.get(iid, []): comps.pop(k, None)
@@ -347,12 +352,13 @@ fn("tick", [
 ])
 fn("monde", [
     "# Aucune poule ne pond, aucun œuf n'éclot, les règles d'outils sur tous les objets, épée et lance interdites",
-    "execute as @e[type=chicken,distance=..600] run data modify entity @s EggLayTime set value 999999",
     "execute as @e[type=chicken,distance=..600,predicate=pomme:bebe] run tag @s add pomme_mort",
     "# Les tableaux restent incassables, y compris ceux posés depuis dans la référence",
     "execute as @e[type=painting,tag=!pomme_tableau,distance=..600] run function pomme:tableau",
     "tp @e[tag=pomme_mort,distance=..600] ~ -500 ~",
     "kill @e[tag=pomme_mort]",
+    "# Adultes « au repos » (Age positif) : elles suivent la graine mais ne la mangent pas, la seule graine de la salle reste en main",
+    "execute as @e[type=chicken,distance=..600] run data merge entity @s {EggLayTime:999999,Age:6000}",
 ] + ["item modify entity @a[distance=..600] container.%d pomme:regles" % k for k in range(36)] + [
     "item modify entity @a[distance=..600] weapon.offhand pomme:regles",
     "item modify entity @a[distance=..600] player.cursor pomme:regles",

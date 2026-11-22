@@ -96,12 +96,13 @@ for y in range(H):
             if want != have:
                 blocks['%d,%d,%d' % (x, y, z)] = have
             live = bes.get((REF[0] + x, REF[1] + y, REF[2] + z))
-            if live is not None and 'Items' in live:
+            # (a container LordFinn emptied has no Items at all: it counts as a change too)
+            if live is not None and ('Items' in live or 'Items' in sch_be.get((x, y, z), {})):
                 ref = sch_be.get((x, y, z), {}).get('Items')
                 if (x, y, z) == (28, 4, 27):
                     ref = [i for i in (ref or []) if str(i['id']) != 'minecraft:sugar_cane']
-                if items(live['Items']) != items(ref):
-                    contents['%d,%d,%d' % (x, y, z)] = serialize_tag(live['Items'], compact=True)
+                if items(live.get('Items')) != items(ref):
+                    contents['%d,%d,%d' % (x, y, z)] = serialize_tag(live['Items'], compact=True) if 'Items' in live else '[]'
 
 # The block entities of what changed (signs and their text, new chests, barrels...), whole
 def sign_text(t):
